@@ -99,6 +99,10 @@ Build:
 
 - Build Command: `npm ci --include=dev && npm run build`
 
+El build **no necesita `DATABASE_URL`**: `prisma generate` no se conecta a la base y `prisma.config.ts` usa un valor de relleno cuando la variable no está definida. Por eso puedes crear el servicio primero y configurar la base después sin que el build falle.
+
+El `--include=dev` del comando es una precaución: Tailwind, TypeScript y el CLI de Prisma viven en `devDependencies`, y con `NODE_ENV=production` un `npm ci` normal podría omitirlas. Si el build falla con `tsc: not found` o `tailwindcss: not found`, es exactamente esto.
+
 Deploy:
 
 - Start Command: `npm start`
@@ -248,6 +252,10 @@ El healthcheck devuelve `503` únicamente si la base de datos no responde; un ba
 La retención corre una vez al día y borra bitácora y eventos vencidos. No genera avisos salvo que borre algo, así que si no ves nada en los logs es que no había nada que purgar.
 
 Si configuras `ALERT_WEBHOOK_URL`, cada log de nivel `ERROR` se envía a ese endpoint con enfriamiento por tipo de error. Es la forma más barata de enterarte de un fallo sin depender de revisar el panel.
+
+El build no necesita `DATABASE_URL`, pero el runtime sí: `src/config/prisma.ts` aborta el arranque si la variable no existe. Si ves en los Deploy Logs `DATABASE_URL no está definido.` seguido de un reinicio del servicio, es que la app arrancó sin la variable; el build puede haber pasado sin problema.
+
+Si el build falla con `Failed to load config file "/app" ... PrismaConfigEnvError: Cannot resolve environment variable: DATABASE_URL`, estás desplegando un commit anterior a la corrección de `prisma.config.ts`, que exigía la variable incluso para generar el cliente. Con la versión actual ese paso ya no depende de la base.
 
 ---
 

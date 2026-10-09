@@ -268,7 +268,7 @@ Sin `ENCRYPTION_KEY` la app funciona igual, pero las credenciales de Meta quedan
 
 `.github/workflows/ci.yml` corre en cada push a `main` y en cada pull request: valida el esquema de Prisma, genera el cliente, verifica tipos, corre los tests y hace el build completo.
 
-El workflow define un `DATABASE_URL` de relleno porque `prisma.config.ts` exige la variable para cargar la configuración, y GitHub arranca sin `.env` ni secretos. Ninguno de esos pasos se conecta a una base de datos, así que el valor nunca se usa: **no hace falta configurar secretos en GitHub**.
+No hace falta configurar ningún secreto en GitHub: los pasos que usan Prisma (`validate` y `generate`) no se conectan a una base de datos, y `prisma.config.ts` usa un `DATABASE_URL` de relleno cuando la variable no existe. Eso mismo es lo que permite que el build de Railway funcione antes de tener la base configurada.
 
 Si algún día agregas tests que sí necesiten base de datos, el workflow tendría que levantar un servicio de PostgreSQL con `services:` y apuntar `DATABASE_URL` a él.
 
