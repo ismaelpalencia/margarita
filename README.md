@@ -62,6 +62,9 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Asignación automática de conversaciones nuevas al agente disponible con menos carga (`LEAST_BUSY`).
 - Historial de asignaciones (`AssignmentHistory`) para saber quién movió qué y por qué.
 - Actualizaciones en vivo en el navegador vía socket.io.
+- Cola de webhooks con reintentos y backoff: un fallo temporal ya no pierde mensajes.
+- Credenciales de Meta cifradas en la base de datos.
+- Bitácora con retención automática y credenciales redactadas.
 
 ---
 
@@ -226,8 +229,20 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `META_BUSINESS_ACCOUNT_ID` | Sí | ID de la WhatsApp Business Account |
 | `META_VERIFY_TOKEN` | Sí | Cadena que tú eliges para verificar el webhook |
 | `META_PHONE_NUMBER` | Sí | Número visible del negocio |
+| `ENCRYPTION_KEY` | Sí | Cifra los tokens de Meta en la base (AES-256-GCM). Genera con `openssl rand -hex 32` |
+| `LOGIN_MAX_ATTEMPTS` | No | Intentos fallidos antes de bloquear la cuenta. Default `5` |
+| `LOGIN_LOCK_MINUTES` | No | Duración del bloqueo. Default `15` |
+| `LOG_RETENTION_DAYS` | No | Días que se conserva la bitácora. Default `90` |
+| `WEBHOOK_EVENT_RETENTION_DAYS` | No | Días que se conservan los eventos ya procesados. Default `30` |
+| `WEBHOOK_QUEUE_ENABLED` | No | Procesa los webhooks por cola. Default `true` |
+| `WEBHOOK_WORKER_INTERVAL_MS` | No | Cada cuánto revisa la cola el worker. Default `2000` |
+| `WEBHOOK_MAX_ATTEMPTS` | No | Reintentos antes de marcar un evento como `FAILED`. Default `5` |
+| `ALERT_WEBHOOK_URL` | No | Endpoint (Slack, Discord, Google Chat) que recibe avisos de error |
+| `ALERT_COOLDOWN_MINUTES` | No | Enfriamiento entre avisos repetidos. Default `10` |
 
 Sin `META_APP_SECRET` el webhook no valida el origen: en desarrollo solo registra un aviso, pero **en producción responde 401** y la app deja de recibir mensajes.
+
+Sin `ENCRYPTION_KEY` la app funciona igual, pero las credenciales de Meta quedan en texto plano y el panel de sistema lo marca como pendiente.
 
 ---
 
@@ -243,6 +258,8 @@ Sin `META_APP_SECRET` el webhook no valida el origen: en desarrollo solo registr
 | `npm run copy:assets` | Copia `views` y `public` a `dist/` |
 | `npm run db:push` | Aplica el esquema a la base sin migraciones |
 | `npm run db:migrate` | Crea y aplica una migración de desarrollo |
+| `npm test` | Corre los tests unitarios con el runner de Node |
+| `npm run db:encrypt-secrets` | Cifra las credenciales de Meta que siguen en texto plano |
 | `npm run db:generate` | Regenera el cliente de Prisma |
 | `npm run db:seed` | Carga datos iniciales |
 | `npm run db:studio` | Abre Prisma Studio |
@@ -274,6 +291,8 @@ Sin `META_APP_SECRET` el webhook no valida el origen: en desarrollo solo registr
 | GET/POST | `/admin/tags`, `/admin/tags/new`, `/admin/tags/:id/edit`, `/admin/tags/:id/deactivate` | Gestión de etiquetas |
 | GET | `/admin/whatsapp` | Detalle de la cuenta conectada |
 | POST | `/admin/whatsapp/test-connection` | Prueba la conexión contra Meta |
+| POST | `/admin/whatsapp/credentials` | Actualiza número, IDs y tokens (se guardan cifrados) |
+| POST | `/admin/whatsapp/encrypt-secrets` | Cifra las credenciales que siguen en texto plano |
 | GET | `/admin/templates` | Plantillas sincronizadas |
 | POST | `/admin/templates/sync` | Sincroniza plantillas desde Meta |
 | GET | `/admin/conversations` | Todas las conversaciones |
@@ -346,7 +365,13 @@ Endpoints: `GET` y `POST /webhooks/meta/whatsapp`.
 
 **Idempotencia.** Cada mensaje entrante se identifica por `wamid`; si Meta reintenta, no se duplica.
 
-**Respuesta.** Siempre `200`, incluso ante un error interno, para evitar reintentos infinitos de Meta. Los errores quedan en la tabla `Log` (visibles en `/admin/logs`) y en los logs del servidor.
+**Cola de procesamiento.** El endpoint ya no procesa el mensaje en línea: guarda el payload en la tabla `WebhookEvent` y responde `200` de inmediato (en la práctica, menos de 10 ms). Un worker en segundo plano lo procesa cada `WEBHOOK_WORKER_INTERVAL_MS` milisegundos con reintentos y backoff exponencial (1s, 2s, 4s… hasta 5 minutos) y `WEBHOOK_MAX_ATTEMPTS` intentos antes de marcarlo como `FAILED`.
+
+Esto cambia dos cosas importantes. Primero, un error temporal (base de datos lenta, un bug en el procesamiento) ya no pierde el mensaje del cliente: se reintenta. Segundo, si el proceso se cae a mitad del trabajo, el evento queda en `PROCESSING` y se devuelve a la cola automáticamente a los 5 minutos.
+
+Si el payload no se puede guardar (por ejemplo, la base está caída), el endpoint responde `500` a propósito para que Meta lo reintente: en ese caso perderlo sí sería perder el mensaje.
+
+**Respuesta.** `200` cuando el evento quedó encolado. En el modo directo (`WEBHOOK_QUEUE_ENABLED=false`) procesa en línea y también responde `200` ante error, para no provocar reintentos infinitos durante la depuración local.
 
 **Rate limiting.** El webhook está excluido del límite global y tiene el suyo (1200 peticiones por minuto) porque Meta entrega en ráfagas.
 
@@ -371,16 +396,20 @@ El cliente vive en `src/public/js/live.js` y se activa con atributos en `<body>`
 
 - **Autenticación**: JWT en cookie `httpOnly`, con registro en `UserSession` para poder revocar sesiones. La cookie usa `secure` en producción y `sameSite=lax`.
 - **Autorización**: `authMiddleware` en todas las rutas privadas y `requireRole` separando `ADMIN` de `AGENT`. Un agente solo puede ver y responder sus conversaciones asignadas; esa restricción se aplica también en la consulta a base de datos.
-- **Contraseñas**: hash con bcrypt (12 rondas).
+- **Contraseñas**: hash con bcrypt (12 rondas). Política mínima de 10 caracteres con letras y números, y lista negra de contraseñas obvias al crear o editar agentes.
+- **Bloqueo por fuerza bruta**: el login tiene su propio límite (10 peticiones por 15 minutos por IP) y, a nivel de cuenta, se bloquea `LOGIN_LOCK_MINUTES` minutos tras `LOGIN_MAX_ATTEMPTS` intentos fallidos. Cada intento fallido, cada bloqueo y cada acceso correcto quedan en la bitácora.
+- **Protección CSRF**: toda petición que cambia estado debe traer un `Origin` (o `Referer`) que coincida con `APP_URL`. Un formulario alojado en otro sitio recibe `403`. Las peticiones sin `Origin` (curl, healthchecks, webhooks de Meta) se permiten porque no son navegadores.
+- **Cifrado de credenciales**: los tokens de Meta se guardan con AES-256-GCM usando `ENCRYPTION_KEY`. Los valores guardados antes de habilitar el cifrado se siguen leyendo y se pueden migrar con el botón del panel o con `npm run db:encrypt-secrets`.
 - **Firma de webhook**: HMAC-SHA256 con comparación en tiempo constante.
 - **Validación**: todos los cuerpos de entrada pasan por esquemas Zod.
 - **Cabeceras**: Helmet habilitado.
 - **CORS**: restringido a `APP_URL`, con credenciales.
-- **Rate limiting**: 300 peticiones cada 15 minutos por IP en el panel; 1200 por minuto en el webhook.
+- **Rate limiting**: 300 peticiones cada 15 minutos por IP en el panel; 10 en el login; 1200 por minuto en el webhook. El healthcheck está exento.
 - **Proxy**: `trust proxy` activo, porque la app corre detrás de un proxy en producción.
-- **Secretos**: los tokens de la cuenta se muestran enmascarados en la interfaz y nunca se renderizan completos.
-
-**Pendiente de seguridad conocido**: los tokens de Meta se guardan en claro en la base de datos. Cifrarlos está contemplado para una versión posterior.
+- **Secretos**: los tokens se muestran enmascarados y el objeto que consume la vista no incluye el valor en claro. Además, la bitácora redacta cualquier campo que parezca credencial (`token`, `secret`, `password`, `authorization`) antes de guardarlo.
+- **Retención**: la bitácora se purga a los `LOG_RETENTION_DAYS` días y los eventos de webhook ya resueltos a los `WEBHOOK_EVENT_RETENTION_DAYS`, para acotar el crecimiento y la exposición de datos personales.
+- **Monitoreo**: `/health` reporta base de datos, profundidad de la cola, evento pendiente más antiguo, estado del worker y si falta alguna variable de seguridad. Devuelve `503` solo si la base está caída.
+- **Alertas**: si defines `ALERT_WEBHOOK_URL`, cada log de nivel `ERROR` dispara un aviso externo con enfriamiento configurable.
 
 ---
 
@@ -396,7 +425,16 @@ La guía completa paso a paso está en [`docs/deploy-railway.md`](docs/deploy-ra
 | Puerto | `3000` |
 | Variables clave | `DATABASE_URL` (referencia al plugin de Postgres), `APP_URL` con el dominio público HTTPS, `NODE_ENV=production`, `JWT_SECRET` y las `META_*` |
 
-Los tres tropiezos más comunes: dejar `APP_URL` apuntando a localhost (rompe CORS y el socket), no incluir las devDependencies en el build cuando `NODE_ENV=production`, y olvidar `META_APP_SECRET` (el webhook responde 401 en producción).
+Los cuatro tropiezos más comunes: dejar `APP_URL` apuntando a localhost (rompe CORS y el socket), no incluir las devDependencies en el build cuando `NODE_ENV=production`, olvidar `META_APP_SECRET` (el webhook responde 401 en producción) y olvidar `ENCRYPTION_KEY` (las credenciales quedan sin cifrar).
+
+El proyecto ya usa migraciones versionadas. En una base que venía funcionando con `db push`, el orden es marcar la migración inicial como aplicada y luego desplegar la nueva:
+
+```bash
+npx prisma migrate resolve --applied 20261009000000_init
+npx prisma migrate deploy
+```
+
+En una base nueva, `npx prisma migrate deploy` crea todo desde cero. El detalle está en [docs/deploy-railway.md](docs/deploy-railway.md).
 
 El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base de datos, un workspace. Todos los clientes usan el mismo repositorio y se diferencian solo por variables de entorno, dominio y cuenta de WhatsApp.
 
@@ -404,13 +442,20 @@ El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para operar. `npx tsc --noEmit` pasa limpio y el flujo crítico (verificación de firma, recepción de webhook, guardado del mensaje y emisión en vivo por socket) está verificado de punta a punta contra una base de datos real.
+Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 38 tests unitarios en verde y el flujo crítico está verificado de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login y cifrado de credenciales (22 comprobaciones de integración).
 
-Lo que se cerró recientemente:
+Lo que se cerró en el sprint de endurecimiento:
 
-- Validación de la firma `X-Hub-Signature-256` en el webhook.
+- Firma `X-Hub-Signature-256` obligatoria en el webhook.
+- Cola de webhooks con reintentos, backoff y recuperación de eventos interrumpidos.
 - Exclusión del webhook del rate limit global, con límite propio.
 - Actualizaciones en vivo en las bandejas con socket.io.
+- Credenciales de Meta cifradas con AES-256-GCM y editables desde el panel.
+- Bloqueo de cuenta por intentos fallidos y límite propio en el login.
+- Protección CSRF por origen y política mínima de contraseñas.
+- Retención automática de bitácora y eventos, con redacción de credenciales.
+- `/health` con estado real de base, cola y worker, y alertas externas opcionales.
+- Migraciones versionadas, tests unitarios y CI en GitHub Actions.
 
 Pendientes conocidos, en orden de impacto:
 
@@ -419,10 +464,10 @@ Pendientes conocidos, en orden de impacto:
 3. **Multimedia entrante**: se guarda el `mediaId`, pero todavía no hay visor ni descarga de imágenes, audio y documentos.
 4. **Límites de mensajes manuales**: `canSendManualMessages`, `manualMessageLimit` y `manualMessagesUsed` se configuran en la interfaz, pero aún no se validan ni se incrementan al enviar.
 5. **Normalización de teléfonos**: el normalizador asume México con prefijo `521`. Conviene contrastarlo contra el formato que Meta acepta hoy y, si el negocio crece fuera del país, generalizarlo.
-6. **Rotación de credenciales**: la cuenta de WhatsApp solo se carga con el seed; no hay pantalla para actualizar el token desde la interfaz.
-7. **Respuestas de botones e interactivos**: se registran de forma genérica, sin interpretar la opción elegida.
-8. **Tests automatizados**: no hay suite de pruebas; la verificación es manual más el chequeo de tipos.
-9. **Cifrado de tokens de Meta** en base de datos.
+6. **Respuestas de botones e interactivos**: se registran de forma genérica, sin interpretar la opción elegida, y todavía no se pueden enviar botones ni listas.
+7. **Opt-in y manejo de BAJA/STOP**: no hay campo de consentimiento en `Contact` ni forma de honrar una baja de manera automática.
+8. **Salud de la cuenta**: solo se procesa el campo `messages` del webhook; faltan `message_template_status_update` y `phone_number_quality_update` para enterarse de plantillas rechazadas o caídas de calidad.
+9. **Programación de campañas**: no se pueden agendar por fecha y hora, pausar ni cancelar.
 10. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
 
 Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArgarita.md`](MArgarita.md) y visibles en `/admin/roadmap`.
@@ -436,6 +481,7 @@ Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArg
 | [`MArgarita.md`](MArgarita.md) | Documento de producto: alcance, roles, reglas de negocio y roadmap V1/V2 |
 | [`base-datos.md`](base-datos.md) | Diseño de la base de datos entidad por entidad |
 | [`docs/deploy-railway.md`](docs/deploy-railway.md) | Guía de despliegue en Railway |
+| [`docs/roadmap-v2.md`](docs/roadmap-v2.md) | Plan detallado de los siguientes sprints: multimedia, interactivos y campañas |
 | [`prisma/schema.prisma`](prisma/schema.prisma) | Esquema real de la base de datos |
 
 `Reglas_margarita.md` es una copia idéntica de `MArgarita.md`.

@@ -1,6 +1,7 @@
 import { LogLevel, LogModule } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
+import { decryptSecret } from "../utils/crypto";
 import { LogService } from "./log.service";
 
 type VerifyWebhookParams = {
@@ -60,7 +61,7 @@ export class WebhookService {
             throw new Error("Modo inválido.");
         }
 
-        if (token !== account.verifyToken) {
+        if (token !== decryptSecret(account.verifyToken)) {
             await LogService.create({
                 workspaceId: account.workspaceId,
                 level: LogLevel.WARN,

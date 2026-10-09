@@ -19,6 +19,7 @@ import {
     renderTemplatePreview
 } from "../utils/template";
 import { isConversationWindowOpen } from "../utils/conversation-window";
+import { decryptSecret } from "../utils/crypto";
 import { emitToWorkspace } from "../sockets";
 
 type SendLocalMessageParams = {
@@ -180,7 +181,7 @@ export class MessageService {
                 payload,
                 {
                     params: {
-                        access_token: account.accessToken
+                        access_token: decryptSecret(account.accessToken)
                     },
                     timeout: 15000
                 }
@@ -315,7 +316,7 @@ export class MessageService {
                 payload,
                 {
                     params: {
-                        access_token: account.accessToken
+                        access_token: decryptSecret(account.accessToken)
                     },
                     timeout: 15000
                 }

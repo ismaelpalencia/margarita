@@ -28,6 +28,22 @@ function toPrismaJson(value: unknown): Prisma.InputJsonValue {
 }
 
 export class MetaWebhookHandlerService {
+    // Se usa cuando un evento de la cola agotó sus reintentos.
+    static async logProcessorFailure(params: {
+        webhookEventId: string;
+        attempts: number;
+        error: string;
+    }) {
+        await LogService.create({
+            level: LogLevel.ERROR,
+            module: LogModule.WEBHOOK,
+            action: "WEBHOOK_EVENT_FAILED",
+            message:
+                "Un evento de webhook agotó sus reintentos y no pudo procesarse.",
+            payload: params
+        });
+    }
+
     static async handleIncomingPayload(payload: MetaWebhookPayload) {
         const entries = payload.entry || [];
 

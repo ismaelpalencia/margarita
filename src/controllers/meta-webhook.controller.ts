@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
-import { LogLevel, LogModule } from "@prisma/client";
+import { LogLevel, LogModule, Prisma } from "@prisma/client";
 
 import { appConfig } from "../config/app.config";
+import { prisma } from "../config/prisma";
 import { LogService } from "../services/log.service";
 import { WebhookService } from "../services/webhook.service";
 import { MetaWebhookHandlerService } from "../services/meta-webhook-handler.service";
 import { MetaWebhookPayload } from "../types/meta-webhook";
+import { extractPhoneNumberId } from "../utils/meta-payload";
 import { verifyMetaSignature } from "../utils/webhook-signature";
 
 let missingSecretWarningLogged = false;
@@ -89,20 +91,48 @@ export class MetaWebhookController {
             }
         }
 
+        const payload = req.body as MetaWebhookPayload;
+
+        /**
+         * Con la cola activa, el webhook solo se guarda y se responde 200
+         * de inmediato. El worker lo procesa con reintentos y backoff, así
+         * que un fallo temporal ya no pierde el mensaje del cliente.
+         */
+        if (appConfig.webhookQueueEnabled) {
+            try {
+                await prisma.webhookEvent.create({
+                    data: {
+                        payload: JSON.parse(
+                            JSON.stringify(payload)
+                        ) as Prisma.InputJsonValue,
+                        phoneNumberId: extractPhoneNumberId(payload)
+                    }
+                });
+
+                return res.sendStatus(200);
+            } catch (error) {
+                console.error("No se pudo encolar el webhook:", error);
+
+                /**
+                 * Si no pudimos guardar el evento, respondemos 500 para
+                 * que Meta lo reintente: perderlo sería perder el mensaje.
+                 */
+                return res.sendStatus(500);
+            }
+        }
+
+        /**
+         * Modo directo (WEBHOOK_QUEUE_ENABLED=false), útil para depurar
+         * en local. Se responde 200 incluso ante error para evitar
+         * reintentos infinitos de Meta.
+         */
         try {
-            await MetaWebhookHandlerService.handleIncomingPayload(
-                req.body as MetaWebhookPayload
-            );
+            await MetaWebhookHandlerService.handleIncomingPayload(payload);
 
             return res.sendStatus(200);
         } catch (error) {
             console.error("Error procesando webhook:", error);
 
-            /**
-             * Importante:
-             * A Meta le respondemos 200 para evitar reintentos infinitos
-             * durante desarrollo. El error queda en consola/logs.
-             */
             return res.sendStatus(200);
         }
     }

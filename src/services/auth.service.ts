@@ -4,9 +4,12 @@ import bcrypt from "bcrypt";
 import { UserRole, UserStatus, WorkspaceStatus } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
+import { appConfig } from "../config/app.config";
 import { LoginInput } from "../validations/auth.validation";
 import { getSessionExpiresAt } from "../utils/session";
 import { signAuthToken } from "../utils/jwt";
+import { LogLevel, LogModule } from "@prisma/client";
+import { LogService } from "./log.service";
 
 type LoginContext = {
     ip?: string;
@@ -25,7 +28,45 @@ export class AuthService {
         });
 
         if (!user) {
+            await LogService.create({
+                level: LogLevel.WARN,
+                module: LogModule.AUTH,
+                action: "LOGIN_FAILED",
+                message: "Intento de acceso con un correo no registrado.",
+                payload: {
+                    email: input.email,
+                    ip: context.ip,
+                    reason: "USER_NOT_FOUND"
+                }
+            });
+
             throw new Error("Credenciales incorrectas.");
+        }
+
+        const now = new Date();
+
+        if (user.lockedUntil && user.lockedUntil > now) {
+            const minutes = Math.max(
+                1,
+                Math.ceil((user.lockedUntil.getTime() - now.getTime()) / 60000)
+            );
+
+            await LogService.create({
+                workspaceId: user.workspaceId,
+                level: LogLevel.WARN,
+                module: LogModule.AUTH,
+                action: "LOGIN_BLOCKED",
+                message: "Acceso bloqueado temporalmente por intentos fallidos.",
+                payload: {
+                    userId: user.id,
+                    ip: context.ip,
+                    lockedUntil: user.lockedUntil
+                }
+            });
+
+            throw new Error(
+                `Demasiados intentos fallidos. Intenta de nuevo en ${minutes} minuto(s).`
+            );
         }
 
         if (!user.isActive) {
@@ -39,6 +80,51 @@ export class AuthService {
         const passwordIsValid = await bcrypt.compare(input.password, user.password);
 
         if (!passwordIsValid) {
+            const attempts = user.failedLoginAttempts + 1;
+            const shouldLock = attempts >= appConfig.loginMaxAttempts;
+
+            await prisma.user.update({
+                where: {
+                    id: user.id
+                },
+                data: shouldLock
+                    ? {
+                          failedLoginAttempts: 0,
+                          lockedUntil: new Date(
+                              Date.now() + appConfig.loginLockMinutes * 60 * 1000
+                          )
+                      }
+                    : {
+                          failedLoginAttempts: attempts
+                      }
+            });
+
+            await LogService.create({
+                workspaceId: user.workspaceId,
+                level: LogLevel.WARN,
+                module: LogModule.AUTH,
+                action: shouldLock ? "LOGIN_LOCKED" : "LOGIN_FAILED",
+                message: shouldLock
+                    ? "Cuenta bloqueada temporalmente por intentos fallidos."
+                    : "Contraseña incorrecta.",
+                payload: {
+                    userId: user.id,
+                    email: user.email,
+                    ip: context.ip,
+                    attempts,
+                    maxAttempts: appConfig.loginMaxAttempts,
+                    lockMinutes: shouldLock
+                        ? appConfig.loginLockMinutes
+                        : undefined
+                }
+            });
+
+            if (shouldLock) {
+                throw new Error(
+                    `Demasiados intentos fallidos. La cuenta quedó bloqueada ${appConfig.loginLockMinutes} minuto(s).`
+                );
+            }
+
             throw new Error("Credenciales incorrectas.");
         }
 
@@ -63,7 +149,24 @@ export class AuthService {
             },
             data: {
                 lastLoginAt: new Date(),
-                status: user.role === UserRole.AGENT ? UserStatus.OFFLINE : user.status
+                status: user.role === UserRole.AGENT ? UserStatus.OFFLINE : user.status,
+                failedLoginAttempts: 0,
+                lockedUntil: null
+            }
+        });
+
+        await LogService.create({
+            workspaceId: user.workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.AUTH,
+            action: "LOGIN_SUCCESS",
+            message: "Inicio de sesión correcto.",
+            payload: {
+                userId: user.id,
+                email: user.email,
+                role: user.role,
+                ip: context.ip,
+                userAgent: context.userAgent
             }
         });
 

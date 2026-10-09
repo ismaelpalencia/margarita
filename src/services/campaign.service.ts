@@ -15,6 +15,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
+import { decryptSecret } from "../utils/crypto";
 import { emitToWorkspace } from "../sockets";
 import { CreateCampaignInput } from "../validations/campaign.validation";
 import { renderTemplatePreview, countTemplateVariables } from "../utils/template";
@@ -332,7 +333,7 @@ export class CampaignService {
                     payload,
                     {
                         params: {
-                            access_token: account.accessToken
+                        access_token: decryptSecret(account.accessToken)
                         },
                         timeout: 15000
                     }

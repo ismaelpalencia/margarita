@@ -1,14 +1,13 @@
 import { Router } from "express";
 
+import { HealthService } from "../services/health.service";
+
 const router = Router();
 
-router.get("/", (_req, res) => {
-    return res.status(200).json({
-        ok: true,
-        app: "Margarita",
-        status: "healthy",
-        timestamp: new Date().toISOString()
-    });
+router.get("/", async (_req, res) => {
+    const status = await HealthService.getStatus();
+
+    return res.status(status.httpStatus).json(status);
 });
 
 export default router;

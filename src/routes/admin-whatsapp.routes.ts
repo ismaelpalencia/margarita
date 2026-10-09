@@ -5,6 +5,8 @@ import { AdminWhatsAppController } from "../controllers/admin-whatsapp.controlle
 const router = Router();
 
 router.get("/", AdminWhatsAppController.show);
+router.post("/credentials", AdminWhatsAppController.updateCredentials);
+router.post("/encrypt-secrets", AdminWhatsAppController.encryptSecrets);
 router.post("/test-connection", AdminWhatsAppController.testConnection);
 
 export default router;

@@ -121,6 +121,94 @@
             <% } %>
         </section>
 
+        <section class="mb-8 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h2 class="text-xl font-black text-slate-900">
+                Seguridad y robustez
+            </h2>
+
+            <p class="mt-2 text-sm text-slate-500">
+                Estado de las protecciones que se verifican en cada petición.
+            </p>
+
+            <div class="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div class="rounded-xl p-4 ring-1 <%= status.hardening.credentialsEncrypted ? 'bg-emerald-50 ring-emerald-200' : 'bg-amber-50 ring-amber-200' %>">
+                    <p class="text-sm font-bold <%= status.hardening.credentialsEncrypted ? 'text-emerald-800' : 'text-amber-800' %>">
+                        Credenciales cifradas
+                    </p>
+                    <p class="mt-1 text-xs <%= status.hardening.credentialsEncrypted ? 'text-emerald-700' : 'text-amber-700' %>">
+                        <% if (status.hardening.credentialsEncrypted) { %>
+                            Los tokens de Meta están cifrados en la base de datos.
+                        <% } else if (status.hardening.encryptionKeyConfigured) { %>
+                            ENCRYPTION_KEY está configurada. Falta cifrar los tokens actuales desde la pantalla de WhatsApp.
+                        <% } else { %>
+                            Falta ENCRYPTION_KEY en las variables de entorno.
+                        <% } %>
+                    </p>
+                </div>
+
+                <div class="rounded-xl p-4 ring-1 <%= status.hardening.webhookSignatureConfigured ? 'bg-emerald-50 ring-emerald-200' : 'bg-amber-50 ring-amber-200' %>">
+                    <p class="text-sm font-bold <%= status.hardening.webhookSignatureConfigured ? 'text-emerald-800' : 'text-amber-800' %>">
+                        Firma del webhook
+                    </p>
+                    <p class="mt-1 text-xs <%= status.hardening.webhookSignatureConfigured ? 'text-emerald-700' : 'text-amber-700' %>">
+                        <% if (status.hardening.webhookSignatureConfigured) { %>
+                            Cada webhook se valida con X-Hub-Signature-256.
+                        <% } else { %>
+                            Falta META_APP_SECRET. En producción el webhook responde 401.
+                        <% } %>
+                    </p>
+                </div>
+
+                <div class="rounded-xl p-4 ring-1 <%= status.checks.webhookHealthy ? 'bg-emerald-50 ring-emerald-200' : 'bg-red-50 ring-red-200' %>">
+                    <p class="text-sm font-bold <%= status.checks.webhookHealthy ? 'text-emerald-800' : 'text-red-800' %>">
+                        Cola de webhooks
+                    </p>
+                    <p class="mt-1 text-xs <%= status.checks.webhookHealthy ? 'text-emerald-700' : 'text-red-700' %>">
+                        <% if (status.hardening.webhookQueueEnabled) { %>
+                            Activa. Pendientes: <%= status.pendingWebhookEvents %>.
+                            Fallidos: <%= status.failedWebhookEvents %>.
+                        <% } else { %>
+                            Deshabilitada: los webhooks se procesan en línea.
+                        <% } %>
+                    </p>
+                </div>
+
+                <div class="rounded-xl p-4 ring-1 <%= status.hardening.alertsConfigured ? 'bg-emerald-50 ring-emerald-200' : 'bg-slate-50 ring-slate-200' %>">
+                    <p class="text-sm font-bold <%= status.hardening.alertsConfigured ? 'text-emerald-800' : 'text-slate-700' %>">
+                        Alertas externas
+                    </p>
+                    <p class="mt-1 text-xs <%= status.hardening.alertsConfigured ? 'text-emerald-700' : 'text-slate-500' %>">
+                        <% if (status.hardening.alertsConfigured) { %>
+                            Los errores se envían a ALERT_WEBHOOK_URL.
+                        <% } else { %>
+                            Opcional: define ALERT_WEBHOOK_URL para recibir avisos de error.
+                        <% } %>
+                    </p>
+                </div>
+
+                <div class="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <p class="text-sm font-bold text-slate-700">
+                        Bloqueo por intentos fallidos
+                    </p>
+                    <p class="mt-1 text-xs text-slate-500">
+                        La cuenta se bloquea <%= status.hardening.loginLockMinutes %>
+                        minuto(s) tras <%= status.hardening.loginMaxAttempts %>
+                        intentos fallidos.
+                    </p>
+                </div>
+
+                <div class="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <p class="text-sm font-bold text-slate-700">
+                        Retención de datos
+                    </p>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Logs: <%= status.hardening.logRetentionDays %> días.
+                        Eventos de webhook: <%= status.hardening.webhookEventRetentionDays %> días.
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <section class="mb-8 grid gap-6 lg:grid-cols-2">
             <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
                 <h2 class="text-xl font-black text-slate-900">

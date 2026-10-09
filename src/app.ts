@@ -8,6 +8,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
 import { appConfig } from "./config/app.config";
+import { csrfProtection } from "./middlewares/csrf.middleware";
 import indexRoutes from "./routes/index.routes";
 import healthRoutes from "./routes/health.routes";
 
@@ -50,6 +51,8 @@ app.use(
 
 app.use(express.urlencoded({ extended: true }));
 
+app.use(csrfProtection);
+
 app.use(
     rateLimit({
         windowMs: 15 * 60 * 1000,
@@ -61,7 +64,9 @@ app.use(
          * terminamos respondiendo 429 y Meta reintenta o pierde eventos.
          * Los webhooks tienen su propio límite en webhook.routes.ts.
          */
-        skip: (req) => req.originalUrl.startsWith("/webhooks")
+        skip: (req) =>
+            req.originalUrl.startsWith("/webhooks") ||
+            req.originalUrl.startsWith("/health")
     })
 );
 

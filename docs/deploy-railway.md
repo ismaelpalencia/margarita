@@ -72,6 +72,16 @@ Pega esto en Variables del servicio de la app. Las referencias `${{...}}` apunta
 | `META_BUSINESS_ACCOUNT_ID` | ID de la WABA | |
 | `META_VERIFY_TOKEN` | cadena que tú inventas | Debe ser idéntica a la de Meta |
 | `META_PHONE_NUMBER` | número con lada, sin signo + | |
+| `ENCRYPTION_KEY` | `openssl rand -hex 32` | Cifra los tokens de Meta en la base |
+| `LOGIN_MAX_ATTEMPTS` | `5` | Intentos fallidos antes de bloquear |
+| `LOGIN_LOCK_MINUTES` | `15` | Duración del bloqueo |
+| `LOG_RETENTION_DAYS` | `90` | Días que se conserva la bitácora |
+| `WEBHOOK_EVENT_RETENTION_DAYS` | `30` | Días que se conservan los eventos resueltos |
+| `WEBHOOK_QUEUE_ENABLED` | `true` | Procesa los webhooks por cola |
+| `WEBHOOK_WORKER_INTERVAL_MS` | `2000` | Frecuencia del worker |
+| `WEBHOOK_MAX_ATTEMPTS` | `5` | Reintentos antes de marcar `FAILED` |
+| `ALERT_WEBHOOK_URL` | *(opcional)* | Slack/Discord/Google Chat para avisos de error |
+| `ALERT_COOLDOWN_MINUTES` | `10` | Enfriamiento entre avisos repetidos |
 
 ### Dos avisos que cuestan una tarde de depuración
 
@@ -124,12 +134,22 @@ Si prefieres que la configuración viaje en el repositorio en lugar de vivir en 
 
 ## 5. Base de datos: esquema y seed
 
-El repositorio no tiene carpeta `prisma/migrations`, así que la base se crea con `db push`. Hazlo una vez, antes del primer arranque real, apuntando a la base de Railway desde tu máquina.
+El proyecto usa migraciones versionadas en `prisma/migrations`, con una migración inicial y una de endurecimiento. Hay dos escenarios según el estado de la base.
 
-En Railway, servicio Postgres → Variables → copia `DATABASE_PUBLIC_URL`, y luego:
+En Railway, servicio Postgres → Variables → copia `DATABASE_PUBLIC_URL` y ejecuta desde tu máquina.
+
+**Base nueva (primer deploy):**
 
 ```bash
-DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma db push
+DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma migrate deploy
+DATABASE_URL="<DATABASE_PUBLIC_URL>" npm run db:seed
+```
+
+**Base que ya venía funcionando con `db push`:** primero se marca la migración inicial como aplicada (sin volver a ejecutarla, porque las tablas ya existen) y después se aplica solo la nueva.
+
+```bash
+DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma migrate resolve --applied 20261009000000_init
+DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma migrate deploy
 DATABASE_URL="<DATABASE_PUBLIC_URL>" npm run db:seed
 ```
 
@@ -145,21 +165,31 @@ railway run npm run db:seed
 
 `railway run` ejecuta el comando en tu máquina pero con las variables de Railway, así que necesita `node_modules` instalado localmente. El seed se corre desde tu máquina y no dentro del contenedor porque `tsx` es devDependency.
 
-### Migraciones versionadas (opcional, recomendado cuando el esquema empiece a cambiar)
+### Migraciones en cada deploy
 
-Con la base vacía, genera la migración inicial y pásate a un flujo con historial:
-
-```bash
-DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma migrate dev --name init
-```
-
-Después agrega un Pre-deploy Command en Settings → Deploy:
+Agrega un Pre-deploy Command en Settings → Deploy para que Railway aplique las migraciones pendientes antes de arrancar:
 
 ```bash
 npx prisma migrate deploy
 ```
 
-Ojo: si la base ya tiene datos y tablas creadas con `db push`, `migrate dev` detecta drift y puede querer reiniciar el esquema. En ese caso no lo corras a ciegas.
+Si tienes dudas de si la base y el esquema están sincronizados, puedes revisar el estado sin modificar nada. Solo necesitas configurar una base shadow para el comando de comparación:
+
+```bash
+npx prisma migrate status
+```
+
+Cuando quieras cambiar el esquema, hazlo en local con `npx prisma migrate dev --name descripcion` y sube la carpeta generada. Evita `db push` en producción: no deja historial y el siguiente `migrate deploy` puede detectar drift.
+
+### Cifrar credenciales existentes
+
+Si la base ya tenía tokens en texto plano antes de configurar `ENCRYPTION_KEY`, cifralos una vez:
+
+```bash
+railway run npm run db:encrypt-secrets
+```
+
+También puedes hacerlo desde el panel, en Admin → WhatsApp → Cifrar credenciales existentes.
 
 ---
 
@@ -189,6 +219,9 @@ En orden, con el dominio ya activo:
 4. Admin → Plantillas → Sincronizar: deben aparecer las plantillas con estado `APPROVED`.
 5. Manda un mensaje desde tu celular al número de negocio. Aparece una conversación nueva en `/admin/conversations` y, con la bandeja abierta, el mensaje se inserta en vivo sin recargar.
 6. Revisa Admin → Logs y busca `WEBHOOK_INCOMING_MESSAGE_SAVED`. Si aparece `WEBHOOK_SIGNATURE_INVALID`, el `META_APP_SECRET` no coincide con el de Meta. Si aparece `WEBHOOK_SIGNATURE_SECRET_MISSING`, la variable no está puesta.
+7. Abre `/health` y confirma `"status": "healthy"`, que `queue.pending` sea 0 y que el worker reporte un `lastRunAt` reciente. Si aparece `"degraded"`, revisa `queue.failed` o si el worker se quedó colgado.
+8. Entra a Admin → Sistema y verifica que las tarjetas de **Seguridad y robustez** estén en verde. Si dice que las credenciales siguen en texto plano, cífralas desde Admin → WhatsApp.
+9. Prueba el bloqueo de acceso: falla la contraseña `LOGIN_MAX_ATTEMPTS` veces y confirma que la cuenta se bloquea. La bitácora debe mostrar `LOGIN_FAILED` y luego `LOGIN_LOCKED`.
 
 ---
 
@@ -207,6 +240,14 @@ El webhook siempre responde `200`, incluso si algo falla. Es intencional para ev
 Un `META_ACCESS_TOKEN` permanente no caduca, pero si lo regeneras o rotas el App Secret, actualiza la variable en Railway y vuelve a probar la conexión.
 
 Como el build compila TypeScript, un error de tipos tumba el deploy. Corre `npx tsc --noEmit` en local antes de subir y lo detectas en segundos.
+
+Los webhooks ya no se procesan en línea: el endpoint solo encola y responde. El worker corre dentro del mismo proceso, así que si el servicio se reinicia, lo pendiente se retoma solo (los eventos interrumpidos vuelven a la cola a los 5 minutos). Con varias réplicas el reparto sigue siendo correcto porque cada evento se reclama con una actualización condicional, pero el socket.io sí necesita el adaptador de Redis para cruzar eventos entre instancias.
+
+El healthcheck devuelve `503` únicamente si la base de datos no responde; un backlog o un evento fallido se reporta como `degraded` con código `200` para no tumbar el deploy por una cola atrasada.
+
+La retención corre una vez al día y borra bitácora y eventos vencidos. No genera avisos salvo que borre algo, así que si no ves nada en los logs es que no había nada que purgar.
+
+Si configuras `ALERT_WEBHOOK_URL`, cada log de nivel `ERROR` se envía a ese endpoint con enfriamiento por tipo de error. Es la forma más barata de enterarte de un fallo sin depender de revisar el panel.
 
 ---
 

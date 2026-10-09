@@ -10,10 +10,12 @@
     "copy:assets": "node scripts/copy-assets.mjs",
     "build": "prisma generate && npm run css:build && tsc && npm run copy:assets",
     "start": "node dist/server.js",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "prisma db seed",
+    "db:encrypt-secrets": "tsx scripts/encrypt-secrets.ts",
     "db:studio": "prisma studio"
   },
   "prisma": {

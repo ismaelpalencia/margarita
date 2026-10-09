@@ -70,6 +70,42 @@
             </div>
         <% } %>
 
+        <% if (success === "updated") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Credenciales actualizadas correctamente.
+            </div>
+        <% } %>
+
+        <% if (success === "encrypted") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Credenciales cifradas en la base de datos.
+            </div>
+        <% } %>
+
+        <% if (success === "already_encrypted") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Las credenciales ya estaban cifradas.
+            </div>
+        <% } %>
+
+        <% if (error === "validation") { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                Revisa los datos del formulario: hay valores con formato inválido.
+            </div>
+        <% } %>
+
+        <% if (error === "update") { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                No se pudieron actualizar las credenciales.
+            </div>
+        <% } %>
+
+        <% if (error === "encrypt") { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                No se pudieron cifrar las credenciales. Verifica que ENCRYPTION_KEY esté configurada.
+            </div>
+        <% } %>
+
         <% if (error === "connection") { %>
             <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
                 No se pudo validar la conexión con Meta. Revisa los logs o las variables de entorno.
@@ -119,6 +155,126 @@
                         <%= account.qualityRating || "No disponible" %>
                     </p>
                 </article>
+            </section>
+
+            <section class="mt-6 rounded-2xl bg-white p-6 shadow">
+                <h3 class="text-lg font-bold text-slate-800">
+                    Cifrado de credenciales
+                </h3>
+
+                <% if (account.encryptedAtRest) { %>
+                    <p class="mt-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        Las credenciales están cifradas en la base de datos (AES-256-GCM).
+                    </p>
+                <% } else { %>
+                    <p class="mt-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        Las credenciales todavía están en texto plano. Configura ENCRYPTION_KEY
+                        en las variables de entorno y pulsa el botón para cifrarlas.
+                    </p>
+
+                    <form action="/admin/whatsapp/encrypt-secrets" method="POST" class="mt-4">
+                        <button class="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                            Cifrar credenciales existentes
+                        </button>
+                    </form>
+                <% } %>
+            </section>
+
+            <section class="mt-6 rounded-2xl bg-white p-6 shadow">
+                <h3 class="text-lg font-bold text-slate-800">
+                    Actualizar credenciales
+                </h3>
+
+                <p class="mt-1 text-sm text-slate-500">
+                    Deja un campo vacío para conservar el valor actual. Los tokens se guardan cifrados.
+                </p>
+
+                <form action="/admin/whatsapp/credentials" method="POST" class="mt-5 grid gap-4 md:grid-cols-2">
+                    <div>
+                        <label class="text-xs font-semibold uppercase text-slate-500">
+                            Display Name
+                        </label>
+                        <input
+                            name="displayName"
+                            value="<%= account.displayName || '' %>"
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold uppercase text-slate-500">
+                            Número de teléfono
+                        </label>
+                        <input
+                            name="phoneNumber"
+                            value="<%= account.phoneNumber || '' %>"
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold uppercase text-slate-500">
+                            Phone Number ID
+                        </label>
+                        <input
+                            name="phoneNumberId"
+                            value="<%= account.phoneNumberId || '' %>"
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold uppercase text-slate-500">
+                            Business Account ID
+                        </label>
+                        <input
+                            name="businessAccountId"
+                            value="<%= account.businessAccountId || '' %>"
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold uppercase text-slate-500">
+                            API Version
+                        </label>
+                        <input
+                            name="apiVersion"
+                            value="<%= account.apiVersion || '' %>"
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold uppercase text-slate-500">
+                            Access Token (nuevo)
+                        </label>
+                        <input
+                            name="accessToken"
+                            placeholder="Deja vacío para no cambiarlo"
+                            autocomplete="off"
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold uppercase text-slate-500">
+                            Verify Token (nuevo)
+                        </label>
+                        <input
+                            name="verifyToken"
+                            placeholder="Deja vacío para no cambiarlo"
+                            autocomplete="off"
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        />
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <button class="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                            Guardar credenciales
+                        </button>
+                    </div>
+                </form>
             </section>
 
             <section class="mt-6 rounded-2xl bg-white p-6 shadow">
@@ -199,12 +355,13 @@
 
             <section class="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
                 <h3 class="font-bold text-amber-800">
-                    Importante
+                    Webhook
                 </h3>
 
                 <p class="mt-2 text-sm text-amber-800">
-                    En Margarita V1 estos datos no se editan desde la interfaz.
-                    Si necesitas cambiarlos, actualiza las variables de entorno y vuelve a ejecutar el seed.
+                    El callback que debes registrar en Meta es
+                    <code class="break-all font-semibold"><%= webhookUrl %></code>
+                    y el campo suscrito es <code class="font-semibold">messages</code>.
                 </p>
             </section>
         <% } %>

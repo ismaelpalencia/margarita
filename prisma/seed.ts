@@ -9,6 +9,8 @@ import {
 } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
+import { encryptSecret } from "../src/utils/crypto";
+
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
@@ -98,6 +100,12 @@ async function main() {
 
     const passwordHash = await bcrypt.hash(adminPassword, 12);
 
+    if (adminPassword.length < 10 || !/\d/.test(adminPassword)) {
+        console.warn(
+            "Aviso: ADMIN_PASSWORD es débil. Usa al menos 10 caracteres con letras y números."
+        );
+    }
+
     const admin = await prisma.user.upsert({
         where: {
             email: adminEmail
@@ -140,8 +148,12 @@ async function main() {
             phoneNumber: metaPhoneNumber,
             phoneNumberId: metaPhoneNumberId,
             businessAccountId: metaBusinessAccountId,
-            accessToken: metaAccessToken,
-            verifyToken: metaVerifyToken,
+            /**
+             * Las credenciales se guardan cifradas cuando ENCRYPTION_KEY
+             * está configurada.
+             */
+            accessToken: encryptSecret(metaAccessToken),
+            verifyToken: encryptSecret(metaVerifyToken),
             apiVersion: metaApiVersion
         },
         create: {
@@ -150,8 +162,8 @@ async function main() {
             phoneNumber: metaPhoneNumber,
             phoneNumberId: metaPhoneNumberId,
             businessAccountId: metaBusinessAccountId,
-            accessToken: metaAccessToken,
-            verifyToken: metaVerifyToken,
+            accessToken: encryptSecret(metaAccessToken),
+            verifyToken: encryptSecret(metaVerifyToken),
             apiVersion: metaApiVersion
         }
     });

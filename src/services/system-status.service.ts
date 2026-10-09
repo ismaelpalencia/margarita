@@ -2,6 +2,7 @@ import { LogLevel, LogModule } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
 import { appConfig } from "../config/app.config";
+import { isEncrypted } from "../utils/crypto";
 
 export class SystemStatusService {
     static async getAdminStatus(workspaceId: string) {
@@ -14,7 +15,9 @@ export class SystemStatusService {
             activeAgents,
             recentErrors,
             recentWebhookLogs,
-            recentMetaLogs
+            recentMetaLogs,
+            pendingWebhookEvents,
+            failedWebhookEvents
         ] = await Promise.all([
             prisma.workspace.findUnique({
                 where: {
@@ -90,6 +93,18 @@ export class SystemStatusService {
                     createdAt: "desc"
                 },
                 take: 5
+            }),
+
+            prisma.webhookEvent.count({
+                where: {
+                    status: "PENDING"
+                }
+            }),
+
+            prisma.webhookEvent.count({
+                where: {
+                    status: "FAILED"
+                }
             })
         ]);
 
@@ -106,12 +121,35 @@ export class SystemStatusService {
             recentWebhookLogs,
             recentMetaLogs,
             webhookUrl,
+            pendingWebhookEvents,
+            failedWebhookEvents,
+            /**
+             * Estado del endurecimiento de seguridad de esta instalación.
+             * Se muestra en el panel para detectar configuraciones faltantes.
+             */
+            hardening: {
+                encryptionKeyConfigured: Boolean(appConfig.encryptionKey),
+                credentialsEncrypted: whatsappAccount
+                    ? isEncrypted(whatsappAccount.accessToken) &&
+                      isEncrypted(whatsappAccount.verifyToken)
+                    : false,
+                webhookSignatureConfigured: Boolean(appConfig.metaAppSecret),
+                webhookQueueEnabled: appConfig.webhookQueueEnabled,
+                webhookWorkerIntervalMs: appConfig.webhookWorkerIntervalMs,
+                webhookMaxAttempts: appConfig.webhookMaxAttempts,
+                alertsConfigured: Boolean(appConfig.alertWebhookUrl),
+                loginMaxAttempts: appConfig.loginMaxAttempts,
+                loginLockMinutes: appConfig.loginLockMinutes,
+                logRetentionDays: appConfig.logRetentionDays,
+                webhookEventRetentionDays: appConfig.webhookEventRetentionDays
+            },
             checks: {
                 workspaceReady: Boolean(workspace),
                 whatsappConfigured: Boolean(whatsappAccount),
                 hasApprovedTemplates: approvedTemplates > 0,
                 hasContacts: totalContacts > 0,
-                hasAgents: activeAgents > 0
+                hasAgents: activeAgents > 0,
+                webhookHealthy: failedWebhookEvents === 0
             }
         };
     }

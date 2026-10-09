@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  verificar:
+    name: Tipos, tests y build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Validar esquema de Prisma
+        run: npx prisma validate
+
+      - name: Generar cliente de Prisma
+        run: npx prisma generate
+
+      - name: Verificar tipos
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npm test
+
+      - name: Build completo
+        run: npm run build

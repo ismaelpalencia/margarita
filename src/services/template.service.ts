@@ -2,6 +2,7 @@ import axios from "axios";
 import { LogLevel, LogModule, Prisma } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
+import { decryptSecret } from "../utils/crypto";
 import { LogService } from "./log.service";
 
 type MetaTemplate = {
@@ -69,7 +70,7 @@ export class TemplateService {
                 `https://graph.facebook.com/${account.apiVersion}/${account.businessAccountId}/message_templates`,
                 {
                     params: {
-                        access_token: account.accessToken,
+                        access_token: decryptSecret(account.accessToken),
                         fields: "id,name,language,category,status,components"
                     },
                     timeout: 15000

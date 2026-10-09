@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { passwordSchema } from "./password.validation";
+
 export const createAgentSchema = z.object({
     name: z
         .string()
@@ -10,9 +12,7 @@ export const createAgentSchema = z.object({
         .trim()
         .email("Ingresa un correo válido.")
         .toLowerCase(),
-    password: z
-        .string()
-        .min(6, "La contraseña debe tener al menos 6 caracteres."),
+    password: passwordSchema,
     canSendManualMessages: z
         .optional(z.literal("on"))
         .transform((value) => value === "on"),
