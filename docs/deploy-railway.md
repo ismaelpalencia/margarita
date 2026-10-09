@@ -139,62 +139,74 @@ Si prefieres que la configuración viaje en el repositorio en lugar de vivir en 
 
 ## 5. Base de datos: esquema y seed
 
-El proyecto usa migraciones versionadas en `prisma/migrations`, con una migración inicial y una de endurecimiento. Hay dos escenarios según el estado de la base.
+El proyecto usa migraciones versionadas en `prisma/migrations`, con una migración inicial y una de endurecimiento.
 
-En Railway, servicio Postgres → Variables → copia `DATABASE_PUBLIC_URL` y ejecuta desde tu máquina.
+### Camino recomendado: dentro de Railway, sin URL pública
 
-**Base nueva (primer deploy):**
+No hace falta exponer la base ni copiar credenciales. El script `deploy-migrations` detecta por sí solo el estado de la base y hace lo correcto en cada caso: si es nueva aplica todo el esquema, y si ya existía sin historial de migraciones marca la inicial como aplicada antes de desplegar la nueva.
 
-```bash
-DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma migrate deploy
-DATABASE_URL="<DATABASE_PUBLIC_URL>" npm run db:seed
-```
-
-**Base que ya venía funcionando con `db push`:** primero se marca la migración inicial como aplicada (sin volver a ejecutarla, porque las tablas ya existen) y después se aplica solo la nueva.
+En el servicio de la app: Settings → Deploy → **Pre-deploy Command**:
 
 ```bash
-DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma migrate resolve --applied 20261009000000_init
-DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma migrate deploy
-DATABASE_URL="<DATABASE_PUBLIC_URL>" npm run db:seed
+node dist/tools/deploy-migrations.js
 ```
 
-El seed crea el workspace, el admin, los settings y la cuenta de WhatsApp a partir de las variables.
+Corre dentro del contenedor con la `DATABASE_URL` interna, antes de que arranque el servicio, y es idempotente: si no hay nada pendiente, no hace nada. Con esto configurado, este tipo de fallo no vuelve a ocurrir.
 
-Si prefieres no copiar URLs, con la CLI de Railway puedes inyectar las variables del proyecto:
+También puedes ejecutarlo a mano desde una terminal del servicio (por ejemplo con `railway ssh`) si solo quieres aplicarlo una vez.
+
+### El seed
+
+El seed crea el workspace, el admin, los settings y la cuenta de WhatsApp a partir de las variables. Se corre una sola vez, y necesita `tsx` (devDependency), así que es más fácil desde tu máquina:
 
 ```bash
-railway link
-railway run npx prisma db push
-railway run npm run db:seed
+DATABASE_URL="<URL_PUBLICA>" npm run db:seed
 ```
 
-`railway run` ejecuta el comando en tu máquina pero con las variables de Railway, así que necesita `node_modules` instalado localmente. El seed se corre desde tu máquina y no dentro del contenedor porque `tsx` es devDependency.
+Si el seed ya se había ejecutado antes en esa base, no lo repitas: es idempotente, pero no hace falta.
+
+### Cómo obtener una URL pública hoy
+
+El template actual de Postgres ya **no** publica `DATABASE_PUBLIC_URL`. Tienes dos formas de conseguir la cadena pública:
+
+1. Servicio Postgres → pestaña **Connect** → copia la cadena de la red pública.
+2. Habilita el **TCP Proxy** en Settings → Networking y arma la URL con las variables que aparecen entonces:
+
+```bash
+postgresql://postgres:<PGPASSWORD>@<RAILWAY_TCP_PROXY_DOMAIN>:<RAILWAY_TCP_PROXY_PORT>/railway
+```
+
+Si no necesitas conectar desde tu máquina, quédate con el camino del Pre-deploy y evita exponer la base.
+
+### Aplicar migraciones a mano (alternativa)
+
+Con una URL pública, los comandos equivalentes son:
+
+```bash
+# base que ya tenía tablas pero sin historial de migraciones
+DATABASE_URL="<URL_PUBLICA>" npx prisma migrate resolve --applied 20261009000000_init
+
+# base nueva o ya baselinada
+DATABASE_URL="<URL_PUBLICA>" npx prisma migrate deploy
+```
 
 ### Migraciones en cada deploy
 
-Agrega un Pre-deploy Command en Settings → Deploy para que Railway aplique las migraciones pendientes antes de arrancar:
+El Pre-deploy Command ya cubre esto con `node dist/tools/deploy-migrations.js`. Si prefieres el comando crudo de Prisma, usa `npx prisma migrate deploy`, sabiendo que falla si la base tiene tablas pero no historial de migraciones (para ese caso existe el script).
 
-```bash
-npx prisma migrate deploy
-```
-
-Si tienes dudas de si la base y el esquema están sincronizados, puedes revisar el estado sin modificar nada. Solo necesitas configurar una base shadow para el comando de comparación:
-
-```bash
-npx prisma migrate status
-```
+Para ver el estado sin modificar nada: `npx prisma migrate status`.
 
 Cuando quieras cambiar el esquema, hazlo en local con `npx prisma migrate dev --name descripcion` y sube la carpeta generada. Evita `db push` en producción: no deja historial y el siguiente `migrate deploy` puede detectar drift.
 
 ### Cifrar credenciales existentes
 
-Si la base ya tenía tokens en texto plano antes de configurar `ENCRYPTION_KEY`, cifralos una vez:
+Si la base ya tenía tokens en texto plano antes de configurar `ENCRYPTION_KEY`, cifralos una vez. Lo más simple es desde el propio panel: **Admin → WhatsApp → Cifrar credenciales existentes**.
+
+Con una URL pública también puedes hacerlo desde tu máquina:
 
 ```bash
-railway run npm run db:encrypt-secrets
+DATABASE_URL="<URL_PUBLICA>" npm run db:encrypt-secrets
 ```
-
-También puedes hacerlo desde el panel, en Admin → WhatsApp → Cifrar credenciales existentes.
 
 ---
 

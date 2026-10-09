@@ -259,6 +259,7 @@ Sin `ENCRYPTION_KEY` la app funciona igual, pero las credenciales de Meta quedan
 | `npm run copy:assets` | Copia `views` y `public` a `dist/` |
 | `npm run db:push` | Aplica el esquema a la base sin migraciones |
 | `npm run db:migrate` | Crea y aplica una migración de desarrollo |
+| `npm run db:migrate-deploy` | Aplica las migraciones resolviendo solo el estado de la base (idempotente) |
 | `npm test` | Corre los tests unitarios con el runner de Node |
 | `npm run db:encrypt-secrets` | Cifra las credenciales de Meta que siguen en texto plano |
 | `npm run db:generate` | Regenera el cliente de Prisma |
@@ -439,14 +440,16 @@ La guía completa paso a paso está en [`docs/deploy-railway.md`](docs/deploy-ra
 
 Los cuatro tropiezos más comunes: dejar `APP_URL` apuntando a localhost (rompe CORS y el socket), no incluir las devDependencies en el build cuando `NODE_ENV=production`, olvidar `META_APP_SECRET` (el webhook responde 401 en producción) y olvidar `ENCRYPTION_KEY` (las credenciales quedan sin cifrar).
 
-El proyecto ya usa migraciones versionadas. En una base que venía funcionando con `db push`, el orden es marcar la migración inicial como aplicada y luego desplegar la nueva:
+El proyecto usa migraciones versionadas. Lo más simple es dejar que Railway las aplique dentro del contenedor, sin exponer la base ni copiar credenciales: configura el Pre-deploy Command con `node dist/tools/deploy-migrations.js`. Ese script detecta el estado de la base y resuelve los tres casos (base nueva, base existente sin historial y base ya baselinada) de forma idempotente.
+
+Si prefieres hacerlo a mano desde tu máquina, el orden para una base que venía funcionando con `db push` es marcar la migración inicial como aplicada y luego desplegar la nueva:
 
 ```bash
 npx prisma migrate resolve --applied 20261009000000_init
 npx prisma migrate deploy
 ```
 
-En una base nueva, `npx prisma migrate deploy` crea todo desde cero. El detalle está en [docs/deploy-railway.md](docs/deploy-railway.md).
+En una base nueva, `npx prisma migrate deploy` crea todo desde cero. Hoy Railway ya no publica `DATABASE_PUBLIC_URL`: para conectar desde tu máquina usa la pestaña **Connect** del servicio de Postgres o habilita el TCP Proxy. El detalle está en [docs/deploy-railway.md](docs/deploy-railway.md).
 
 El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base de datos, un workspace. Todos los clientes usan el mismo repositorio y se diferencian solo por variables de entorno, dominio y cuenta de WhatsApp.
 
