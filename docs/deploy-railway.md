@@ -257,6 +257,27 @@ El build no necesita `DATABASE_URL`, pero el runtime sí: `src/config/prisma.ts`
 
 Si el build falla con `Failed to load config file "/app" ... PrismaConfigEnvError: Cannot resolve environment variable: DATABASE_URL`, estás desplegando un commit anterior a la corrección de `prisma.config.ts`, que exigía la variable incluso para generar el cliente. Con la versión actual ese paso ya no depende de la base.
 
+### `relation "public.WebhookEvent" does not exist` (P2021)
+
+Significa que la base de datos no tiene aplicadas las migraciones más recientes. La app arranca y sirve, pero `/health` responde `503` con un `migrationHint` y la cola de webhooks no funciona.
+
+Primero distingue de qué tipo de base se trata:
+
+```bash
+psql "<DATABASE_PUBLIC_URL>" -c "select table_name from information_schema.tables where table_schema='public' order by 1"
+```
+
+**Si aparecen las tablas antiguas** (`Workspace`, `User`, `Conversation`, `Message`…) pero no `WebhookEvent`, la base ya existía y solo le falta la migración nueva:
+
+```bash
+DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma migrate resolve --applied 20261009000000_init
+DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma migrate deploy
+```
+
+**Si la lista sale vacía**, es una base nueva: `npx prisma migrate deploy` y después `npm run db:seed`.
+
+Con el historial ya baselinado, agrega el Pre-deploy Command `npx prisma migrate deploy` para que Railway aplique las migraciones en cada deploy y este error no vuelva a aparecer.
+
 ---
 
 ## 9. Comandos útiles

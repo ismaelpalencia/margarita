@@ -3,10 +3,13 @@ import http from "node:http";
 import app from "./app";
 import { appConfig } from "./config/app.config";
 import { logger } from "./config/logger";
+import { registerProcessGuards } from "./config/process-guards";
 import { startBackgroundJobs } from "./jobs";
 import { initSocket } from "./sockets";
 
 const server = http.createServer(app);
+
+registerProcessGuards();
 
 initSocket(server);
 

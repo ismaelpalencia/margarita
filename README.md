@@ -417,6 +417,7 @@ El cliente vive en `src/public/js/live.js` y se activa con atributos en `<body>`
 - **Secretos**: los tokens se muestran enmascarados y el objeto que consume la vista no incluye el valor en claro. Además, la bitácora redacta cualquier campo que parezca credencial (`token`, `secret`, `password`, `authorization`) antes de guardarlo.
 - **Retención**: la bitácora se purga a los `LOG_RETENTION_DAYS` días y los eventos de webhook ya resueltos a los `WEBHOOK_EVENT_RETENTION_DAYS`, para acotar el crecimiento y la exposición de datos personales.
 - **Monitoreo**: `/health` reporta base de datos, profundidad de la cola, evento pendiente más antiguo, estado del worker y si falta alguna variable de seguridad. Devuelve `503` solo si la base está caída.
+- **Resiliencia**: Express 4 no propaga los errores de los handlers asíncronos, así que una promesa rechazada podía tumbar el proceso completo. Ahora se registran y se avisan sin detener el servicio, y `/health` reporta el problema real (por ejemplo, migraciones sin aplicar) con una pista accionable.
 - **Alertas**: si defines `ALERT_WEBHOOK_URL`, cada log de nivel `ERROR` dispara un aviso externo con enfriamiento configurable.
 
 ---

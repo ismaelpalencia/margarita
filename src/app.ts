@@ -8,6 +8,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
 import { appConfig } from "./config/app.config";
+import { logger } from "./config/logger";
 import { csrfProtection } from "./middlewares/csrf.middleware";
 import indexRoutes from "./routes/index.routes";
 import healthRoutes from "./routes/health.routes";
@@ -79,5 +80,28 @@ app.set("views", path.join(rootDir, "src", "views"));
 app.use("/health", healthRoutes);
 
 app.use("/", indexRoutes);
+
+/**
+ * Manejador final de errores. Evita que se filtre un stack trace al
+ * navegador y deja el incidente en los logs del servidor.
+ */
+app.use(
+    (
+        error: Error,
+        _req: Request,
+        res: express.Response,
+        _next: express.NextFunction
+    ) => {
+        logger.error({ err: error }, "Error no controlado en una petición");
+
+        if (res.headersSent) {
+            return;
+        }
+
+        res.status(500).type("html").send(
+            "<h1>500</h1><p>Ocurrió un error inesperado. Intenta de nuevo.</p>"
+        );
+    }
+);
 
 export default app;
