@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editar contacto | Margarita</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <main class="mx-auto max-w-2xl px-6 py-10">
+        <section class="mb-6">
+            <a href="/admin/contacts" class="text-sm font-medium text-emerald-700">
+                ← Volver a contactos
+            </a>
+
+            <h1 class="mt-4 text-2xl font-bold text-slate-800">
+                Editar contacto
+            </h1>
+
+            <p class="mt-1 text-slate-500">
+                <%= contact.phone %>
+            </p>
+        </section>
+
+        <section class="rounded-2xl bg-white p-6 shadow">
+            <% if (error) { %>
+                <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <form action="/admin/contacts/<%= contact.id %>" method="POST" class="space-y-5">
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">
+                        Nombre de Meta
+                    </label>
+
+                    <input
+                        value="<%= contact.profileName || 'Sin nombre de Meta todavía' %>"
+                        disabled
+                        class="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-500"
+                    />
+
+                    <p class="mt-2 text-xs text-slate-500">
+                        Este nombre llega desde WhatsApp y no se edita manualmente.
+                    </p>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">
+                        Nombre personalizado
+                    </label>
+
+                    <input
+                        name="customName"
+                        value="<%= contact.customName || '' %>"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    />
+                </div>
+
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-slate-700">
+                        Etiquetas
+                    </label>
+
+                    <% const selectedTagIds = contact.tags.map((contactTag) => contactTag.tagId); %>
+
+                    <% if (tags.length === 0) { %>
+                        <div class="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                            Todavía no hay etiquetas. Puedes crearlas en la sección Etiquetas.
+                        </div>
+                    <% } %>
+
+                    <div class="grid gap-2 md:grid-cols-2">
+                        <% tags.forEach((tag) => { %>
+                            <label class="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm">
+                                <input
+                                    type="checkbox"
+                                    name="tagIds"
+                                    value="<%= tag.id %>"
+                                    <% if (selectedTagIds.includes(tag.id)) { %> checked <% } %>
+                                />
+
+                                <span
+                                    class="h-3 w-3 rounded-full"
+                                    style="background-color: <%= tag.color || '#10b981' %>;"
+                                ></span>
+
+                                <span><%= tag.name %></span>
+                            </label>
+                        <% }) %>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">
+                        Notas
+                    </label>
+
+                    <textarea
+                        name="notes"
+                        rows="4"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    ><%= contact.notes || '' %></textarea>
+                </div>
+
+                <button
+                    type="submit"
+                    class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700"
+                >
+                    Guardar cambios
+                </button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

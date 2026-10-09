@@ -1,0 +1,17 @@
+node_modules/
+
+dist/
+
+.env
+
+.vscode/settings.json
+
+coverage/
+
+*.log
+
+utils_app.md
+
+desarrollo.md
+
+uploads/

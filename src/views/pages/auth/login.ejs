@@ -1,0 +1,121 @@
+<%- include("../../partials/header", { title: "Iniciar sesión - Margarita" }) %>
+
+<main class="flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 via-slate-100 to-white px-4 py-10">
+    <section class="grid w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 lg:grid-cols-[1fr_440px]">
+        <div class="hidden bg-slate-950 p-10 text-white lg:block">
+            <div class="flex h-full flex-col justify-between">
+                <div>
+                    <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500 text-2xl font-black">
+                        M
+                    </div>
+
+                    <h1 class="mt-8 text-4xl font-black leading-tight">
+                        Margarita
+                    </h1>
+
+                    <p class="mt-4 max-w-sm text-lg text-slate-300">
+                        WhatsApp operativo para equipos pequeños.
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="rounded-2xl bg-white/10 p-4">
+                        <p class="text-sm font-semibold text-emerald-300">
+                            Campañas
+                        </p>
+
+                        <p class="mt-1 text-sm text-slate-300">
+                            Envía plantillas aprobadas y da seguimiento desde una sola bandeja.
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl bg-white/10 p-4">
+                        <p class="text-sm font-semibold text-emerald-300">
+                            Agentes
+                        </p>
+
+                        <p class="mt-1 text-sm text-slate-300">
+                            Asigna conversaciones y mantén control operativo del equipo.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8 md:p-10">
+            <div class="mb-8 lg:hidden">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-xl font-black text-white">
+                    M
+                </div>
+
+                <h1 class="mt-4 text-3xl font-black text-slate-900">
+                    Margarita
+                </h1>
+
+                <p class="mt-2 text-slate-500">
+                    WhatsApp operativo para equipos pequeños.
+                </p>
+            </div>
+
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-wide text-emerald-600">
+                    Bienvenido
+                </p>
+
+                <h2 class="mt-2 text-3xl font-black text-slate-900">
+                    Inicia sesión
+                </h2>
+
+                <p class="mt-2 text-sm text-slate-500">
+                    Entra al panel para gestionar conversaciones, campañas y agentes.
+                </p>
+            </div>
+
+            <% if (error) { %>
+                <div class="mt-6 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                    Correo o contraseña incorrectos.
+                </div>
+            <% } %>
+
+            <form action="/auth/login" method="POST" class="mt-8 space-y-5">
+                <div>
+                    <label class="mb-1 block text-sm font-semibold text-slate-700">
+                        Correo
+                    </label>
+
+                    <input
+                        type="email"
+                        name="email"
+                        required
+                        placeholder="admin@margarita.local"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    />
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-semibold text-slate-700">
+                        Contraseña
+                    </label>
+
+                    <input
+                        type="password"
+                        name="password"
+                        required
+                        placeholder="••••••••"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    />
+                </div>
+
+                <button class="w-full rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-700">
+                    Entrar a Margarita
+                </button>
+            </form>
+
+            <p class="mt-8 text-center text-xs text-slate-400">
+                Margarita V1 · Operación WhatsApp Cloud API
+            </p>
+        </div>
+    </section>
+</main>
+
+<%- include("../../partials/footer") %>

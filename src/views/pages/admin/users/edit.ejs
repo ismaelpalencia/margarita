@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editar agente | Margarita</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <main class="mx-auto max-w-2xl px-6 py-10">
+        <section class="mb-6">
+            <a href="/admin/users" class="text-sm font-medium text-emerald-700">
+                ← Volver a agentes
+            </a>
+
+            <h1 class="mt-4 text-2xl font-bold text-slate-800">
+                Editar agente
+            </h1>
+
+            <p class="mt-1 text-slate-500">
+                <%= agent.email %>
+            </p>
+        </section>
+
+        <section class="rounded-2xl bg-white p-6 shadow">
+            <% if (error) { %>
+                <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <form action="/admin/users/<%= agent.id %>" method="POST" class="space-y-5">
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">
+                        Nombre
+                    </label>
+
+                    <input
+                        name="name"
+                        value="<%= agent.name %>"
+                        required
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    />
+                </div>
+
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <label class="flex items-center gap-3 text-sm font-medium text-slate-700">
+                        <input
+                            name="canSendManualMessages"
+                            type="checkbox"
+                            class="h-4 w-4 rounded border-slate-300"
+                            <% if (agent.canSendManualMessages) { %> checked <% } %>
+                        />
+
+                        Permitir mensajes manuales
+                    </label>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">
+                        Límite de mensajes manuales
+                    </label>
+
+                    <input
+                        name="manualMessageLimit"
+                        type="number"
+                        min="0"
+                        value="<%= agent.manualMessageLimit ?? '' %>"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    />
+
+                    <p class="mt-2 text-xs text-slate-500">
+                        Déjalo vacío para usar el límite global de la empresa.
+                    </p>
+                </div>
+
+                <button
+                    type="submit"
+                    class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700"
+                >
+                    Guardar cambios
+                </button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

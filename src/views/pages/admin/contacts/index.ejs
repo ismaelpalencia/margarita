@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contactos | Margarita</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <header class="border-b bg-white">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+            <div>
+                <h1 class="text-xl font-bold text-emerald-600">Margarita</h1>
+                <p class="text-sm text-slate-500">Contactos</p>
+            </div>
+
+            <nav class="flex items-center gap-3">
+                <a href="/admin/dashboard" class="text-sm font-medium text-slate-700">
+                    Dashboard
+                </a>
+
+                <a href="/admin/users" class="text-sm font-medium text-slate-700">
+                    Agentes
+                </a>
+
+                <a href="/admin/contacts" class="text-sm font-medium text-emerald-700">
+                    Contactos
+                </a>
+
+                <a href="/admin/tags" class="text-sm font-medium text-slate-700">
+                    Etiquetas
+                </a>
+                <a href="/admin/whatsapp" class="text-sm font-medium text-slate-700">
+                    WhatsApp
+                </a>
+
+                <a href="/admin/templates" class="text-sm font-medium text-slate-700">
+                    Plantillas
+                </a>
+
+                <a href="/admin/conversations" class="text-sm font-medium text-slate-700">
+                    Conversaciones
+                </a>
+
+                <form action="/auth/logout" method="POST">
+                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
+                        Cerrar sesión
+                    </button>
+                </form>
+            </nav>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-6 py-8">
+        <section class="mb-6 flex items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">Contactos</h2>
+                <p class="mt-1 text-slate-500">
+                    Administra los números que se comunicarán por WhatsApp.
+                </p>
+            </div>
+
+            <a
+                href="/admin/contacts/new"
+                class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+                Nuevo contacto
+            </a>
+        </section>
+
+        <form action="/admin/contacts" method="GET" class="mb-6 grid gap-3 md:grid-cols-[1fr_260px_auto_auto]">
+            <input
+                name="search"
+                value="<%= search %>"
+                placeholder="Buscar por nombre o teléfono"
+                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            />
+
+            <select
+                name="tagId"
+                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            >
+                <option value="">Todas las etiquetas</option>
+
+                <% tags.forEach((tag) => { %>
+                    <option value="<%= tag.id %>" <% if (tagId === tag.id) { %> selected <% } %>>
+                        <%= tag.name %>
+                    </option>
+                <% }) %>
+            </select>
+
+            <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">
+                Buscar
+            </button>
+
+            <% if (search || tagId) { %>
+                <a href="/admin/contacts" class="rounded-xl bg-slate-100 px-5 py-3 text-center text-sm font-semibold text-slate-700">
+                    Limpiar
+                </a>
+            <% } %>
+        </form>
+
+        <% if (success) { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Acción realizada correctamente.
+            </div>
+        <% } %>
+
+        <section class="overflow-hidden rounded-2xl bg-white shadow">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-slate-500">
+                    <tr>
+                        <th class="px-5 py-4">Nombre</th>
+                        <th class="px-5 py-4">Teléfono</th>
+                        <th class="px-5 py-4">Etiquetas</th>
+                        <th class="px-5 py-4">Notas</th>
+                        <th class="px-5 py-4 text-right">Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-slate-100">
+                    <% if (contacts.length === 0) { %>
+                        <tr>
+                            <td colspan="5" class="px-5 py-8 text-center text-slate-500">
+                                No hay contactos para mostrar.
+                            </td>
+                        </tr>
+                    <% } %>
+
+                    <% contacts.forEach((contact) => { %>
+                        <tr>
+                            <td class="px-5 py-4 font-medium text-slate-800">
+                                <%= contact.customName || contact.profileName || contact.phone %>
+                            </td>
+
+                            <td class="px-5 py-4 text-slate-600">
+                                <%= contact.phone %>
+                            </td>
+
+                            <td class="px-5 py-4">
+                                <div class="flex flex-wrap gap-1">
+                                    <% if (contact.tags.length === 0) { %>
+                                        <span class="text-slate-400">—</span>
+                                    <% } %>
+
+                                    <% contact.tags.forEach((contactTag) => { %>
+                                        <span
+                                            class="rounded-full px-2 py-1 text-xs font-semibold text-white"
+                                            style="background-color: <%= contactTag.tag.color || '#10b981' %>;"
+                                        >
+                                            <%= contactTag.tag.name %>
+                                        </span>
+                                    <% }) %>
+                                </div>
+                            </td>
+
+                            <td class="px-5 py-4 text-slate-600">
+                                <%= contact.notes || "—" %>
+                            </td>
+
+                            <td class="px-5 py-4">
+                                <div class="flex justify-end gap-2">
+
+                                    <div class="flex justify-end gap-2">
+    <form action="/admin/conversations/from-contact/<%= contact.id %>" method="POST">
+        <button class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700">
+            Abrir conversación
+        </button>
+    </form>
+
+                                    <a
+                                        href="/admin/contacts/<%= contact.id %>/edit"
+                                        class="rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-200"
+                                    >
+                                        Editar
+                                    </a>
+
+                                    <form
+                                        action="/admin/contacts/<%= contact.id %>/deactivate"
+                                        method="POST"
+                                        onsubmit="return confirm('¿Desactivar este contacto?');"
+                                    >
+                                        <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white">
+                                            Desactivar
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

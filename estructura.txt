@@ -1,0 +1,34 @@
+Margarita/
+│
+├── docs/
+├── prisma/
+├── src/
+│   ├── config/
+│   ├── controllers/
+│   ├── middlewares/
+│   ├── models/
+│   ├── public/
+│   │   ├── css/
+│   │   ├── js/
+│   │   └── img/
+│   ├── routes/
+│   ├── services/
+│   ├── sockets/
+│   ├── types/
+│   ├── utils/
+│   ├── validations/
+│   ├── views/
+│   │   ├── admin/
+│   │   ├── agent/
+│   │   ├── auth/
+│   │   ├── layouts/
+│   │   └── partials/
+│   ├── app.ts
+│   └── server.ts
+│
+├── .env
+├── .env.example
+├── .gitignore
+├── package.json
+├── tsconfig.json
+└── README.md

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cuenta WhatsApp | Margarita</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <header class="border-b bg-white">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+            <div>
+                <h1 class="text-xl font-bold text-emerald-600">Margarita</h1>
+                <p class="text-sm text-slate-500">Cuenta de WhatsApp</p>
+            </div>
+
+            <nav class="flex items-center gap-3">
+                <a href="/admin/dashboard" class="text-sm font-medium text-slate-700">
+                    Dashboard
+                </a>
+
+                <a href="/admin/users" class="text-sm font-medium text-slate-700">
+                    Agentes
+                </a>
+
+                <a href="/admin/contacts" class="text-sm font-medium text-slate-700">
+                    Contactos
+                </a>
+
+                <a href="/admin/tags" class="text-sm font-medium text-slate-700">
+                    Etiquetas
+                </a>
+
+                <a href="/admin/whatsapp" class="text-sm font-medium text-emerald-700">
+                    WhatsApp
+                </a>
+
+                <a href="/admin/templates" class="text-sm font-medium text-slate-700">
+                    Plantillas
+                </a>
+
+                <a href="/admin/conversations" class="text-sm font-medium text-slate-700">
+                    Conversaciones
+                </a>
+
+                <form action="/auth/logout" method="POST">
+                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
+                        Cerrar sesión
+                    </button>
+                </form>
+            </nav>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-6 py-8">
+        <section class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">
+                Cuenta de WhatsApp
+            </h2>
+
+            <p class="mt-1 text-slate-500">
+                Configuración actual de WhatsApp Business Cloud API para esta instalación.
+            </p>
+        </section>
+
+        <% if (success === "connection") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Conexión con Meta validada correctamente.
+            </div>
+        <% } %>
+
+        <% if (error === "connection") { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                No se pudo validar la conexión con Meta. Revisa los logs o las variables de entorno.
+            </div>
+        <% } else if (error) { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                <%= error %>
+            </div>
+        <% } %>
+
+        <% if (!account) { %>
+            <section class="rounded-2xl bg-white p-6 shadow">
+                <p class="text-slate-600">
+                    No hay una cuenta de WhatsApp configurada.
+                </p>
+            </section>
+        <% } else { %>
+            <section class="grid gap-5 md:grid-cols-3">
+                <article class="rounded-2xl bg-white p-5 shadow">
+                    <p class="text-sm text-slate-500">Número conectado</p>
+                    <p class="mt-2 text-2xl font-bold text-slate-800">
+                        <%= account.phoneNumber %>
+                    </p>
+                </article>
+
+                <article class="rounded-2xl bg-white p-5 shadow">
+                    <p class="text-sm text-slate-500">Estado</p>
+
+                    <% if (account.status === "CONNECTED") { %>
+                        <p class="mt-2 text-2xl font-bold text-emerald-600">
+                            Conectado
+                        </p>
+                    <% } else if (account.status === "ERROR") { %>
+                        <p class="mt-2 text-2xl font-bold text-red-600">
+                            Error
+                        </p>
+                    <% } else { %>
+                        <p class="mt-2 text-2xl font-bold text-slate-600">
+                            Sin validar
+                        </p>
+                    <% } %>
+                </article>
+
+                <article class="rounded-2xl bg-white p-5 shadow">
+                    <p class="text-sm text-slate-500">Calidad</p>
+                    <p class="mt-2 text-2xl font-bold text-slate-800">
+                        <%= account.qualityRating || "No disponible" %>
+                    </p>
+                </article>
+            </section>
+
+            <section class="mt-6 rounded-2xl bg-white p-6 shadow">
+                <div class="mb-6 flex items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">
+                            Datos técnicos
+                        </h3>
+
+                        <p class="mt-1 text-sm text-slate-500">
+                            Estos datos vienen de las variables de entorno y el seed inicial.
+                        </p>
+                    </div>
+
+                    <form action="/admin/whatsapp/test-connection" method="POST">
+                        <button class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                            Probar conexión
+                        </button>
+                    </form>
+                </div>
+
+                <dl class="grid gap-4 md:grid-cols-2">
+                    <div class="rounded-xl bg-slate-50 p-4">
+                        <dt class="text-xs font-semibold uppercase text-slate-500">
+                            Display Name
+                        </dt>
+                        <dd class="mt-1 text-sm text-slate-800">
+                            <%= account.displayName || "No disponible" %>
+                        </dd>
+                    </div>
+
+                    <div class="rounded-xl bg-slate-50 p-4">
+                        <dt class="text-xs font-semibold uppercase text-slate-500">
+                            API Version
+                        </dt>
+                        <dd class="mt-1 text-sm text-slate-800">
+                            <%= account.apiVersion %>
+                        </dd>
+                    </div>
+
+                    <div class="rounded-xl bg-slate-50 p-4">
+                        <dt class="text-xs font-semibold uppercase text-slate-500">
+                            Phone Number ID
+                        </dt>
+                        <dd class="mt-1 break-all text-sm text-slate-800">
+                            <%= account.phoneNumberId %>
+                        </dd>
+                    </div>
+
+                    <div class="rounded-xl bg-slate-50 p-4">
+                        <dt class="text-xs font-semibold uppercase text-slate-500">
+                            Business Account ID
+                        </dt>
+                        <dd class="mt-1 break-all text-sm text-slate-800">
+                            <%= account.businessAccountId %>
+                        </dd>
+                    </div>
+
+                    <div class="rounded-xl bg-slate-50 p-4">
+                        <dt class="text-xs font-semibold uppercase text-slate-500">
+                            Access Token
+                        </dt>
+                        <dd class="mt-1 break-all text-sm text-slate-800">
+                            <%= account.maskedAccessToken %>
+                        </dd>
+                    </div>
+
+                    <div class="rounded-xl bg-slate-50 p-4">
+                        <dt class="text-xs font-semibold uppercase text-slate-500">
+                            Verify Token
+                        </dt>
+                        <dd class="mt-1 break-all text-sm text-slate-800">
+                            <%= account.maskedVerifyToken %>
+                        </dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section class="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                <h3 class="font-bold text-amber-800">
+                    Importante
+                </h3>
+
+                <p class="mt-2 text-sm text-amber-800">
+                    En Margarita V1 estos datos no se editan desde la interfaz.
+                    Si necesitas cambiarlos, actualiza las variables de entorno y vuelve a ejecutar el seed.
+                </p>
+            </section>
+        <% } %>
+    </main>
+</body>
+</html>

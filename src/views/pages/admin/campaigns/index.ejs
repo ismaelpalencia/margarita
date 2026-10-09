@@ -1,0 +1,85 @@
+<%- include("../../../partials/header", { title: "Campañas - Admin" }) %>
+
+<div class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-7xl px-4 py-8">
+        <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-wide text-emerald-600">
+                    WhatsApp
+                </p>
+
+                <h1 class="mt-1 text-3xl font-bold text-slate-900">
+                    Campañas
+                </h1>
+
+                <p class="mt-2 text-slate-600">
+                    Crea campañas usando plantillas aprobadas por Meta.
+                </p>
+            </div>
+
+            <a href="/admin/campaigns/create" class="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                Nueva campaña
+            </a>
+        </div>
+
+        <% if (success === "created") { %>
+            <div class="mb-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Campaña creada correctamente.
+            </div>
+        <% } %>
+
+        <% if (error) { %>
+            <div class="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                No se pudo completar la acción.
+            </div>
+        <% } %>
+
+        <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+            <div class="border-b border-slate-200 px-6 py-4">
+                <h2 class="font-bold text-slate-900">
+                    Campañas recientes
+                </h2>
+            </div>
+
+            <% if (campaigns.length === 0) { %>
+                <div class="px-6 py-10 text-sm text-slate-500">
+                    Todavía no hay campañas.
+                </div>
+            <% } else { %>
+                <div class="divide-y divide-slate-100">
+                    <% campaigns.forEach((campaign) => { %>
+                        <a href="/admin/campaigns/<%= campaign.id %>" class="block px-6 py-5 hover:bg-slate-50">
+                            <div class="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+                                <div>
+                                    <p class="font-bold text-slate-900">
+                                        <%= campaign.name %>
+                                    </p>
+
+                                    <p class="mt-1 text-sm text-slate-500">
+                                        Plantilla:
+                                        <strong><%= campaign.template.name %></strong>
+                                        · <%= campaign.template.language %>
+                                    </p>
+                                </div>
+
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                        <%= campaign.status %>
+                                    </span>
+
+                                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                        <%= campaign._count.recipients %> destinatarios
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    <% }) %>
+                </div>
+            <% } %>
+        </section>
+    </main>
+</div>
+
+<%- include("../../../partials/footer") %>

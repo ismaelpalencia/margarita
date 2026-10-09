@@ -1,0 +1,83 @@
+<header class="border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex items-center gap-3">
+            <a href="/admin/dashboard" class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-lg font-black text-white shadow-sm">
+                M
+            </a>
+
+            <div>
+                <p class="text-lg font-black leading-tight text-slate-900">
+                    Margarita
+                </p>
+
+                <p class="text-xs font-medium text-slate-500">
+                    Panel Admin
+                </p>
+            </div>
+        </div>
+
+        <nav class="flex flex-wrap items-center gap-2 text-sm">
+            <a href="/admin/dashboard" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Dashboard
+            </a>
+
+            <a href="/admin/conversations" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Conversaciones
+            </a>
+
+            <a href="/admin/campaigns" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Campañas
+            </a>
+
+            <a href="/admin/contacts" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Contactos
+            </a>
+
+            <a href="/admin/tags" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Etiquetas
+            </a>
+
+            <a href="/admin/users" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Agentes
+            </a>
+
+            <a href="/admin/templates" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Plantillas
+            </a>
+
+            <a href="/admin/system" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Sistema
+            </a>
+
+            <a href="/admin/roadmap" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Roadmap
+            </a>
+
+            <a href="/admin/whatsapp" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                WhatsApp
+            </a>
+
+            <a href="/admin/logs" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Logs
+            </a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+            <div class="hidden text-right md:block">
+                <p class="text-sm font-bold text-slate-800">
+                    <%= user?.name || "Admin" %>
+                </p>
+
+                <p class="text-xs text-slate-500">
+                    Administrador
+                </p>
+            </div>
+
+            <form action="/auth/logout" method="POST">
+                <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800">
+                    Salir
+                </button>
+            </form>
+        </div>
+    </div>
+</header>

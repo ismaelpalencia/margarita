@@ -1,0 +1,170 @@
+<%- include("../../partials/header", { title: "Dashboard Agente" }) %>
+
+<div class="min-h-screen bg-slate-100">
+    <%- include("../../partials/agent-nav", { user }) %>
+
+    <main class="mx-auto max-w-7xl px-4 py-8">
+        <div class="mb-8">
+            <p class="text-sm font-semibold uppercase tracking-wide text-emerald-600">
+                Panel de agente
+            </p>
+
+            <h1 class="mt-1 text-3xl font-bold text-slate-900">
+                Hola, <%= user.name %>
+            </h1>
+
+            <p class="mt-2 text-slate-600">
+                Aquí puedes ver tu carga actual y cambiar tu estado operativo.
+            </p>
+        </div>
+
+        <% if (success === "status") { %>
+            <div class="mb-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Estado actualizado correctamente.
+            </div>
+        <% } %>
+
+        <% if (error === "status") { %>
+            <div class="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                No se pudo actualizar tu estado.
+            </div>
+        <% } %>
+
+        <section class="grid gap-6 lg:grid-cols-3">
+            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 lg:col-span-1">
+                <h2 class="font-bold text-slate-900">
+                    Tu estado
+                </h2>
+
+                <p class="mt-2 text-sm text-slate-500">
+                    Estado actual:
+                    <span class="font-semibold text-slate-900">
+                        <%= dashboard.currentAgent ? dashboard.currentAgent.status : "UNKNOWN" %>
+                    </span>
+                </p>
+
+                <form action="/agent/status" method="POST" class="mt-5 grid gap-3">
+                    <button name="status" value="AVAILABLE" class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                        Disponible
+                    </button>
+
+                    <button name="status" value="BUSY" class="rounded-xl bg-yellow-500 px-4 py-3 text-sm font-semibold text-white hover:bg-yellow-600">
+                        Ocupado
+                    </button>
+
+                    <button name="status" value="BREAK" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700">
+                        Break
+                    </button>
+
+                    <button name="status" value="OFFLINE" class="rounded-xl bg-slate-700 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                        Offline
+                    </button>
+                </form>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2 lg:col-span-2">
+                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                    <p class="text-sm font-medium text-slate-500">
+                        Conversaciones asignadas
+                    </p>
+
+                    <p class="mt-3 text-4xl font-bold text-slate-900">
+                        <%= dashboard.stats.assignedOpenConversations %>
+                    </p>
+                </div>
+
+                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-emerald-200">
+                    <p class="text-sm font-medium text-emerald-600">
+                        En progreso
+                    </p>
+
+                    <p class="mt-3 text-4xl font-bold text-emerald-700">
+                        <%= dashboard.stats.inProgressConversations %>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mt-8 grid gap-6 xl:grid-cols-2">
+            <div class="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                    <h2 class="font-bold text-slate-900">
+                        Tus conversaciones recientes
+                    </h2>
+
+                    <a href="/agent/conversations" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700">
+                        Ver todas
+                    </a>
+                </div>
+
+                <div class="divide-y divide-slate-100">
+                    <% if (dashboard.recentConversations.length === 0) { %>
+                        <div class="px-6 py-8 text-sm text-slate-500">
+                            Todavía no tienes conversaciones asignadas.
+                        </div>
+                    <% } %>
+
+                    <% dashboard.recentConversations.forEach((conversation) => { %>
+                        <a href="/agent/conversations/<%= conversation.id %>" class="block px-6 py-4 hover:bg-slate-50">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <p class="font-semibold text-slate-900">
+                                        <%= conversation.contact.name || conversation.contact.profileName || conversation.contact.phone %>
+                                    </p>
+
+                                    <p class="mt-1 line-clamp-1 text-sm text-slate-500">
+                                        <% if (conversation.messages.length > 0) { %>
+                                            <%= conversation.messages[0].body || "[" + conversation.messages[0].type + "]" %>
+                                        <% } else { %>
+                                            Sin mensajes todavía
+                                        <% } %>
+                                    </p>
+                                </div>
+
+                                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                    <%= conversation.operationalStatus %>
+                                </span>
+                            </div>
+                        </a>
+                    <% }) %>
+                </div>
+            </div>
+
+            <div class="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                <div class="border-b border-slate-200 px-6 py-4">
+                    <h2 class="font-bold text-slate-900">
+                        Mensajes recientes
+                    </h2>
+                </div>
+
+                <div class="divide-y divide-slate-100">
+                    <% if (dashboard.recentMessages.length === 0) { %>
+                        <div class="px-6 py-8 text-sm text-slate-500">
+                            No hay mensajes recientes.
+                        </div>
+                    <% } %>
+
+                    <% dashboard.recentMessages.forEach((message) => { %>
+                        <a href="/agent/conversations/<%= message.conversation.id %>" class="block px-6 py-4 hover:bg-slate-50">
+                            <div class="flex items-center gap-2">
+                                <span class="rounded-full <%= message.direction === 'IN' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700' %> px-3 py-1 text-xs font-semibold">
+                                    <%= message.direction %>
+                                </span>
+
+                                <p class="text-sm font-semibold text-slate-900">
+                                    <%= message.conversation.contact.name || message.conversation.contact.profileName || message.conversation.contact.phone %>
+                                </p>
+                            </div>
+
+                            <p class="mt-2 line-clamp-2 text-sm text-slate-600">
+                                <%= message.body || "[" + message.type + "]" %>
+                            </p>
+                        </a>
+                    <% }) %>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<%- include("../../partials/footer") %>

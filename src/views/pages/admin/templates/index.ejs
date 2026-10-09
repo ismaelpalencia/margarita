@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plantillas | Margarita</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <header class="border-b bg-white">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+            <div>
+                <h1 class="text-xl font-bold text-emerald-600">Margarita</h1>
+                <p class="text-sm text-slate-500">Plantillas</p>
+            </div>
+
+            <nav class="flex items-center gap-3">
+                <a href="/admin/dashboard" class="text-sm font-medium text-slate-700">
+                    Dashboard
+                </a>
+
+                <a href="/admin/users" class="text-sm font-medium text-slate-700">
+                    Agentes
+                </a>
+
+                <a href="/admin/contacts" class="text-sm font-medium text-slate-700">
+                    Contactos
+                </a>
+
+                <a href="/admin/tags" class="text-sm font-medium text-slate-700">
+                    Etiquetas
+                </a>
+
+                <a href="/admin/whatsapp" class="text-sm font-medium text-slate-700">
+                    WhatsApp
+                </a>
+
+                <a href="/admin/templates" class="text-sm font-medium text-emerald-700">
+                    Plantillas
+                </a>
+
+                <a href="/admin/conversations" class="text-sm font-medium text-slate-700">
+                    Conversaciones
+                </a>
+
+                <form action="/auth/logout" method="POST">
+                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
+                        Cerrar sesión
+                    </button>
+                </form>
+            </nav>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-6 py-8">
+        <section class="mb-6 flex items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">
+                    Plantillas
+                </h2>
+
+                <p class="mt-1 text-slate-500">
+                    Sincroniza y revisa las plantillas disponibles desde Meta.
+                </p>
+            </div>
+
+            <form action="/admin/templates/sync" method="POST">
+                <button class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                    Sincronizar desde Meta
+                </button>
+            </form>
+        </section>
+
+        <% if (success === "sync") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Plantillas sincronizadas correctamente.
+            </div>
+        <% } %>
+
+        <% if (error === "sync") { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                No se pudieron sincronizar las plantillas. Revisa tus credenciales de Meta y los logs.
+            </div>
+        <% } %>
+
+        <section class="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-5">
+            <h3 class="font-bold text-blue-900">
+                Importante
+            </h3>
+
+            <p class="mt-2 text-sm text-blue-900">
+                Margarita V1 no crea plantillas. Las plantillas deben crearse y aprobarse desde Meta Business Suite.
+                Aquí solo se sincronizan para usarlas después en mensajes manuales y campañas.
+            </p>
+        </section>
+
+        <section class="overflow-hidden rounded-2xl bg-white shadow">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-slate-500">
+                    <tr>
+                        <th class="px-5 py-4">Nombre</th>
+                        <th class="px-5 py-4">Idioma</th>
+                        <th class="px-5 py-4">Categoría</th>
+                        <th class="px-5 py-4">Estado</th>
+                        <th class="px-5 py-4">Última sincronización</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-slate-100">
+                    <% if (templates.length === 0) { %>
+                        <tr>
+                            <td colspan="5" class="px-5 py-8 text-center text-slate-500">
+                                Todavía no hay plantillas sincronizadas.
+                            </td>
+                        </tr>
+                    <% } %>
+
+                    <% templates.forEach((template) => { %>
+                        <tr>
+                            <td class="px-5 py-4">
+                                <div class="font-medium text-slate-800">
+                                    <%= template.name %>
+                                </div>
+
+                                <% if (template.metaTemplateId) { %>
+                                    <div class="mt-1 text-xs text-slate-400">
+                                        ID: <%= template.metaTemplateId %>
+                                    </div>
+                                <% } %>
+                            </td>
+
+                            <td class="px-5 py-4 text-slate-600">
+                                <%= template.language %>
+                            </td>
+
+                            <td class="px-5 py-4 text-slate-600">
+                                <%= template.category || "—" %>
+                            </td>
+
+                            <td class="px-5 py-4">
+                                <% if (template.status === "APPROVED") { %>
+                                    <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                        Aprobada
+                                    </span>
+                                <% } else if (template.status === "REJECTED") { %>
+                                    <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                                        Rechazada
+                                    </span>
+                                <% } else if (template.status === "PENDING") { %>
+                                    <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                                        Pendiente
+                                    </span>
+                                <% } else { %>
+                                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                                        <%= template.status %>
+                                    </span>
+                                <% } %>
+                            </td>
+
+                            <td class="px-5 py-4 text-slate-600">
+                                <% if (template.lastSyncedAt) { %>
+                                    <%= template.lastSyncedAt.toLocaleString("es-MX") %>
+                                <% } else { %>
+                                    —
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

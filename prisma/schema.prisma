@@ -1,0 +1,517 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum WorkspaceStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum AssignmentMode {
+  MANUAL
+  LEAST_BUSY
+  ROUND_ROBIN
+}
+
+enum ReopenedConversationMode {
+  ADMIN_INBOX
+  LAST_AGENT
+  AUTO_ASSIGN
+}
+
+enum UserRole {
+  ADMIN
+  AGENT
+}
+
+enum UserStatus {
+  AVAILABLE
+  BUSY
+  BREAK
+  OFFLINE
+}
+
+enum ConversationStatus {
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+enum ConversationOperationalStatus {
+  UNASSIGNED
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum ConversationSource {
+  CAMPAIGN
+  MANUAL
+  INBOUND
+  AUTOMATIC
+}
+
+enum MessageDirection {
+  IN
+  OUT
+}
+
+enum MessageType {
+  TEXT
+  TEMPLATE
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  INTERACTIVE
+  UNKNOWN
+}
+
+enum MessageStatus {
+  CREATED
+  SENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum MessageSource {
+  MANUAL
+  CAMPAIGN
+  AUTOMATIC
+  WEBHOOK
+}
+
+enum CampaignStatus {
+  DRAFT
+  VALIDATING
+  READY
+  RUNNING
+  PAUSED
+  FINISHED
+  FAILED
+  CANCELLED
+}
+
+enum CampaignRecipientStatus {
+  PENDING
+  SENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  SKIPPED
+}
+
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+  DEBUG
+}
+
+enum LogModule {
+  SYSTEM
+  AUTH
+  USER
+  CONTACT
+  TAG
+  CAMPAIGN
+  CONVERSATION
+  MESSAGE
+  WEBHOOK
+  META
+  WHATSAPP_ACCOUNT
+}
+
+model Workspace {
+  id        String          @id @default(cuid())
+  name      String
+  slug      String          @unique
+  status    WorkspaceStatus @default(ACTIVE)
+
+  settings        WorkspaceSettings?
+  whatsappAccount WhatsAppAccount?
+  users           User[]
+  contacts        Contact[]
+  tags            Tag[]
+  templates       Template[]
+  conversations   Conversation[]
+  campaigns       Campaign[]
+  messages        Message[]
+  logs            Log[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WorkspaceSettings {
+  id          String    @id @default(cuid())
+  workspaceId String   @unique
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  timezone     String @default("America/Mexico_City")
+  language     String @default("es_MX")
+  autoAssign   Boolean @default(true)
+
+  assignmentMode AssignmentMode @default(LEAST_BUSY)
+
+  businessHoursStart String @default("08:00")
+  businessHoursEnd   String @default("18:00")
+
+  outOfHoursMessage String @default("Por el momento no hay agentes disponibles. Te contactaremos en cuanto sea posible.")
+
+  maxManualMessages      Int @default(100)
+  maxActiveConversations Int @default(20)
+
+  reopenedConversationMode ReopenedConversationMode @default(ADMIN_INBOX)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  name     String
+  email    String   @unique
+  password String
+
+  role   UserRole
+  status UserStatus @default(OFFLINE)
+
+  isActive Boolean @default(true)
+
+  canSendManualMessages Boolean @default(false)
+  manualMessageLimit    Int?
+  manualMessagesUsed    Int @default(0)
+
+  lastLoginAt DateTime?
+
+  sessions UserSession[]
+
+  sentMessages Message[] @relation("MessageSentByUser")
+  campaigns    Campaign[] @relation("CampaignCreatedBy")
+
+  assignedConversations Conversation[] @relation("ConversationAssignedUser")
+
+  assignmentsMade AssignmentHistory[] @relation("AssignmentAssignedBy")
+  assignmentsFrom AssignmentHistory[] @relation("AssignmentFromUser")
+  assignmentsTo   AssignmentHistory[] @relation("AssignmentToUser")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([role])
+  @@index([status])
+}
+
+model UserSession {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenId   String  @unique
+  ip        String?
+  userAgent String?
+
+  isActive Boolean @default(true)
+
+  expiresAt  DateTime
+  lastSeenAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+model WhatsAppAccount {
+  id          String    @id @default(cuid())
+  workspaceId String   @unique
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  displayName       String?
+  phoneNumber       String
+  phoneNumberId     String
+  businessAccountId String
+  accessToken       String
+  verifyToken       String
+  apiVersion        String @default("v23.0")
+
+  status        String?
+  qualityRating String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Contact {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  profileName String?
+  customName  String?
+  phone       String
+  notes       String?
+
+  isActive Boolean @default(true)
+
+  lastSeenAt DateTime?
+
+  tags               ContactTag[]
+  conversations      Conversation[]
+  campaignRecipients CampaignRecipient[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, phone])
+  @@index([workspaceId])
+  @@index([isActive])
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  name     String
+  color    String?
+  isActive Boolean @default(true)
+
+  contacts ContactTag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+}
+
+model ContactTag {
+  contactId String
+  tagId     String
+
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([contactId, tagId])
+}
+
+model Template {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  metaTemplateId String?
+  name           String
+  language       String
+  category       String?
+  status         String
+  components     Json?
+
+  lastSyncedAt DateTime?
+
+  campaigns Campaign[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, name, language])
+  @@index([workspaceId])
+  @@index([status])
+}
+
+model Conversation {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  assignedUserId String?
+  assignedUser   User? @relation("ConversationAssignedUser", fields: [assignedUserId], references: [id], onDelete: SetNull)
+
+  status            ConversationStatus            @default(OPEN)
+  operationalStatus ConversationOperationalStatus @default(UNASSIGNED)
+  source            ConversationSource
+
+  lastMessageAt         DateTime?
+  lastIncomingMessageAt DateTime?
+  closedAt              DateTime?
+
+  messages    Message[]
+  assignments AssignmentHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, contactId])
+  @@index([workspaceId])
+  @@index([contactId])
+  @@index([assignedUserId])
+  @@index([status])
+  @@index([operationalStatus])
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  sentByUserId String?
+  sentByUser   User? @relation("MessageSentByUser", fields: [sentByUserId], references: [id], onDelete: SetNull)
+
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  wamid String? @unique
+
+  direction MessageDirection
+  type      MessageType
+  status    MessageStatus @default(CREATED)
+  source    MessageSource
+
+  body     String?
+  mediaId  String?
+  mimeType String?
+
+  metaPayload  Json?
+  metaResponse Json?
+
+  campaignRecipient CampaignRecipient?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([conversationId])
+  @@index([status])
+  @@index([direction])
+  @@index([createdAt])
+}
+
+model AssignmentHistory {
+  id String @id @default(cuid())
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  fromUserId String?
+  fromUser   User? @relation("AssignmentFromUser", fields: [fromUserId], references: [id], onDelete: SetNull)
+
+  toUserId String?
+  toUser   User? @relation("AssignmentToUser", fields: [toUserId], references: [id], onDelete: SetNull)
+
+  assignedById String
+  assignedBy   User @relation("AssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
+
+  reason String?
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([assignedById])
+}
+
+model Campaign {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User @relation("CampaignCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+
+  templateId String
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Restrict)
+
+  name   String
+  status CampaignStatus @default(DRAFT)
+
+  totalRecipients     Int @default(0)
+  validRecipients     Int @default(0)
+  invalidRecipients   Int @default(0)
+  duplicateRecipients Int @default(0)
+
+  recipients CampaignRecipient[]
+  messages   Message[]
+
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([createdById])
+  @@index([createdAt])
+}
+
+model CampaignRecipient {
+  id String @id @default(cuid())
+
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  messageId String?  @unique
+  message   Message? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  phone  String
+  status CampaignRecipientStatus @default(PENDING)
+
+  errorCode    String?
+  errorMessage String?
+  variables    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([campaignId])
+  @@index([contactId])
+  @@index([messageId])
+  @@index([status])
+  @@index([phone])
+}
+
+model Log {
+  id String @id @default(cuid())
+
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  level  LogLevel
+  module LogModule
+  action String
+  message String
+
+  payload Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([workspaceId])
+  @@index([level])
+  @@index([module])
+  @@index([createdAt])
+}

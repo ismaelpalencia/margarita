@@ -1,0 +1,47 @@
+<header class="border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex items-center gap-3">
+            <a href="/agent/dashboard" class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-lg font-black text-white shadow-sm">
+                M
+            </a>
+
+            <div>
+                <p class="text-lg font-black leading-tight text-slate-900">
+                    Margarita
+                </p>
+
+                <p class="text-xs font-medium text-slate-500">
+                    Panel Agente
+                </p>
+            </div>
+        </div>
+
+        <nav class="flex flex-wrap items-center gap-2 text-sm">
+            <a href="/agent/dashboard" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Dashboard
+            </a>
+
+            <a href="/agent/conversations" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Mis conversaciones
+            </a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+            <div class="hidden text-right md:block">
+                <p class="text-sm font-bold text-slate-800">
+                    <%= user?.name || "Agente" %>
+                </p>
+
+                <p class="text-xs text-slate-500">
+                    Agente
+                </p>
+            </div>
+
+            <form action="/auth/logout" method="POST">
+                <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800">
+                    Salir
+                </button>
+            </form>
+        </div>
+    </div>
+</header>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conversaciones | Margarita</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body
+    class="min-h-screen bg-slate-100"
+    data-live-page="inbox"
+    data-live-base="/admin/conversations"
+>
+    <header class="border-b bg-white">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+            <div>
+                <h1 class="text-xl font-bold text-emerald-600">Margarita</h1>
+                <p class="text-sm text-slate-500">Conversaciones</p>
+            </div>
+
+            <nav class="flex items-center gap-3">
+                <a href="/admin/dashboard" class="text-sm font-medium text-slate-700">Dashboard</a>
+                <a href="/admin/users" class="text-sm font-medium text-slate-700">Agentes</a>
+                <a href="/admin/contacts" class="text-sm font-medium text-slate-700">Contactos</a>
+                <a href="/admin/tags" class="text-sm font-medium text-slate-700">Etiquetas</a>
+                <a href="/admin/whatsapp" class="text-sm font-medium text-slate-700">WhatsApp</a>
+                <a href="/admin/templates" class="text-sm font-medium text-slate-700">Plantillas</a>
+                <a href="/admin/conversations" class="text-sm font-medium text-emerald-700">Conversaciones</a>
+
+                <form action="/auth/logout" method="POST">
+                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
+                        Cerrar sesión
+                    </button>
+                </form>
+            </nav>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-6 py-8">
+        <section class="mb-6 flex items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">
+                    Conversaciones
+                </h2>
+
+                <p class="mt-1 text-slate-500">
+                    Vista general de las conversaciones de la empresa.
+                </p>
+            </div>
+        </section>
+
+        <form action="/admin/conversations" method="GET" class="mb-6 flex gap-3">
+            <select
+                name="status"
+                class="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            >
+                <option value="">Todos los estados</option>
+                <option value="OPEN" <% if (status === "OPEN") { %> selected <% } %>>Abiertas</option>
+                <option value="CLOSED" <% if (status === "CLOSED") { %> selected <% } %>>Cerradas</option>
+                <option value="ARCHIVED" <% if (status === "ARCHIVED") { %> selected <% } %>>Archivadas</option>
+            </select>
+
+            <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">
+                Filtrar
+            </button>
+
+            <% if (status) { %>
+                <a href="/admin/conversations" class="rounded-xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700">
+                    Limpiar
+                </a>
+            <% } %>
+        </form>
+
+        <% if (success) { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Acción realizada correctamente.
+            </div>
+        <% } %>
+
+        <section class="overflow-hidden rounded-2xl bg-white shadow">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-slate-500">
+                    <tr>
+                        <th class="px-5 py-4">Contacto</th>
+                        <th class="px-5 py-4">Estado</th>
+                        <th class="px-5 py-4">Operación</th>
+                        <th class="px-5 py-4">Asignado a</th>
+                        <th class="px-5 py-4">Último mensaje</th>
+                        <th class="px-5 py-4 text-right">Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-slate-100">
+                    <% if (conversations.length === 0) { %>
+                        <tr>
+                            <td colspan="6" class="px-5 py-8 text-center text-slate-500">
+                                No hay conversaciones para mostrar.
+                            </td>
+                        </tr>
+                    <% } %>
+
+                    <% conversations.forEach((conversation) => { %>
+                        <% const lastMessage = conversation.messages[0]; %>
+
+                        <tr>
+                            <td class="px-5 py-4">
+                                <div class="font-medium text-slate-800">
+                                    <%= conversation.contact.customName || conversation.contact.profileName || conversation.contact.phone %>
+                                </div>
+                                <div class="mt-1 text-xs text-slate-400">
+                                    <%= conversation.contact.phone %>
+                                </div>
+                            </td>
+
+                            <td class="px-5 py-4 text-slate-600">
+                                <%= conversation.status %>
+                            </td>
+
+                            <td class="px-5 py-4 text-slate-600">
+                                <%= conversation.operationalStatus %>
+                            </td>
+
+                            <td class="px-5 py-4 text-slate-600">
+                                <% if (conversation.assignedUser) { %>
+                                    <%= conversation.assignedUser.name %>
+                                <% } else { %>
+                                    Sin asignar
+                                <% } %>
+                            </td>
+
+                            <td class="px-5 py-4 text-slate-600">
+                                <% if (lastMessage) { %>
+                                    <span class="line-clamp-1">
+                                        <%= lastMessage.body || lastMessage.type %>
+                                    </span>
+                                <% } else { %>
+                                    —
+                                <% } %>
+                            </td>
+
+                            <td class="px-5 py-4 text-right">
+                                <a
+                                    href="/admin/conversations/<%= conversation.id %>"
+                                    class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white"
+                                >
+                                    Ver
+                                </a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/live.js"></script>
+</body>
+</html>

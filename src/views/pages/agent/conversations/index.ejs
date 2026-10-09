@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mis conversaciones | Margarita</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body
+    class="min-h-screen bg-slate-100"
+    data-live-page="inbox"
+    data-live-base="/agent/conversations"
+    data-live-user-id="<%= user.id %>"
+>
+    <header class="border-b bg-white">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+            <div>
+                <h1 class="text-xl font-bold text-emerald-600">Margarita</h1>
+                <p class="text-sm text-slate-500">Mis conversaciones</p>
+            </div>
+
+            <nav class="flex items-center gap-3">
+                <a href="/agent/dashboard" class="text-sm font-medium text-slate-700">Dashboard</a>
+                <a href="/agent/conversations" class="text-sm font-medium text-emerald-700">Conversaciones</a>
+
+                <form action="/auth/logout" method="POST">
+                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
+                        Cerrar sesión
+                    </button>
+                </form>
+            </nav>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-6 py-8">
+        <section class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">
+                Mis conversaciones
+            </h2>
+
+            <p class="mt-1 text-slate-500">
+                Solo ves conversaciones asignadas a ti.
+            </p>
+        </section>
+
+        <% if (success) { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Acción realizada correctamente.
+            </div>
+        <% } %>
+
+        <section class="overflow-hidden rounded-2xl bg-white shadow">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-slate-500">
+                    <tr>
+                        <th class="px-5 py-4">Contacto</th>
+                        <th class="px-5 py-4">Estado</th>
+                        <th class="px-5 py-4">Último mensaje</th>
+                        <th class="px-5 py-4 text-right">Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-slate-100">
+                    <% if (conversations.length === 0) { %>
+                        <tr>
+                            <td colspan="4" class="px-5 py-8 text-center text-slate-500">
+                                No tienes conversaciones asignadas.
+                            </td>
+                        </tr>
+                    <% } %>
+
+                    <% conversations.forEach((conversation) => { %>
+                        <% const lastMessage = conversation.messages[0]; %>
+
+                        <tr>
+                            <td class="px-5 py-4">
+                                <div class="font-medium text-slate-800">
+                                    <%= conversation.contact.customName || conversation.contact.profileName || conversation.contact.phone %>
+                                </div>
+                                <div class="mt-1 text-xs text-slate-400">
+                                    <%= conversation.contact.phone %>
+                                </div>
+                            </td>
+
+                            <td class="px-5 py-4 text-slate-600">
+                                <%= conversation.operationalStatus %>
+                            </td>
+
+                            <td class="px-5 py-4 text-slate-600">
+                                <% if (lastMessage) { %>
+                                    <%= lastMessage.body || lastMessage.type %>
+                                <% } else { %>
+                                    —
+                                <% } %>
+                            </td>
+
+                            <td class="px-5 py-4 text-right">
+                                <a
+                                    href="/agent/conversations/<%= conversation.id %>"
+                                    class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white"
+                                >
+                                    Ver
+                                </a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/live.js"></script>
+</body>
+</html>
