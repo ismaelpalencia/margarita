@@ -111,6 +111,7 @@ export class HealthService {
         const checks = {
             database: database === "up",
             webhookQueueReadable: queue.readable,
+            webhookWorkerSchemaReady: webhookWorkerState.schemaReady,
             encryptionKeyConfigured: Boolean(appConfig.encryptionKey),
             webhookSignatureConfigured: Boolean(appConfig.metaAppSecret),
             webhookQueueEnabled: appConfig.webhookQueueEnabled,
@@ -152,6 +153,9 @@ export class HealthService {
                 running: webhookWorkerState.running,
                 lastRunAt: webhookWorkerState.lastRunAt,
                 lastErrorAt: webhookWorkerState.lastErrorAt,
+                schemaReady: webhookWorkerState.schemaReady,
+                missingSchema: webhookWorkerState.missingSchema,
+                pausedUntil: webhookWorkerState.pausedUntil,
                 processed: webhookWorkerState.processed,
                 failed: webhookWorkerState.failed
             },

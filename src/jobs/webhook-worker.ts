@@ -1,4 +1,4 @@
-import { WebhookEventStatus } from "@prisma/client";
+import { Prisma, WebhookEventStatus } from "@prisma/client";
 
 import { appConfig } from "../config/app.config";
 import { logger } from "../config/logger";
@@ -20,11 +20,86 @@ export const webhookWorkerState = {
     lastRunAt: null as Date | null,
     lastErrorAt: null as Date | null,
     processed: 0,
-    failed: 0
+    failed: 0,
+    schemaReady: true,
+    missingSchema: null as string | null,
+    pausedUntil: null as Date | null
 };
 
 const BATCH_SIZE = 10;
 const STUCK_PROCESSING_MINUTES = 5;
+
+/**
+ * Detecta los errores de Prisma que significan "el esquema está atrasado":
+ * falta una tabla (P2021) o una columna (P2022). En ese caso no tiene
+ * sentido seguir consultando cada dos segundos.
+ */
+export function isMissingSchemaError(error: unknown): boolean {
+    if (!error || typeof error !== "object") {
+        return false;
+    }
+
+    const code = (error as { code?: unknown }).code;
+
+    if (code === "P2021" || code === "P2022") {
+        return true;
+    }
+
+    const message = error instanceof Error ? error.message : String(error);
+
+    return (
+        /(does not exist|no existe)/i.test(message) &&
+        /(table|relation|column|tabla|columna)/i.test(message)
+    );
+}
+
+function pauseForMissingSchema(error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+
+    webhookWorkerState.schemaReady = false;
+    webhookWorkerState.missingSchema = message;
+    webhookWorkerState.pausedUntil = new Date(
+        Date.now() + appConfig.webhookSchemaPauseMs
+    );
+
+    logger.error(
+        { error: message },
+        `La base de datos no tiene aplicadas las migraciones, así que el worker de webhooks queda en pausa ` +
+            `${Math.round(appConfig.webhookSchemaPauseMs / 60000)} minuto(s). ` +
+            "Corre `npx prisma migrate deploy` contra esta base: el worker se reactiva solo."
+    );
+
+    /**
+     * La bitácora también vive en la base: si el esquema está a medias,
+     * el registro puede fallar y no debe provocar otro error en cascada.
+     */
+    void prisma.log
+        .create({
+            data: {
+                level: "ERROR",
+                module: "WEBHOOK",
+                action: "WEBHOOK_WORKER_SCHEMA_MISSING",
+                message:
+                    "El worker se detuvo porque faltan migraciones en la base de datos.",
+                payload: JSON.parse(
+                    JSON.stringify({ error: message })
+                ) as Prisma.InputJsonValue
+            }
+        })
+        .catch(() => undefined);
+}
+
+function markSchemaReady() {
+    if (!webhookWorkerState.schemaReady) {
+        logger.info(
+            "El esquema de la base de datos ya está al día: el worker de webhooks se reactivó."
+        );
+    }
+
+    webhookWorkerState.schemaReady = true;
+    webhookWorkerState.missingSchema = null;
+    webhookWorkerState.pausedUntil = null;
+}
 
 async function claimNextEvent(): Promise<WebhookEventRecord | null> {
     const candidate = await prisma.webhookEvent.findFirst({
@@ -140,6 +215,32 @@ async function processEvent(event: WebhookEventRecord) {
 
         webhookWorkerState.lastErrorAt = new Date();
 
+        /**
+         * Si lo que falla es el esquema, no es un problema del evento:
+         * se pausa el worker y el evento vuelve a la cola para cuando la
+         * base esté migrada.
+         */
+        if (isMissingSchemaError(error)) {
+            pauseForMissingSchema(error);
+
+            await prisma.webhookEvent
+                .update({
+                    where: {
+                        id: event.id
+                    },
+                    data: {
+                        status: WebhookEventStatus.PENDING,
+                        lastError: message,
+                        nextAttemptAt: new Date(
+                            Date.now() + appConfig.webhookSchemaPauseMs
+                        )
+                    }
+                })
+                .catch(() => undefined);
+
+            return;
+        }
+
         const exhausted = event.attempts >= appConfig.webhookMaxAttempts;
 
         if (exhausted) {
@@ -232,6 +333,17 @@ async function tick() {
         return;
     }
 
+    /**
+     * Si el esquema está atrasado, se espera antes de volver a consultar
+     * para no inundar los logs de la base ni los del servicio.
+     */
+    if (
+        webhookWorkerState.pausedUntil &&
+        Date.now() < webhookWorkerState.pausedUntil.getTime()
+    ) {
+        return;
+    }
+
     webhookWorkerState.running = true;
 
     try {
@@ -246,8 +358,16 @@ async function tick() {
 
             await processEvent(event);
         }
+
+        markSchemaReady();
     } catch (error) {
-        logger.error({ error }, "Falló el ciclo del worker de webhooks");
+        webhookWorkerState.lastErrorAt = new Date();
+
+        if (isMissingSchemaError(error)) {
+            pauseForMissingSchema(error);
+        } else {
+            logger.error({ error }, "Falló el ciclo del worker de webhooks");
+        }
     } finally {
         webhookWorkerState.running = false;
         webhookWorkerState.lastRunAt = new Date();

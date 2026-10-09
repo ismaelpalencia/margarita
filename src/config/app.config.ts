@@ -36,6 +36,12 @@ export const appConfig = {
     webhookWorkerIntervalMs:
         Number(process.env.WEBHOOK_WORKER_INTERVAL_MS) || 2000,
     webhookMaxAttempts: Number(process.env.WEBHOOK_MAX_ATTEMPTS) || 5,
+    /**
+     * Cuánto espera el worker antes de volver a intentar cuando detecta
+     * que a la base le faltan migraciones.
+     */
+    webhookSchemaPauseMs:
+        Number(process.env.WEBHOOK_SCHEMA_PAUSE_MS) || 5 * 60 * 1000,
 
     alertWebhookUrl: process.env.ALERT_WEBHOOK_URL || "",
     alertCooldownMinutes: Number(process.env.ALERT_COOLDOWN_MINUTES) || 10

@@ -80,6 +80,7 @@ Pega esto en Variables del servicio de la app. Las referencias `${{...}}` apunta
 | `WEBHOOK_QUEUE_ENABLED` | `true` | Procesa los webhooks por cola |
 | `WEBHOOK_WORKER_INTERVAL_MS` | `2000` | Frecuencia del worker |
 | `WEBHOOK_MAX_ATTEMPTS` | `5` | Reintentos antes de marcar `FAILED` |
+| `WEBHOOK_SCHEMA_PAUSE_MS` | `300000` | Pausa del worker si faltan migraciones |
 | `ALERT_WEBHOOK_URL` | *(opcional)* | Slack/Discord/Google Chat para avisos de error |
 | `ALERT_COOLDOWN_MINUTES` | `10` | Enfriamiento entre avisos repetidos |
 
@@ -277,6 +278,8 @@ DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma migrate deploy
 **Si la lista sale vacía**, es una base nueva: `npx prisma migrate deploy` y después `npm run db:seed`.
 
 Con el historial ya baselinado, agrega el Pre-deploy Command `npx prisma migrate deploy` para que Railway aplique las migraciones en cada deploy y este error no vuelva a aparecer.
+
+Mientras la base siga sin migrar, el worker de webhooks registra un único error, avisa y queda en pausa 5 minutos en vez de inundar los logs cada dos segundos. No hace falta reiniciar el servicio después de migrar: se reactiva solo.
 
 ---
 

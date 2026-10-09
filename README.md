@@ -237,6 +237,7 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `WEBHOOK_QUEUE_ENABLED` | No | Procesa los webhooks por cola. Default `true` |
 | `WEBHOOK_WORKER_INTERVAL_MS` | No | Cada cuánto revisa la cola el worker. Default `2000` |
 | `WEBHOOK_MAX_ATTEMPTS` | No | Reintentos antes de marcar un evento como `FAILED`. Default `5` |
+| `WEBHOOK_SCHEMA_PAUSE_MS` | No | Pausa del worker si detecta migraciones sin aplicar. Default `300000` (5 min) |
 | `ALERT_WEBHOOK_URL` | No | Endpoint (Slack, Discord, Google Chat) que recibe avisos de error |
 | `ALERT_COOLDOWN_MINUTES` | No | Enfriamiento entre avisos repetidos. Default `10` |
 
@@ -376,6 +377,8 @@ Endpoints: `GET` y `POST /webhooks/meta/whatsapp`.
 **Cola de procesamiento.** El endpoint ya no procesa el mensaje en línea: guarda el payload en la tabla `WebhookEvent` y responde `200` de inmediato (en la práctica, menos de 10 ms). Un worker en segundo plano lo procesa cada `WEBHOOK_WORKER_INTERVAL_MS` milisegundos con reintentos y backoff exponencial (1s, 2s, 4s… hasta 5 minutos) y `WEBHOOK_MAX_ATTEMPTS` intentos antes de marcarlo como `FAILED`.
 
 Esto cambia dos cosas importantes. Primero, un error temporal (base de datos lenta, un bug en el procesamiento) ya no pierde el mensaje del cliente: se reintenta. Segundo, si el proceso se cae a mitad del trabajo, el evento queda en `PROCESSING` y se devuelve a la cola automáticamente a los 5 minutos.
+
+Si la base no tiene aplicadas las migraciones, el worker lo detecta, registra **un solo** error con la instrucción exacta y se pausa `WEBHOOK_SCHEMA_PAUSE_MS` en lugar de consultar en bucle. Cuando la migración se aplica, se reactiva solo, sin reiniciar el servicio.
 
 Si el payload no se puede guardar (por ejemplo, la base está caída), el endpoint responde `500` a propósito para que Meta lo reintente: en ese caso perderlo sí sería perder el mensaje.
 
