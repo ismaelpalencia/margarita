@@ -11,6 +11,13 @@ jobs:
     name: Tipos, tests y build
     runs-on: ubuntu-latest
 
+    # Los comandos de Prisma (validate, generate y el build) leen la
+    # configuración de prisma.config.ts, que exige DATABASE_URL. Ninguno
+    # se conecta a una base de datos, así que basta un valor de relleno:
+    # no hace falta configurar secretos en GitHub.
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

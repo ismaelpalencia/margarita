@@ -16,7 +16,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 4. [Requisitos](#4-requisitos)
 5. [Instalación local](#5-instalación-local)
 6. [Variables de entorno](#6-variables-de-entorno)
-7. [Scripts](#7-scripts)
+7. [Scripts y CI](#7-scripts-y-ci)
 8. [Rutas de la aplicación](#8-rutas-de-la-aplicación)
 9. [Modelo de datos](#9-modelo-de-datos)
 10. [Webhook de Meta](#10-webhook-de-meta)
@@ -246,7 +246,7 @@ Sin `ENCRYPTION_KEY` la app funciona igual, pero las credenciales de Meta quedan
 
 ---
 
-## 7. Scripts
+## 7. Scripts y CI
 
 | Script | Qué hace |
 | --- | --- |
@@ -263,6 +263,14 @@ Sin `ENCRYPTION_KEY` la app funciona igual, pero las credenciales de Meta quedan
 | `npm run db:generate` | Regenera el cliente de Prisma |
 | `npm run db:seed` | Carga datos iniciales |
 | `npm run db:studio` | Abre Prisma Studio |
+
+### Integración continua
+
+`.github/workflows/ci.yml` corre en cada push a `main` y en cada pull request: valida el esquema de Prisma, genera el cliente, verifica tipos, corre los tests y hace el build completo.
+
+El workflow define un `DATABASE_URL` de relleno porque `prisma.config.ts` exige la variable para cargar la configuración, y GitHub arranca sin `.env` ni secretos. Ninguno de esos pasos se conecta a una base de datos, así que el valor nunca se usa: **no hace falta configurar secretos en GitHub**.
+
+Si algún día agregas tests que sí necesiten base de datos, el workflow tendría que levantar un servicio de PostgreSQL con `services:` y apuntar `DATABASE_URL` a él.
 
 ---
 
