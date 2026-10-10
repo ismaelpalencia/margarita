@@ -7,6 +7,7 @@ import { prisma } from "../config/prisma";
 import { LogService } from "../services/log.service";
 import { WebhookService } from "../services/webhook.service";
 import { MetaWebhookHandlerService } from "../services/meta-webhook-handler.service";
+import { webhookTelemetry } from "../services/webhook-telemetry.service";
 import { MetaWebhookPayload } from "../types/meta-webhook";
 import { extractPhoneNumberId } from "../utils/meta-payload";
 import { verifyMetaSignature } from "../utils/webhook-signature";
@@ -55,6 +56,8 @@ export class MetaWebhookController {
     }
 
     static async receive(req: Request, res: Response) {
+        webhookTelemetry.recordReceived();
+
         const signatureHeader = req.headers["x-hub-signature-256"];
 
         if (!appConfig.metaAppSecret) {
@@ -83,6 +86,10 @@ export class MetaWebhookController {
             }
 
             if (appConfig.env === "production") {
+                webhookTelemetry.recordRejected(
+                    "Falta META_APP_SECRET y el entorno es producción."
+                );
+
                 return res.sendStatus(401);
             }
         } else {
@@ -93,6 +100,24 @@ export class MetaWebhookController {
             });
 
             if (!signatureIsValid) {
+                webhookTelemetry.recordRejected(
+                    "La firma X-Hub-Signature-256 no es válida (¿META_APP_SECRET distinto al de Meta?)."
+                );
+
+                /**
+                 * También al log del servicio, que es donde se mira
+                 * cuando algo no llega: sin esto, un rechazo de firma
+                 * solo quedaba en la bitácora del panel.
+                 */
+                logger.warn(
+                    {
+                        reason:
+                            "La firma X-Hub-Signature-256 no coincide. Revisa que META_APP_SECRET sea el App Secret real de Meta (32 caracteres hexadecimales).",
+                        hasSignature: Boolean(signatureHeader)
+                    },
+                    "Webhook de Meta rechazado por firma inválida"
+                );
+
                 await LogService.create({
                     level: LogLevel.WARN,
                     module: LogModule.WEBHOOK,
@@ -127,9 +152,15 @@ export class MetaWebhookController {
                     }
                 });
 
+                webhookTelemetry.recordEnqueued();
+
                 return res.sendStatus(200);
             } catch (error) {
                 console.error("No se pudo encolar el webhook:", error);
+
+                webhookTelemetry.recordRejected(
+                    "No se pudo guardar el evento en la cola."
+                );
 
                 /**
                  * Si no pudimos guardar el evento, respondemos 500 para

@@ -23,6 +23,30 @@ if (
     );
 }
 
+const metaAppSecret = process.env.META_APP_SECRET || "";
+
+/**
+ * El App Secret real de Meta son 32 caracteres hexadecimales. Un valor
+ * corto casi siempre es un relleno, y con él la firma de los webhooks
+ * nunca coincide: Meta recibe 401 en cada intento y los mensajes se
+ * quedan sin actualizar de estado.
+ */
+if (metaAppSecret && !/^[0-9a-f]{32}$/i.test(metaAppSecret)) {
+    console.warn(
+        `[config] META_APP_SECRET no parece el App Secret de Meta (se esperan 32 caracteres hexadecimales y tiene ${metaAppSecret.length}). ` +
+            "Si es un valor de relleno, la validación de firma rechazará todos los webhooks."
+    );
+}
+
+const encryptionKey = process.env.ENCRYPTION_KEY || "";
+
+if (encryptionKey && encryptionKey.length < 32) {
+    console.warn(
+        `[config] ENCRYPTION_KEY es muy corta (${encryptionKey.length} caracteres). ` +
+            "Usa 64 caracteres hexadecimales: `npm run secrets:generate`."
+    );
+}
+
 export const appConfig = {
     name: process.env.APP_NAME || "Margarita",
     appUrl: appUrl.url,

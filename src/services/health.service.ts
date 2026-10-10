@@ -4,6 +4,7 @@ import { appConfig } from "../config/app.config";
 import { prisma } from "../config/prisma";
 import { retentionState } from "../jobs/retention.job";
 import { webhookWorkerState } from "../jobs/webhook-worker";
+import { webhookTelemetry } from "./webhook-telemetry.service";
 
 /**
  * Superficie mínima del cliente de base de datos que usa el healthcheck.
@@ -112,7 +113,13 @@ export class HealthService {
             database: database === "up",
             webhookQueueReadable: queue.readable,
             webhookWorkerSchemaReady: webhookWorkerState.schemaReady,
+            /** Si es false, Meta no está entregando nada a este servicio. */
+            webhooksArriving: webhookTelemetry.getSnapshot().received > 0,
             encryptionKeyConfigured: Boolean(appConfig.encryptionKey),
+            /** El App Secret real de Meta son 32 caracteres hexadecimales. */
+            appSecretFormatLooksValid: /^[0-9a-f]{32}$/i.test(
+                appConfig.metaAppSecret
+            ),
             webhookSignatureConfigured: Boolean(appConfig.metaAppSecret),
             webhookQueueEnabled: appConfig.webhookQueueEnabled,
             webhookWorkerRunning: webhookWorkerState.running,
@@ -150,6 +157,8 @@ export class HealthService {
                 ? "La base de datos no tiene aplicadas las migraciones más recientes. Corre `npx prisma migrate deploy` contra esta base."
                 : null,
             queue,
+            /** Lo que realmente llegó al endpoint del webhook desde el último arranque. */
+            webhook: webhookTelemetry.getSnapshot(),
             worker: {
                 enabled: webhookWorkerState.enabled,
                 running: webhookWorkerState.running,
