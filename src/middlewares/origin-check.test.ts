@@ -39,9 +39,26 @@ test("bloquea un subdominio distinto", () => {
 });
 
 test("bloquea un origen inválido cuando el navegador lo envía", () => {
-    const result = checkRequestOrigin("no-es-una-url", APP_URL);
+    const result = checkRequestOrigin("https://malicioso.example/pagina", APP_URL);
 
     assert.equal(result.allowed, false);
+});
+
+test("permite Origin: null (origen opaco del navegador)", () => {
+    const result = checkRequestOrigin("null", APP_URL);
+
+    assert.equal(result.allowed, true);
+    assert.equal(result.opaqueOrigin, true);
+});
+
+test("permite un origen ausente", () => {
+    assert.equal(checkRequestOrigin(undefined, APP_URL).allowed, true);
+    assert.equal(checkRequestOrigin("", APP_URL).allowed, true);
+});
+
+test("el caso opaco no se confunde con un dominio ajeno", () => {
+    assert.equal(checkRequestOrigin("null", APP_URL).opaqueOrigin, true);
+    assert.equal(checkRequestOrigin("https://evil.com", APP_URL).opaqueOrigin, false);
 });
 
 test("el puerto forma parte de la comparación", () => {

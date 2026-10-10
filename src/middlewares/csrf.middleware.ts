@@ -8,6 +8,7 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 let invalidUrlWarned = false;
 let schemeMismatchWarned = false;
+let opaqueOriginWarned = false;
 
 function escapeHtml(value: string): string {
     return value.replace(/[&<>"']/g, (character) => {
@@ -148,6 +149,20 @@ export function csrfProtection(
                 expectedUrl: appConfig.appUrl
             },
             "Llegó una petición por un esquema distinto (http/https) al de APP_URL; se permite porque el dominio coincide."
+        );
+    }
+
+    if (verdict.opaqueOrigin && !opaqueOriginWarned) {
+        opaqueOriginWarned = true;
+
+        logger.warn(
+            {
+                originHeader: source ?? null,
+                expectedUrl: appConfig.appUrl,
+                method: req.method,
+                path: req.originalUrl
+            },
+            'El navegador no envió un origen identificable (cabecera ausente o "null"): se permite, porque la protección real es la cookie SameSite.'
         );
     }
 

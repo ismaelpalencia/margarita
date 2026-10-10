@@ -4,6 +4,11 @@ export type OriginCheckResult = {
     allowed: boolean;
     /** El esquema (http/https) no coincide, aunque el dominio sí. */
     schemeMismatch: boolean;
+    /**
+     * El navegador no envió un origen identificable (cabecera ausente o
+     * literal "null").
+     */
+    opaqueOrigin: boolean;
     reason: string | null;
 };
 
@@ -21,21 +26,32 @@ export function checkRequestOrigin(
     expectedUrl: string
 ): OriginCheckResult {
     const expectedHost = hostFromUrl(expectedUrl);
-    const receivedHost = hostFromUrl(requestOrigin);
+    const received = String(requestOrigin ?? "").trim();
+    const receivedHost = hostFromUrl(received);
 
     if (!expectedHost) {
         return {
             allowed: true,
             schemeMismatch: false,
+            opaqueOrigin: false,
             reason: null
         };
     }
 
-    if (!receivedHost) {
+    /**
+     * Un navegador puede enviar `Origin: null` cuando el origen es opaco:
+     * página en un iframe con sandbox, archivo local, o una redirección
+     * entre dominios. Esa cabecera no identifica a nadie, así que no
+     * aporta nada a la decisión y bloquearla dejaba fuera a navegadores
+     * legítimos. Un atacante real envía su propio dominio, que sí se
+     * puede leer, y ese sigue bloqueado.
+     */
+    if (!received || received.toLowerCase() === "null" || !receivedHost) {
         return {
-            allowed: false,
+            allowed: true,
             schemeMismatch: false,
-            reason: "El origen de la petición no es una URL válida."
+            opaqueOrigin: true,
+            reason: null
         };
     }
 
@@ -43,21 +59,20 @@ export function checkRequestOrigin(
         return {
             allowed: false,
             schemeMismatch: false,
+            opaqueOrigin: false,
             reason: `El origen "${receivedHost}" no coincide con el dominio configurado en APP_URL ("${expectedHost}").`
         };
     }
 
     const expectedScheme = expectedUrl.slice(0, expectedUrl.indexOf(":"));
-    const receivedScheme = String(requestOrigin).slice(
-        0,
-        String(requestOrigin).indexOf(":")
-    );
+    const receivedScheme = received.slice(0, received.indexOf(":"));
 
     return {
         allowed: true,
         schemeMismatch: Boolean(
             expectedScheme && receivedScheme && expectedScheme !== receivedScheme
         ),
+        opaqueOrigin: false,
         reason: null
     };
 }

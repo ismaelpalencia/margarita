@@ -101,6 +101,8 @@ Railway muestra el dominio sin esquema (`mi-app.up.railway.app`). La variable de
 
 Si al entrar al panel aparece **403 "Solicitud bloqueada: el origen no coincide con la aplicación"**, significa que la URL desde la que abres la app no es la que está en `APP_URL`. Compara la barra de direcciones con el campo `publicUrl` de `/health`; deben ser idénticas. Desde la versión actual del código, una diferencia de esquema (`http` contra `https`) ya no bloquea, porque el dominio es el mismo y un ataque CSRF siempre viene de otro dominio. El mensaje de error ahora también muestra ambas URLs para que la corrección sea evidente.
 
+Si el mensaje dice que la petición llegó desde `null`, no es un problema de configuración: significa que el navegador envió `Origin: null`, algo que ocurre con orígenes opacos (una página dentro de un iframe con sandbox, un archivo local, o una redirección entre dominios). La app lo permite y lo registra en los logs, pero vale la pena entender el motivo: suele ser una extensión de privacidad, un navegador integrado o un enlace que redirige. Probar en una ventana privada o con las extensiones desactivadas lo confirma.
+
 `NODE_ENV=production` rompe el build si no incluyes las devDependencies. Tailwind, TypeScript y el CLI de Prisma viven en `devDependencies`, y con `NODE_ENV=production` un `npm ci` normal no las instala. Por eso el Build Command lleva `--include=dev`. Si ves errores tipo `tsc: not found` o `tailwindcss: not found` durante el deploy, es exactamente esto.
 
 ---
