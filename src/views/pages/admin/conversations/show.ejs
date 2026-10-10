@@ -98,6 +98,12 @@
                                     · Manual
                                 <% } %>
                             </p>
+
+                            <% if (message.status === "FAILED" && message.errorText) { %>
+                                <p class="mt-2 rounded-lg bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700">
+                                    <%= message.errorText %>
+                                </p>
+                            <% } %>
                         </div>
                     </div>
                 <% }) %>

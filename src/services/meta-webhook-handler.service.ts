@@ -19,6 +19,7 @@ import {
     MetaWebhookStatus
 } from "../types/meta-webhook";
 import { normalizeMexicanPhone } from "../utils/phone";
+import { describeMetaError } from "../utils/meta-error";
 import { emitToWorkspace } from "../sockets";
 import { AssignmentService } from "./assignment.service";
 import { LogService } from "./log.service";
@@ -470,6 +471,34 @@ export class MetaWebhookHandlerService {
                 campaignRecipientStatus
             }
         });
+
+        /**
+         * Cuando Meta reporta un fallo, se registra además en el módulo
+         * MESSAGE para que el operador encuentre el motivo donde lo
+         * busca, ya traducido.
+         */
+        if (status.status === "failed") {
+            const failureDetail = describeMetaError({
+                errors: status.errors
+            });
+
+            await LogService.create({
+                workspaceId,
+                level: LogLevel.ERROR,
+                module: LogModule.MESSAGE,
+                action: "MESSAGE_FAILED",
+                message:
+                    failureDetail ||
+                    "Meta reportó que el mensaje no se pudo entregar.",
+                payload: {
+                    messageId: existingMessage.id,
+                    wamid: status.id,
+                    status: status.status,
+                    error: failureDetail,
+                    rawErrors: status.errors || null
+                }
+            });
+        }
     }
 
     private static mapMetaStatus(status: string): MessageStatus | null {

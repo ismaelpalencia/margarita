@@ -41,7 +41,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Agentes: crear, editar, activar o desactivar, con permisos y límite de mensajes manuales.
 - Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir.
 - Campañas: crear seleccionando contactos o subiendo Excel/CSV, enviar, ver errores y reintentar fallidos.
-- Logs: auditoría filtrable de webhook, Meta, campañas, conversaciones y usuarios.
+- Logs: auditoría filtrable de webhook, Meta, campañas, **envíos de mensajes**, conversaciones y usuarios. Cada envío manual queda registrado como `MESSAGE_SENT` y cada fallo como `MESSAGE_FAILED`, con el motivo de Meta traducido al español.
 - Estado del sistema: checklist de configuración (workspace, WhatsApp, plantillas, contactos, agentes).
 - Roadmap: qué está dentro de V1 y qué se posterga a V2.
 
@@ -555,7 +555,8 @@ Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArg
 - **Errores**: los servicios lanzan `Error` con mensaje en español; el controlador decide si redirige con `?error=` o responde JSON.
 - **Fechas**: siempre con la zona horaria de la aplicación (`src/utils/date.ts`), nunca con la del servidor.
 - **JSON de Prisma**: se normaliza con `toPrismaJson` antes de guardar payloads de Meta.
-- **Auditoría**: cualquier acción relevante (webhook, campaña, asignación, auth) se registra con `LogService.create` indicando nivel, módulo y acción.
+- **Auditoría**: cualquier acción relevante (webhook, campaña, asignación, auth y **envíos de mensajes**) se registra con `LogService.create` indicando nivel, módulo y acción.
+- **Errores de Meta**: `src/utils/meta-error.ts` extrae el error de cualquiera de las formas en que llega (respuesta de un envío rechazado, `errors` del webhook de estado o el estado más reciente guardado) y traduce los códigos frecuentes. Se usa en la bitácora y para mostrar el motivo en la conversación.
 - **Vistas**: EJS con Tailwind. Si agregas clases nuevas en EJS o en JavaScript de cliente, vuelve a correr `npm run css:build` para que entren al CSS compilado.
 
 Antes de subir cambios:

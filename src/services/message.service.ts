@@ -2,6 +2,8 @@ import axios from "axios";
 import {
     ConversationOperationalStatus,
     ConversationStatus,
+    LogLevel,
+    LogModule,
     MessageDirection,
     MessageSource,
     MessageStatus,
@@ -20,7 +22,9 @@ import {
 } from "../utils/template";
 import { isConversationWindowOpen } from "../utils/conversation-window";
 import { decryptSecret } from "../utils/crypto";
+import { describeMetaError } from "../utils/meta-error";
 import { emitToWorkspace } from "../sockets";
+import { LogService } from "./log.service";
 
 type SendLocalMessageParams = {
     workspaceId: string;
@@ -413,9 +417,44 @@ export class MessageService {
             status: MessageStatus;
             source: MessageSource;
             body: string | null;
+            metaResponse: unknown;
             createdAt: Date;
         }
     ) {
+        /**
+         * La nota local nunca se envía a Meta: se avisa a los navegadores
+         * pero no tiene sentido auditarla como envío.
+         */
+        if (message.status !== MessageStatus.CREATED) {
+            const failed = message.status === MessageStatus.FAILED;
+            const detail = describeMetaError(message.metaResponse);
+
+            /**
+             * Antes, un mensaje que fallaba solo cambiaba de estado en la
+             * conversación y el motivo quedaba guardado en metaResponse,
+             * invisible para el operador. Aquí queda en la bitácora.
+             */
+            void LogService.create({
+                workspaceId,
+                level: failed ? LogLevel.ERROR : LogLevel.INFO,
+                module: LogModule.MESSAGE,
+                action: failed ? "MESSAGE_FAILED" : "MESSAGE_SENT",
+                message: failed
+                    ? detail || "No se pudo enviar el mensaje a Meta."
+                    : `Mensaje enviado a ${conversation.contact.phone}.`,
+                payload: {
+                    messageId: message.id,
+                    type: message.type,
+                    to: conversation.contact.phone,
+                    wamid: message.wamid,
+                    status: message.status,
+                    error: detail
+                }
+            }).catch((error) => {
+                console.error("No se pudo registrar el envío en la bitácora:", error);
+            });
+        }
+
         emitToWorkspace(workspaceId, "conversation:message", {
             conversationId: conversation.id,
             assignedUserId: conversation.assignedUserId,
@@ -439,7 +478,6 @@ export class MessageService {
             }
         });
     }
-
     private static async getConversationForSending(
         workspaceId: string,
         conversationId: string,

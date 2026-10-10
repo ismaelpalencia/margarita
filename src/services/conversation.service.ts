@@ -8,6 +8,7 @@ import {
 
 import { prisma } from "../config/prisma";
 import { emitToWorkspace } from "../sockets";
+import { describeMetaError } from "../utils/meta-error";
 
 type ListConversationsParams = {
     workspaceId: string;
@@ -199,7 +200,7 @@ export class ConversationService {
             throw new Error("Conversación no encontrada.");
         }
 
-        return conversation;
+        return this.withMessageErrors(conversation);
     }
 
     static async getConversationForAgent(
@@ -241,7 +242,24 @@ export class ConversationService {
             throw new Error("Conversación no encontrada o no asignada a ti.");
         }
 
-        return conversation;
+        return this.withMessageErrors(conversation);
+    }
+
+    /**
+     * Adjunta a cada mensaje la explicación del error de Meta, si lo
+     * hubo. El motivo ya venía guardado en `metaResponse`, pero no se
+     * mostraba en ninguna parte: la conversación solo decía FAILED.
+     */
+    private static withMessageErrors<
+        T extends { messages: Array<{ metaResponse: unknown }> }
+    >(conversation: T): T {
+        return {
+            ...conversation,
+            messages: conversation.messages.map((message) => ({
+                ...message,
+                errorText: describeMetaError(message.metaResponse)
+            }))
+        };
     }
 
     static async createOrOpenConversationFromContact(

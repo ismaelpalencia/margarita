@@ -16,6 +16,7 @@ import {
 
 import { prisma } from "../config/prisma";
 import { decryptSecret } from "../utils/crypto";
+import { describeMetaError } from "../utils/meta-error";
 import { emitToWorkspace } from "../sockets";
 import { CreateCampaignInput } from "../validations/campaign.validation";
 import { renderTemplatePreview, countTemplateVariables } from "../utils/template";
@@ -434,11 +435,14 @@ export class CampaignService {
                     level: LogLevel.ERROR,
                     module: LogModule.CAMPAIGN,
                     action: "CAMPAIGN_RECIPIENT_FAILED",
-                    message: "No se pudo enviar la campaña a un destinatario.",
+                    message:
+                        describeMetaError(errorPayload) ||
+                        "No se pudo enviar la campaña a un destinatario.",
                     payload: {
                         campaignId: campaign.id,
                         recipientId: recipient.id,
                         phone: recipient.phone,
+                        reason: describeMetaError(errorPayload),
                         error: errorPayload
                     }
                 });
