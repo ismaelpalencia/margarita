@@ -97,6 +97,8 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 
 `APP_URL` tiene que ser el dominio público con HTTPS. De ahí salen el origen permitido de CORS y el CORS del socket.io. Si se queda en `http://localhost:3000`, las actualizaciones en vivo de la bandeja no conectan y el login puede fallar por la cookie segura.
 
+Railway muestra el dominio sin esquema (`mi-app.up.railway.app`). La variable debe incluir `https://` completo. Si falta, la app lo detecta y lo agrega sola (avisando en los logs) para no dejar la validación de origen desactivada, pero lo correcto es capturarla bien desde el inicio.
+
 `NODE_ENV=production` rompe el build si no incluyes las devDependencies. Tailwind, TypeScript y el CLI de Prisma viven en `devDependencies`, y con `NODE_ENV=production` un `npm ci` normal no las instala. Por eso el Build Command lleva `--include=dev`. Si ves errores tipo `tsc: not found` o `tailwindcss: not found` durante el deploy, es exactamente esto.
 
 ---

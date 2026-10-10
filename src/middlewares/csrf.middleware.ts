@@ -5,6 +5,7 @@ import { appConfig } from "../config/app.config";
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 let expectedOrigin: string | null = null;
+let invalidUrlWarned = false;
 
 function getAllowedOrigin(): string | null {
     if (expectedOrigin) {
@@ -15,9 +16,16 @@ function getAllowedOrigin(): string | null {
         expectedOrigin = new URL(appConfig.appUrl).origin;
         return expectedOrigin;
     } catch {
-        console.warn(
-            `[csrf] APP_URL no es una URL válida (${appConfig.appUrl}): la validación de origen queda desactivada.`
-        );
+        /* Se avisa una sola vez: si no, cada petición ensucia los logs. */
+        if (!invalidUrlWarned) {
+            invalidUrlWarned = true;
+
+            console.warn(
+                `[csrf] APP_URL no es una URL válida ("${appConfig.appUrl}"): la validación de origen queda desactivada. ` +
+                    "Debe incluir el esquema, por ejemplo https://tu-dominio.up.railway.app"
+            );
+        }
+
         return null;
     }
 }

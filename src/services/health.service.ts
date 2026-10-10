@@ -142,6 +142,8 @@ export class HealthService {
             status: unhealthy ? "unhealthy" : degraded ? "degraded" : "healthy",
             httpStatus: unhealthy ? 503 : 200,
             environment: appConfig.env,
+            /** URL pública que la app cree tener, para detectar APP_URL mal puesto. */
+            publicUrl: appConfig.appUrl,
             database,
             databaseError,
             migrationHint: migrationsMissing

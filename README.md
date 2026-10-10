@@ -221,7 +221,7 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | Variable | Obligatoria | Descripción |
 | --- | --- | --- |
 | `APP_NAME` | No | Nombre de la aplicación. Default `Margarita` |
-| `APP_URL` | Sí | URL pública base. Se usa para CORS, socket.io y la URL del webhook |
+| `APP_URL` | Sí | URL pública base **con esquema** (`https://dominio`). Se usa para CORS, socket.io, la validación CSRF y la URL del webhook |
 | `PORT` | Sí | Puerto HTTP. Default `3000` |
 | `NODE_ENV` | Sí | `development` o `production` (activa cookies `secure`) |
 | `TIMEZONE` | No | Default `America/Mexico_City` |
@@ -454,6 +454,7 @@ El cliente vive en `src/public/js/live.js` y se activa con atributos en `<body>`
 - **Contraseñas**: hash con bcrypt (12 rondas). Política mínima de 10 caracteres con letras y números, y lista negra de contraseñas obvias al crear o editar agentes.
 - **Bloqueo por fuerza bruta**: el login tiene su propio límite (10 peticiones por 15 minutos por IP) y, a nivel de cuenta, se bloquea `LOGIN_LOCK_MINUTES` minutos tras `LOGIN_MAX_ATTEMPTS` intentos fallidos. Cada intento fallido, cada bloqueo y cada acceso correcto quedan en la bitácora.
 - **Protección CSRF**: toda petición que cambia estado debe traer un `Origin` (o `Referer`) que coincida con `APP_URL`. Un formulario alojado en otro sitio recibe `403`. Las peticiones sin `Origin` (curl, healthchecks, webhooks de Meta) se permiten porque no son navegadores.
+- **`APP_URL` tolerante**: el valor se normaliza al arrancar, así que un dominio pegado sin `https://` (como lo muestra Railway) funciona igual y deja un aviso en los logs en lugar de desactivar la validación de origen en silencio. `/health` expone `publicUrl` para comprobar desde fuera qué URL cree tener la app.
 - **Cifrado de credenciales**: los tokens de Meta se guardan con AES-256-GCM usando `ENCRYPTION_KEY`. Los valores guardados antes de habilitar el cifrado se siguen leyendo y se pueden migrar con el botón del panel o con `npm run db:encrypt-secrets`.
 - **Firma de webhook**: HMAC-SHA256 con comparación en tiempo constante.
 - **Validación**: todos los cuerpos de entrada pasan por esquemas Zod.

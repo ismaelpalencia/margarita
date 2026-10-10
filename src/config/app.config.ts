@@ -1,10 +1,31 @@
 import dotenv from "dotenv";
 
+import { normalizeAppUrl } from "../utils/url";
+
 dotenv.config();
+
+const appUrl = normalizeAppUrl(process.env.APP_URL);
+
+if (appUrl.normalized && process.env.APP_URL) {
+    console.warn(
+        `[config] APP_URL no incluía el esquema ("${process.env.APP_URL}"). Se usará "${appUrl.url}". ` +
+            "Ajusta la variable en Railway para evitar sorpresas."
+    );
+}
+
+if (
+    process.env.NODE_ENV === "production" &&
+    /localhost|127\.0\.0\.1/.test(appUrl.url)
+) {
+    console.warn(
+        `[config] APP_URL apunta a "${appUrl.url}" en producción. Configúrala con el dominio público: ` +
+            "rompe CORS, la validación de origen y la URL del webhook que se muestra en el panel."
+    );
+}
 
 export const appConfig = {
     name: process.env.APP_NAME || "Margarita",
-    appUrl: process.env.APP_URL || "http://localhost:3000",
+    appUrl: appUrl.url,
     port: Number(process.env.PORT) || 3000,
     env: process.env.NODE_ENV || "development",
     timezone: process.env.TIMEZONE || "America/Mexico_City",
