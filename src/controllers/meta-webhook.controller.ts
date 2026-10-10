@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { LogLevel, LogModule, Prisma } from "@prisma/client";
 
 import { appConfig } from "../config/app.config";
+import { logger } from "../config/logger";
 import { prisma } from "../config/prisma";
 import { LogService } from "../services/log.service";
 import { WebhookService } from "../services/webhook.service";
@@ -31,7 +32,24 @@ export class MetaWebhookController {
             });
 
             return res.status(200).send(challenge);
-        } catch {
+        } catch (error) {
+            /**
+             * Meta solo ve un 403 y no hay forma de saber qué falló desde
+             * afuera. Guardamos el motivo en la bitácora y en los logs del
+             * servicio para que el diagnóstico sea inmediato.
+             */
+            logger.warn(
+                {
+                    reason:
+                        error instanceof Error
+                            ? error.message
+                            : "Error desconocido",
+                    hasVerifyToken: Boolean(req.query["hub.verify_token"]),
+                    mode: req.query["hub.mode"]
+                },
+                "Verificación del webhook de Meta rechazada"
+            );
+
             return res.sendStatus(403);
         }
     }
