@@ -49,6 +49,15 @@ Nota: no hace falta `Dockerfile`; Railway detecta Node con Nixpacks. Si quieres 
 
 Pega esto en Variables del servicio de la app. Las referencias `${{...}}` apuntan a otros servicios.
 
+Para los valores aleatorios (`ENCRYPTION_KEY`, `JWT_SECRET`, `META_VERIFY_TOKEN` y la contraseña del admin) hay un generador en el propio repo:
+
+```bash
+npm run secrets:generate                 # los muestra
+npm run secrets:generate -- --write-env  # además los agrega a tu .env, sin sobrescribir lo existente
+```
+
+Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valores aquí en Variables.
+
 | Variable | Valor | Notas |
 | --- | --- | --- |
 | `APP_NAME` | `Margarita` | |
@@ -57,7 +66,7 @@ Pega esto en Variables del servicio de la app. Las referencias `${{...}}` apunta
 | `NODE_ENV` | `production` | Activa cookies seguras y endurece el webhook |
 | `TIMEZONE` | `America/Mexico_City` | |
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` | Referencia al plugin |
-| `JWT_SECRET` | cadena aleatoria larga | Genera con `openssl rand -hex 32` |
+| `JWT_SECRET` | generador del repo | Firma las cookies de sesión |
 | `JWT_EXPIRES_IN` | `7d` | |
 | `COOKIE_NAME` | `margarita_token` | |
 | `WORKSPACE_NAME` | tu marca | Solo lo usa el seed |
@@ -72,7 +81,7 @@ Pega esto en Variables del servicio de la app. Las referencias `${{...}}` apunta
 | `META_BUSINESS_ACCOUNT_ID` | ID de la WABA | |
 | `META_VERIFY_TOKEN` | cadena que tú inventas | Debe ser idéntica a la de Meta |
 | `META_PHONE_NUMBER` | número con lada, sin signo + | |
-| `ENCRYPTION_KEY` | `openssl rand -hex 32` | Cifra los tokens de Meta en la base |
+| `ENCRYPTION_KEY` | generador del repo (`npm run secrets:generate`) | Cifra los tokens de Meta en la base |
 | `LOGIN_MAX_ATTEMPTS` | `5` | Intentos fallidos antes de bloquear |
 | `LOGIN_LOCK_MINUTES` | `15` | Duración del bloqueo |
 | `LOG_RETENTION_DAYS` | `90` | Días que se conserva la bitácora |
@@ -209,6 +218,8 @@ Cuando quieras cambiar el esquema, hazlo en local con `npx prisma migrate dev --
 ### Cifrar credenciales existentes
 
 Si la base ya tenía tokens en texto plano antes de configurar `ENCRYPTION_KEY`, cifralos una vez. Lo más simple es desde el propio panel: **Admin → WhatsApp → Cifrar credenciales existentes**.
+
+`ENCRYPTION_KEY` debe quedarse quieta: si la cambias o la pierdes, los tokens ya cifrados dejan de poder leerse y tendrás que capturar de nuevo el `META_ACCESS_TOKEN` en Admin → WhatsApp.
 
 Con una URL pública también puedes hacerlo desde tu máquina:
 

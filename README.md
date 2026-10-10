@@ -257,6 +257,35 @@ Sin `META_APP_SECRET` el webhook no valida el origen: en desarrollo solo registr
 
 Sin `ENCRYPTION_KEY` la app funciona igual, pero las credenciales de Meta quedan en texto plano y el panel de sistema lo marca como pendiente.
 
+### Cómo generar los secretos
+
+```bash
+npm run secrets:generate                    # los muestra en pantalla
+npm run secrets:generate -- --write-env     # además agrega a .env los que falten
+npm run secrets:generate -- --json          # salida para automatizar
+```
+
+Genera cuatro valores y explica para qué sirve cada uno:
+
+| Clave | Para qué sirve |
+| --- | --- |
+| `ENCRYPTION_KEY` | Cifra con AES-256-GCM los tokens de Meta guardados en la base de datos |
+| `JWT_SECRET` | Firma las cookies de sesión del panel |
+| `META_VERIFY_TOKEN` | Se pega también en Meta para verificar el webhook |
+| `ADMIN_PASSWORD` | La usa el seed para crear tu usuario admin |
+
+Con `--write-env` **nunca sobrescribe** lo que ya existe: solo agrega las claves que faltan, así que puedes correrlo sin miedo en un `.env` que ya está en uso.
+
+### Qué hace `ENCRYPTION_KEY` (y qué no)
+
+Cifra dos cosas: el `accessToken` y el `verifyToken` de la cuenta de WhatsApp que viven en la tabla `WhatsAppAccount`. La idea es que si alguien obtiene un volcado de la base —un respaldo, una captura de la pestaña Data de Railway, una cadena de conexión filtrada— no pueda usar esos tokens para mandar mensajes desde tu número.
+
+No tiene nada que ver con las contraseñas de los usuarios: esas se guardan con bcrypt, que es de una sola vía y no necesita llave.
+
+**Debe ser estable.** Si la cambias o la pierdes, los tokens ya cifrados dejan de poder leerse y la app no podrá hablar con Meta hasta que vuelvas a capturar el token en Admin → WhatsApp (o corras el seed otra vez con `META_ACCESS_TOKEN`).
+
+Si todavía no la tienes, la app funciona y guarda los tokens en texto plano; el panel lo muestra como pendiente en Admin → Sistema y puedes cifrarlos después sin recompilar nada.
+
 ---
 
 ## 7. Scripts y CI
@@ -277,6 +306,7 @@ Sin `ENCRYPTION_KEY` la app funciona igual, pero las credenciales de Meta quedan
 | `npm run db:generate` | Regenera el cliente de Prisma |
 | `npm run db:seed` | Carga datos iniciales |
 | `npm run db:seed:dist` | Igual, pero con el código compilado (no necesita `tsx`) |
+| `npm run secrets:generate` | Genera `ENCRYPTION_KEY`, `JWT_SECRET`, `META_VERIFY_TOKEN` y una contraseña para el admin |
 | `npm run db:studio` | Abre Prisma Studio |
 
 ### Integración continua
