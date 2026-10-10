@@ -157,13 +157,21 @@ También puedes ejecutarlo a mano desde una terminal del servicio (por ejemplo c
 
 ### El seed
 
-El seed crea el workspace, el admin, los settings y la cuenta de WhatsApp a partir de las variables. Se corre una sola vez, y necesita `tsx` (devDependency), así que es más fácil desde tu máquina:
+**El seed es obligatorio la primera vez.** Las migraciones crean las tablas, pero el seed crea los datos: el workspace, la configuración operativa, el usuario admin y la cuenta de WhatsApp. Sin él la tabla `User` está vacía y el login responde siempre "Credenciales incorrectas", porque el usuario no existe. Las credenciales del panel son `ADMIN_EMAIL` y `ADMIN_PASSWORD`; las de PostgreSQL no sirven para entrar.
+
+Lo más cómodo es correrlo dentro de Railway, desde una terminal del servicio de la app (no necesita URL pública ni `tsx`):
+
+```bash
+node dist/tools/seed.js
+```
+
+Si falta alguna de las diez variables que necesita, el script lo dice en una sola línea y no toca la base. Y si prefieres hacerlo desde tu máquina, con una URL pública:
 
 ```bash
 DATABASE_URL="<URL_PUBLICA>" npm run db:seed
 ```
 
-Si el seed ya se había ejecutado antes en esa base, no lo repitas: es idempotente, pero no hace falta.
+Ojo: es idempotente pero *actualiza*. Volver a correrlo reescribe la contraseña del admin con `ADMIN_PASSWORD` y sobrescribe los datos de `WhatsAppAccount`. Úsalo una vez, o para restablecer la contraseña del admin.
 
 ### Cómo obtener una URL pública hoy
 

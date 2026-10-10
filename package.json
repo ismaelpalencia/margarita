@@ -15,6 +15,7 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "prisma db seed",
+    "db:seed:dist": "node dist/tools/seed.js",
     "db:encrypt-secrets": "tsx scripts/encrypt-secrets.ts",
     "db:migrate-deploy": "tsx src/tools/deploy-migrations.ts",
     "db:studio": "prisma studio"

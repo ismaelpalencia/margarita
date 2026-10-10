@@ -200,6 +200,18 @@ El seed **falla a propósito** si falta cualquiera de estas variables: `WORKSPAC
 
 Es idempotente: volver a correrlo actualiza el workspace, el admin y la cuenta de WhatsApp en lugar de duplicarlos.
 
+**El seed es obligatorio la primera vez.** Las migraciones crean las *tablas*, pero el seed crea los *datos*: el workspace, la configuración operativa, el usuario admin y la cuenta de WhatsApp. Sin él la tabla `User` está vacía y el login responde siempre "Credenciales incorrectas", porque el usuario no existe.
+
+Las credenciales para entrar al panel salen de `ADMIN_EMAIL` y `ADMIN_PASSWORD`, no de las credenciales de PostgreSQL: son cosas distintas.
+
+Ojo con volver a correrlo en producción: como es idempotente pero *actualiza*, reescribe la contraseña del admin con lo que diga `ADMIN_PASSWORD` y sobrescribe los datos de `WhatsAppAccount` (número, IDs y tokens). Úsalo una vez, o cuando quieras restablecer la contraseña del admin.
+
+En Railway puedes ejecutarlo sin exponer la base, desde una terminal del servicio de la app:
+
+```bash
+node dist/tools/seed.js
+```
+
 ---
 
 ## 6. Variables de entorno
@@ -264,6 +276,7 @@ Sin `ENCRYPTION_KEY` la app funciona igual, pero las credenciales de Meta quedan
 | `npm run db:encrypt-secrets` | Cifra las credenciales de Meta que siguen en texto plano |
 | `npm run db:generate` | Regenera el cliente de Prisma |
 | `npm run db:seed` | Carga datos iniciales |
+| `npm run db:seed:dist` | Igual, pero con el código compilado (no necesita `tsx`) |
 | `npm run db:studio` | Abre Prisma Studio |
 
 ### Integración continua
