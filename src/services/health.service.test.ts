@@ -17,6 +17,9 @@ function fakeClient(options: {
 
             return [{ ok: 1 }];
         },
+        user: {
+            count: async () => 1
+        },
         webhookEvent: {
             count: async () => {
                 if (options.queueThrows) {

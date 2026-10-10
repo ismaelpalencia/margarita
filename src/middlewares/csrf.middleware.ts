@@ -1,32 +1,52 @@
 import { NextFunction, Request, Response } from "express";
 
 import { appConfig } from "../config/app.config";
+import { logger } from "../config/logger";
+import { checkRequestOrigin } from "./origin-check";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-let expectedOrigin: string | null = null;
 let invalidUrlWarned = false;
+let schemeMismatchWarned = false;
 
-function getAllowedOrigin(): string | null {
-    if (expectedOrigin) {
-        return expectedOrigin;
+function escapeHtml(value: string): string {
+    return value.replace(/[&<>"']/g, (character) => {
+        switch (character) {
+            case "&":
+                return "&amp;";
+            case "<":
+                return "&lt;";
+            case ">":
+                return "&gt;";
+            case '"':
+                return "&quot;";
+            default:
+                return "&#39;";
+        }
+    });
+}
+
+function warnInvalidAppUrl() {
+    /* Se avisa una sola vez: si no, cada petición ensucia los logs. */
+    if (invalidUrlWarned) {
+        return;
     }
 
+    invalidUrlWarned = true;
+
+    console.warn(
+        `[csrf] APP_URL no es una URL válida ("${appConfig.appUrl}"): la validación de origen queda desactivada. ` +
+            "Debe incluir el esquema, por ejemplo https://tu-dominio.up.railway.app"
+    );
+}
+
+function isValidAppUrl(): boolean {
     try {
-        expectedOrigin = new URL(appConfig.appUrl).origin;
-        return expectedOrigin;
+        new URL(appConfig.appUrl);
+        return true;
     } catch {
-        /* Se avisa una sola vez: si no, cada petición ensucia los logs. */
-        if (!invalidUrlWarned) {
-            invalidUrlWarned = true;
-
-            console.warn(
-                `[csrf] APP_URL no es una URL válida ("${appConfig.appUrl}"): la validación de origen queda desactivada. ` +
-                    "Debe incluir el esquema, por ejemplo https://tu-dominio.up.railway.app"
-            );
-        }
-
-        return null;
+        warnInvalidAppUrl();
+        return false;
     }
 }
 
@@ -67,9 +87,7 @@ export function csrfProtection(
         return next();
     }
 
-    const allowed = getAllowedOrigin();
-
-    if (!allowed) {
+    if (!isValidAppUrl()) {
         return next();
     }
 
@@ -90,17 +108,47 @@ export function csrfProtection(
         return next();
     }
 
-    if (source !== allowed) {
-        console.warn(
-            `[csrf] Petición bloqueada desde ${source} hacia ${req.method} ${req.originalUrl}`
+    const verdict = checkRequestOrigin(source, appConfig.appUrl);
+
+    if (!verdict.allowed) {
+        /**
+         * El mensaje incluye el origen recibido y el esperado: sin eso,
+         * un dominio mal configurado es indescifrable desde el navegador.
+         */
+        logger.warn(
+            {
+                receivedOrigin: source,
+                expectedUrl: appConfig.appUrl,
+                method: req.method,
+                path: req.originalUrl,
+                reason: verdict.reason
+            },
+            "Petición bloqueada por origen no permitido"
         );
+
+        const received = escapeHtml(source);
+        const expected = escapeHtml(appConfig.appUrl);
 
         return res
             .status(403)
             .type("html")
             .send(
-                "<h1>403</h1><p>Solicitud bloqueada: el origen no coincide con la aplicación.</p>"
+                "<h1>403 — origen no permitido</h1>" +
+                    `<p>La petición llegó desde <code>${received}</code>, pero APP_URL está configurada como <code>${expected}</code>.</p>` +
+                    "<p>Ábre la aplicación exactamente en la URL configurada en APP_URL, o corrige esa variable en Railway.</p>"
             );
+    }
+
+    if (verdict.schemeMismatch && !schemeMismatchWarned) {
+        schemeMismatchWarned = true;
+
+        logger.warn(
+            {
+                receivedOrigin: source,
+                expectedUrl: appConfig.appUrl
+            },
+            "Llegó una petición por un esquema distinto (http/https) al de APP_URL; se permite porque el dominio coincide."
+        );
     }
 
     return next();

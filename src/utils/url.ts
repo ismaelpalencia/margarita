@@ -51,3 +51,16 @@ export function normalizeAppUrl(raw: string | null | undefined): NormalizedUrl {
         normalized: true
     };
 }
+
+/** Dominio (host + puerto) de una URL, o null si no se puede leer. */
+export function hostFromUrl(value: string | null | undefined): string | null {
+    if (!value) {
+        return null;
+    }
+
+    try {
+        return new URL(value).host.toLowerCase();
+    } catch {
+        return null;
+    }
+}

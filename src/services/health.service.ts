@@ -13,6 +13,11 @@ import { webhookTelemetry } from "./webhook-telemetry.service";
  */
 export type HealthCheckClient = {
     $queryRaw: (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
+    user: {
+        count: (args: {
+            where: { role: "ADMIN"; isActive: boolean };
+        }) => Promise<number>;
+    };
     webhookEvent: {
         count: (args: {
             where: { status: WebhookEventStatus };
@@ -50,8 +55,17 @@ export class HealthService {
             error: null as string | null
         };
 
+        let adminUsers: number | null = null;
+
         if (database === "up") {
             try {
+                adminUsers = await client.user.count({
+                    where: {
+                        role: "ADMIN",
+                        isActive: true
+                    }
+                });
+
                 const [pending, processing, failed, oldestPending] =
                     await Promise.all([
                     client.webhookEvent.count({
@@ -115,6 +129,12 @@ export class HealthService {
             webhookWorkerSchemaReady: webhookWorkerState.schemaReady,
             /** Si es false, Meta no está entregando nada a este servicio. */
             webhooksArriving: webhookTelemetry.getSnapshot().received > 0,
+            /**
+             * Sin un admin activo no se puede iniciar sesión: el login
+             * responde "Credenciales incorrectas" aunque todo lo demás
+             * esté bien. Normalmente significa que falta correr el seed.
+             */
+            adminUserExists: adminUsers !== null && adminUsers > 0,
             encryptionKeyConfigured: Boolean(appConfig.encryptionKey),
             /** El App Secret real de Meta son 32 caracteres hexadecimales. */
             appSecretFormatLooksValid: /^[0-9a-f]{32}$/i.test(
@@ -157,6 +177,9 @@ export class HealthService {
                 ? "La base de datos no tiene aplicadas las migraciones más recientes. Corre `npx prisma migrate deploy` contra esta base."
                 : null,
             queue,
+            accounts: {
+                adminUsers
+            },
             /** Lo que realmente llegó al endpoint del webhook desde el último arranque. */
             webhook: webhookTelemetry.getSnapshot(),
             worker: {
