@@ -563,3 +563,26 @@ Antes de subir cambios:
 npx tsc --noEmit    # tipos
 npm run build       # build completo
 ```
+
+### Assets de marca
+
+Todas las vistas cargan los íconos desde `src/views/partials/brand-head.ejs`, que se incluye dentro del `<head>`. Si agregas una vista nueva, inclúyelo para que herede favicon, manifest y `theme-color`.
+
+| Archivo | Uso |
+| --- | --- |
+| `src/public/brand/img/margarita-wordmark-512.png` | Nombre de la marca en encabezados y landing |
+| `src/public/brand/img/margarita-icon-64.png` | Ícono pequeño en las barras de navegación |
+| `src/public/brand/img/margarita-icon-128.png` | Ícono en el login y en bloques destacados |
+| `src/public/brand/img/margarita-icon-256.png` | Versión grande para fondos oscuros |
+| `src/public/favicon.ico` y `favicon-*.png` | Pestaña del navegador |
+| `src/public/apple-touch-icon.png`, `android-chrome-*.png` | App instalada (PWA) |
+| `src/public/site.webmanifest` | Metadatos de la app instalada |
+
+Los originales (`margarita-wordmark.png` y `margarita-icon.png`) son de ~700 KB y tienen fondo claro, así que no se usan directamente en la interfaz. Si cambias el logo, reemplaza esos originales y regenera todo:
+
+```bash
+python3 -m pip install Pillow     # solo la primera vez
+python3 scripts/optimize-brand-assets.py
+```
+
+El script recorta el margen sobrante del ícono, vuelve transparente el fondo y deja cada archivo en pocos kilobytes.
