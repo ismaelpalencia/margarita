@@ -17,6 +17,19 @@ import {
 
 
 export class AdminCampaignsController {
+    /**
+     * Las campañas se envían desde el número activo de la sesión.
+     */
+    private static requireActiveNumber(req: Request): string {
+        if (!req.activeNumber) {
+            throw new Error(
+                "No hay un número de WhatsApp activo. Configúralo en Admin → WhatsApp."
+            );
+        }
+
+        return req.activeNumber.id;
+    }
+
     private static describeFailure(error: unknown): string {
         return error instanceof Error ? error.message : "Error desconocido";
     }
@@ -61,7 +74,8 @@ export class AdminCampaignsController {
 
     static async index(req: Request, res: Response) {
         const campaigns = await CampaignService.listCampaigns(
-            req.user!.workspaceId
+            req.user!.workspaceId,
+            req.activeNumber?.id
         );
 
         return res.render("pages/admin/campaigns/index", {
@@ -96,7 +110,8 @@ export class AdminCampaignsController {
             const campaign = await CampaignService.createCampaign(
                 req.user!.workspaceId,
                 req.user!.id,
-                parsed.data
+                parsed.data,
+                AdminCampaignsController.requireActiveNumber(req)
             );
 
             return res.redirect(
@@ -201,7 +216,8 @@ export class AdminCampaignsController {
                 workspaceId: req.user!.workspaceId,
                 createdById: req.user!.id,
                 input: parsed.data,
-                filePath: req.file.path
+                filePath: req.file.path,
+                whatsappNumberId: AdminCampaignsController.requireActiveNumber(req)
             });
 
             if (fs.existsSync(req.file.path)) {

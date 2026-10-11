@@ -155,6 +155,7 @@ export class ExcelCampaignService {
         createdById: string;
         input: CreateCampaignFromExcelInput;
         filePath: string;
+        whatsappNumberId: string;
     }) {
         const parsedExcel = await this.parseExcel(params.filePath);
 
@@ -268,6 +269,7 @@ export class ExcelCampaignService {
                 workspaceId: params.workspaceId,
                 createdById: params.createdById,
                 templateId: template.id,
+                whatsappNumberId: params.whatsappNumberId,
                 name: params.input.name,
                 status: CampaignStatus.DRAFT,
                 totalRecipients: parsedExcel.totalRows,

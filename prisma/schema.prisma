@@ -249,19 +249,43 @@ model WhatsAppAccount {
   workspaceId String   @unique
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  displayName       String?
-  phoneNumber       String
-  phoneNumberId     String
   businessAccountId String
   accessToken       String
   verifyToken       String
   apiVersion        String @default("v23.0")
 
-  status        String?
-  qualityRating String?
+  numbers WhatsAppNumber[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+/**
+ * Un número de la WABA. La WABA aporta las credenciales (token y verify
+ * token) y cada número aporta su identidad, su calidad y sus hilos.
+ */
+model WhatsAppNumber {
+  id                String          @id @default(cuid())
+  whatsappAccountId String
+  whatsappAccount   WhatsAppAccount @relation(fields: [whatsappAccountId], references: [id], onDelete: Cascade)
+
+  phoneNumberId String  @unique
+  displayName   String?
+  phoneNumber   String
+
+  status        String?
+  qualityRating String?
+
+  isActive Boolean @default(true)
+
+  conversations Conversation[]
+  campaigns     Campaign[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([whatsappAccountId])
+  @@index([isActive])
 }
 
 model Contact {
@@ -352,6 +376,9 @@ model Conversation {
   contactId String
   contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
 
+  whatsappNumberId String
+  whatsappNumber   WhatsAppNumber @relation(fields: [whatsappNumberId], references: [id], onDelete: Cascade)
+
   assignedUserId String?
   assignedUser   User? @relation("ConversationAssignedUser", fields: [assignedUserId], references: [id], onDelete: SetNull)
 
@@ -369,8 +396,13 @@ model Conversation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([workspaceId, contactId])
+  /**
+   * Un hilo por contacto y número: WhatsApp trata cada número como una
+   * conversación distinta, y la ventana de 24 horas es por par.
+   */
+  @@unique([whatsappNumberId, contactId])
   @@index([workspaceId])
+  @@index([whatsappNumberId])
   @@index([contactId])
   @@index([assignedUserId])
   @@index([status])
@@ -466,6 +498,9 @@ model Campaign {
   templateId String
   template   Template @relation(fields: [templateId], references: [id], onDelete: Restrict)
 
+  whatsappNumberId String
+  whatsappNumber   WhatsAppNumber @relation(fields: [whatsappNumberId], references: [id], onDelete: Restrict)
+
   name   String
   status CampaignStatus @default(DRAFT)
 
@@ -484,6 +519,7 @@ model Campaign {
   updatedAt DateTime @updatedAt
 
   @@index([workspaceId])
+  @@index([whatsappNumberId])
   @@index([status])
   @@index([createdById])
   @@index([createdAt])

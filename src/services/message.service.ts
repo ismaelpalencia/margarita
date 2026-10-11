@@ -39,6 +39,10 @@ import { emitToWorkspace } from "../sockets";
 import { LogService } from "./log.service";
 import { uploadMediaToMeta } from "./media.service";
 import {
+    NumberCredentials,
+    WhatsAppNumberService
+} from "./whatsapp-number.service";
+import {
     buildMediaRelativePath,
     extensionFromMime,
     sanitizeFilename,
@@ -124,12 +128,8 @@ export class MessageService {
             params.role
         );
 
-        const [account, template] = await Promise.all([
-            prisma.whatsAppAccount.findUnique({
-                where: {
-                    workspaceId: params.workspaceId
-                }
-            }),
+        const [credentials, template] = await Promise.all([
+            this.getSendingCredentials(conversation),
             prisma.template.findFirst({
                 where: {
                     id: params.input.templateId,
@@ -137,10 +137,6 @@ export class MessageService {
                 }
             })
         ]);
-
-        if (!account) {
-            throw new Error("No hay cuenta de WhatsApp configurada.");
-        }
 
         if (!template) {
             throw new Error("Plantilla no encontrada.");
@@ -197,11 +193,11 @@ export class MessageService {
 
         try {
             const response = await axios.post(
-                `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.phoneNumberId}/messages`,
+                `${appConfig.graphBaseUrl}/${credentials.apiVersion}/${credentials.phoneNumberId}/messages`,
                 payload,
                 {
                     params: {
-                        access_token: decryptSecret(account.accessToken)
+                        access_token: credentials.accessToken
                     },
                     timeout: 15000
                 }
@@ -292,15 +288,7 @@ export class MessageService {
             );
         }
 
-        const account = await prisma.whatsAppAccount.findUnique({
-            where: {
-                workspaceId: params.workspaceId
-            }
-        });
-
-        if (!account) {
-            throw new Error("No hay cuenta de WhatsApp configurada.");
-        }
+        const credentials = await this.getSendingCredentials(conversation);
 
         const localMessage = await prisma.message.create({
             data: {
@@ -332,11 +320,11 @@ export class MessageService {
 
         try {
             const response = await axios.post(
-                `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.phoneNumberId}/messages`,
+                `${appConfig.graphBaseUrl}/${credentials.apiVersion}/${credentials.phoneNumberId}/messages`,
                 payload,
                 {
                     params: {
-                        access_token: decryptSecret(account.accessToken)
+                        access_token: credentials.accessToken
                     },
                     timeout: 15000
                 }
@@ -677,15 +665,7 @@ export class MessageService {
             );
         }
 
-        const account = await prisma.whatsAppAccount.findUnique({
-            where: {
-                workspaceId: params.workspaceId
-            }
-        });
-
-        if (!account) {
-            throw new Error("No hay cuenta de WhatsApp configurada.");
-        }
+        const credentials = await this.getSendingCredentials(conversation);
 
         const caption = params.caption?.trim() || null;
 
@@ -768,9 +748,9 @@ export class MessageService {
 
         try {
             const mediaId = await uploadMediaToMeta({
-                phoneNumberId: account.phoneNumberId,
-                apiVersion: account.apiVersion,
-                accessToken: decryptSecret(account.accessToken),
+                phoneNumberId: credentials.phoneNumberId,
+                apiVersion: credentials.apiVersion,
+                accessToken: credentials.accessToken,
                 buffer,
                 mimeType: upload.mimeType,
                 filename: upload.filename
@@ -785,11 +765,11 @@ export class MessageService {
             });
 
             const response = await axios.post(
-                `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.phoneNumberId}/messages`,
+                `${appConfig.graphBaseUrl}/${credentials.apiVersion}/${credentials.phoneNumberId}/messages`,
                 payload,
                 {
                     params: {
-                        access_token: decryptSecret(account.accessToken)
+                        access_token: credentials.accessToken
                     },
                     timeout: 30000
                 }
@@ -837,6 +817,34 @@ export class MessageService {
                     : "No se pudo enviar el archivo a Meta."
             );
         }
+    }
+
+    /**
+     * Resuelve con qué número se envía en una conversación. El token sale
+     * de la WABA y el `phone_number_id` del número asignado al hilo.
+     */
+    private static async getSendingCredentials(conversation: {
+        workspaceId: string;
+        whatsappNumberId: string;
+    }): Promise<NumberCredentials> {
+        const number = await WhatsAppNumberService.getById(
+            conversation.workspaceId,
+            conversation.whatsappNumberId
+        );
+
+        if (!number) {
+            throw new Error(
+                "El número de esta conversación ya no está disponible en la cuenta."
+            );
+        }
+
+        if (!number.isActive) {
+            throw new Error(
+                "Este número está desactivado. Actívalo o usa otro para responder."
+            );
+        }
+
+        return WhatsAppNumberService.credentialsFor(number);
     }
 
     private static async getConversationForSending(

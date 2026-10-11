@@ -158,9 +158,6 @@ export async function runSeed() {
                 workspaceId: workspace.id
             },
             update: {
-                displayName: workspaceName,
-                phoneNumber: metaPhoneNumber,
-                phoneNumberId: metaPhoneNumberId,
                 businessAccountId: metaBusinessAccountId,
                 accessToken: encryptSecret(metaAccessToken),
                 verifyToken: encryptSecret(metaVerifyToken),
@@ -168,13 +165,33 @@ export async function runSeed() {
             },
             create: {
                 workspaceId: workspace.id,
-                displayName: workspaceName,
-                phoneNumber: metaPhoneNumber,
-                phoneNumberId: metaPhoneNumberId,
                 businessAccountId: metaBusinessAccountId,
                 accessToken: encryptSecret(metaAccessToken),
                 verifyToken: encryptSecret(metaVerifyToken),
                 apiVersion: metaApiVersion
+            }
+        });
+
+        /**
+         * El número del entorno se registra como el primero de la cuenta.
+         * Los demás se agregan desde el panel.
+         */
+        const whatsappNumber = await prisma.whatsAppNumber.upsert({
+            where: {
+                phoneNumberId: metaPhoneNumberId
+            },
+            update: {
+                whatsappAccountId: whatsappAccount.id,
+                displayName: workspaceName,
+                phoneNumber: metaPhoneNumber,
+                isActive: true
+            },
+            create: {
+                whatsappAccountId: whatsappAccount.id,
+                phoneNumberId: metaPhoneNumberId,
+                displayName: workspaceName,
+                phoneNumber: metaPhoneNumber,
+                isActive: true
             }
         });
 
@@ -183,14 +200,15 @@ export async function runSeed() {
                 "[seed] Listo.",
                 `Workspace: ${workspace.name} (${workspace.slug})`,
                 `Admin: ${admin.email}`,
-                `WhatsApp: ${whatsappAccount.phoneNumber} · ${whatsappAccount.phoneNumberId}`
+                `WhatsApp: ${whatsappNumber.phoneNumber} · ${whatsappNumber.phoneNumberId}`
             ].join("\n  ")
         );
 
         return {
             workspaceId: workspace.id,
             adminEmail: admin.email,
-            whatsappAccountId: whatsappAccount.id
+            whatsappAccountId: whatsappAccount.id,
+            whatsappNumberId: whatsappNumber.id
         };
     } finally {
         await prisma.$disconnect();

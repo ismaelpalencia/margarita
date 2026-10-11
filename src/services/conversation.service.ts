@@ -18,9 +18,26 @@ type ListConversationsParams = {
     userId?: string;
     role: "ADMIN" | "AGENT";
     status?: string;
+    whatsappNumberId?: string;
 };
 
 export class ConversationService {
+    /**
+     * El número con el que se abre una conversación nueva es el activo de
+     * la sesión; sin él no se puede iniciar un hilo.
+     */
+    static requireActiveNumberId(req: {
+        activeNumber?: { id: string } | null;
+    }): string {
+        if (!req.activeNumber) {
+            throw new Error(
+                "No hay un número de WhatsApp activo. Configúralo en Admin → WhatsApp."
+            );
+        }
+
+        return req.activeNumber.id;
+    }
+
     static async listConversations(params: ListConversationsParams) {
         return prisma.conversation.findMany({
             where: {
@@ -33,6 +50,11 @@ export class ConversationService {
                 ...(params.status
                     ? {
                           status: params.status as ConversationStatus
+                      }
+                    : {}),
+                ...(params.whatsappNumberId
+                    ? {
+                          whatsappNumberId: params.whatsappNumberId
                       }
                     : {})
             },
@@ -57,41 +79,21 @@ export class ConversationService {
         });
     }
 
-    static async listForAdmin(workspaceId: string) {
-        return prisma.conversation.findMany({
-            where: {
-                workspaceId
-            },
-            include: {
-                contact: true,
-                assignedUser: true,
-                messages: {
-                    orderBy: {
-                        createdAt: "desc"
-                    },
-                    take: 1
-                }
-            },
-            orderBy: [
-                {
-                    lastMessageAt: "desc"
-                },
-                {
-                    createdAt: "desc"
-                }
-            ]
-        });
-    }
-
-    static async listForAgent(workspaceId: string, agentId: string) {
+    static async listForAdmin(workspaceId: string, whatsappNumberId?: string) {
         return prisma.conversation.findMany({
             where: {
                 workspaceId,
-                assignedUserId: agentId
+                ...(whatsappNumberId ? { whatsappNumberId } : {})
             },
             include: {
                 contact: true,
                 assignedUser: true,
+                whatsappNumber: {
+                    select: {
+                        displayName: true,
+                        phoneNumber: true
+                    }
+                },
                 messages: {
                     orderBy: {
                         createdAt: "desc"
@@ -110,7 +112,49 @@ export class ConversationService {
         });
     }
 
-    static async openFromContact(workspaceId: string, contactId: string) {
+    static async listForAgent(
+        workspaceId: string,
+        agentId: string,
+        whatsappNumberId?: string
+    ) {
+        return prisma.conversation.findMany({
+            where: {
+                workspaceId,
+                assignedUserId: agentId,
+                ...(whatsappNumberId ? { whatsappNumberId } : {})
+            },
+            include: {
+                contact: true,
+                assignedUser: true,
+                whatsappNumber: {
+                    select: {
+                        displayName: true,
+                        phoneNumber: true
+                    }
+                },
+                messages: {
+                    orderBy: {
+                        createdAt: "desc"
+                    },
+                    take: 1
+                }
+            },
+            orderBy: [
+                {
+                    lastMessageAt: "desc"
+                },
+                {
+                    createdAt: "desc"
+                }
+            ]
+        });
+    }
+
+    static async openFromContact(
+        workspaceId: string,
+        contactId: string,
+        whatsappNumberId: string
+    ) {
         const contact = await prisma.contact.findFirst({
             where: {
                 id: contactId,
@@ -125,8 +169,8 @@ export class ConversationService {
 
         const existingConversation = await prisma.conversation.findUnique({
             where: {
-                workspaceId_contactId: {
-                    workspaceId,
+                whatsappNumberId_contactId: {
+                    whatsappNumberId,
                     contactId
                 }
             }
@@ -148,6 +192,7 @@ export class ConversationService {
             data: {
                 workspaceId,
                 contactId,
+                whatsappNumberId,
                 status: "OPEN",
                 operationalStatus: "UNASSIGNED",
                 source: "MANUAL",
@@ -275,6 +320,7 @@ export class ConversationService {
     static async createOrOpenConversationFromContact(
         workspaceId: string,
         contactId: string,
+        whatsappNumberId: string,
         source: ConversationSource = ConversationSource.MANUAL
     ) {
         const contact = await prisma.contact.findFirst({
@@ -291,8 +337,8 @@ export class ConversationService {
 
         const existingConversation = await prisma.conversation.findUnique({
             where: {
-                workspaceId_contactId: {
-                    workspaceId,
+                whatsappNumberId_contactId: {
+                    whatsappNumberId,
                     contactId
                 }
             }
@@ -318,6 +364,7 @@ export class ConversationService {
             data: {
                 workspaceId,
                 contactId,
+                whatsappNumberId,
                 status: ConversationStatus.OPEN,
                 operationalStatus: ConversationOperationalStatus.UNASSIGNED,
                 source,

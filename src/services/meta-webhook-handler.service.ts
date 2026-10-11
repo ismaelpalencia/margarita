@@ -24,6 +24,7 @@ import { emitToWorkspace } from "../sockets";
 import { AssignmentService } from "./assignment.service";
 import { LogService } from "./log.service";
 import { prefetchMedia } from "./media.service";
+import { WhatsAppNumberService } from "./whatsapp-number.service";
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
@@ -77,13 +78,15 @@ export class MetaWebhookHandlerService {
                     continue;
                 }
 
-                const account = await prisma.whatsAppAccount.findFirst({
-                    where: {
-                        phoneNumberId
-                    }
-                });
+                /**
+                 * El número es lo primero que se identifica: de él sale el
+                 * workspace y también a qué hilo pertenece el mensaje.
+                 */
+                const number = await WhatsAppNumberService.getByPhoneNumberId(
+                    phoneNumberId
+                );
 
-                if (!account) {
+                if (!number) {
                     await LogService.create({
                         level: LogLevel.WARN,
                         module: LogModule.WEBHOOK,
@@ -103,7 +106,8 @@ export class MetaWebhookHandlerService {
 
                 for (const message of messages) {
                     await this.handleIncomingMessage({
-                        workspaceId: account.workspaceId,
+                        workspaceId: number.whatsappAccount.workspaceId,
+                        whatsappNumberId: number.id,
                         message,
                         profileName: contacts.find(
                             (contact) => contact.wa_id === message.from
@@ -113,7 +117,7 @@ export class MetaWebhookHandlerService {
 
                 for (const status of statuses) {
                     await this.handleStatusUpdate({
-                        workspaceId: account.workspaceId,
+                        workspaceId: number.whatsappAccount.workspaceId,
                         status
                     });
                 }
@@ -123,10 +127,11 @@ export class MetaWebhookHandlerService {
 
     private static async handleIncomingMessage(params: {
         workspaceId: string;
+        whatsappNumberId: string;
         message: MetaWebhookMessage;
         profileName?: string;
     }) {
-        const { workspaceId, message, profileName } = params;
+        const { workspaceId, whatsappNumberId, message, profileName } = params;
 
         if (!message.id || !message.from) {
             await LogService.create({
@@ -176,6 +181,7 @@ export class MetaWebhookHandlerService {
 
         const conversation = await this.getOrCreateConversationForIncomingMessage({
             workspaceId,
+            whatsappNumberId,
             contactId: contact.id
         });
 
@@ -235,6 +241,7 @@ export class MetaWebhookHandlerService {
                     contact.customName || contact.profileName || contact.phone,
                 phone: contact.phone
             },
+            whatsappNumberId,
             message: {
                 id: savedMessage.id,
                 wamid: savedMessage.wamid,
@@ -275,12 +282,13 @@ export class MetaWebhookHandlerService {
 
     private static async getOrCreateConversationForIncomingMessage(params: {
         workspaceId: string;
+        whatsappNumberId: string;
         contactId: string;
     }) {
         const existingConversation = await prisma.conversation.findUnique({
             where: {
-                workspaceId_contactId: {
-                    workspaceId: params.workspaceId,
+                whatsappNumberId_contactId: {
+                    whatsappNumberId: params.whatsappNumberId,
                     contactId: params.contactId
                 }
             }
@@ -305,6 +313,7 @@ export class MetaWebhookHandlerService {
             data: {
                 workspaceId: params.workspaceId,
                 contactId: params.contactId,
+                whatsappNumberId: params.whatsappNumberId,
                 status: ConversationStatus.OPEN,
                 operationalStatus: ConversationOperationalStatus.UNASSIGNED,
                 source: ConversationSource.INBOUND,

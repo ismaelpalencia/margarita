@@ -60,6 +60,13 @@ export const appConfig = {
     cookieName: process.env.COOKIE_NAME || "margarita_token",
 
     /**
+     * Cookie donde se recuerda con qué número está trabajando el usuario.
+     * Es solo una preferencia de sesión, no de seguridad.
+     */
+    activeNumberCookieName:
+        process.env.ACTIVE_NUMBER_COOKIE_NAME || "margarita_number",
+
+    /**
      * App Secret de la app de Meta. Se usa para validar la firma
      * X-Hub-Signature-256 de los webhooks entrantes.
      */

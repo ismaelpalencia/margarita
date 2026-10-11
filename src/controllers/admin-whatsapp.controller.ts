@@ -2,19 +2,29 @@ import { Request, Response } from "express";
 
 import { appConfig } from "../config/app.config";
 import { WhatsAppAccountService } from "../services/whatsapp-account.service";
+import { WhatsAppNumberService } from "../services/whatsapp-number.service";
+import { getRequiredParam } from "../utils/request";
 import { updateWhatsAppCredentialsSchema } from "../validations/whatsapp-account.validation";
+import {
+    createNumberSchema,
+    updateNumberSchema
+} from "../validations/whatsapp-number.validation";
 
 export class AdminWhatsAppController {
     static async show(req: Request, res: Response) {
+        const webhookUrl = `${appConfig.appUrl}/webhooks/meta/whatsapp`;
+
         try {
-            const account = await WhatsAppAccountService.getAccount(
-                req.user!.workspaceId
-            );
+            const [account, numbers] = await Promise.all([
+                WhatsAppAccountService.getAccount(req.user!.workspaceId),
+                WhatsAppNumberService.listNumbers(req.user!.workspaceId)
+            ]);
 
             return res.render("pages/admin/whatsapp/show", {
                 user: req.user,
                 account,
-                webhookUrl: `${appConfig.appUrl}/webhooks/meta/whatsapp`,
+                numbers,
+                webhookUrl,
                 success: req.query.success || null,
                 error: req.query.error || null
             });
@@ -27,23 +37,12 @@ export class AdminWhatsAppController {
             return res.render("pages/admin/whatsapp/show", {
                 user: req.user,
                 account: null,
-                webhookUrl: `${appConfig.appUrl}/webhooks/meta/whatsapp`,
+                numbers: [],
+                webhookUrl,
                 success: null,
                 error: message
             });
         }
-    }
-
-    static async testConnection(req: Request, res: Response) {
-        const result = await WhatsAppAccountService.testConnection(
-            req.user!.workspaceId
-        );
-
-        if (result.ok) {
-            return res.redirect("/admin/whatsapp?success=connection");
-        }
-
-        return res.redirect("/admin/whatsapp?error=connection");
     }
 
     static async updateCredentials(req: Request, res: Response) {
@@ -63,6 +62,87 @@ export class AdminWhatsAppController {
         } catch {
             return res.redirect("/admin/whatsapp?error=update");
         }
+    }
+
+    static async createNumber(req: Request, res: Response) {
+        const parsed = createNumberSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.redirect("/admin/whatsapp?error=number_validation");
+        }
+
+        try {
+            await WhatsAppNumberService.createNumber(req.user!.workspaceId, {
+                displayName: parsed.data.displayName,
+                phoneNumber: parsed.data.phoneNumber,
+                phoneNumberId: parsed.data.phoneNumberId
+            });
+
+            return res.redirect("/admin/whatsapp?success=number_created");
+        } catch {
+            return res.redirect("/admin/whatsapp?error=number_create");
+        }
+    }
+
+    static async updateNumber(req: Request, res: Response) {
+        const numberId = getRequiredParam(req, "numberId");
+        const parsed = updateNumberSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.redirect("/admin/whatsapp?error=number_validation");
+        }
+
+        try {
+            await WhatsAppNumberService.updateNumber(
+                req.user!.workspaceId,
+                numberId,
+                parsed.data
+            );
+
+            return res.redirect("/admin/whatsapp?success=number_updated");
+        } catch {
+            return res.redirect("/admin/whatsapp?error=number_update");
+        }
+    }
+
+    static async toggleNumber(req: Request, res: Response) {
+        const numberId = getRequiredParam(req, "numberId");
+
+        try {
+            const number = await WhatsAppNumberService.getById(
+                req.user!.workspaceId,
+                numberId
+            );
+
+            if (!number) {
+                return res.redirect("/admin/whatsapp?error=number_update");
+            }
+
+            await WhatsAppNumberService.setActive(
+                req.user!.workspaceId,
+                numberId,
+                !number.isActive
+            );
+
+            return res.redirect("/admin/whatsapp?success=number_updated");
+        } catch {
+            return res.redirect("/admin/whatsapp?error=number_update");
+        }
+    }
+
+    static async testConnection(req: Request, res: Response) {
+        const numberId = getRequiredParam(req, "numberId");
+
+        const result = await WhatsAppNumberService.testConnection(
+            req.user!.workspaceId,
+            numberId
+        );
+
+        if (result.ok) {
+            return res.redirect("/admin/whatsapp?success=connection");
+        }
+
+        return res.redirect("/admin/whatsapp?error=connection");
     }
 
     static async encryptSecrets(req: Request, res: Response) {

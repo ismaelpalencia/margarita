@@ -17,7 +17,8 @@ import {
 export class AdminConversationsController {
     static async index(req: Request, res: Response) {
         const conversations = await ConversationService.listForAdmin(
-            req.user!.workspaceId
+            req.user!.workspaceId,
+            req.activeNumber?.id
         );
 
         return res.render("pages/admin/conversations/index", {
@@ -187,7 +188,8 @@ export class AdminConversationsController {
         try {
             const conversation = await ConversationService.openFromContact(
                 req.user!.workspaceId,
-                contactId
+                contactId,
+                ConversationService.requireActiveNumberId(req)
             );
 
             return res.redirect(`/admin/conversations/${conversation.id}`);

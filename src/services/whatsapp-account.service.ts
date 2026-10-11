@@ -1,27 +1,34 @@
-import axios from "axios";
 import { LogLevel, LogModule, Prisma } from "@prisma/client";
 
-import { prisma } from "../config/prisma";
 import { appConfig } from "../config/app.config";
+import { prisma } from "../config/prisma";
 import { decryptSecret, encryptSecret, isEncrypted } from "../utils/crypto";
 import { maskSecret } from "../utils/mask";
 import { LogService } from "./log.service";
 
-type UpdateCredentialsInput = {
-    displayName?: string;
-    phoneNumber?: string;
-    phoneNumberId?: string;
+type UpdateAccountInput = {
     businessAccountId?: string;
     apiVersion?: string;
     accessToken?: string;
     verifyToken?: string;
 };
 
+/**
+ * La cuenta de WhatsApp Business (la WABA): guarda las credenciales que
+ * comparten todos los números, más el verify token del webhook.
+ */
 export class WhatsAppAccountService {
     static async getAccount(workspaceId: string) {
         const account = await prisma.whatsAppAccount.findUnique({
             where: {
                 workspaceId
+            },
+            include: {
+                numbers: {
+                    orderBy: {
+                        createdAt: "asc"
+                    }
+                }
             }
         });
 
@@ -32,8 +39,11 @@ export class WhatsAppAccountService {
         const accessToken = decryptSecret(account.accessToken);
         const verifyToken = decryptSecret(account.verifyToken);
 
-        const { accessToken: _omitAccess, verifyToken: _omitVerify, ...safe } =
-            account;
+        const {
+            accessToken: _omitAccess,
+            verifyToken: _omitVerify,
+            ...safe
+        } = account;
 
         return {
             ...safe,
@@ -53,7 +63,7 @@ export class WhatsAppAccountService {
 
     static async updateCredentials(
         workspaceId: string,
-        input: UpdateCredentialsInput
+        input: UpdateAccountInput
     ) {
         const account = await prisma.whatsAppAccount.findUnique({
             where: {
@@ -67,21 +77,6 @@ export class WhatsAppAccountService {
 
         const data: Prisma.WhatsAppAccountUpdateInput = {};
         const changedFields: string[] = [];
-
-        if (input.displayName !== undefined) {
-            data.displayName = input.displayName || null;
-            changedFields.push("displayName");
-        }
-
-        if (input.phoneNumber) {
-            data.phoneNumber = input.phoneNumber;
-            changedFields.push("phoneNumber");
-        }
-
-        if (input.phoneNumberId) {
-            data.phoneNumberId = input.phoneNumberId;
-            changedFields.push("phoneNumberId");
-        }
 
         if (input.businessAccountId) {
             data.businessAccountId = input.businessAccountId;
@@ -107,7 +102,7 @@ export class WhatsAppAccountService {
             throw new Error("No hay cambios por guardar.");
         }
 
-        const updated = await prisma.whatsAppAccount.update({
+        await prisma.whatsAppAccount.update({
             where: {
                 id: account.id
             },
@@ -129,7 +124,7 @@ export class WhatsAppAccountService {
         });
 
         return {
-            id: updated.id,
+            id: account.id,
             changedFields
         };
     }
@@ -188,109 +183,5 @@ export class WhatsAppAccountService {
         return {
             changed: true
         };
-    }
-
-    static async testConnection(workspaceId: string) {
-        const account = await prisma.whatsAppAccount.findUnique({
-            where: {
-                workspaceId
-            }
-        });
-
-        if (!account) {
-            throw new Error("No hay cuenta de WhatsApp configurada.");
-        }
-
-        const accessToken = decryptSecret(account.accessToken);
-
-        const url = `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.phoneNumberId}`;
-
-        try {
-            const response = await axios.get(url, {
-                params: {
-                    fields: "id,display_phone_number,verified_name,quality_rating",
-                        access_token: accessToken
-                },
-                timeout: 10000
-            });
-
-            const data = response.data as {
-                id?: string;
-                display_phone_number?: string;
-                verified_name?: string;
-                quality_rating?: string;
-            };
-
-            await prisma.whatsAppAccount.update({
-                where: {
-                    id: account.id
-                },
-                data: {
-                    displayName: data.verified_name || account.displayName,
-                    phoneNumber: data.display_phone_number || account.phoneNumber,
-                    qualityRating: data.quality_rating || account.qualityRating,
-                    status: "CONNECTED"
-                }
-            });
-
-            await LogService.create({
-                workspaceId,
-                level: LogLevel.INFO,
-                module: LogModule.WHATSAPP_ACCOUNT,
-                action: "CONNECTION_TEST_SUCCESS",
-                message: "Conexión con Meta validada correctamente.",
-                payload: {
-                    phoneNumberId: account.phoneNumberId,
-                    response: data
-                }
-            });
-
-            return {
-                ok: true,
-                message: "Conexión con Meta validada correctamente.",
-                data
-            };
-        } catch (error) {
-            const errorPayload =
-                axios.isAxiosError(error)
-                    ? {
-                          status: error.response?.status,
-                          data: error.response?.data,
-                          message: error.message
-                      }
-                    : {
-                          message:
-                              error instanceof Error
-                                  ? error.message
-                                  : "Error desconocido"
-                      };
-
-            await prisma.whatsAppAccount.update({
-                where: {
-                    id: account.id
-                },
-                data: {
-                    status: "ERROR"
-                }
-            });
-
-            await LogService.create({
-                workspaceId,
-                level: LogLevel.ERROR,
-                module: LogModule.WHATSAPP_ACCOUNT,
-                action: "CONNECTION_TEST_FAILED",
-                message: "No se pudo validar la conexión con Meta.",
-                payload: {
-                    phoneNumberId: account.phoneNumberId,
-                    error: errorPayload
-                }
-            });
-
-            return {
-                ok: false,
-                message: "No se pudo validar la conexión con Meta.",
-                error: errorPayload
-            };
-        }
     }
 }

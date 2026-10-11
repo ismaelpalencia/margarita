@@ -26,19 +26,27 @@ import { CreateCampaignInput } from "../validations/campaign.validation";
 import { renderTemplatePreview, countTemplateVariables } from "../utils/template";
 import { buildTemplateMessagePayload } from "../utils/template";
 import { LogService } from "./log.service";
+import { WhatsAppNumberService } from "./whatsapp-number.service";
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
 export class CampaignService {
-    static async listCampaigns(workspaceId: string) {
+    static async listCampaigns(workspaceId: string, whatsappNumberId?: string) {
         return prisma.campaign.findMany({
             where: {
-                workspaceId
+                workspaceId,
+                ...(whatsappNumberId ? { whatsappNumberId } : {})
             },
             include: {
                 template: true,
+                whatsappNumber: {
+                    select: {
+                        displayName: true,
+                        phoneNumber: true
+                    }
+                },
                 _count: {
                     select: {
                         recipients: true
@@ -113,7 +121,8 @@ export class CampaignService {
     static async createCampaign(
         workspaceId: string,
         createdById: string,
-        input: CreateCampaignInput
+        input: CreateCampaignInput,
+        whatsappNumberId: string
     ) {
         if (input.contactIds.length === 0) {
             throw new Error("Selecciona al menos un contacto.");
@@ -207,6 +216,7 @@ export class CampaignService {
             data: {
                 workspaceId,
                 templateId: template.id,
+                whatsappNumberId,
                 createdById,
                 name: input.name,
                 status: CampaignStatus.DRAFT,
@@ -335,15 +345,28 @@ export class CampaignService {
             throw new Error("No hay destinatarios pendientes.");
         }
 
-        const account = await prisma.whatsAppAccount.findUnique({
-            where: {
-                workspaceId
-            }
-        });
+        /**
+         * La campaña se envía desde el número con el que se creó: el token
+         * viene de la WABA y el `phone_number_id` de ese número.
+         */
+        const campaignNumber = await WhatsAppNumberService.getById(
+            workspaceId,
+            campaign.whatsappNumberId
+        );
 
-        if (!account) {
-            throw new Error("No hay cuenta de WhatsApp configurada.");
+        if (!campaignNumber) {
+            throw new Error(
+                "El número de esta campaña ya no está disponible en la cuenta."
+            );
         }
+
+        if (!campaignNumber.isActive) {
+            throw new Error(
+                "El número de esta campaña está desactivado. Actívalo para poder enviarla."
+            );
+        }
+
+        const credentials = WhatsAppNumberService.credentialsFor(campaignNumber);
 
         await prisma.campaign.update({
             where: {
@@ -387,6 +410,7 @@ export class CampaignService {
 
                 const conversation = await this.getOrCreateCampaignConversation({
                     workspaceId,
+                    whatsappNumberId: campaign.whatsappNumberId,
                     contactId: recipient.contact.id
                 });
 
@@ -430,11 +454,11 @@ export class CampaignService {
                 });
 
                 const response = await axios.post(
-                    `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.phoneNumberId}/messages`,
+                    `${appConfig.graphBaseUrl}/${credentials.apiVersion}/${credentials.phoneNumberId}/messages`,
                     payload,
                     {
                         params: {
-                        access_token: decryptSecret(account.accessToken)
+                            access_token: credentials.accessToken
                         },
                         timeout: 15000
                     }
@@ -656,12 +680,13 @@ export class CampaignService {
 
     private static async getOrCreateCampaignConversation(params: {
         workspaceId: string;
+        whatsappNumberId: string;
         contactId: string;
     }) {
         const existingConversation = await prisma.conversation.findUnique({
             where: {
-                workspaceId_contactId: {
-                    workspaceId: params.workspaceId,
+                whatsappNumberId_contactId: {
+                    whatsappNumberId: params.whatsappNumberId,
                     contactId: params.contactId
                 }
             }
@@ -683,6 +708,7 @@ export class CampaignService {
             data: {
                 workspaceId: params.workspaceId,
                 contactId: params.contactId,
+                whatsappNumberId: params.whatsappNumberId,
                 status: ConversationStatus.OPEN,
                 operationalStatus: ConversationOperationalStatus.UNASSIGNED,
                 source: ConversationSource.CAMPAIGN,

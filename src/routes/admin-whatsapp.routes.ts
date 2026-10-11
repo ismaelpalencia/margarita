@@ -7,6 +7,9 @@ const router = Router();
 router.get("/", AdminWhatsAppController.show);
 router.post("/credentials", AdminWhatsAppController.updateCredentials);
 router.post("/encrypt-secrets", AdminWhatsAppController.encryptSecrets);
-router.post("/test-connection", AdminWhatsAppController.testConnection);
+router.post("/numbers", AdminWhatsAppController.createNumber);
+router.post("/numbers/:numberId", AdminWhatsAppController.updateNumber);
+router.post("/numbers/:numberId/toggle", AdminWhatsAppController.toggleNumber);
+router.post("/numbers/:numberId/test", AdminWhatsAppController.testConnection);
 
 export default router;

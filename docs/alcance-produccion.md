@@ -19,7 +19,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, un número 
 | Concepto | Valor actual |
 | --- | --- |
 | Empresas por instalación | 1 |
-| Números de WhatsApp por instalación | 1 |
+| Números por instalación | Los que tenga la WABA (uno o varios) |
 | Roles | `ADMIN` (uno) y `AGENT` (los que se necesiten) |
 | Base de datos | PostgreSQL |
 | Alojamiento probado | Railway |
@@ -61,6 +61,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, un número 
 - **Tiempo real**: la bandeja se actualiza sin recargar, con eventos por socket autenticados con la misma sesión del panel.
 - **Multimedia entrante**: las fotos, el video, el audio y los documentos que envían los clientes se ven dentro del hilo, con visor y descarga. Las imágenes se descargan al recibirlas y el resto cuando alguien lo abre.
 - **Envío de archivos**: se pueden adjuntar imágenes, video, audio y documentos dentro de la ventana de 24 horas, con texto opcional. Límites de Meta por tipo: imagen 5 MB, video y audio 16 MB, documentos 100 MB.
+- **Varios números de la misma WABA**: la cuenta guarda las credenciales y cada número aporta su identidad, su calidad y sus propios hilos. El panel funciona "desde" un número activo que se elige en el encabezado: la bandeja, las campañas y las conversaciones nuevas usan ese número.
 - **Chat de conversación**: hilo con burbujas, separadores de fecha, palomitas de estado reales y barra de composición, con actualización en vivo.
 - **Borrado de mensajes**: ocultar un mensaje sin destruirlo (el admin puede verlo y restaurarlo) o borrar todo el hilo definitivamente escribiendo `BORRAR`.
 - **Respaldos**: descarga completa en JSON o exportación por entidad en CSV.

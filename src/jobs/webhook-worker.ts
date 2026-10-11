@@ -165,28 +165,35 @@ async function resolveWorkspaceId(
         return null;
     }
 
-    const account = await prisma.whatsAppAccount.findFirst({
+    const number = await prisma.whatsAppNumber.findUnique({
         where: {
             phoneNumberId
         },
         select: {
-            workspaceId: true
+            id: true,
+            whatsappAccount: {
+                select: {
+                    workspaceId: true
+                }
+            }
         }
     });
 
-    if (account) {
+    const workspaceId = number?.whatsappAccount.workspaceId ?? null;
+
+    if (workspaceId) {
         await prisma.webhookEvent.update({
             where: {
                 id: event.id
             },
             data: {
-                workspaceId: account.workspaceId,
+                workspaceId,
                 phoneNumberId
             }
         });
     }
 
-    return account?.workspaceId || null;
+    return workspaceId;
 }
 
 async function processEvent(event: WebhookEventRecord) {

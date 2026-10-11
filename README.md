@@ -35,6 +35,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 
 - Dashboard con conversaciones abiertas, mensajes recientes y estado de la operación.
 - Cuenta de WhatsApp: ver número, calidad, `phoneNumberId` y probar conexión contra Meta.
+- Varios números por cuenta: agregar, editar, activar o desactivar números de la misma WABA, y elegir el **número activo** en el encabezado para trabajar desde él.
 - Plantillas: sincronizar las aprobadas desde Meta y verlas con su estado real.
 - Contactos: crear, editar, buscar, etiquetar y desactivar.
 - Etiquetas: crear, editar y desactivar.
@@ -233,6 +234,7 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `JWT_SECRET` | Sí | Firma de los tokens. Genera con `openssl rand -hex 32` |
 | `JWT_EXPIRES_IN` | No | Vida del token. Default `7d` |
 | `COOKIE_NAME` | No | Nombre de la cookie de sesión. Default `margarita_token` |
+| `ACTIVE_NUMBER_COOKIE_NAME` | No | Cookie donde se recuerda el número activo. Default `margarita_number` |
 | `WORKSPACE_NAME` | Seed | Nombre de la empresa |
 | `WORKSPACE_SLUG` | Seed | Identificador único del workspace |
 | `ADMIN_NAME` | Seed | Nombre del administrador |
@@ -556,6 +558,7 @@ Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArg
 | [`docs/deploy-railway.md`](docs/deploy-railway.md) | Guía de despliegue en Railway |
 | [`docs/roadmap-v2.md`](docs/roadmap-v2.md) | Plan detallado de los siguientes sprints: multimedia, interactivos y campañas |
 | [`docs/alcance-produccion.md`](docs/alcance-produccion.md) | Alcance actual, límites, seguridad y responsabilidades para uso en producción |
+| [`docs/multinumero.md`](docs/multinumero.md) | Diseño del multinúmero: modelo, migración, uso y pendientes |
 | [`prisma/schema.prisma`](prisma/schema.prisma) | Esquema real de la base de datos |
 
 `Reglas_margarita.md` es una copia idéntica de `MArgarita.md`.

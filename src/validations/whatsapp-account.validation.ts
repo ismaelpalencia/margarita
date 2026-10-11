@@ -9,10 +9,10 @@ function optionalText(maxLength: number) {
         .transform((value) => (value && value.length > 0 ? value : undefined));
 }
 
+/**
+ * Credenciales de la WABA: se comparten entre todos los números.
+ */
 export const updateWhatsAppCredentialsSchema = z.object({
-    displayName: optionalText(120),
-    phoneNumber: optionalText(20),
-    phoneNumberId: optionalText(40),
     businessAccountId: optionalText(40),
     apiVersion: z
         .string()

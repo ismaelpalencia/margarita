@@ -15,14 +15,18 @@ import adminCampaignsRoutes from "./admin-campaigns.routes";
 import adminSystemRoutes from "./admin-system.routes";
 import adminRoadmapRoutes from "./admin-roadmap.routes";
 import adminBackupRoutes from "./admin-backup.routes";
+import { activeNumberMiddleware } from "../middlewares/active-number.middleware";
+import { ActiveNumberController } from "../controllers/active-number.controller";
 
 
 const router = Router();
 
 router.use(authMiddleware);
 router.use(requireRole(UserRole.ADMIN));
+router.use(activeNumberMiddleware);
 
 router.get("/dashboard", AdminDashboardController.index);
+router.post("/number/switch", ActiveNumberController.switch);
 router.use("/users", adminUsersRoutes);
 router.use("/contacts", adminContactsRoutes);
 router.use("/tags", adminTagsRoutes);

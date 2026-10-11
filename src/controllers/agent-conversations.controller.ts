@@ -18,7 +18,8 @@ export class AgentConversationsController {
     static async index(req: Request, res: Response) {
         const conversations = await ConversationService.listForAgent(
             req.user!.workspaceId,
-            req.user!.id
+            req.user!.id,
+            req.activeNumber?.id
         );
 
         return res.render("pages/agent/conversations/index", {

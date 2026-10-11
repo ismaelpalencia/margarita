@@ -115,6 +115,22 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ---
 
+## Sprint 38 — Multinúmero (varios números de la misma WABA)
+
+**Estado: completado.** El detalle está en [`multinumero.md`](multinumero.md).
+
+| Área | Qué se hizo |
+| --- | --- |
+| Modelo | La cuenta guarda las credenciales de la WABA y cada número su identidad, calidad y estado. La conversación pasa a ser única por `(número, contacto)`. |
+| Migración | Conserva los datos: el número existente se copia como el primero y las conversaciones y campañas se reasignan a él. |
+| Número activo | Selector en el encabezado, guardado en cookie. Toda la bandeja, las conversaciones nuevas y las campañas trabajan desde ese número. |
+| Pantalla de números | Alta, edición, activación, prueba de conexión y calidad por número en Admin → WhatsApp. |
+| Envío | Cada mensaje sale del número de su conversación; las campañas, del número con el que se crearon. |
+
+**Pendiente de este bloque:** asignar números a agentes (tabla `UserNumber`), repartir campañas entre números y métricas por número.
+
+---
+
 ## Sprint 37 — Envío de archivos
 
 **Estado: completado.**

@@ -89,7 +89,12 @@ export class BackupService {
             ]);
 
         const account = await prisma.whatsAppAccount.findUnique({
-            where: { workspaceId }
+            where: { workspaceId },
+            include: {
+                numbers: {
+                    orderBy: { createdAt: "asc" }
+                }
+            }
         });
 
         return {
@@ -104,13 +109,16 @@ export class BackupService {
             settings: workspace?.settings || null,
             whatsappAccount: account
                 ? {
-                      displayName: account.displayName,
-                      phoneNumber: account.phoneNumber,
-                      phoneNumberId: account.phoneNumberId,
                       businessAccountId: account.businessAccountId,
                       apiVersion: account.apiVersion,
-                      status: account.status,
-                      qualityRating: account.qualityRating,
+                      numbers: account.numbers.map((number) => ({
+                          phoneNumberId: number.phoneNumberId,
+                          phoneNumber: number.phoneNumber,
+                          displayName: number.displayName,
+                          status: number.status,
+                          qualityRating: number.qualityRating,
+                          isActive: number.isActive
+                      })),
                       accessToken: maskSecret(account.accessToken),
                       verifyToken: maskSecret(account.verifyToken)
                   }
