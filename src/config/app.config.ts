@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import path from "node:path";
 
 import { normalizeAppUrl } from "../utils/url";
 
@@ -89,5 +90,17 @@ export const appConfig = {
         Number(process.env.WEBHOOK_SCHEMA_PAUSE_MS) || 5 * 60 * 1000,
 
     alertWebhookUrl: process.env.ALERT_WEBHOOK_URL || "",
-    alertCooldownMinutes: Number(process.env.ALERT_COOLDOWN_MINUTES) || 10
+    alertCooldownMinutes: Number(process.env.ALERT_COOLDOWN_MINUTES) || 10,
+
+    /**
+     * Carpeta donde se guardan los archivos que envía Meta. En producción
+     * conviene apuntarla a un Volume (por ejemplo /data/media), porque el
+     * disco de Railway es efímero.
+     */
+    mediaStorageDir:
+        process.env.MEDIA_STORAGE_DIR?.trim() ||
+        path.join(process.cwd(), "uploads", "media"),
+
+    /** Tamaño máximo que se descarga de Meta (por defecto 25 MB). */
+    mediaMaxBytes: Number(process.env.MEDIA_MAX_BYTES) || 25 * 1024 * 1024
 };

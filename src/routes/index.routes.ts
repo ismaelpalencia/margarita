@@ -1,9 +1,11 @@
 import { Router } from "express";
 
 import { HomeController } from "../controllers/home.controller";
+import { authMiddleware } from "../middlewares/auth.middleware";
 import authRoutes from "./auth.routes";
 import adminRoutes from "./admin.routes";
 import agentRoutes from "./agent.routes";
+import mediaRoutes from "./media.routes";
 import webhookRoutes from "./webhook.routes";
 
 
@@ -15,6 +17,13 @@ router.use("/auth", authRoutes);
 router.use("/admin", adminRoutes);
 router.use("/agent", agentRoutes);
 router.use("/webhooks", webhookRoutes);
+
+/**
+ * Archivos que enviaron los clientes (fotos, audio, documentos). Requiere
+ * sesión: la autorización por conversación se valida en el controlador.
+ */
+router.use("/media", authMiddleware, mediaRoutes);
+
 router.get("/como-empezar", HomeController.howToStart);
 
 export default router;

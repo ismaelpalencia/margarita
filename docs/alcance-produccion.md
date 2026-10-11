@@ -59,6 +59,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, un número 
 - **Estados reales** de cada mensaje (`sent`, `delivered`, `read`, `failed`) propagados al hilo y a los destinatarios de campaña.
 - **Historial de asignaciones** con quién movió qué y por qué.
 - **Tiempo real**: la bandeja se actualiza sin recargar, con eventos por socket autenticados con la misma sesión del panel.
+- **Multimedia entrante**: las fotos, el video, el audio y los documentos que envían los clientes se ven dentro del hilo, con visor y descarga. Las imágenes se descargan al recibirlas y el resto cuando alguien lo abre.
 - **Motivos de fallo traducidos**: los códigos de Meta (pago, ventana cerrada, número inválido, límites, plantillas) se explican en español en la bitácora y en el hilo.
 
 ### Auditoría y operación
@@ -78,7 +79,8 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | Límite | Detalle |
 | --- | --- |
 | **Solo México** | El normalizador de teléfonos asume números mexicanos y agrega el prefijo `521`. Números de otros países se rechazan. |
-| **Sin multimedia** | Las fotos, audios y documentos que envían los clientes **no se pueden ver**. Se guarda el identificador y el tipo, pero no hay visor ni descarga. El agente ve `[Imagen]`. |
+| **Sin envío de adjuntos** | Se ven los archivos que llegan, pero **no se pueden enviar** imágenes ni documentos desde el panel. |
+| **Archivos con caducidad** | Meta conserva lo que envían los clientes alrededor de 30 días. Un archivo que nadie abrió en ese plazo ya no se puede recuperar; el hilo lo avisa en lugar de fallar. |
 | **Salida solo de texto** | No se pueden enviar imágenes, documentos, botones ni listas. Solo texto libre (dentro de 24 h) y plantillas. |
 | **Variables solo en el cuerpo** | Las campañas resuelven las variables del componente `BODY` de la plantilla. Si la plantilla tiene variables en el encabezado o en un botón con URL, hoy no se llenan. |
 | **Campañas sin programar** | No se pueden agendar por fecha y hora, pausar ni cancelar. |
@@ -108,6 +110,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Límite de peticiones** | 300 cada 15 minutos en el panel, 10 en el login, 1200 por minuto en el webhook (que está exento del límite general, igual que el healthcheck). |
 | **Cabeceras y CORS** | Helmet activo y CORS restringido al dominio de la aplicación. La política de contenido (CSP) está desactivada para permitir las vistas actuales; se puede habilitar con nonces. |
 | **Exposición de secretos** | Los tokens nunca se envían al navegador (la vista recibe solo una versión enmascarada) y la bitácora redacta cualquier campo que parezca credencial. |
+| **Acceso a archivos** | Los archivos no son públicos: se sirven por un endpoint que exige sesión y valida que el usuario pueda ver esa conversación. Un agente sin la conversación recibe 404, y los archivos se guardan fuera del alcance del servidor web. |
 | **Retención** | La bitácora se purga a los 90 días y los eventos de webhook resueltos a los 30. |
 
 ### Lo que la seguridad NO cubre
@@ -175,9 +178,9 @@ Además de las pruebas unitarias, los flujos críticos se verificaron de punta a
 
 El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 
-1. **Multimedia entrante**: ver fotos, audio y documentos de los clientes.
+1. **Envío de adjuntos** desde el panel (imágenes y documentos).
 2. **Interfaz tipo WhatsApp**: burbujas, palomitas de estado, barra de composición y vista móvil.
-3. **Envío de adjuntos**, respuestas rápidas, contador de no leídos y búsqueda.
+3. **Respuestas rápidas**, contador de no leídos y búsqueda.
 4. **Campañas**: envío en cola con control de velocidad, programación y pausa.
 5. **Cumplimiento**: opt-in y baja automática.
 6. **Salud de la cuenta**: avisos de plantillas rechazadas y cambios de calidad.

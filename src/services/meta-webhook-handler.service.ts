@@ -23,6 +23,7 @@ import { describeMetaError } from "../utils/meta-error";
 import { emitToWorkspace } from "../sockets";
 import { AssignmentService } from "./assignment.service";
 import { LogService } from "./log.service";
+import { prefetchMedia } from "./media.service";
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
@@ -245,6 +246,16 @@ export class MetaWebhookHandlerService {
                 createdAt: savedMessage.createdAt.toISOString()
             }
         });
+
+        /**
+         * Las imágenes se descargan de inmediato (son livianas y casi
+         * siempre se terminan mirando). El audio y los documentos se
+         * descargan cuando alguien los abre. Nunca lanza: un fallo queda
+         * registrado y se reintenta al abrir el archivo.
+         */
+        if (parsed.type === MessageType.IMAGE) {
+            void prefetchMedia(savedMessage);
+        }
 
         await LogService.create({
             workspaceId,

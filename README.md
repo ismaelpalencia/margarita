@@ -65,6 +65,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Cola de webhooks con reintentos y backoff: un fallo temporal ya no pierde mensajes.
 - Credenciales de Meta cifradas en la base de datos.
 - Bitácora con retención automática y credenciales redactadas.
+- Multimedia entrante: las fotos, el video, el audio y los documentos de los clientes se ven en el hilo. Las imágenes se descargan al recibirlas; el resto, cuando alguien lo abre.
 
 ---
 
@@ -252,6 +253,8 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `WEBHOOK_SCHEMA_PAUSE_MS` | No | Pausa del worker si detecta migraciones sin aplicar. Default `300000` (5 min) |
 | `ALERT_WEBHOOK_URL` | No | Endpoint (Slack, Discord, Google Chat) que recibe avisos de error |
 | `ALERT_COOLDOWN_MINUTES` | No | Enfriamiento entre avisos repetidos. Default `10` |
+| `MEDIA_STORAGE_DIR` | Producción | Carpeta donde se guardan los archivos de los clientes. En Railway debe apuntar a un Volume. Default `uploads/media` |
+| `MEDIA_MAX_BYTES` | No | Tamaño máximo que se descarga de Meta. Default `26214400` (25 MB) |
 
 Sin `META_APP_SECRET` el webhook no valida el origen: en desarrollo solo registra un aviso, pero **en producción responde 401** y la app deja de recibir mensajes.
 
@@ -333,6 +336,7 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | POST | `/auth/logout` | Cierra sesión y desactiva la sesión en base |
 | GET | `/webhooks/meta/whatsapp` | Verificación del webhook de Meta |
 | POST | `/webhooks/meta/whatsapp` | Recepción de mensajes y estados |
+| GET | `/media/:messageId` | Archivo de un mensaje. Requiere sesión y acceso a la conversación; `?download=1` fuerza la descarga |
 
 ### Admin (`/admin`, requiere rol `ADMIN`)
 
@@ -520,7 +524,7 @@ Pendientes conocidos, en orden de impacto:
 
 1. **Variables fuera del cuerpo**: las campañas resuelven las variables del componente `BODY`. Las de encabezado o de botones con URL todavía no se llenan.
 2. **Envío de campañas en cola**: el envío es secuencial dentro de la petición HTTP, sin control de velocidad. Con listas grandes conviene pasarlo a un job con throttling.
-3. **Multimedia entrante**: se guarda el `mediaId`, pero todavía no hay visor ni descarga de imágenes, audio y documentos.
+3. **Envío de adjuntos**: los archivos que llegan ya se ven, pero todavía no se pueden enviar imágenes ni documentos desde el panel.
 4. **Límites de mensajes manuales**: `canSendManualMessages`, `manualMessageLimit` y `manualMessagesUsed` se configuran en la interfaz, pero aún no se validan ni se incrementan al enviar.
 5. **Normalización de teléfonos**: el normalizador asume México con prefijo `521`. Conviene contrastarlo contra el formato que Meta acepta hoy y, si el negocio crece fuera del país, generalizarlo.
 6. **Respuestas de botones e interactivos**: se registran de forma genérica, sin interpretar la opción elegida, y todavía no se pueden enviar botones ni listas.

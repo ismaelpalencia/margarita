@@ -403,6 +403,12 @@ model Message {
   mediaId  String?
   mimeType String?
 
+  mediaPath         String?
+  mediaSize         Int?
+  mediaFilename     String?
+  mediaDownloadedAt DateTime?
+  mediaDownloadError String?
+
   metaPayload  Json?
   metaResponse Json?
 

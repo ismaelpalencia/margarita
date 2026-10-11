@@ -1,0 +1,90 @@
+<%#
+    Burbuja de un mensaje. Se usa en la conversación del admin y del
+    agente para no duplicar el marcado (y la lógica de multimedia).
+    Espera: message
+%>
+<%
+    const isOut = message.direction === "OUT";
+    const mediaTypes = ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT"];
+    const hasMedia = mediaTypes.includes(message.type) && Boolean(message.mediaId);
+    const body = message.body || "";
+    /* Los textos entre corchetes son rellenos internos ("[Imagen]"), no
+       contenido del cliente: no se muestran cuando hay archivo. */
+    const isPlaceholder = body.startsWith("[") && body.endsWith("]");
+    const showBody = body !== "" && !(hasMedia && isPlaceholder);
+%>
+
+<div class="flex <%= isOut ? 'justify-end' : 'justify-start' %>" data-message-id="<%= message.id %>">
+    <div class="max-w-[75%] rounded-2xl px-4 py-3 shadow-sm <%= isOut ? 'bg-emerald-600 text-white' : 'bg-white text-slate-800' %>">
+        <% if (hasMedia && message.mediaDownloadError) { %>
+            <p class="rounded-lg bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700">
+                No se pudo cargar el archivo: <%= message.mediaDownloadError %>
+            </p>
+
+            <a
+                href="/media/<%= message.id %>"
+                target="_blank"
+                rel="noopener"
+                class="mt-2 inline-block text-[11px] font-semibold underline"
+            >
+                Reintentar
+            </a>
+        <% } else if (hasMedia && message.type === "IMAGE") { %>
+            <a href="/media/<%= message.id %>" target="_blank" rel="noopener">
+                <img
+                    src="/media/<%= message.id %>"
+                    alt="Imagen recibida"
+                    loading="lazy"
+                    class="max-h-72 w-auto max-w-full rounded-xl"
+                />
+            </a>
+
+            <p class="mt-1 text-[11px] <%= isOut ? 'text-emerald-100' : 'text-slate-400' %>">
+                Clic para ver en tamaño completo
+            </p>
+        <% } else if (hasMedia && message.type === "VIDEO") { %>
+            <video
+                controls
+                preload="metadata"
+                src="/media/<%= message.id %>"
+                class="max-h-72 w-full rounded-xl"
+            ></video>
+        <% } else if (hasMedia && message.type === "AUDIO") { %>
+            <audio
+                controls
+                preload="none"
+                src="/media/<%= message.id %>"
+                class="w-full max-w-xs"
+            ></audio>
+        <% } else if (hasMedia) { %>
+            <a
+                href="/media/<%= message.id %>?download=1"
+                class="flex items-center gap-2 rounded-xl bg-black/5 px-3 py-2 text-sm font-semibold"
+            >
+                <span aria-hidden="true">📄</span>
+                <span class="truncate"><%= message.mediaFilename || body || "Documento" %></span>
+            </a>
+        <% } %>
+
+        <% if (showBody) { %>
+            <p class="whitespace-pre-line text-sm <%= hasMedia ? 'mt-2' : '' %>">
+                <%= body %>
+            </p>
+        <% } %>
+
+        <p class="mt-2 text-right text-[11px] <%= isOut ? 'text-emerald-100' : 'text-slate-400' %>">
+            <%= message.createdAt.toLocaleString("es-MX") %>
+            · <span data-message-status><%= message.status %></span>
+
+            <% if (message.source === "MANUAL") { %>
+                · Manual
+            <% } %>
+        </p>
+
+        <% if (message.status === "FAILED" && message.errorText) { %>
+            <p class="mt-2 rounded-lg bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700">
+                <%= message.errorText %>
+            </p>
+        <% } %>
+    </div>
+</div>

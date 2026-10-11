@@ -87,6 +87,10 @@
 
     function buildMessageBubble(message) {
         var isOut = message.direction === "OUT";
+        var mediaTypes = ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT"];
+        var hasMedia = mediaTypes.indexOf(message.type) >= 0;
+        var body = message.body || "";
+        var isPlaceholder = body.length > 1 && body.charAt(0) === "[" && body.charAt(body.length - 1) === "]";
 
         var wrapper = document.createElement("div");
         wrapper.className = "flex " + (isOut ? "justify-end" : "justify-start");
@@ -97,9 +101,21 @@
             "max-w-[75%] rounded-2xl px-4 py-3 shadow-sm " +
             (isOut ? "bg-emerald-600 text-white" : "bg-white text-slate-800");
 
-        var content = document.createElement("p");
-        content.className = "whitespace-pre-line text-sm";
-        content.textContent = message.body || "[" + message.type + "]";
+        if (hasMedia) {
+            bubble.appendChild(buildMediaElement(message));
+        }
+
+        if (body !== "" && !(hasMedia && isPlaceholder)) {
+            var content = document.createElement("p");
+            content.className = "whitespace-pre-line text-sm" + (hasMedia ? " mt-2" : "");
+            content.textContent = body;
+            bubble.appendChild(content);
+        } else if (!hasMedia) {
+            var fallback = document.createElement("p");
+            fallback.className = "whitespace-pre-line text-sm";
+            fallback.textContent = "[" + message.type + "]";
+            bubble.appendChild(fallback);
+        }
 
         var meta = document.createElement("p");
         meta.className =
@@ -112,11 +128,61 @@
         status.textContent = message.status;
 
         meta.appendChild(status);
-        bubble.appendChild(content);
         bubble.appendChild(meta);
         wrapper.appendChild(bubble);
 
         return wrapper;
+    }
+
+    /**
+     * Multimedia del mensaje. El navegador pide /media/{id} y el servidor
+     * descarga de Meta la primera vez, validando que el usuario pueda ver
+     * esa conversación.
+     */
+    function buildMediaElement(message) {
+        var url = "/media/" + encodeURIComponent(message.id);
+
+        if (message.type === "IMAGE") {
+            var link = document.createElement("a");
+            link.href = url;
+            link.target = "_blank";
+            link.rel = "noopener";
+
+            var image = document.createElement("img");
+            image.src = url;
+            image.alt = "Imagen recibida";
+            image.loading = "lazy";
+            image.className = "max-h-72 w-auto max-w-full rounded-xl";
+
+            link.appendChild(image);
+            return link;
+        }
+
+        if (message.type === "VIDEO") {
+            var video = document.createElement("video");
+            video.controls = true;
+            video.preload = "metadata";
+            video.src = url;
+            video.className = "max-h-72 w-full rounded-xl";
+            return video;
+        }
+
+        if (message.type === "AUDIO") {
+            var audio = document.createElement("audio");
+            audio.controls = true;
+            audio.preload = "none";
+            audio.src = url;
+            audio.className = "w-full max-w-xs";
+            return audio;
+        }
+
+        var file = document.createElement("a");
+        file.href = url + "?download=1";
+        file.className =
+            "flex items-center gap-2 rounded-xl bg-black/5 px-3 py-2 text-sm font-semibold";
+        file.textContent = "📄 " + (message.body || "Documento");
+
+        return file;
     }
 
     function appendMessage(message) {

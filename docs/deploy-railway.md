@@ -92,6 +92,8 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `WEBHOOK_SCHEMA_PAUSE_MS` | `300000` | Pausa del worker si faltan migraciones |
 | `ALERT_WEBHOOK_URL` | *(opcional)* | Slack/Discord/Google Chat para avisos de error |
 | `ALERT_COOLDOWN_MINUTES` | `10` | Enfriamiento entre avisos repetidos |
+| `MEDIA_STORAGE_DIR` | `/data/media` | Carpeta de los archivos que envían los clientes (el Volume) |
+| `MEDIA_MAX_BYTES` | `26214400` | Tamaño máximo que se descarga de Meta (25 MB) |
 
 ### Dos avisos que cuestan una tarde de depuración
 
@@ -232,6 +234,18 @@ Con una URL pública también puedes hacerlo desde tu máquina:
 ```bash
 DATABASE_URL="<URL_PUBLICA>" npm run db:encrypt-secrets
 ```
+
+### Volume para los archivos de los clientes
+
+Las fotos, audios y documentos que envían los clientes se guardan en disco. El disco de Railway es **efímero**: sin un Volume, esos archivos se pierden en cada deploy y la app los vuelve a descargar de Meta si todavía existen allá.
+
+Para conservarlos:
+
+1. En el servicio de la app: **Create → Volume**, con el punto de montaje `/data`.
+2. Agrega la variable `MEDIA_STORAGE_DIR` con el valor `/data/media`.
+3. Redeploy.
+
+Un Volume va atado a un solo servicio, así que esto encaja con el modelo actual (una instalación, una réplica). Si algún día se pasa a varias réplicas o se quiere servir con CDN, la capa de almacenamiento ya está aislada en `src/services/media-storage.service.ts` y se puede cambiar por un bucket sin tocar el resto.
 
 ---
 

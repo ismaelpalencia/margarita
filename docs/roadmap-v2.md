@@ -39,7 +39,17 @@ Prueba de integración contra una base real: 22 de 22 comprobaciones en verde, i
 
 ## Sprint 34 — Multimedia entrante (fotos, audio y documentos)
 
-**Estado: pendiente.** Es el que más se nota en el día a día: hoy el agente ve `[Imagen]` en lugar de la foto.
+**Estado: completado.** El agente ya ve las fotos, el audio y los documentos que envían los clientes.
+
+### Lo que se implementó
+
+| Área | Qué se hizo |
+| --- | --- |
+| Almacenamiento | `src/services/media-storage.service.ts` guarda los archivos en `MEDIA_STORAGE_DIR` (un Volume en producción) con la ruta `workspace/mensaje.ext`, valida que nada se salga de la carpeta y limita el tamaño descargado. |
+| Descarga | `src/services/media.service.ts` pide a Meta la dirección temporal del `mediaId`, descarga los bytes con el token y los guarda. Las **imágenes** se descargan al recibir el mensaje; el audio y los documentos, cuando alguien los abre. |
+| Endpoint | `GET /media/:messageId` exige sesión y valida que el usuario pueda ver esa conversación. Responde en línea o como descarga (`?download=1`), con caché privada de un día. |
+| Interfaz | Burbuja compartida (`partials/message-bubble.ejs`): imagen con visor a pantalla completa, video y audio con controles, documentos como tarjeta de descarga. También para los mensajes que llegan en vivo. |
+| Errores | Si la descarga falla, el motivo queda en el mensaje y en la bitácora (`MEDIA_DOWNLOAD_FAILED`), y el hilo ofrece un enlace para reintentar. |
 
 ### Cómo funciona la multimedia de Meta (y qué se puede y qué no)
 

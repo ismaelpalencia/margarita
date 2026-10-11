@@ -82,30 +82,7 @@
                 <% } %>
 
                 <% conversation.messages.forEach((message) => { %>
-                    <% const isOut = message.direction === "OUT"; %>
-
-                    <div class="flex <%= isOut ? 'justify-end' : 'justify-start' %>" data-message-id="<%= message.id %>">
-                        <div class="max-w-[75%] rounded-2xl px-4 py-3 shadow-sm <%= isOut ? 'bg-emerald-600 text-white' : 'bg-white text-slate-800' %>">
-                            <p class="whitespace-pre-line text-sm">
-                                <%= message.body || '[' + message.type + ']' %>
-                            </p>
-
-                            <p class="mt-2 text-right text-[11px] <%= isOut ? 'text-emerald-100' : 'text-slate-400' %>">
-                                <%= message.createdAt.toLocaleString("es-MX") %>
-                                · <span data-message-status><%= message.status %></span>
-
-                                <% if (message.source === "MANUAL") { %>
-                                    · Manual
-                                <% } %>
-                            </p>
-
-                            <% if (message.status === "FAILED" && message.errorText) { %>
-                                <p class="mt-2 rounded-lg bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700">
-                                    <%= message.errorText %>
-                                </p>
-                            <% } %>
-                        </div>
-                    </div>
+                    <%- include("../../../partials/message-bubble", { message }) %>
                 <% }) %>
             </div>
 

@@ -67,7 +67,8 @@ app.use(
          */
         skip: (req) =>
             req.originalUrl.startsWith("/webhooks") ||
-            req.originalUrl.startsWith("/health")
+            req.originalUrl.startsWith("/health") ||
+            req.originalUrl.startsWith("/media")
     })
 );
 
