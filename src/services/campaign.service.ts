@@ -283,7 +283,11 @@ export class CampaignService {
         });
     }
 
-    static async sendCampaign(workspaceId: string, campaignId: string) {
+    /**
+     * Pone una campaña en la cola de envío. El envío real lo hace el
+     * worker, para que una lista grande no dependa de la petición HTTP.
+     */
+    static async startCampaign(workspaceId: string, campaignId: string) {
         const campaign = await prisma.campaign.findFirst({
             where: {
                 id: campaignId,
@@ -312,7 +316,8 @@ export class CampaignService {
         if (
             campaign.status !== CampaignStatus.DRAFT &&
             campaign.status !== CampaignStatus.READY &&
-            campaign.status !== CampaignStatus.FAILED
+            campaign.status !== CampaignStatus.FAILED &&
+            campaign.status !== CampaignStatus.PAUSED
         ) {
             throw new Error("La campaña no se puede enviar en su estado actual.");
         }
@@ -374,13 +379,19 @@ export class CampaignService {
 
         const credentials = WhatsAppNumberService.credentialsFor(campaignNumber);
 
+        /**
+         * El envío no ocurre aquí: solo se marca la campaña como en curso y
+         * el worker la procesa por lotes. Antes esto corría dentro de la
+         * petición HTTP y una lista grande se cortaba por timeout.
+         */
         await prisma.campaign.update({
             where: {
                 id: campaign.id
             },
             data: {
                 status: CampaignStatus.RUNNING,
-                startedAt: campaign.startedAt || new Date()
+                startedAt: campaign.startedAt || new Date(),
+                finishedAt: null
             }
         });
 
@@ -389,17 +400,166 @@ export class CampaignService {
             level: LogLevel.INFO,
             module: LogModule.CAMPAIGN,
             action: "CAMPAIGN_SEND_STARTED",
-            message: "Inicio de envío de campaña.",
+            message: "Envío de campaña puesto en cola.",
             payload: {
                 campaignId: campaign.id,
                 recipients: campaign.recipients.length
             }
         });
 
+        return {
+            pending: campaign.recipients.length
+        };
+    }
+
+    /**
+     * Procesa un lote de destinatarios pendientes, con una pausa entre
+     * envíos para no chocar con los límites de Meta.
+     *
+     * Devuelve `stopped: true` cuando el usuario pausó o canceló, o cuando
+     * el número dejó de estar disponible: en esos casos el worker no debe
+     * cerrar la campaña.
+     */
+    static async processCampaignBatch(campaignId: string) {
+        const campaign = await prisma.campaign.findFirst({
+            where: {
+                id: campaignId
+            },
+            include: {
+                template: true,
+                recipients: {
+                    where: {
+                        status: CampaignRecipientStatus.PENDING
+                    },
+                    include: {
+                        contact: true
+                    },
+                    orderBy: {
+                        createdAt: "asc"
+                    },
+                    take: appConfig.campaignBatchSize
+                }
+            }
+        });
+
+        if (!campaign) {
+            return {
+                sent: 0,
+                failed: 0,
+                remaining: 0,
+                stopped: true,
+                reason: "La campaña ya no existe."
+            };
+        }
+
+        if (campaign.recipients.length === 0) {
+            return {
+                sent: 0,
+                failed: 0,
+                remaining: 0,
+                stopped: false,
+                reason: null
+            };
+        }
+
+        const workspaceId = campaign.workspaceId;
+
+        const campaignNumber = await WhatsAppNumberService.getById(
+            workspaceId,
+            campaign.whatsappNumberId
+        );
+
+        if (!campaignNumber || !campaignNumber.isActive) {
+            /**
+             * Si el número dejó de estar disponible a media campaña, se
+             * pausa en lugar de marcar cientos de destinatarios como
+             * fallidos por un problema que se puede corregir.
+             */
+            await prisma.campaign.update({
+                where: {
+                    id: campaign.id
+                },
+                data: {
+                    status: CampaignStatus.PAUSED
+                }
+            });
+
+            const reason = campaignNumber
+                ? "El número de la campaña está desactivado. Actívalo y reanuda el envío."
+                : "El número de la campaña ya no está disponible en la cuenta.";
+
+            await LogService.create({
+                workspaceId,
+                level: LogLevel.ERROR,
+                module: LogModule.CAMPAIGN,
+                action: "CAMPAIGN_PAUSED_NO_NUMBER",
+                message: reason,
+                payload: {
+                    campaignId: campaign.id,
+                    whatsappNumberId: campaign.whatsappNumberId
+                }
+            });
+
+            return {
+                sent: 0,
+                failed: 0,
+                remaining: campaign.recipients.length,
+                stopped: true,
+                reason
+            };
+        }
+
+        const credentials = WhatsAppNumberService.credentialsFor(campaignNumber);
+
         let sentCount = 0;
         let failedCount = 0;
 
         for (const recipient of campaign.recipients) {
+            if (sentCount + failedCount > 0) {
+                await new Promise((resolve) =>
+                    setTimeout(resolve, appConfig.campaignSendIntervalMs)
+                );
+            }
+
+            /**
+             * El estado se revisa justo antes de enviar, después de la
+             * pausa entre envíos: así una pausa o una cancelación surten
+             * efecto en cuanto llegan, y cuando mucho sale el mensaje que
+             * ya estaba en vuelo.
+             */
+            const current = await prisma.campaign.findUnique({
+                where: {
+                    id: campaign.id
+                },
+                select: {
+                    status: true
+                }
+            });
+
+            if (current?.status !== CampaignStatus.RUNNING) {
+                await LogService.create({
+                    workspaceId,
+                    level: LogLevel.INFO,
+                    module: LogModule.CAMPAIGN,
+                    action: "CAMPAIGN_SEND_INTERRUPTED",
+                    message: `Envío detenido: la campaña quedó en ${current?.status}.`,
+                    payload: {
+                        campaignId: campaign.id,
+                        status: current?.status || null,
+                        sentInBatch: sentCount,
+                        failedInBatch: failedCount
+                    }
+                });
+
+                return {
+                    sent: sentCount,
+                    failed: failedCount,
+                    remaining: -1,
+                    stopped: true,
+                    reason: `La campaña quedó en estado ${current?.status}.`
+                };
+            }
+
             try {
                 await prisma.campaignRecipient.update({
                     where: {
@@ -579,8 +739,186 @@ export class CampaignService {
             }
         }
 
+        const remaining = await prisma.campaignRecipient.count({
+            where: {
+                campaignId: campaign.id,
+                status: CampaignRecipientStatus.PENDING
+            }
+        });
+
+        const progress = await this.progressFor(campaign.id);
+
+        emitToWorkspace(workspaceId, "campaign:progress", {
+            campaignId: campaign.id,
+            ...progress
+        });
+
+        return {
+            sent: sentCount,
+            failed: failedCount,
+            remaining,
+            stopped: false,
+            reason: null
+        };
+    }
+
+    /** Detiene el envío; los pendientes siguen ahí para reanudar. */
+    static async pauseCampaign(workspaceId: string, campaignId: string) {
+        const campaign = await prisma.campaign.findFirst({
+            where: {
+                id: campaignId,
+                workspaceId
+            }
+        });
+
+        if (!campaign) {
+            throw new Error("Campaña no encontrada.");
+        }
+
+        if (campaign.status !== CampaignStatus.RUNNING) {
+            throw new Error("Solo se puede pausar una campaña en curso.");
+        }
+
+        await prisma.campaign.update({
+            where: {
+                id: campaign.id
+            },
+            data: {
+                status: CampaignStatus.PAUSED
+            }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.CAMPAIGN,
+            action: "CAMPAIGN_PAUSED",
+            message: "Campaña pausada. Los destinatarios pendientes se conservan.",
+            payload: {
+                campaignId: campaign.id
+            }
+        });
+
+        return {
+            status: CampaignStatus.PAUSED
+        };
+    }
+
+    /** Cancela el envío y marca los pendientes como omitidos. */
+    static async cancelCampaign(workspaceId: string, campaignId: string) {
+        const campaign = await prisma.campaign.findFirst({
+            where: {
+                id: campaignId,
+                workspaceId
+            }
+        });
+
+        if (!campaign) {
+            throw new Error("Campaña no encontrada.");
+        }
+
+        if (
+            campaign.status === CampaignStatus.FINISHED ||
+            campaign.status === CampaignStatus.CANCELLED
+        ) {
+            throw new Error("Esta campaña ya terminó.");
+        }
+
+        const skipped = await prisma.campaignRecipient.updateMany({
+            where: {
+                campaignId: campaign.id,
+                status: {
+                    in: [
+                        CampaignRecipientStatus.PENDING,
+                        CampaignRecipientStatus.SENDING
+                    ]
+                }
+            },
+            data: {
+                status: CampaignRecipientStatus.SKIPPED
+            }
+        });
+
+        await prisma.campaign.update({
+            where: {
+                id: campaign.id
+            },
+            data: {
+                status: CampaignStatus.CANCELLED,
+                finishedAt: new Date()
+            }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.WARN,
+            module: LogModule.CAMPAIGN,
+            action: "CAMPAIGN_CANCELLED",
+            message: "Campaña cancelada.",
+            payload: {
+                campaignId: campaign.id,
+                skipped: skipped.count
+            }
+        });
+
+        return {
+            skipped: skipped.count
+        };
+    }
+
+    /** Cuenta el avance por estado para reportarlo y decidir el cierre. */
+    private static async progressFor(campaignId: string) {
+        const grouped = await prisma.campaignRecipient.groupBy({
+            by: ["status"],
+            where: {
+                campaignId
+            },
+            _count: {
+                _all: true
+            }
+        });
+
+        const counts: Record<string, number> = {};
+
+        for (const row of grouped) {
+            counts[row.status] = row._count._all;
+        }
+
+        return {
+            pending: counts[CampaignRecipientStatus.PENDING] || 0,
+            sending: counts[CampaignRecipientStatus.SENDING] || 0,
+            sent:
+                (counts[CampaignRecipientStatus.SENT] || 0) +
+                (counts[CampaignRecipientStatus.DELIVERED] || 0) +
+                (counts[CampaignRecipientStatus.READ] || 0),
+            failed: counts[CampaignRecipientStatus.FAILED] || 0,
+            skipped: counts[CampaignRecipientStatus.SKIPPED] || 0
+        };
+    }
+
+    /**
+     * Cierra la campaña cuando ya no quedan pendientes. Se llama desde el
+     * worker, no desde la petición del usuario.
+     */
+    static async finalizeCampaign(campaignId: string) {
+        const campaign = await prisma.campaign.findUnique({
+            where: {
+                id: campaignId
+            }
+        });
+
+        if (!campaign || campaign.status !== CampaignStatus.RUNNING) {
+            return null;
+        }
+
+        const progress = await this.progressFor(campaignId);
+
+        if (progress.pending > 0) {
+            return null;
+        }
+
         const finalStatus =
-            failedCount > 0 && sentCount === 0
+            progress.failed > 0 && progress.sent === 0
                 ? CampaignStatus.FAILED
                 : CampaignStatus.FINISHED;
 
@@ -595,31 +933,27 @@ export class CampaignService {
         });
 
         await LogService.create({
-            workspaceId,
-            level: failedCount > 0 ? LogLevel.WARN : LogLevel.INFO,
+            workspaceId: campaign.workspaceId,
+            level: progress.failed > 0 ? LogLevel.WARN : LogLevel.INFO,
             module: LogModule.CAMPAIGN,
             action: "CAMPAIGN_SEND_FINISHED",
             message: "Envío de campaña finalizado.",
             payload: {
                 campaignId: campaign.id,
-                sentCount,
-                failedCount,
+                ...progress,
                 finalStatus
             }
         });
 
-        emitToWorkspace(workspaceId, "campaign:progress", {
+        emitToWorkspace(campaign.workspaceId, "campaign:progress", {
             campaignId: campaign.id,
-            sentCount,
-            failedCount,
-            total: campaign.totalRecipients,
+            ...progress,
             status: finalStatus
         });
 
         return {
-            sentCount,
-            failedCount,
-            finalStatus
+            finalStatus,
+            progress
         };
     }
 
@@ -680,7 +1014,11 @@ export class CampaignService {
             }
         });
 
-        return this.sendCampaign(workspaceId, campaign.id);
+        /**
+         * Los fallidos vuelven a la cola: el worker los procesa como
+         * cualquier otro pendiente.
+         */
+        return this.startCampaign(workspaceId, campaign.id);
     }
 
 

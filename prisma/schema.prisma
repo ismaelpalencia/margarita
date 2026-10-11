@@ -275,6 +275,8 @@ model WhatsAppNumber {
 
   status        String?
   qualityRating String?
+  /** Nivel de mensajería que reporta Meta, por ejemplo "1K". */
+  messagingLimit String?
 
   isActive Boolean @default(true)
 

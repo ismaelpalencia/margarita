@@ -94,6 +94,9 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `ALERT_COOLDOWN_MINUTES` | `10` | Enfriamiento entre avisos repetidos |
 | `MEDIA_STORAGE_DIR` | `/data/media` | Carpeta de los archivos que envían los clientes (el Volume) |
 | `MEDIA_MAX_BYTES` | `26214400` | Tamaño máximo que se descarga de Meta (25 MB) |
+| `CAMPAIGN_WORKER_INTERVAL_MS` | `5000` | Cada cuánto revisa el worker de campañas |
+| `CAMPAIGN_BATCH_SIZE` | `10` | Destinatarios por vuelta del worker |
+| `CAMPAIGN_SEND_INTERVAL_MS` | `700` | Pausa entre envíos, para cuidar los límites de Meta |
 
 ### Dos avisos que cuestan una tarde de depuración
 

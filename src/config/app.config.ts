@@ -119,4 +119,14 @@ export const appConfig = {
 
     /** Tamaño máximo que se descarga de Meta (por defecto 25 MB). */
     mediaMaxBytes: Number(process.env.MEDIA_MAX_BYTES) || 25 * 1024 * 1024
+    ,
+    /**
+     * Cola de campañas: cada cuánto revisa el worker, cuántos
+     * destinatarios procesa por vuelta y cuánto espera entre envíos.
+     */
+    campaignWorkerIntervalMs:
+        Number(process.env.CAMPAIGN_WORKER_INTERVAL_MS) || 5000,
+    campaignBatchSize: Number(process.env.CAMPAIGN_BATCH_SIZE) || 10,
+    campaignSendIntervalMs:
+        Number(process.env.CAMPAIGN_SEND_INTERVAL_MS) || 700
 };

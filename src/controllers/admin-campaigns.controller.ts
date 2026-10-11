@@ -175,11 +175,78 @@ export class AdminCampaignsController {
         }
     }
 
+    static async pause(req: Request, res: Response) {
+        const campaignId = getRequiredParam(req, "id");
+
+        try {
+            await CampaignService.pauseCampaign(
+                req.user!.workspaceId,
+                campaignId
+            );
+
+            return res.redirect(`/admin/campaigns/${campaignId}?success=paused`);
+        } catch (error) {
+            await AdminCampaignsController.logFailure(
+                req,
+                error,
+                "CAMPAIGN_PAUSE_FAILED"
+            );
+
+            return res.redirect(`/admin/campaigns/${campaignId}?error=pause`);
+        }
+    }
+
+    static async resume(req: Request, res: Response) {
+        const campaignId = getRequiredParam(req, "id");
+
+        try {
+            await CampaignService.startCampaign(
+                req.user!.workspaceId,
+                campaignId
+            );
+
+            return res.redirect(
+                `/admin/campaigns/${campaignId}?success=resumed`
+            );
+        } catch (error) {
+            await AdminCampaignsController.logFailure(
+                req,
+                error,
+                "CAMPAIGN_RESUME_FAILED"
+            );
+
+            return res.redirect(`/admin/campaigns/${campaignId}?error=resume`);
+        }
+    }
+
+    static async cancel(req: Request, res: Response) {
+        const campaignId = getRequiredParam(req, "id");
+
+        try {
+            await CampaignService.cancelCampaign(
+                req.user!.workspaceId,
+                campaignId
+            );
+
+            return res.redirect(
+                `/admin/campaigns/${campaignId}?success=cancelled`
+            );
+        } catch (error) {
+            await AdminCampaignsController.logFailure(
+                req,
+                error,
+                "CAMPAIGN_CANCEL_FAILED"
+            );
+
+            return res.redirect(`/admin/campaigns/${campaignId}?error=cancel`);
+        }
+    }
+
     static async send(req: Request, res: Response) {
         const campaignId = getRequiredParam(req, "id");
 
         try {
-            await CampaignService.sendCampaign(
+            await CampaignService.startCampaign(
                 req.user!.workspaceId,
                 campaignId
             );

@@ -43,7 +43,8 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo).
 - Borrado de mensajes: ocultar un mensaje sin destruirlo (restaurable desde el panel del admin) y, como admin, borrar todo el hilo escribiendo `BORRAR` para confirmar.
 - Respaldos: descarga completa en JSON o exportación por entidad en CSV (contactos, conversaciones, mensajes, campañas, plantillas, usuarios y bitácora).
-- Campañas: crear seleccionando contactos o subiendo Excel/CSV, enviar, ver errores y reintentar fallidos.
+- Campañas: crear seleccionando contactos o subiendo Excel/CSV con variables, enviar en cola (con pausa entre mensajes), pausar, reanudar, cancelar, ver errores y reintentar fallidos.
+- Salud de la cuenta: los avisos de Meta sobre plantillas (aprobada, rechazada, pausada) y sobre la calidad de los números se procesan y quedan en la bitácora, con nivel de error cuando exigen atención.
 - Logs: auditoría filtrable de webhook, Meta, campañas, **envíos de mensajes**, conversaciones y usuarios. Cada envío manual queda registrado como `MESSAGE_SENT` y cada fallo como `MESSAGE_FAILED`, con el motivo de Meta traducido al español.
 - Estado del sistema: checklist de configuración (workspace, WhatsApp, plantillas, contactos, agentes).
 - Roadmap: qué está dentro de V1 y qué se posterga a V2.
@@ -261,6 +262,9 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `MEDIA_STORAGE_DIR` | Producción | Carpeta donde se guardan los archivos de los clientes. En Railway debe apuntar a un Volume. Default `uploads/media` |
 | `MEDIA_MAX_BYTES` | No | Tamaño máximo que se descarga de Meta. Default `26214400` (25 MB) |
 | `GRAPH_BASE_URL` | Solo pruebas | Base de la Graph API; vacío usa `https://graph.facebook.com` |
+| `CAMPAIGN_WORKER_INTERVAL_MS` | No | Cada cuánto revisa el worker de campañas. Default `5000` |
+| `CAMPAIGN_BATCH_SIZE` | No | Destinatarios por vuelta del worker. Default `10` |
+| `CAMPAIGN_SEND_INTERVAL_MS` | No | Pausa entre envíos, para no chocar con los límites de Meta. Default `700` |
 
 Sin `META_APP_SECRET` el webhook no valida el origen: en desarrollo solo registra un aviso, pero **en producción responde 401** y la app deja de recibir mensajes.
 
@@ -376,6 +380,7 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | POST | `/admin/campaigns/excel` | Crea campaña desde Excel/CSV |
 | GET | `/admin/campaigns/:id` | Detalle y destinatarios |
 | POST | `/admin/campaigns/:id/send` | Envía la campaña |
+| POST | `/admin/campaigns/:id/pause`, `/:id/resume`, `/:id/cancel` | Pausa, reanuda o cancela el envío |
 | POST | `/admin/campaigns/:id/retry-failed` | Reintenta destinatarios fallidos |
 | GET | `/admin/logs` | Auditoría |
 | GET | `/admin/backup` | Respaldos y exportaciones |
@@ -536,14 +541,12 @@ Lo que se cerró en el sprint de endurecimiento:
 Pendientes conocidos, en orden de impacto:
 
 1. **Variables fuera del cuerpo**: las campañas resuelven las variables del componente `BODY`. Las de encabezado o de botones con URL todavía no se llenan.
-2. **Envío de campañas en cola**: el envío es secuencial dentro de la petición HTTP, sin control de velocidad. Con listas grandes conviene pasarlo a un job con throttling.
-3. **Límites de mensajes manuales**: `canSendManualMessages`, `manualMessageLimit` y `manualMessagesUsed` se configuran en la interfaz, pero aún no se validan ni se incrementan al enviar.
-4. **Normalización de teléfonos**: el normalizador asume México con prefijo `521`. Conviene contrastarlo contra el formato que Meta acepta hoy y, si el negocio crece fuera del país, generalizarlo.
-5. **Respuestas de botones e interactivos**: se registran de forma genérica, sin interpretar la opción elegida, y todavía no se pueden enviar botones ni listas.
-6. **Opt-in y manejo de BAJA/STOP**: no hay campo de consentimiento en `Contact` ni forma de honrar una baja de manera automática.
-7. **Salud de la cuenta**: solo se procesa el campo `messages` del webhook; faltan `message_template_status_update` y `phone_number_quality_update` para enterarse de plantillas rechazadas o caídas de calidad.
-8. **Programación de campañas**: no se pueden agendar por fecha y hora, pausar ni cancelar.
-9. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
+2. **Límites de mensajes manuales**: `canSendManualMessages`, `manualMessageLimit` y `manualMessagesUsed` se configuran en la interfaz, pero aún no se validan ni se incrementan al enviar.
+3. **Normalización de teléfonos**: el normalizador asume México con prefijo `521`. Conviene contrastarlo contra el formato que Meta acepta hoy y, si el negocio crece fuera del país, generalizarlo.
+4. **Respuestas de botones e interactivos**: se registran de forma genérica, sin interpretar la opción elegida, y todavía no se pueden enviar botones ni listas.
+5. **Opt-in y manejo de BAJA/STOP**: no hay campo de consentimiento en `Contact` ni forma de honrar una baja de manera automática.
+6. **Programación de campañas**: se pueden pausar y cancelar, pero no agendar por fecha y hora.
+7. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
 
 Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArgarita.md`](MArgarita.md) y visibles en `/admin/roadmap`.
 

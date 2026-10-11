@@ -16,6 +16,9 @@ import { prisma } from "../config/prisma";
 import {
     MetaWebhookMessage,
     MetaWebhookPayload,
+    MetaWebhookQualityValue,
+    MetaWebhookTemplateStatusValue,
+    MetaWebhookValue,
     MetaWebhookStatus
 } from "../types/meta-webhook";
 import { normalizeMexicanPhone } from "../utils/phone";
@@ -25,6 +28,7 @@ import { AssignmentService } from "./assignment.service";
 import { LogService } from "./log.service";
 import { prefetchMedia } from "./media.service";
 import { WhatsAppNumberService } from "./whatsapp-number.service";
+import { AccountHealthService } from "./account-health.service";
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
@@ -54,11 +58,34 @@ export class MetaWebhookHandlerService {
             const changes = entry.changes || [];
 
             for (const change of changes) {
+                /**
+                 * Además de los mensajes, Meta avisa por aquí cuando una
+                 * plantilla cambia de estado o cuando baja la calidad de
+                 * un número. Son los avisos que antes había que ir a
+                 * buscar al panel de Meta.
+                 */
+                if (change.field === "message_template_status_update") {
+                    await AccountHealthService.handleTemplateStatus(
+                        entry.id,
+                        (change.value || {}) as MetaWebhookTemplateStatusValue
+                    );
+
+                    continue;
+                }
+
+                if (change.field === "phone_number_quality_update") {
+                    await AccountHealthService.handleQualityUpdate(
+                        (change.value || {}) as MetaWebhookQualityValue
+                    );
+
+                    continue;
+                }
+
                 if (change.field !== "messages") {
                     continue;
                 }
 
-                const value = change.value;
+                const value = change.value as MetaWebhookValue | undefined;
 
                 if (!value) {
                     continue;

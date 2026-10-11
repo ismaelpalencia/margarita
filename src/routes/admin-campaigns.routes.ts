@@ -15,6 +15,9 @@ router.post(
 );
 router.get("/:id", AdminCampaignsController.show);
 router.post("/:id/send", AdminCampaignsController.send);
+router.post("/:id/pause", AdminCampaignsController.pause);
+router.post("/:id/resume", AdminCampaignsController.resume);
+router.post("/:id/cancel", AdminCampaignsController.cancel);
 router.post("/:id/retry-failed", AdminCampaignsController.retryFailed);
 
 export default router;

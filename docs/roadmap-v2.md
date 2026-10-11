@@ -115,6 +115,20 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ---
 
+## Sprint 39 — Salud de la cuenta y campañas en cola
+
+**Estado: completado.**
+
+| Área | Qué se hizo |
+| --- | --- |
+| Avisos de plantillas | Se procesa `message_template_status_update`: la plantilla cambia de estado en el panel y el aviso queda en la bitácora con su motivo. Los casos que exigen atención (rechazada, pausada, deshabilitada, marcada) se registran como advertencia. |
+| Calidad de los números | Se procesa `phone_number_quality_update`: el número queda marcado o vuelve a la normalidad, se guarda su nivel de mensajería y el aviso sale como error para que dispare la alerta externa si está configurada. |
+| Campañas en cola | El inicio solo marca la campaña como en curso y responde en milisegundos; un worker envía por lotes con una pausa entre mensajes, así que una lista grande ya no depende de la petición HTTP. |
+| Control del envío | Pausar, reanudar y cancelar. Al pausar se conservan los pendientes; al cancelar quedan como omitidos. La pausa surte efecto en cuanto llega, con cuando mucho un mensaje ya en vuelo. |
+| Avance en vivo | La pantalla de la campaña recibe el avance por socket y actualiza los contadores sin recargar. |
+
+---
+
 ## Sprint 38 — Multinúmero (varios números de la misma WABA)
 
 **Estado: completado.** El detalle está en [`multinumero.md`](multinumero.md).
@@ -167,14 +181,15 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 Estas no bloquean nada y se priorizan según lo que pida la operación:
 
 1. **Variables de plantilla en encabezado y botones** (el cuerpo ya se resuelve por contacto).
-2. **Envío de campañas en cola** con control de velocidad: hoy es secuencial dentro de la petición HTTP. Depende de un runner de trabajos; la infraestructura de la cola de webhooks ya sirvió de ensayo.
-3. **Programar campañas** por fecha y hora, pausar y cancelar.
-4. **Límites de mensajes manuales**: `canSendManualMessages`, `manualMessageLimit` y `manualMessagesUsed` se configuran pero todavía no se aplican.
-5. **Opt-in y BAJA/STOP**: campo de consentimiento en `Contact` y baja automática al detectar la palabra clave.
-6. **Salud de la cuenta**: procesar `message_template_status_update` y `phone_number_quality_update`, y alertar cuando Meta rechace una plantilla o baje la calidad.
+2. **Programar campañas** por fecha y hora (pausar y cancelar ya están).
+3. **Respuestas rápidas** guardadas y **contador de no leídos**.
+4. **Botones y listas interactivas**: enviarlos e interpretar la respuesta.
+5. **Límites de mensajes manuales**: `canSendManualMessages`, `manualMessageLimit` y `manualMessagesUsed` se configuran pero todavía no se aplican.
+6. **Opt-in y BAJA/STOP**: campo de consentimiento en `Contact` y baja automática al detectar la palabra clave.
 7. **Normalización de teléfonos** para números fuera de México.
-8. **Reportes**: métricas por campaña y exportación a Excel.
-9. **Escalado a varias réplicas**: adaptador de Redis para socket.io y para la cola.
+8. **Reportes**: métricas por campaña y por número.
+9. **Asignar números a agentes** y **repartir campañas entre números**.
+10. **Escalado a varias réplicas**: adaptador de Redis para socket.io y para las colas.
 
 ## Lo que sigue fuera de alcance
 

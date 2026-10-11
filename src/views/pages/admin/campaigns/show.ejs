@@ -61,7 +61,26 @@
 
         <% if (success === "sent") { %>
             <div class="mb-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                Campaña enviada. Revisa el estado de cada destinatario.
+                Envío en cola. Se procesa en segundo plano, de a poco, para no chocar
+                con los límites de Meta. El avance se actualiza solo.
+            </div>
+        <% } %>
+
+        <% if (success === "paused") { %>
+            <div class="mb-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                Campaña pausada. Los destinatarios pendientes se conservan.
+            </div>
+        <% } %>
+
+        <% if (success === "resumed") { %>
+            <div class="mb-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Campaña reanudada.
+            </div>
+        <% } %>
+
+        <% if (success === "cancelled") { %>
+            <div class="mb-6 rounded-xl bg-slate-100 px-4 py-3 text-sm text-slate-700">
+                Campaña cancelada. Los destinatarios pendientes quedaron como omitidos.
             </div>
         <% } %>
 
@@ -73,7 +92,13 @@
 
         <% if (error === "send") { %>
             <div class="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-                No se pudo enviar la campaña. Revisa logs y destinatarios.
+                No se pudo iniciar el envío. Revisa la plantilla, los destinatarios y el número.
+            </div>
+        <% } %>
+
+        <% if (error === "pause" || error === "resume" || error === "cancel") { %>
+            <div class="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                No se pudo completar la acción sobre la campaña.
             </div>
         <% } %>
 
@@ -88,6 +113,32 @@
                 No se pudieron reintentar los destinatarios fallidos.
             </div>
         <% } %>
+
+        <div
+            class="mb-6 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl bg-white px-5 py-3 text-sm shadow-sm ring-1 ring-slate-200"
+            data-campaign-progress
+            data-campaign-id="<%= campaign.id %>"
+        >
+            <span class="font-semibold text-slate-700">
+                Avance del envío
+            </span>
+
+            <span class="text-slate-600">
+                Enviados: <strong data-progress-sent>—</strong>
+            </span>
+
+            <span class="text-slate-600">
+                Fallidos: <strong data-progress-failed>—</strong>
+            </span>
+
+            <span class="text-slate-600">
+                Pendientes: <strong data-progress-pending>—</strong>
+            </span>
+
+            <span class="text-xs text-slate-400" data-progress-note>
+                Se actualiza solo mientras el envío avanza.
+            </span>
+        </div>
 
         <section class="mb-6 grid gap-4 md:grid-cols-4">
             <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
@@ -182,10 +233,30 @@
                 </div>
 
                 <div class="flex flex-wrap gap-3">
-                    <% if (campaign.status === "DRAFT" || campaign.status === "READY" || campaign.status === "FAILED") { %>
+                    <% if (campaign.status === "DRAFT" || campaign.status === "READY" || campaign.status === "FAILED" || campaign.status === "PAUSED") { %>
                         <form action="/admin/campaigns/<%= campaign.id %>/send" method="POST">
                             <button class="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
-                                Enviar campaña
+                                <%= campaign.status === "PAUSED" ? "Reanudar envío" : "Enviar campaña" %>
+                            </button>
+                        </form>
+                    <% } %>
+
+                    <% if (campaign.status === "RUNNING") { %>
+                        <form action="/admin/campaigns/<%= campaign.id %>/pause" method="POST">
+                            <button class="rounded-xl bg-amber-500 px-5 py-3 text-sm font-semibold text-white hover:bg-amber-600">
+                                Pausar envío
+                            </button>
+                        </form>
+                    <% } %>
+
+                    <% if (campaign.status === "RUNNING" || campaign.status === "PAUSED") { %>
+                        <form
+                            action="/admin/campaigns/<%= campaign.id %>/cancel"
+                            method="POST"
+                            onsubmit="return confirm('Se cancelará la campaña y los destinatarios pendientes quedarán como omitidos. ¿Continuar?');"
+                        >
+                            <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                                Cancelar campaña
                             </button>
                         </form>
                     <% } %>
@@ -202,6 +273,8 @@
                         campaign.status !== "DRAFT" &&
                         campaign.status !== "READY" &&
                         campaign.status !== "FAILED" &&
+                        campaign.status !== "PAUSED" &&
+                        campaign.status !== "RUNNING" &&
                         failedRecipients === 0
                     ) { %>
                         <span class="rounded-xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-500">
@@ -274,5 +347,46 @@
         </section>
     </main>
 </div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    /**
+     * Refleja el avance del envío mientras el worker procesa la campaña,
+     * sin recargar la página.
+     */
+    (function () {
+        var box = document.querySelector("[data-campaign-progress]");
+
+        if (!box || typeof window.io !== "function") {
+            return;
+        }
+
+        var campaignId = box.dataset.campaignId;
+        var socket = window.io({ withCredentials: true });
+
+        socket.on("campaign:progress", function (payload) {
+            if (!payload || payload.campaignId !== campaignId) {
+                return;
+            }
+
+            var sent = box.querySelector("[data-progress-sent]");
+            var failed = box.querySelector("[data-progress-failed]");
+            var pending = box.querySelector("[data-progress-pending]");
+            var note = box.querySelector("[data-progress-note]");
+
+            if (sent) sent.textContent = payload.sent;
+            if (failed) failed.textContent = payload.failed;
+            if (pending) pending.textContent = payload.pending;
+
+            if (note) {
+                note.textContent = payload.status
+                    ? "Estado: " + payload.status
+                    : payload.pending > 0
+                      ? "En curso…"
+                      : "Terminado";
+            }
+        });
+    })();
+</script>
 
 <%- include("../../../partials/footer") %>
