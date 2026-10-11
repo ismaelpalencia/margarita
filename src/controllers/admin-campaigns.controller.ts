@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
+import { LogLevel, LogModule } from "@prisma/client";
 
 import { CampaignService } from "../services/campaign.service";
+import { LogService } from "../services/log.service";
 import { getRequiredParam } from "../utils/request";
 
 import fs from "fs";
@@ -15,6 +17,48 @@ import {
 
 
 export class AdminCampaignsController {
+    private static describeFailure(error: unknown): string {
+        return error instanceof Error ? error.message : "Error desconocido";
+    }
+
+    /**
+     * Traduce el motivo a un código corto para la URL. El detalle
+     * completo queda en la bitácora, porque un redirect no puede
+     * cargar con un mensaje largo.
+     */
+    private static failureCode(error: unknown): string {
+        const message = AdminCampaignsController.describeFailure(error);
+
+        if (/columna/i.test(message)) return "column";
+        if (/variable/i.test(message)) return "variables";
+        if (/contacto/i.test(message)) return "contacts";
+        if (/destinatario/i.test(message)) return "recipients";
+
+        return "create";
+    }
+
+    private static async logFailure(
+        req: Request,
+        error: unknown,
+        action: string
+    ) {
+        try {
+            await LogService.create({
+                workspaceId: req.user!.workspaceId,
+                level: LogLevel.WARN,
+                module: LogModule.CAMPAIGN,
+                action,
+                message: AdminCampaignsController.describeFailure(error),
+                payload: {
+                    route: req.originalUrl,
+                    userId: req.user!.id
+                }
+            });
+        } catch {
+            /* La bitácora no debe tumbar la petición. */
+        }
+    }
+
     static async index(req: Request, res: Response) {
         const campaigns = await CampaignService.listCampaigns(
             req.user!.workspaceId
@@ -58,8 +102,16 @@ export class AdminCampaignsController {
             return res.redirect(
                 `/admin/campaigns/${campaign.id}?success=created`
             );
-        } catch {
-            return res.redirect("/admin/campaigns/create?error=create");
+        } catch (error) {
+            await AdminCampaignsController.logFailure(
+                req,
+                error,
+                "CAMPAIGN_CREATE_FAILED"
+            );
+
+            return res.redirect(
+                `/admin/campaigns/create?error=${AdminCampaignsController.failureCode(error)}`
+            );
         }
     }
 
@@ -95,7 +147,13 @@ export class AdminCampaignsController {
             return res.redirect(
                 `/admin/campaigns/${campaignId}?success=retry_failed`
             );
-        } catch {
+        } catch (error) {
+            await AdminCampaignsController.logFailure(
+                req,
+                error,
+                "CAMPAIGN_RETRY_FAILED"
+            );
+
             return res.redirect(
                 `/admin/campaigns/${campaignId}?error=retry_failed`
             );
@@ -114,7 +172,13 @@ export class AdminCampaignsController {
             return res.redirect(
                 `/admin/campaigns/${campaignId}?success=sent`
             );
-        } catch {
+        } catch (error) {
+            await AdminCampaignsController.logFailure(
+                req,
+                error,
+                "CAMPAIGN_SEND_FAILED"
+            );
+
             return res.redirect(
                 `/admin/campaigns/${campaignId}?error=send`
             );
@@ -147,12 +211,22 @@ export class AdminCampaignsController {
             return res.redirect(
                 `/admin/campaigns/${campaign.id}?success=created_excel`
             );
-        } catch {
+        } catch (error) {
             if (req.file?.path && fs.existsSync(req.file.path)) {
                 fs.unlinkSync(req.file.path);
             }
 
-            return res.redirect("/admin/campaigns/create?error=excel_create");
+            await AdminCampaignsController.logFailure(
+                req,
+                error,
+                "CAMPAIGN_CREATE_FAILED"
+            );
+
+            const code = AdminCampaignsController.failureCode(error);
+
+            return res.redirect(
+                `/admin/campaigns/create?error=${code === "create" ? "excel_create" : code}`
+            );
         }
     }
 

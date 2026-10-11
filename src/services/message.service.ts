@@ -16,7 +16,7 @@ import { SendLocalMessageInput } from "../validations/message.validation";
 import { SendTemplateMessageInput } from "../validations/template-message.validation";
 import { SendFreeTextMessageInput } from "../validations/free-text-message.validation";
 import {
-    buildTemplateBodyParameters,
+    buildTemplateMessagePayload,
     countTemplateVariables,
     renderTemplatePreview
 } from "../utils/template";
@@ -155,29 +155,12 @@ export class MessageService {
             }
         });
 
-        const bodyParameters = buildTemplateBodyParameters(usedVariables);
-
-        const payload = {
-            messaging_product: "whatsapp",
+        const payload = buildTemplateMessagePayload({
             to: conversation.contact.phone,
-            type: "template",
-            template: {
-                name: template.name,
-                language: {
-                    code: template.language
-                },
-                ...(bodyParameters.length > 0
-                    ? {
-                          components: [
-                              {
-                                  type: "body",
-                                  parameters: bodyParameters
-                              }
-                          ]
-                      }
-                    : {})
-            }
-        };
+            name: template.name,
+            language: template.language,
+            variables: usedVariables
+        });
 
         try {
             const response = await axios.post(

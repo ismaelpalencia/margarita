@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const variableField = z
+    .string()
+    .optional()
+    .transform((value) => (value === undefined ? "" : value));
+
 export const createCampaignSchema = z.object({
     name: z
         .string()
@@ -21,7 +26,10 @@ export const createCampaignSchema = z.object({
             }
 
             return value.trim() !== "" ? [value] : [];
-        })
+        }),
+    variable1: variableField,
+    variable2: variableField,
+    variable3: variableField
 });
 
 export const createCampaignFromExcelSchema = z.object({
@@ -33,7 +41,10 @@ export const createCampaignFromExcelSchema = z.object({
     templateId: z
         .string()
         .trim()
-        .min(1, "Selecciona una plantilla.")
+        .min(1, "Selecciona una plantilla."),
+    variable1: variableField,
+    variable2: variableField,
+    variable3: variableField
 });
 
 

@@ -518,7 +518,7 @@ Lo que se cerró en el sprint de endurecimiento:
 
 Pendientes conocidos, en orden de impacto:
 
-1. **Campañas con variables**: hoy solo aceptan plantillas sin variables; el envío con variables por contacto está en V2.
+1. **Variables fuera del cuerpo**: las campañas resuelven las variables del componente `BODY`. Las de encabezado o de botones con URL todavía no se llenan.
 2. **Envío de campañas en cola**: el envío es secuencial dentro de la petición HTTP, sin control de velocidad. Con listas grandes conviene pasarlo a un job con throttling.
 3. **Multimedia entrante**: se guarda el `mediaId`, pero todavía no hay visor ni descarga de imágenes, audio y documentos.
 4. **Límites de mensajes manuales**: `canSendManualMessages`, `manualMessageLimit` y `manualMessagesUsed` se configuran en la interfaz, pero aún no se validan ni se incrementan al enviar.
@@ -541,6 +541,7 @@ Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArg
 | [`base-datos.md`](base-datos.md) | Diseño de la base de datos entidad por entidad |
 | [`docs/deploy-railway.md`](docs/deploy-railway.md) | Guía de despliegue en Railway |
 | [`docs/roadmap-v2.md`](docs/roadmap-v2.md) | Plan detallado de los siguientes sprints: multimedia, interactivos y campañas |
+| [`docs/alcance-produccion.md`](docs/alcance-produccion.md) | Alcance actual, límites, seguridad y responsabilidades para uso en producción |
 | [`prisma/schema.prisma`](prisma/schema.prisma) | Esquema real de la base de datos |
 
 `Reglas_margarita.md` es una copia idéntica de `MArgarita.md`.

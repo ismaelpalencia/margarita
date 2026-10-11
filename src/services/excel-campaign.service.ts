@@ -3,17 +3,25 @@ import {
     CampaignRecipientStatus,
     CampaignStatus,
     LogLevel,
-    LogModule
+    LogModule,
+    Prisma
 } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
 import { normalizeMexicanPhone } from "../utils/phone";
+import {
+    normalizeHeaderKey,
+    resolveVariableSpecs
+} from "../utils/campaign-variables";
 import { CreateCampaignFromExcelInput } from "../validations/campaign.validation";
+import { countTemplateVariables } from "../utils/template";
 import { LogService } from "./log.service";
 
 type ParsedRecipient = {
     phone: string;
     name?: string | null;
+    /** Todas las columnas de la fila, indexadas por encabezado normalizado. */
+    columns: Record<string, string>;
 };
 
 function cellToString(value: ExcelJS.CellValue): string {
@@ -41,14 +49,6 @@ function cellToString(value: ExcelJS.CellValue): string {
     return String(value).trim();
 }
 
-function normalizeHeader(value: string): string {
-    return value
-        .trim()
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-}
-
 export class ExcelCampaignService {
     static async parseExcel(filePath: string) {
         const workbook = new ExcelJS.Workbook();
@@ -69,7 +69,7 @@ export class ExcelCampaignService {
         const headerMap = new Map<string, number>();
 
         headerRow.eachCell((cell, colNumber) => {
-            const header = normalizeHeader(cellToString(cell.value));
+            const header = normalizeHeaderKey(cellToString(cell.value));
 
             if (header) {
                 headerMap.set(header, colNumber);
@@ -121,9 +121,18 @@ export class ExcelCampaignService {
 
                 seenPhones.add(phone);
 
+                const columns: Record<string, string> = {};
+
+                headerMap.forEach((columnNumber, header) => {
+                    columns[header] = cellToString(
+                        row.getCell(columnNumber).value
+                    );
+                });
+
                 recipients.push({
                     phone,
-                    name: rawName || null
+                    name: rawName || null,
+                    columns
                 });
             } catch {
                 invalidRows.push({
@@ -165,9 +174,69 @@ export class ExcelCampaignService {
             throw new Error("Plantilla no encontrada o no aprobada.");
         }
 
+        const requiredVariables = countTemplateVariables(template.components);
+        const specs = [
+            params.input.variable1 || "",
+            params.input.variable2 || "",
+            params.input.variable3 || ""
+        ].slice(0, requiredVariables);
+
+        if (requiredVariables > 0 && specs.some((spec) => spec.trim() === "")) {
+            throw new Error(
+                `Esta plantilla necesita ${requiredVariables} variable(s). Complétalas para continuar.`
+            );
+        }
+
+        /**
+         * Los valores se resuelven antes de crear nada: si falta una
+         * columna, es mejor decirlo que dejar la campaña a medias.
+         */
+        const resolvedRows = parsedExcel.recipients.map((recipient) => {
+            const resolved = resolveVariableSpecs(
+                requiredVariables > 0 ? specs : [],
+                {
+                    name: recipient.name || null,
+                    phone: recipient.phone,
+                    columns: recipient.columns
+                }
+            );
+
+            return {
+                ...recipient,
+                values: resolved.values,
+                missingColumns: resolved.missingColumns
+            };
+        });
+
+        const missingColumns = [
+            ...new Set(resolvedRows.flatMap((row) => row.missingColumns))
+        ];
+
+        if (missingColumns.length > 0) {
+            const available = Object.keys(
+                parsedExcel.recipients[0]?.columns || {}
+            );
+
+            throw new Error(
+                `El archivo no tiene la(s) columna(s): ${missingColumns.join(", ")}. ` +
+                    `Columnas disponibles: ${available.join(", ") || "ninguna"}.`
+            );
+        }
+
+        const rowsWithoutValue = resolvedRows.filter((row) =>
+            requiredVariables > 0 && row.values.some((value) => value === "")
+        ).length;
+
+        if (rowsWithoutValue > 0) {
+            throw new Error(
+                `${rowsWithoutValue} fila(s) quedaron sin el dato que pide una variable. ` +
+                    "Revisa que las columnas referenciadas tengan valor en todas las filas."
+            );
+        }
+
         const contacts = [];
 
-        for (const recipient of parsedExcel.recipients) {
+        for (const recipient of resolvedRows) {
             const contact = await prisma.contact.upsert({
                 where: {
                     workspaceId_phone: {
@@ -206,10 +275,15 @@ export class ExcelCampaignService {
                 invalidRecipients: parsedExcel.invalidRows.length,
                 duplicateRecipients: parsedExcel.duplicateCount,
                 recipients: {
-                    create: contacts.map((contact) => ({
+                    create: contacts.map((contact, index) => ({
                         contactId: contact.id,
                         phone: contact.phone,
-                        status: CampaignRecipientStatus.PENDING
+                        status: CampaignRecipientStatus.PENDING,
+                        variables:
+                            requiredVariables > 0
+                                ? (resolvedRows[index]
+                                      .values as Prisma.InputJsonValue)
+                                : undefined
                     }))
                 }
             },

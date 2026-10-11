@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
     buildTemplateBodyParameters,
+    buildTemplateMessagePayload,
     countTemplateVariables,
     getTemplateBodyText,
     renderTemplatePreview
@@ -66,4 +67,55 @@ test("construye los parámetros ignorando valores vacíos", () => {
 
 test("sin variables no genera componentes", () => {
     assert.deepEqual(buildTemplateBodyParameters(["", "   "]), []);
+});
+
+test("el payload de plantilla sin variables no incluye componentes", () => {
+    const payload = buildTemplateMessagePayload({
+        to: "5215500000000",
+        name: "recordatorio",
+        language: "es_MX",
+        variables: []
+    });
+
+    assert.equal(payload.template.components, undefined);
+    assert.deepEqual(payload, {
+        messaging_product: "whatsapp",
+        to: "5215500000000",
+        type: "template",
+        template: {
+            name: "recordatorio",
+            language: { code: "es_MX" }
+        }
+    });
+});
+
+test("el payload incluye un parámetro por variable, en orden", () => {
+    const payload = buildTemplateMessagePayload({
+        to: "5215500000000",
+        name: "pedido",
+        language: "es_MX",
+        variables: ["Ana", "", "Centro"]
+    });
+
+    assert.deepEqual(payload.template.components, [
+        {
+            type: "body",
+            parameters: [
+                { type: "text", text: "Ana" },
+                { type: "text", text: "" },
+                { type: "text", text: "Centro" }
+            ]
+        }
+    ]);
+});
+
+test("el payload conserva el número de variables aunque haya valores vacíos", () => {
+    const payload = buildTemplateMessagePayload({
+        to: "5215500000000",
+        name: "pedido",
+        language: "es_MX",
+        variables: ["", ""]
+    });
+
+    assert.equal(payload.template.components?.[0].parameters.length, 2);
 });

@@ -17,9 +17,13 @@ import {
 import { prisma } from "../config/prisma";
 import { decryptSecret } from "../utils/crypto";
 import { describeMetaError } from "../utils/meta-error";
+import {
+    resolveVariableSpecs
+} from "../utils/campaign-variables";
 import { emitToWorkspace } from "../sockets";
 import { CreateCampaignInput } from "../validations/campaign.validation";
 import { renderTemplatePreview, countTemplateVariables } from "../utils/template";
+import { buildTemplateMessagePayload } from "../utils/template";
 import { LogService } from "./log.service";
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
@@ -79,9 +83,30 @@ export class CampaignService {
         ]);
 
         return {
-            templates,
+            /**
+             * Se envía el número de variables de cada plantilla para que
+             * el formulario pueda mostrar los campos necesarios.
+             */
+            templates: templates.map((template) => ({
+                ...template,
+                variableCount: countTemplateVariables(template.components)
+            })),
             contacts
         };
+    }
+
+    /**
+     * Toma las variables escritas por el usuario (hasta tres) y devuelve
+     * solo las que la plantilla necesita.
+     */
+    private static resolveSpecs(
+        input: { variable1?: string; variable2?: string; variable3?: string },
+        requiredVariables: number
+    ): string[] {
+        return [input.variable1 || "", input.variable2 || "", input.variable3 || ""].slice(
+            0,
+            requiredVariables
+        );
     }
 
     static async createCampaign(
@@ -115,12 +140,66 @@ export class CampaignService {
             },
             select: {
                 id: true,
-                phone: true
+                phone: true,
+                customName: true,
+                profileName: true
             }
         });
 
         if (contacts.length === 0) {
             throw new Error("No hay contactos válidos para la campaña.");
+        }
+
+        const requiredVariables = countTemplateVariables(template.components);
+        const specs = this.resolveSpecs(input, requiredVariables);
+
+        if (
+            requiredVariables > 0 &&
+            specs.some((spec) => spec.trim() === "")
+        ) {
+            throw new Error(
+                `Esta plantilla necesita ${requiredVariables} variable(s). Complétalas para continuar.`
+            );
+        }
+
+        /**
+         * Los valores se resuelven una sola vez, al crear la campaña, y se
+         * guardan por destinatario: así queda registro exacto de lo que se
+         * envió y el envío no depende de que el contacto cambie después.
+         */
+        const recipients = contacts.map((contact) => {
+            const resolved = resolveVariableSpecs(
+                requiredVariables > 0 ? specs : [],
+                {
+                    name: contact.customName || contact.profileName,
+                    phone: contact.phone,
+                    columns: {}
+                }
+            );
+
+            return {
+                contactId: contact.id,
+                phone: contact.phone,
+                status: CampaignRecipientStatus.PENDING,
+                variables:
+                    requiredVariables > 0
+                        ? (resolved.values as Prisma.InputJsonValue)
+                        : undefined,
+                resolvedValues: resolved.values
+            };
+        });
+
+        const emptyValues = recipients.filter(
+            (recipient) =>
+                requiredVariables > 0 &&
+                recipient.resolvedValues.some((value) => value === "")
+        );
+
+        if (emptyValues.length > 0) {
+            throw new Error(
+                `${emptyValues.length} contacto(s) quedaron sin el dato que pide una variable. ` +
+                    "Si usaste {nombre}, esos contactos no tienen nombre registrado: usa un valor fijo."
+            );
         }
 
         const campaign = await prisma.campaign.create({
@@ -135,10 +214,11 @@ export class CampaignService {
                 invalidRecipients: 0,
                 duplicateRecipients: 0,
                 recipients: {
-                    create: contacts.map((contact) => ({
-                        contactId: contact.id,
-                        phone: contact.phone,
-                        status: CampaignRecipientStatus.PENDING
+                    create: recipients.map((recipient) => ({
+                        contactId: recipient.contactId,
+                        phone: recipient.phone,
+                        status: recipient.status,
+                        variables: recipient.variables
                     }))
                 }
             },
@@ -227,9 +307,27 @@ export class CampaignService {
         const requiredVariables = countTemplateVariables(campaign.template.components);
 
         if (requiredVariables > 0) {
-            throw new Error(
-                "Esta versión de campañas solo soporta plantillas sin variables."
+            /**
+             * Una campaña creada antes de soportar variables podría no
+             * tenerlas. Es mejor fallar aquí, con un mensaje claro, que
+             * dejar que Meta rechace cada envío con un error técnico.
+             */
+            const withoutVariables = campaign.recipients.filter(
+                (recipient) => {
+                    const stored = Array.isArray(recipient.variables)
+                        ? recipient.variables
+                        : [];
+
+                    return stored.length !== requiredVariables;
+                }
             );
+
+            if (withoutVariables.length > 0) {
+                throw new Error(
+                    `${withoutVariables.length} destinatario(s) no tienen los valores de las ` +
+                        `${requiredVariables} variable(s) de la plantilla. Crea la campaña de nuevo con esos datos.`
+                );
+            }
         }
 
         if (campaign.recipients.length === 0) {
@@ -293,8 +391,14 @@ export class CampaignService {
 
                 const previewBody = renderTemplatePreview(
                     campaign.template.components,
-                    []
+                    Array.isArray(recipient.variables)
+                        ? recipient.variables.map(String)
+                        : []
                 );
+
+                const recipientVariables = Array.isArray(recipient.variables)
+                    ? recipient.variables.map(String)
+                    : [];
 
                 const localMessage = await prisma.message.create({
                     data: {
@@ -317,17 +421,12 @@ export class CampaignService {
                     }
                 });
 
-                const payload = {
-                    messaging_product: "whatsapp",
+                const payload = buildTemplateMessagePayload({
                     to: recipient.phone,
-                    type: "template",
-                    template: {
-                        name: campaign.template.name,
-                        language: {
-                            code: campaign.template.language
-                        }
-                    }
-                };
+                    name: campaign.template.name,
+                    language: campaign.template.language,
+                    variables: recipientVariables
+                });
 
                 const response = await axios.post(
                     `https://graph.facebook.com/${account.apiVersion}/${account.phoneNumberId}/messages`,

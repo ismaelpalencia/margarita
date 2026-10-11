@@ -41,22 +41,35 @@ Prueba de integración contra una base real: 22 de 22 comprobaciones en verde, i
 
 **Estado: pendiente.** Es el que más se nota en el día a día: hoy el agente ve `[Imagen]` en lugar de la foto.
 
-### Paso 1: almacenamiento
+### Cómo funciona la multimedia de Meta (y qué se puede y qué no)
 
-`uploads/` es efímero en Railway, así que la primera tarea no es código de WhatsApp sino elegir dónde viven los archivos: S3, Cloudflare R2 o Supabase Storage. Sin esto, cualquier foto desaparece en el siguiente deploy.
+Cuando un cliente manda una foto, el webhook **no** trae un enlace: trae un `mediaId`. Para ver el archivo hay que pedir `GET /{media-id}` con el access token, y Meta responde con una URL y sus metadatos. Esa URL:
 
-Variables previstas: `STORAGE_PROVIDER`, `STORAGE_BUCKET`, `STORAGE_REGION`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_PUBLIC_BASE_URL`.
+- **Caduca en minutos**, no en horas. No es algo que se pueda "extender a 12 horas".
+- **Exige el access token en la petición.** Un `<img src="...">` no puede mandar cabeceras, así que esa URL no se puede usar directamente en el navegador: hay que descargar los bytes del lado del servidor y reenviarlos.
 
-### Paso 2: descarga de lo que llega
+Lo que **sí** es estable es el `mediaId`, que ya guardamos en `Message`. Meta conserva el archivo alrededor de 30 días, y dentro de ese plazo se puede pedir una URL nueva cuantas veces haga falta.
 
-1. Con el `mediaId` que ya se guarda en `Message`, pedir a Meta la URL temporal (`GET /{media-id}`).
-2. Descargar los bytes con el access token (nunca exponer ese token al navegador).
-3. Subir al bucket con una ruta del tipo `workspace/{id}/conversation/{id}/{wamid}.{ext}`.
-4. Guardar en `Message` la URL, el tamaño y el nombre original.
+### Decisión: descarga bajo demanda con caché
+
+En lugar de bajar cada archivo cuando llega el webhook (que además alarga el procesamiento y llena el disco de cosas que nadie va a ver), se resuelve cuando alguien abre la conversación:
+
+1. El agente abre el hilo y el mensaje tiene `mediaId` sin archivo local.
+2. El servidor pide la URL a Meta, descarga los bytes con el token y los guarda en el almacenamiento local.
+3. A partir de ahí se sirven desde disco, instantáneo, y se les puede generar miniatura.
+4. Si el archivo ya pasó su ventana de vida en Meta y nunca se descargó, el mensaje lo dice claro ("el archivo ya no está disponible") en vez de mostrar un error críptico.
+
+Ventajas: no hay que configurar bucket alguno para empezar, solo se guarda lo que alguien miró, y el webhook sigue respondiendo en milisegundos.
+
+### Paso 2: dónde viven los archivos
+
+El disco de Railway es efímero, así que la caché necesita un **Volume** montado en `/data/media` (o, más adelante, un bucket S3/R2). El acceso queda detrás de `src/services/media-storage.service.ts` para que cambiar de Volume a bucket sea configuración y no reescritura.
+
+Variables previstas: `MEDIA_STORAGE_DIR` (por defecto `/data/media`), `MEDIA_CACHE_DAYS` (cuánto se conserva lo cacheado sin uso) y, si algún día se usa bucket, `STORAGE_*`.
 
 ### Paso 3: servirlos al agente
 
-Endpoint autenticado que valide que el usuario puede ver esa conversación y devuelva una URL firmada con expiración corta. Nada de bucket público.
+Endpoint autenticado `/media/:messageId` que valida que el usuario pueda ver esa conversación (un agente, solo las asignadas a él) y reenvía los bytes. El token de Meta nunca llega al navegador y ningún archivo es público.
 
 ### Paso 4: interfaz
 
@@ -64,14 +77,15 @@ Miniaturas en el hilo, visor a pantalla completa, indicador de descarga y un lí
 
 ### Modelo de datos
 
-Se evalúan dos caminos: campos nuevos en `Message` (`mediaUrl`, `mediaSize`, `mediaFilename`) o una tabla `MessageAttachment` si más adelante se quiere soportar varios archivos por mensaje. La decisión se toma al inicio del sprint.
+Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `mediaFilename`, `mediaDownloadedAt` y `mediaDownloadError`. Así el hilo sabe en qué estado está cada archivo sin consultar a Meta en cada carga.
 
 ### Criterios de aceptación
 
 - Un cliente manda una foto y el agente la ve en el hilo, en producción, sin recargar la página.
-- La imagen sobrevive a un redeploy.
+- La imagen se descarga una sola vez y sobrevive a un redeploy (queda en el Volume).
+- Un archivo de más de 30 días que nadie abrió muestra un aviso claro, no un error.
 - Ningún archivo es accesible sin sesión válida.
-- Si la descarga desde Meta falla, el mensaje queda igual guardado y el archivo se reintenta después.
+- Si la descarga desde Meta falla, el mensaje queda igual guardado y se puede reintentar desde el hilo.
 
 ---
 
@@ -98,7 +112,7 @@ Se evalúan dos caminos: campos nuevos en `Message` (`mediaUrl`, `mediaSize`, `m
 
 Estas no bloquean nada y se priorizan según lo que pida la operación:
 
-1. **Campañas con variables por contacto** (hoy solo plantillas sin variables).
+1. **Variables de plantilla en encabezado y botones** (el cuerpo ya se resuelve por contacto).
 2. **Envío de campañas en cola** con control de velocidad: hoy es secuencial dentro de la petición HTTP. Depende de un runner de trabajos; la infraestructura de la cola de webhooks ya sirvió de ensayo.
 3. **Programar campañas** por fecha y hora, pausar y cancelar.
 4. **Límites de mensajes manuales**: `canSendManualMessages`, `manualMessageLimit` y `manualMessagesUsed` se configuran pero todavía no se aplican.

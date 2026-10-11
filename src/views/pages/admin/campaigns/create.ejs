@@ -26,6 +26,18 @@
                     No se pudo crear la campaña desde Excel. Verifica que exista la columna phone.
                 <% } else if (error === "validation") { %>
                     Completa el nombre, la plantilla y selecciona al menos un contacto.
+                <% } else if (error === "variables") { %>
+                    La plantilla necesita variables y falta completarlas, o algún contacto quedó sin el dato.
+                    Recuerda que puedes usar <code class="font-semibold">{nombre}</code> y, desde Excel,
+                    <code class="font-semibold">{columna:Nombre}</code>.
+                <% } else if (error === "column") { %>
+                    El archivo no tiene la columna que referenciaste en una variable.
+                    Revisa que el nombre coincida exactamente con el encabezado del Excel.
+                <% } else if (error === "contacts") { %>
+                    No hay contactos válidos seleccionados para la campaña.
+                <% } else if (error === "recipients") { %>
+                    Algunos destinatarios no tienen los valores de las variables de la plantilla.
+                    Crea la campaña de nuevo con esos datos.
                 <% } else { %>
                     No se pudo crear la campaña. Revisa plantilla, contactos o archivo Excel.
                 <% } %>
@@ -49,9 +61,11 @@
                     </div>
                 </div>
 
-                <div class="rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-800 md:max-w-sm">
-                    Por ahora las campañas desde Excel solo soportan plantillas sin variables.
-                    Las variables es en la siguiente version.
+                <div class="rounded-xl bg-emerald-50 px-4 py-3 text-xs text-emerald-800 md:max-w-sm">
+                    Si la plantilla tiene variables, puedes usar
+                    <code class="font-semibold">{nombre}</code>,
+                    <code class="font-semibold">{telefono}</code> y cualquier columna del archivo como
+                    <code class="font-semibold">{columna:Pedido}</code>.
                 </div>
             </div>
 
@@ -82,12 +96,13 @@
                     <select
                         name="templateId"
                         required
+                        data-template-select
                         class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     >
                         <option value="">Selecciona plantilla</option>
 
                         <% templates.forEach((template) => { %>
-                            <option value="<%= template.id %>">
+                            <option value="<%= template.id %>" data-variable-count="<%= template.variableCount %>">
                                 <%= template.name %> · <%= template.language %>
                             </option>
                         <% }) %>
@@ -122,6 +137,10 @@
                     <button class="w-full rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
                         Crear desde Excel
                     </button>
+                </div>
+
+                <div data-variable-fields class="hidden lg:col-span-4">
+                    <%- include("../../../partials/campaign-variable-fields") %>
                 </div>
             </form>
         </section>
@@ -159,12 +178,13 @@
                     <select
                         name="templateId"
                         required
+                        data-template-select
                         class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     >
                         <option value="">Selecciona plantilla</option>
 
                         <% templates.forEach((template) => { %>
-                            <option value="<%= template.id %>">
+                            <option value="<%= template.id %>" data-variable-count="<%= template.variableCount %>">
                                 <%= template.name %> · <%= template.language %>
                             </option>
                         <% }) %>
@@ -175,6 +195,10 @@
                             No hay plantillas aprobadas. Sincroniza plantillas desde Meta.
                         </p>
                     <% } %>
+                </div>
+
+                <div data-variable-fields class="hidden">
+                    <%- include("../../../partials/campaign-variable-fields") %>
                 </div>
 
                 <div class="rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-800">
@@ -229,5 +253,48 @@
         </form>
     </main>
 </div>
+
+<script>
+    /**
+     * Muestra solo las variables que necesita la plantilla elegida. Cada
+     * opción trae su número en data-variable-count, así que el formulario
+     * se ajusta sin recargar la página.
+     */
+    document.querySelectorAll("[data-template-select]").forEach((select) => {
+        const form = select.closest("form");
+        const container = form ? form.querySelector("[data-variable-fields]") : null;
+
+        if (!container) {
+            return;
+        }
+
+        const fields = Array.from(container.querySelectorAll("[data-variable-field]"));
+
+        const sync = () => {
+            const option = select.selectedOptions[0];
+            const count = option ? Number(option.dataset.variableCount || 0) : 0;
+
+            container.classList.toggle("hidden", count === 0);
+
+            fields.forEach((field, index) => {
+                const visible = index < count;
+                field.classList.toggle("hidden", !visible);
+
+                const input = field.querySelector("input");
+
+                if (input) {
+                    input.required = visible;
+
+                    if (!visible) {
+                        input.value = "";
+                    }
+                }
+            });
+        };
+
+        select.addEventListener("change", sync);
+        sync();
+    });
+</script>
 
 <%- include("../../../partials/footer") %>

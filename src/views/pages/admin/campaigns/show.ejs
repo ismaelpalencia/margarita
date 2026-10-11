@@ -231,6 +231,15 @@
                                     <%= recipient.phone %>
                                 </p>
 
+                                <% if (Array.isArray(recipient.variables) && recipient.variables.length > 0) { %>
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        Variables:
+                                        <span class="font-medium text-slate-700">
+                                            <%= recipient.variables.join(" · ") %>
+                                        </span>
+                                    </p>
+                                <% } %>
+
                                 <% if (recipient.errorMessage) { %>
                                     <p class="mt-1 text-xs text-red-600">
                                         <%= recipient.errorMessage %>
