@@ -60,6 +60,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, un número 
 - **Historial de asignaciones** con quién movió qué y por qué.
 - **Tiempo real**: la bandeja se actualiza sin recargar, con eventos por socket autenticados con la misma sesión del panel.
 - **Multimedia entrante**: las fotos, el video, el audio y los documentos que envían los clientes se ven dentro del hilo, con visor y descarga. Las imágenes se descargan al recibirlas y el resto cuando alguien lo abre.
+- **Envío de archivos**: se pueden adjuntar imágenes, video, audio y documentos dentro de la ventana de 24 horas, con texto opcional. Límites de Meta por tipo: imagen 5 MB, video y audio 16 MB, documentos 100 MB.
 - **Chat de conversación**: hilo con burbujas, separadores de fecha, palomitas de estado reales y barra de composición, con actualización en vivo.
 - **Borrado de mensajes**: ocultar un mensaje sin destruirlo (el admin puede verlo y restaurarlo) o borrar todo el hilo definitivamente escribiendo `BORRAR`.
 - **Respaldos**: descarga completa en JSON o exportación por entidad en CSV.
@@ -82,9 +83,8 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | Límite | Detalle |
 | --- | --- |
 | **Solo México** | El normalizador de teléfonos asume números mexicanos y agrega el prefijo `521`. Números de otros países se rechazan. |
-| **Sin envío de adjuntos** | Se ven los archivos que llegan, pero **no se pueden enviar** imágenes ni documentos desde el panel. |
 | **Archivos con caducidad** | Meta conserva lo que envían los clientes alrededor de 30 días. Un archivo que nadie abrió en ese plazo ya no se puede recuperar; el hilo lo avisa en lugar de fallar. |
-| **Salida solo de texto** | No se pueden enviar imágenes, documentos, botones ni listas. Solo texto libre (dentro de 24 h) y plantillas. |
+| **Sin botones ni listas** | Se envían texto, plantillas y archivos, pero todavía no mensajes interactivos (botones o listas). |
 | **Variables solo en el cuerpo** | Las campañas resuelven las variables del componente `BODY` de la plantilla. Si la plantilla tiene variables en el encabezado o en un botón con URL, hoy no se llenan. |
 | **Campañas sin programar** | No se pueden agendar por fecha y hora, pausar ni cancelar. |
 | **Envío de campañas secuencial** | El envío ocurre dentro de la petición HTTP, sin control de velocidad. Con listas grandes hay riesgo de timeout y de chocar con los límites de Meta. |

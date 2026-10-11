@@ -68,6 +68,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Credenciales de Meta cifradas en la base de datos.
 - Bitácora con retención automática y credenciales redactadas.
 - Multimedia entrante: las fotos, el video, el audio y los documentos de los clientes se ven en el hilo. Las imágenes se descargan al recibirlas; el resto, cuando alguien lo abre.
+- Envío de archivos: adjuntar imágenes, video, audio o documentos dentro de la ventana de 24 horas, con texto opcional.
 
 ---
 
@@ -257,6 +258,7 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `ALERT_COOLDOWN_MINUTES` | No | Enfriamiento entre avisos repetidos. Default `10` |
 | `MEDIA_STORAGE_DIR` | Producción | Carpeta donde se guardan los archivos de los clientes. En Railway debe apuntar a un Volume. Default `uploads/media` |
 | `MEDIA_MAX_BYTES` | No | Tamaño máximo que se descarga de Meta. Default `26214400` (25 MB) |
+| `GRAPH_BASE_URL` | Solo pruebas | Base de la Graph API; vacío usa `https://graph.facebook.com` |
 
 Sin `META_APP_SECRET` el webhook no valida el origen: en desarrollo solo registra un aviso, pero **en producción responde 401** y la app deja de recibir mensajes.
 
@@ -360,6 +362,7 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | POST | `/admin/conversations/:id/messages/local` | Nota interna (no se envía a WhatsApp) |
 | POST | `/admin/conversations/:id/messages/free-text` | Texto libre dentro de la ventana de 24h |
 | POST | `/admin/conversations/:id/messages/template` | Envío con plantilla aprobada |
+| POST | `/admin/conversations/:id/messages/media` | Envía imagen, video, audio o documento (`multipart`: `file` + `caption`) |
 | POST | `/admin/conversations/:id/messages/:messageId/delete` | Oculta un mensaje del chat |
 | POST | `/admin/conversations/:id/messages/:messageId/restore` | Restaura un mensaje oculto |
 | POST | `/admin/conversations/:id/purge` | Borra definitivamente todo el hilo (requiere escribir `BORRAR`) |
@@ -387,6 +390,7 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | GET | `/agent/conversations` | Solo sus conversaciones asignadas |
 | GET | `/agent/conversations/:id` | Detalle del hilo |
 | POST | `/agent/conversations/:id/messages/local`, `/free-text`, `/template` | Respuesta en sus tres modos |
+| POST | `/agent/conversations/:id/messages/media` | Envía un archivo dentro de la ventana de 24 horas |
 | POST | `/agent/conversations/:id/close` | Cierra la conversación |
 
 ---
@@ -531,14 +535,13 @@ Pendientes conocidos, en orden de impacto:
 
 1. **Variables fuera del cuerpo**: las campañas resuelven las variables del componente `BODY`. Las de encabezado o de botones con URL todavía no se llenan.
 2. **Envío de campañas en cola**: el envío es secuencial dentro de la petición HTTP, sin control de velocidad. Con listas grandes conviene pasarlo a un job con throttling.
-3. **Envío de adjuntos**: los archivos que llegan ya se ven, pero todavía no se pueden enviar imágenes ni documentos desde el panel.
-4. **Límites de mensajes manuales**: `canSendManualMessages`, `manualMessageLimit` y `manualMessagesUsed` se configuran en la interfaz, pero aún no se validan ni se incrementan al enviar.
-5. **Normalización de teléfonos**: el normalizador asume México con prefijo `521`. Conviene contrastarlo contra el formato que Meta acepta hoy y, si el negocio crece fuera del país, generalizarlo.
-6. **Respuestas de botones e interactivos**: se registran de forma genérica, sin interpretar la opción elegida, y todavía no se pueden enviar botones ni listas.
-7. **Opt-in y manejo de BAJA/STOP**: no hay campo de consentimiento en `Contact` ni forma de honrar una baja de manera automática.
-8. **Salud de la cuenta**: solo se procesa el campo `messages` del webhook; faltan `message_template_status_update` y `phone_number_quality_update` para enterarse de plantillas rechazadas o caídas de calidad.
-9. **Programación de campañas**: no se pueden agendar por fecha y hora, pausar ni cancelar.
-10. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
+3. **Límites de mensajes manuales**: `canSendManualMessages`, `manualMessageLimit` y `manualMessagesUsed` se configuran en la interfaz, pero aún no se validan ni se incrementan al enviar.
+4. **Normalización de teléfonos**: el normalizador asume México con prefijo `521`. Conviene contrastarlo contra el formato que Meta acepta hoy y, si el negocio crece fuera del país, generalizarlo.
+5. **Respuestas de botones e interactivos**: se registran de forma genérica, sin interpretar la opción elegida, y todavía no se pueden enviar botones ni listas.
+6. **Opt-in y manejo de BAJA/STOP**: no hay campo de consentimiento en `Contact` ni forma de honrar una baja de manera automática.
+7. **Salud de la cuenta**: solo se procesa el campo `messages` del webhook; faltan `message_template_status_update` y `phone_number_quality_update` para enterarse de plantillas rechazadas o caídas de calidad.
+8. **Programación de campañas**: no se pueden agendar por fecha y hora, pausar ni cancelar.
+9. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
 
 Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArgarita.md`](MArgarita.md) y visibles en `/admin/roadmap`.
 

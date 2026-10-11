@@ -3,6 +3,7 @@ import { LogLevel, LogModule, Prisma } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
 import { decryptSecret } from "../utils/crypto";
+import { appConfig } from "../config/app.config";
 import { LogService } from "./log.service";
 
 type MetaTemplate = {
@@ -67,7 +68,7 @@ export class TemplateService {
 
         try {
             const response = await axios.get(
-                `https://graph.facebook.com/${account.apiVersion}/${account.businessAccountId}/message_templates`,
+                `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.businessAccountId}/message_templates`,
                 {
                     params: {
                         access_token: decryptSecret(account.accessToken),

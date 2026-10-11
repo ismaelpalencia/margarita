@@ -87,6 +87,40 @@ export class AdminConversationsController {
         }
     }
 
+    static async sendMediaMessage(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+
+        if (!req.file) {
+            return res.redirect(
+                `/admin/conversations/${conversationId}?error=media`
+            );
+        }
+
+        try {
+            await MessageService.sendMediaMessage({
+                workspaceId: req.user!.workspaceId,
+                conversationId,
+                userId: req.user!.id,
+                role: req.user!.role,
+                file: {
+                    path: req.file.path,
+                    originalname: req.file.originalname,
+                    mimetype: req.file.mimetype,
+                    size: req.file.size
+                },
+                caption: typeof req.body?.caption === "string" ? req.body.caption : null
+            });
+
+            return res.redirect(
+                `/admin/conversations/${conversationId}?success=media`
+            );
+        } catch {
+            return res.redirect(
+                `/admin/conversations/${conversationId}?error=media`
+            );
+        }
+    }
+
     static async sendLocalMessage(req: Request, res: Response) {
         const conversationId = getRequiredParam(req, "id");
 

@@ -203,7 +203,7 @@ export class WhatsAppAccountService {
 
         const accessToken = decryptSecret(account.accessToken);
 
-        const url = `https://graph.facebook.com/${account.apiVersion}/${account.phoneNumberId}`;
+        const url = `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.phoneNumberId}`;
 
         try {
             const response = await axios.get(url, {

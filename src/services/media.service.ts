@@ -104,7 +104,7 @@ async function downloadFromMeta(message: Message): Promise<{
     const accessToken = decryptSecret(account.accessToken);
 
     const info = await axios.get<MetaMediaInfo>(
-        `https://graph.facebook.com/${account.apiVersion}/${message.mediaId}`,
+        `${appConfig.graphBaseUrl}/${account.apiVersion}/${message.mediaId}`,
         {
             params: {
                 access_token: accessToken
@@ -239,6 +239,59 @@ export async function ensureStoredMedia(
 
         throw new MediaDownloadError(detail);
     }
+}
+
+/**
+ * Sube un archivo a Meta y devuelve su `media id`, que es lo que se usa
+ * para enviarlo por WhatsApp. Cada envío sube el archivo una vez.
+ */
+export async function uploadMediaToMeta(params: {
+    phoneNumberId: string;
+    apiVersion: string;
+    accessToken: string;
+    buffer: Buffer;
+    mimeType: string;
+    filename: string;
+}): Promise<string> {
+    const form = new FormData();
+
+    form.append("messaging_product", "whatsapp");
+    form.append("type", params.mimeType);
+    form.append(
+        "file",
+        new Blob([new Uint8Array(params.buffer)], { type: params.mimeType }),
+        params.filename
+    );
+
+    const response = await fetch(
+        `${appConfig.graphBaseUrl}/${params.apiVersion}/${params.phoneNumberId}/media`,
+        {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${params.accessToken}`
+            },
+            body: form
+        }
+    );
+
+    const payload = (await response.json().catch(() => null)) as {
+        id?: string;
+        error?: unknown;
+    } | null;
+
+    if (!response.ok || !payload?.id) {
+        const detail = describeMetaError({
+            data: { error: payload?.error },
+            status: response.status
+        });
+
+        throw new Error(
+            detail ||
+                `Meta rechazó el archivo (HTTP ${response.status}). Revisa el formato y el tamaño.`
+        );
+    }
+
+    return payload.id;
 }
 
 /**

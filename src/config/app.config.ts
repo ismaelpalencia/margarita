@@ -66,6 +66,15 @@ export const appConfig = {
     metaAppSecret: process.env.META_APP_SECRET || "",
 
     /**
+     * Base de la Graph API. Es configurable para poder apuntar a un
+     * servidor de prueba en desarrollo; en producción se deja el valor
+     * por defecto.
+     */
+    graphBaseUrl:
+        process.env.GRAPH_BASE_URL?.trim().replace(/\/+$/, "") ||
+        "https://graph.facebook.com",
+
+    /**
      * Llave para cifrar credenciales de Meta en base de datos (AES-256-GCM).
      * Acepta 64 caracteres hexadecimales o cualquier cadena larga.
      */

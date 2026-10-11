@@ -115,7 +115,21 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ---
 
-## Backlog del Sprint 35 (envío de multimedia e interactivos)
+## Sprint 37 — Envío de archivos
+
+**Estado: completado.**
+
+| Área | Qué se hizo |
+| --- | --- |
+| Subida | `uploadMediaToMeta` sube el archivo a Meta con `multipart/form-data` y devuelve el `media id` con el que se envía. |
+| Tipos | Imágenes (JPG/PNG), video (MP4/3GPP), audio (MP3/OGG/AMR/AAC/MP4) y documentos (PDF, Word, Excel, PowerPoint, texto), con los límites de Meta por tipo validados antes de subir. |
+| Interfaz | Botón "Adjuntar imagen o documento" en el compositor, con texto opcional (el audio no lo admite), visible solo dentro de la ventana de 24 horas. |
+| Trazabilidad | El archivo queda también en el almacenamiento local, así que aparece en el hilo aunque Meta falle, y el envío se audita como `MESSAGE_SENT` o `MESSAGE_FAILED`. |
+| Limpieza | El temporal de la subida se borra siempre, incluso cuando el envío se rechaza antes de subir. |
+
+---
+
+## Backlog del Sprint 35 (interactivos)
 
 | Función | Detalle |
 | --- | --- |

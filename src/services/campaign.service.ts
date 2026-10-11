@@ -15,6 +15,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
+import { appConfig } from "../config/app.config";
 import { decryptSecret } from "../utils/crypto";
 import { describeMetaError } from "../utils/meta-error";
 import {
@@ -429,7 +430,7 @@ export class CampaignService {
                 });
 
                 const response = await axios.post(
-                    `https://graph.facebook.com/${account.apiVersion}/${account.phoneNumberId}/messages`,
+                    `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.phoneNumberId}/messages`,
                     payload,
                     {
                         params: {

@@ -1,4 +1,11 @@
 import axios from "axios";
+import fs from "node:fs";
+import path from "node:path";
+import { Prisma } from "@prisma/client";
+
+function toPrismaJson(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+}
 import {
     ConversationOperationalStatus,
     ConversationStatus,
@@ -12,6 +19,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
+import { appConfig } from "../config/app.config";
 import { SendLocalMessageInput } from "../validations/message.validation";
 import { SendTemplateMessageInput } from "../validations/template-message.validation";
 import { SendFreeTextMessageInput } from "../validations/free-text-message.validation";
@@ -23,8 +31,19 @@ import {
 import { isConversationWindowOpen } from "../utils/conversation-window";
 import { decryptSecret } from "../utils/crypto";
 import { describeMetaError } from "../utils/meta-error";
+import {
+    buildMediaMessagePayload,
+    classifyUpload
+} from "../utils/media-message";
 import { emitToWorkspace } from "../sockets";
 import { LogService } from "./log.service";
+import { uploadMediaToMeta } from "./media.service";
+import {
+    buildMediaRelativePath,
+    extensionFromMime,
+    sanitizeFilename,
+    writeMediaFile
+} from "./media-storage.service";
 
 type SendLocalMessageParams = {
     workspaceId: string;
@@ -48,6 +67,20 @@ type SendFreeTextMessageParams = {
     userId: string;
     role: UserRole;
     input: SendFreeTextMessageInput;
+};
+
+type SendMediaMessageParams = {
+    workspaceId: string;
+    conversationId: string;
+    userId: string;
+    role: UserRole;
+    file: {
+        path: string;
+        originalname: string;
+        mimetype: string;
+        size: number;
+    };
+    caption?: string | null;
 };
 
 export class MessageService {
@@ -164,7 +197,7 @@ export class MessageService {
 
         try {
             const response = await axios.post(
-                `https://graph.facebook.com/${account.apiVersion}/${account.phoneNumberId}/messages`,
+                `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.phoneNumberId}/messages`,
                 payload,
                 {
                     params: {
@@ -299,7 +332,7 @@ export class MessageService {
 
         try {
             const response = await axios.post(
-                `https://graph.facebook.com/${account.apiVersion}/${account.phoneNumberId}/messages`,
+                `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.phoneNumberId}/messages`,
                 payload,
                 {
                     params: {
@@ -588,6 +621,222 @@ export class MessageService {
                 actorId: params.actor.id
             }
         });
+    }
+
+    /**
+     * Envía una imagen, video, audio o documento dentro de la ventana de
+     * 24 horas.
+     *
+     * El archivo se guarda primero en el almacenamiento local para que
+     * aparezca en el hilo aunque Meta falle, y después se sube a Meta para
+     * obtener el `media id` con el que se envía.
+     */
+    static async sendMediaMessage(params: SendMediaMessageParams) {
+        try {
+            return await this.dispatchMediaMessage(params);
+        } finally {
+            /**
+             * El temporal de multer se borra siempre, incluso cuando el
+             * envío se rechaza antes de subir (ventana cerrada, formato
+             * no permitido, archivo demasiado grande).
+             */
+            fs.promises.unlink(params.file.path).catch(() => undefined);
+        }
+    }
+
+    private static async dispatchMediaMessage(params: SendMediaMessageParams) {
+        const conversation = await this.getConversationForSending(
+            params.workspaceId,
+            params.conversationId,
+            params.userId,
+            params.role
+        );
+
+        if (!isConversationWindowOpen(conversation.lastIncomingMessageAt)) {
+            throw new Error(
+                "La ventana de 24 horas está cerrada. Usa una plantilla aprobada."
+            );
+        }
+
+        const classified = classifyUpload({
+            mimeType: params.file.mimetype,
+            filename: sanitizeFilename(params.file.originalname, "archivo")
+        });
+
+        if (!classified.ok) {
+            throw new Error(classified.reason);
+        }
+
+        const upload = classified.value;
+        const buffer = fs.readFileSync(params.file.path);
+
+        if (buffer.length > upload.maxBytes) {
+            throw new Error(
+                `El archivo pesa ${(buffer.length / 1024 / 1024).toFixed(1)} MB y el límite para ` +
+                    `${upload.type.toLowerCase()} es ${Math.round(upload.maxBytes / 1024 / 1024)} MB.`
+            );
+        }
+
+        const account = await prisma.whatsAppAccount.findUnique({
+            where: {
+                workspaceId: params.workspaceId
+            }
+        });
+
+        if (!account) {
+            throw new Error("No hay cuenta de WhatsApp configurada.");
+        }
+
+        const caption = params.caption?.trim() || null;
+
+        const localMessage = await prisma.message.create({
+            data: {
+                workspaceId: params.workspaceId,
+                conversationId: conversation.id,
+                sentByUserId: params.userId,
+                direction: MessageDirection.OUT,
+                type: upload.type,
+                status: MessageStatus.SENDING,
+                source: MessageSource.MANUAL,
+                body: caption || `[${upload.type}]`,
+                mimeType: upload.mimeType,
+                mediaFilename: upload.filename
+            }
+        });
+
+        const extension =
+            extensionFromMime(upload.mimeType) ||
+            path.extname(upload.filename).toLowerCase();
+
+        const relativePath = buildMediaRelativePath({
+            workspaceId: params.workspaceId,
+            messageId: localMessage.id,
+            extension
+        });
+
+        writeMediaFile(relativePath, buffer);
+
+        await prisma.message.update({
+            where: {
+                id: localMessage.id
+            },
+            data: {
+                mediaPath: relativePath,
+                mediaSize: buffer.length,
+                mediaDownloadedAt: new Date()
+            }
+        });
+
+        const failWith = async (error: unknown) => {
+            const errorPayload = axios.isAxiosError(error)
+                ? {
+                      status: error.response?.status,
+                      data: error.response?.data,
+                      message: error.message
+                  }
+                : {
+                      message:
+                          error instanceof Error
+                              ? error.message
+                              : "Error desconocido"
+                  };
+
+            const failedMessage = await prisma.message.update({
+                where: {
+                    id: localMessage.id
+                },
+                data: {
+                    status: MessageStatus.FAILED,
+                    metaResponse: toPrismaJson(errorPayload)
+                }
+            });
+
+            await this.touchConversationAfterOutgoingMessage(
+                conversation.id,
+                failedMessage.createdAt,
+                conversation.assignedUserId
+            );
+
+            this.emitOutgoingMessage(
+                params.workspaceId,
+                conversation,
+                failedMessage
+            );
+
+            return failedMessage;
+        };
+
+        try {
+            const mediaId = await uploadMediaToMeta({
+                phoneNumberId: account.phoneNumberId,
+                apiVersion: account.apiVersion,
+                accessToken: decryptSecret(account.accessToken),
+                buffer,
+                mimeType: upload.mimeType,
+                filename: upload.filename
+            });
+
+            const payload = buildMediaMessagePayload({
+                to: conversation.contact.phone,
+                type: upload.type,
+                mediaId,
+                caption,
+                filename: upload.filename
+            });
+
+            const response = await axios.post(
+                `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.phoneNumberId}/messages`,
+                payload,
+                {
+                    params: {
+                        access_token: decryptSecret(account.accessToken)
+                    },
+                    timeout: 30000
+                }
+            );
+
+            const wamid =
+                Array.isArray(response.data?.messages) &&
+                response.data.messages[0]?.id
+                    ? String(response.data.messages[0].id)
+                    : null;
+
+            const updatedMessage = await prisma.message.update({
+                where: {
+                    id: localMessage.id
+                },
+                data: {
+                    status: MessageStatus.SENT,
+                    wamid,
+                    metaResponse: toPrismaJson({
+                        mediaId,
+                        response: response.data
+                    })
+                }
+            });
+
+            await this.touchConversationAfterOutgoingMessage(
+                conversation.id,
+                updatedMessage.createdAt,
+                conversation.assignedUserId
+            );
+
+            this.emitOutgoingMessage(
+                params.workspaceId,
+                conversation,
+                updatedMessage
+            );
+
+            return updatedMessage;
+        } catch (error) {
+            await failWith(error);
+
+            throw new Error(
+                error instanceof Error
+                    ? error.message
+                    : "No se pudo enviar el archivo a Meta."
+            );
+        }
     }
 
     private static async getConversationForSending(

@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { AdminConversationsController } from "../controllers/admin-conversations.controller";
+import { mediaUploadSingle } from "../middlewares/upload.middleware";
 
 const router = Router();
 
@@ -10,6 +11,11 @@ router.post("/from-contact/:contactId", AdminConversationsController.openFromCon
 router.get("/:id", AdminConversationsController.show);
 router.post("/:id/messages/local", AdminConversationsController.sendLocalMessage);
 router.post("/:id/messages/template", AdminConversationsController.sendTemplateMessage);
+router.post(
+    "/:id/messages/media",
+    mediaUploadSingle("file", (req) => `/admin/conversations/${req.params.id}`),
+    AdminConversationsController.sendMediaMessage
+);
 router.post("/:id/messages/free-text", AdminConversationsController.sendFreeTextMessage);
 router.post("/:id/assign", AdminConversationsController.assign);
 router.post("/:id/close", AdminConversationsController.close);
