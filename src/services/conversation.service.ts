@@ -212,6 +212,12 @@ export class ConversationService {
                 workspaceId
             },
             include: {
+                whatsappNumber: {
+                    select: {
+                        displayName: true,
+                        phoneNumber: true
+                    }
+                },
                 contact: {
                     include: {
                         tags: {
@@ -269,6 +275,12 @@ export class ConversationService {
                 assignedUserId: userId
             },
             include: {
+                whatsappNumber: {
+                    select: {
+                        displayName: true,
+                        phoneNumber: true
+                    }
+                },
                 contact: {
                     include: {
                         tags: {

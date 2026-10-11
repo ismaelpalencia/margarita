@@ -264,6 +264,12 @@ export class CampaignService {
             include: {
                 template: true,
                 createdBy: true,
+                whatsappNumber: {
+                    select: {
+                        displayName: true,
+                        phoneNumber: true
+                    }
+                },
                 recipients: {
                     include: {
                         contact: true,

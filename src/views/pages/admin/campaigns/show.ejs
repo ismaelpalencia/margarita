@@ -31,6 +31,15 @@
                     <strong><%= campaign.template.name %></strong>
                     · <%= campaign.template.language %>
                 </p>
+
+                <% if (campaign.whatsappNumber) { %>
+                    <p class="mt-1 text-sm text-slate-500">
+                        Enviada desde:
+                        <strong class="text-slate-700">
+                            <%= campaign.whatsappNumber.displayName || campaign.whatsappNumber.phoneNumber %>
+                        </strong>
+                    </p>
+                <% } %>
             </div>
 
             <div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">

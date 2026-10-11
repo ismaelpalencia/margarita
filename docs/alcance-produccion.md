@@ -183,12 +183,22 @@ Además de las pruebas unitarias, los flujos críticos se verificaron de punta a
 
 El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 
-1. **Envío de adjuntos** desde el panel (imágenes y documentos).
-2. **Buscador y filtros de bandeja**: encontrar conversaciones por nombre, teléfono o estado.
-3. **Respuestas rápidas**, contador de no leídos y búsqueda.
-4. **Campañas**: envío en cola con control de velocidad, programación y pausa.
-5. **Cumplimiento**: opt-in y baja automática.
-6. **Salud de la cuenta**: avisos de plantillas rechazadas y cambios de calidad.
+**Proteger la operación.**
+
+1. **Salud de la cuenta**: procesar los avisos de plantillas rechazadas y de cambios de calidad, con alertas. Es lo que protege la estrategia de varios números.
+2. **Campañas en cola** con control de velocidad, más pausar y cancelar. Evita cortes por timeout y choques con los límites de Meta.
+3. **Opt-in y baja automática** (BAJA/STOP), que es cumplimiento pero también protección de la calidad.
+4. **Aplicar los límites de mensajes manuales**, que hoy se configuran y no se validan.
+
+**Mejorar el día a día de la bandeja.**
+
+5. **Respuestas rápidas** guardadas.
+6. **Contador de no leídos**, búsqueda y filtros.
+7. **Botones y listas**: enviarlos e interpretar la respuesta del cliente.
+
+**Cuando el equipo crezca.**
+
+8. **Asignar números a agentes** y **repartir campañas entre números** (ver [`multinumero.md`](multinumero.md)).
 
 ---
 
