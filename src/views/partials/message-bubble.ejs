@@ -1,34 +1,86 @@
 <%#
-    Burbuja de un mensaje. Se usa en la conversación del admin y del
-    agente para no duplicar el marcado (y la lógica de multimedia).
+    Burbuja de un mensaje, con estilo de conversación.
     Espera: message
+    Opcionales: deleteUrl, restoreUrl, logsUrl
 %>
 <%
     const isOut = message.direction === "OUT";
     const mediaTypes = ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT"];
     const hasMedia = mediaTypes.includes(message.type) && Boolean(message.mediaId);
     const body = message.body || "";
-    /* Los textos entre corchetes son rellenos internos ("[Imagen]"), no
-       contenido del cliente: no se muestran cuando hay archivo. */
+    /* Los textos entre corchetes son rellenos internos ("[Imagen]"). */
     const isPlaceholder = body.startsWith("[") && body.endsWith("]");
     const showBody = body !== "" && !(hasMedia && isPlaceholder);
+    const deleted = Boolean(message.deletedAt);
+
+    const tickByStatus = {
+        CREATED: "🕓",
+        SENDING: "🕓",
+        SENT: "✓",
+        DELIVERED: "✓✓",
+        READ: "✓✓",
+        FAILED: "⚠"
+    };
+
+    const labelByStatus = {
+        CREATED: "Pendiente",
+        SENDING: "Enviando",
+        SENT: "Enviado",
+        DELIVERED: "Entregado",
+        READ: "Leído",
+        FAILED: "No entregado"
+    };
+
+    const tick = tickByStatus[message.status] || "🕓";
+    const tickLabel = labelByStatus[message.status] || message.status;
+    const tickColor =
+        message.status === "READ"
+            ? "text-sky-300"
+            : message.status === "FAILED"
+              ? "text-red-200"
+              : isOut
+                ? "text-emerald-100"
+                : "text-slate-400";
+
+    const tone = isOut
+        ? "rounded-tr-sm bg-emerald-600 text-white"
+        : "rounded-tl-sm bg-white text-slate-800 ring-1 ring-slate-200";
+
+    /**
+     * Los enlaces son opcionales: cada vista decide cuáles ofrece. Se usa
+     * typeof porque referenciar un local no declarado rompe EJS.
+     */
+    const canDelete = typeof deleteUrl === "string" && deleteUrl !== "";
+    const canRestore = typeof restoreUrl === "string" && restoreUrl !== "";
+    const hasLogs = typeof logsUrl === "string" && logsUrl !== "";
 %>
 
-<div class="flex <%= isOut ? 'justify-end' : 'justify-start' %>" data-message-id="<%= message.id %>">
-    <div class="max-w-[75%] rounded-2xl px-4 py-3 shadow-sm <%= isOut ? 'bg-emerald-600 text-white' : 'bg-white text-slate-800' %>">
-        <% if (hasMedia && message.mediaDownloadError) { %>
-            <p class="rounded-lg bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700">
-                No se pudo cargar el archivo: <%= message.mediaDownloadError %>
-            </p>
+<div class="flex items-end gap-1.5 <%= isOut ? 'justify-end' : 'justify-start' %>" data-message-id="<%= message.id %>">
+    <% if (isOut) { %>
+        <%- include("message-actions", {
+            message,
+            deleteUrl: canDelete ? deleteUrl : null,
+            restoreUrl: canRestore ? restoreUrl : null
+        }) %>
+    <% } %>
 
-            <a
-                href="/media/<%= message.id %>"
-                target="_blank"
-                rel="noopener"
-                class="mt-2 inline-block text-[11px] font-semibold underline"
+    <div class="max-w-[85%] rounded-2xl px-3 py-2 shadow-sm sm:max-w-[75%] sm:px-4 <%= tone %> <%= deleted ? 'opacity-50' : '' %>">
+        <% if (deleted) { %>
+            <p class="mb-1 text-[10px] font-semibold uppercase tracking-wide opacity-80">
+                Eliminado
+            </p>
+        <% } %>
+
+        <% if (hasMedia && message.mediaDownloadError) { %>
+            <p
+                class="text-[11px] font-semibold text-red-600"
+                title="<%= message.mediaDownloadError %>"
             >
-                Reintentar
-            </a>
+                ⚠ Archivo no disponible ·
+                <a href="/media/<%= message.id %>" target="_blank" rel="noopener" class="underline">
+                    reintentar
+                </a>
+            </p>
         <% } else if (hasMedia && message.type === "IMAGE") { %>
             <a href="/media/<%= message.id %>" target="_blank" rel="noopener">
                 <img
@@ -38,24 +90,10 @@
                     class="max-h-72 w-auto max-w-full rounded-xl"
                 />
             </a>
-
-            <p class="mt-1 text-[11px] <%= isOut ? 'text-emerald-100' : 'text-slate-400' %>">
-                Clic para ver en tamaño completo
-            </p>
         <% } else if (hasMedia && message.type === "VIDEO") { %>
-            <video
-                controls
-                preload="metadata"
-                src="/media/<%= message.id %>"
-                class="max-h-72 w-full rounded-xl"
-            ></video>
+            <video controls preload="metadata" src="/media/<%= message.id %>" class="max-h-72 w-full rounded-xl"></video>
         <% } else if (hasMedia && message.type === "AUDIO") { %>
-            <audio
-                controls
-                preload="none"
-                src="/media/<%= message.id %>"
-                class="w-full max-w-xs"
-            ></audio>
+            <audio controls preload="none" src="/media/<%= message.id %>" class="w-full max-w-xs"></audio>
         <% } else if (hasMedia) { %>
             <a
                 href="/media/<%= message.id %>?download=1"
@@ -67,24 +105,45 @@
         <% } %>
 
         <% if (showBody) { %>
-            <p class="whitespace-pre-line text-sm <%= hasMedia ? 'mt-2' : '' %>">
+            <p class="whitespace-pre-line break-words text-sm <%= hasMedia ? 'mt-2' : '' %>">
                 <%= body %>
+            </p>
+        <% } else if (!hasMedia) { %>
+            <p class="whitespace-pre-line break-words text-sm">
+                <%= "[" + message.type + "]" %>
             </p>
         <% } %>
 
-        <p class="mt-2 text-right text-[11px] <%= isOut ? 'text-emerald-100' : 'text-slate-400' %>">
-            <%= message.createdAt.toLocaleString("es-MX") %>
-            · <span data-message-status><%= message.status %></span>
-
-            <% if (message.source === "MANUAL") { %>
-                · Manual
-            <% } %>
+        <p class="mt-1 flex items-center justify-end gap-1 text-[10px] <%= isOut ? 'text-emerald-100' : 'text-slate-400' %>">
+            <span><%= message.createdAt.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }) %></span>
+            <span
+                data-message-status
+                class="<%= tickColor %> font-semibold"
+                title="<%= tickLabel %>"
+            ><%= tick %></span>
         </p>
 
-        <% if (message.status === "FAILED" && message.errorText) { %>
-            <p class="mt-2 rounded-lg bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700">
-                <%= message.errorText %>
+        <% if (message.status === "FAILED") { %>
+            <p
+                class="mt-1 text-[10px] font-semibold <%= isOut ? 'text-red-100' : 'text-red-600' %>"
+                title="<%= message.errorText || 'Sin detalle en el mensaje' %>"
+            >
+                ⚠ No se pudo entregar
+                <% if (hasLogs) { %>
+                    ·
+                    <a href="<%= logsUrl %>" class="underline">
+                        ver motivo en Logs
+                    </a>
+                <% } %>
             </p>
         <% } %>
     </div>
+
+    <% if (!isOut) { %>
+        <%- include("message-actions", {
+            message,
+            deleteUrl: canDelete ? deleteUrl : null,
+            restoreUrl: canRestore ? restoreUrl : null
+        }) %>
+    <% } %>
 </div>

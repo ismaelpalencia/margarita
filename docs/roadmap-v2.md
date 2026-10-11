@@ -101,7 +101,21 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ## Sprint 35 — Envío con multimedia e interactivos
 
-**Estado: pendiente.**
+## Sprint 36 — Experiencia de conversación
+
+**Estado: completado.**
+
+| Área | Qué se hizo |
+| --- | --- |
+| Diseño del chat | Hilo con burbujas entrantes y salientes, separadores de fecha ("Hoy", "Ayer"), palomitas de estado reales (✓, ✓✓, ✓✓ azul para leído, ⚠ para fallo) y barra de composición al pie con la ventana de 24 horas visible. |
+| Errores discretos | Un mensaje fallido ya no muestra un bloque rojo enorme: aparece una línea corta con "⚠ No se pudo entregar" y el motivo completo en el tooltip. El admin además tiene un enlace a Logs. |
+| Borrado suave | Ocultar un mensaje del chat (agente o admin) sin destruirlo. El admin los ve con "Ver eliminados" y puede restaurarlos. Todo auditado. |
+| Borrado total | El admin puede vaciar una conversación escribiendo `BORRAR` para confirmar. Se registra en la bitácora con el número de mensajes eliminados. |
+| Respaldos | Página `/admin/backup` con descarga completa en JSON y exportaciones CSV por entidad, con BOM para Excel. Excluye credenciales y contraseñas. |
+
+---
+
+## Backlog del Sprint 35 (envío de multimedia e interactivos)
 
 | Función | Detalle |
 | --- | --- |

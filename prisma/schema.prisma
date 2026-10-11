@@ -409,6 +409,12 @@ model Message {
   mediaDownloadedAt DateTime?
   mediaDownloadError String?
 
+  /**
+   * Borrado suave: el mensaje desaparece del hilo pero sigue en la base
+   * y se puede restaurar desde el panel del admin.
+   */
+  deletedAt DateTime?
+
   metaPayload  Json?
   metaResponse Json?
 

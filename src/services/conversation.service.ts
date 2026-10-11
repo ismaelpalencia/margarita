@@ -2,6 +2,8 @@ import {
     ConversationOperationalStatus,
     ConversationSource,
     ConversationStatus,
+    LogLevel,
+    LogModule,
     MessageDirection,
     UserRole
 } from "@prisma/client";
@@ -9,6 +11,7 @@ import {
 import { prisma } from "../config/prisma";
 import { emitToWorkspace } from "../sockets";
 import { describeMetaError } from "../utils/meta-error";
+import { LogService } from "./log.service";
 
 type ListConversationsParams = {
     workspaceId: string;
@@ -155,7 +158,8 @@ export class ConversationService {
 
     static async getConversationForAdmin(
         workspaceId: string,
-        conversationId: string
+        conversationId: string,
+        options: { includeDeleted?: boolean } = {}
     ) {
         const conversation = await prisma.conversation.findFirst({
             where: {
@@ -179,6 +183,11 @@ export class ConversationService {
                 },
                 assignedUser: true,
                 messages: {
+                    /**
+                     * Los mensajes eliminados se ocultan del hilo. El admin
+                     * puede verlos con el interruptor "ver eliminados".
+                     */
+                    where: options.includeDeleted ? {} : { deletedAt: null },
                     orderBy: {
                         createdAt: "asc"
                     }
@@ -231,6 +240,7 @@ export class ConversationService {
                 },
                 assignedUser: true,
                 messages: {
+                    where: { deletedAt: null },
                     orderBy: {
                         createdAt: "asc"
                     }
@@ -445,6 +455,61 @@ export class ConversationService {
                 closedAt: null
             }
         });
+    }
+
+    /**
+     * Borra definitivamente todos los mensajes de una conversación. No
+     * toca el contacto ni la conversación, solo el contenido del hilo.
+     */
+    static async purgeMessages(
+        workspaceId: string,
+        conversationId: string,
+        actorId: string
+    ) {
+        const conversation = await prisma.conversation.findFirst({
+            where: {
+                id: conversationId,
+                workspaceId
+            },
+            select: {
+                id: true
+            }
+        });
+
+        if (!conversation) {
+            throw new Error("Conversación no encontrada.");
+        }
+
+        const deleted = await prisma.message.deleteMany({
+            where: {
+                conversationId,
+                workspaceId
+            }
+        });
+
+        await prisma.conversation.update({
+            where: {
+                id: conversationId
+            },
+            data: {
+                lastMessageAt: null
+            }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.WARN,
+            module: LogModule.CONVERSATION,
+            action: "CONVERSATION_PURGED",
+            message: "Se borraron definitivamente los mensajes de la conversación.",
+            payload: {
+                conversationId,
+                actorId,
+                deletedMessages: deleted.count
+            }
+        });
+
+        return deleted.count;
     }
 
     static async addLocalSystemMessage(

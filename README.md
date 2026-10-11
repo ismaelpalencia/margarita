@@ -39,7 +39,9 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Contactos: crear, editar, buscar, etiquetar y desactivar.
 - Etiquetas: crear, editar y desactivar.
 - Agentes: crear, editar, activar o desactivar, con permisos y límite de mensajes manuales.
-- Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir.
+- Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo).
+- Borrado de mensajes: ocultar un mensaje sin destruirlo (restaurable desde el panel del admin) y, como admin, borrar todo el hilo escribiendo `BORRAR` para confirmar.
+- Respaldos: descarga completa en JSON o exportación por entidad en CSV (contactos, conversaciones, mensajes, campañas, plantillas, usuarios y bitácora).
 - Campañas: crear seleccionando contactos o subiendo Excel/CSV, enviar, ver errores y reintentar fallidos.
 - Logs: auditoría filtrable de webhook, Meta, campañas, **envíos de mensajes**, conversaciones y usuarios. Cada envío manual queda registrado como `MESSAGE_SENT` y cada fallo como `MESSAGE_FAILED`, con el motivo de Meta traducido al español.
 - Estado del sistema: checklist de configuración (workspace, WhatsApp, plantillas, contactos, agentes).
@@ -358,6 +360,9 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | POST | `/admin/conversations/:id/messages/local` | Nota interna (no se envía a WhatsApp) |
 | POST | `/admin/conversations/:id/messages/free-text` | Texto libre dentro de la ventana de 24h |
 | POST | `/admin/conversations/:id/messages/template` | Envío con plantilla aprobada |
+| POST | `/admin/conversations/:id/messages/:messageId/delete` | Oculta un mensaje del chat |
+| POST | `/admin/conversations/:id/messages/:messageId/restore` | Restaura un mensaje oculto |
+| POST | `/admin/conversations/:id/purge` | Borra definitivamente todo el hilo (requiere escribir `BORRAR`) |
 | POST | `/admin/conversations/:id/assign` | Asigna o reasigna agente |
 | POST | `/admin/conversations/:id/close`, `/:id/reopen` | Cierra o reabre |
 | GET | `/admin/campaigns` | Listado de campañas |
@@ -368,6 +373,8 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | POST | `/admin/campaigns/:id/send` | Envía la campaña |
 | POST | `/admin/campaigns/:id/retry-failed` | Reintenta destinatarios fallidos |
 | GET | `/admin/logs` | Auditoría |
+| GET | `/admin/backup` | Respaldos y exportaciones |
+| GET | `/admin/backup/download` | Descarga respaldo (`?format=json` o `?format=csv&entity=messages`) |
 | GET | `/admin/system` | Checklist de configuración |
 | GET | `/admin/roadmap` | Alcance V1 vs V2 |
 

@@ -1,0 +1,94 @@
+<%- include("../../../partials/header", { title: "Respaldos - Admin" }) %>
+
+<div class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-5xl px-4 py-8">
+        <div class="mb-8">
+            <p class="text-sm font-semibold uppercase tracking-wide text-emerald-600">
+                Operación
+            </p>
+
+            <h1 class="mt-1 text-3xl font-black text-slate-900">
+                Respaldos y exportaciones
+            </h1>
+
+            <p class="mt-2 max-w-3xl text-slate-600">
+                Descarga una copia de tus datos para guardarla o revisarla en Excel.
+                Los archivos se generan al momento y no se almacenan en el servidor.
+            </p>
+        </div>
+
+        <% if (error === "entity") { %>
+            <p class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                Esa exportación no existe.
+            </p>
+        <% } else if (error) { %>
+            <p class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                No se pudo generar el respaldo. Intenta de nuevo.
+            </p>
+        <% } %>
+
+        <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h2 class="text-xl font-bold text-slate-900">
+                Respaldo completo
+            </h2>
+
+            <p class="mt-2 text-sm text-slate-600">
+                Un solo archivo JSON con contactos, conversaciones, mensajes, campañas,
+                plantillas, usuarios y bitácora. Es el que conviene guardar periódicamente.
+            </p>
+
+            <div class="mt-4 rounded-xl bg-slate-50 p-4 text-xs text-slate-600">
+                <p class="font-semibold text-slate-700">
+                    Lo que incluye y lo que no
+                </p>
+
+                <ul class="mt-2 list-disc space-y-1 pl-5">
+                    <li>Las credenciales de Meta <strong>no</strong> se incluyen: se muestran enmascaradas. Vuelve a capturarlas desde WhatsApp si restauras.</li>
+                    <li>Las contraseñas de los usuarios <strong>no</strong> se incluyen.</li>
+                    <li>Se exportan hasta <%= maxRows %> mensajes (los más recientes) y 5000 entradas de bitácora.</li>
+                    <li>Los archivos multimedia no se incluyen en el respaldo; siguen en el almacenamiento del servidor.</li>
+                </ul>
+            </div>
+
+            <a
+                href="/admin/backup/download?format=json"
+                class="mt-5 inline-block rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+                Descargar respaldo completo
+            </a>
+        </section>
+
+        <section class="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h2 class="text-xl font-bold text-slate-900">
+                Exportar por separado
+            </h2>
+
+            <p class="mt-2 text-sm text-slate-600">
+                Archivos CSV listos para abrir en Excel.
+            </p>
+
+            <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <% [
+                    { id: "contacts", label: "Contactos" },
+                    { id: "conversations", label: "Conversaciones" },
+                    { id: "messages", label: "Mensajes" },
+                    { id: "campaigns", label: "Campañas" },
+                    { id: "templates", label: "Plantillas" },
+                    { id: "users", label: "Usuarios" },
+                    { id: "logs", label: "Bitácora" }
+                ].forEach((entity) => { %>
+                    <a
+                        href="/admin/backup/download?format=csv&entity=<%= entity.id %>"
+                        class="rounded-xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-emerald-50 hover:text-emerald-700"
+                    >
+                        <%= entity.label %>
+                    </a>
+                <% }) %>
+            </div>
+        </section>
+    </main>
+</div>
+
+<%- include("../../../partials/footer") %>

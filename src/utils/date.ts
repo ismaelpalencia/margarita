@@ -30,3 +30,27 @@ export function formatTimeMX(date: Date | string | null | undefined): string {
 
     return dayjs(date).tz(appConfig.timezone).format("HH:mm");
 }
+
+/**
+ * Etiqueta del separador de fecha en el chat: "Hoy", "Ayer" o la fecha.
+ */
+export function formatDayLabelMX(
+    date: Date | string | null | undefined
+): string {
+    if (!date) {
+        return "";
+    }
+
+    const value = dayjs(date).tz(appConfig.timezone);
+    const today = dayjs().tz(appConfig.timezone);
+
+    if (value.isSame(today, "day")) {
+        return "Hoy";
+    }
+
+    if (value.isSame(today.subtract(1, "day"), "day")) {
+        return "Ayer";
+    }
+
+    return value.format("DD/MM/YYYY");
+}

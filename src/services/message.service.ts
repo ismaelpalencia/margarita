@@ -461,6 +461,135 @@ export class MessageService {
             }
         });
     }
+    /**
+     * Autoriza una acción sobre el hilo: el admin puede con cualquier
+     * conversación de su workspace y el agente solo con las asignadas a él.
+     */
+    private static async getConversationForModeration(
+        workspaceId: string,
+        conversationId: string,
+        actor: { id: string; role: UserRole }
+    ) {
+        const conversation = await prisma.conversation.findFirst({
+            where: {
+                id: conversationId,
+                workspaceId
+            }
+        });
+
+        if (!conversation) {
+            throw new Error("Conversación no encontrada.");
+        }
+
+        if (
+            actor.role === UserRole.AGENT &&
+            conversation.assignedUserId !== actor.id
+        ) {
+            throw new Error("No puedes modificar esta conversación.");
+        }
+
+        return conversation;
+    }
+
+    /**
+     * Oculta un mensaje del hilo. No se borra de la base: el admin puede
+     * verlo y restaurarlo.
+     */
+    static async deleteMessage(params: {
+        workspaceId: string;
+        conversationId: string;
+        messageId: string;
+        actor: { id: string; role: UserRole };
+    }) {
+        await this.getConversationForModeration(
+            params.workspaceId,
+            params.conversationId,
+            params.actor
+        );
+
+        const message = await prisma.message.findFirst({
+            where: {
+                id: params.messageId,
+                conversationId: params.conversationId,
+                workspaceId: params.workspaceId
+            }
+        });
+
+        if (!message) {
+            throw new Error("Mensaje no encontrado.");
+        }
+
+        await prisma.message.update({
+            where: {
+                id: message.id
+            },
+            data: {
+                deletedAt: new Date()
+            }
+        });
+
+        await LogService.create({
+            workspaceId: params.workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.MESSAGE,
+            action: "MESSAGE_DELETED",
+            message: "Mensaje oculto del chat (se puede restaurar).",
+            payload: {
+                messageId: message.id,
+                conversationId: params.conversationId,
+                actorId: params.actor.id,
+                role: params.actor.role
+            }
+        });
+    }
+
+    static async restoreMessage(params: {
+        workspaceId: string;
+        conversationId: string;
+        messageId: string;
+        actor: { id: string; role: UserRole };
+    }) {
+        await this.getConversationForModeration(
+            params.workspaceId,
+            params.conversationId,
+            params.actor
+        );
+
+        const message = await prisma.message.findFirst({
+            where: {
+                id: params.messageId,
+                conversationId: params.conversationId,
+                workspaceId: params.workspaceId
+            }
+        });
+
+        if (!message) {
+            throw new Error("Mensaje no encontrado.");
+        }
+
+        await prisma.message.update({
+            where: {
+                id: message.id
+            },
+            data: {
+                deletedAt: null
+            }
+        });
+
+        await LogService.create({
+            workspaceId: params.workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.MESSAGE,
+            action: "MESSAGE_RESTORED",
+            message: "Mensaje restaurado en el chat.",
+            payload: {
+                messageId: message.id,
+                conversationId: params.conversationId,
+                actorId: params.actor.id
+            }
+        });
+    }
+
     private static async getConversationForSending(
         workspaceId: string,
         conversationId: string,

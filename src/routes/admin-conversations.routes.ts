@@ -14,5 +14,8 @@ router.post("/:id/messages/free-text", AdminConversationsController.sendFreeText
 router.post("/:id/assign", AdminConversationsController.assign);
 router.post("/:id/close", AdminConversationsController.close);
 router.post("/:id/reopen", AdminConversationsController.reopen);
+router.post("/:id/messages/:messageId/delete", AdminConversationsController.deleteMessage);
+router.post("/:id/messages/:messageId/restore", AdminConversationsController.restoreMessage);
+router.post("/:id/purge", AdminConversationsController.purge);
 
 export default router;

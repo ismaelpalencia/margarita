@@ -14,6 +14,7 @@ import adminLogsRoutes from "./admin-logs.routes";
 import adminCampaignsRoutes from "./admin-campaigns.routes";
 import adminSystemRoutes from "./admin-system.routes";
 import adminRoadmapRoutes from "./admin-roadmap.routes";
+import adminBackupRoutes from "./admin-backup.routes";
 
 
 const router = Router();
@@ -32,5 +33,6 @@ router.use("/logs", adminLogsRoutes);
 router.use("/campaigns", adminCampaignsRoutes);
 router.use("/system", adminSystemRoutes);
 router.use("/roadmap", adminRoadmapRoutes);
+router.use("/backup", adminBackupRoutes);
 
 export default router;

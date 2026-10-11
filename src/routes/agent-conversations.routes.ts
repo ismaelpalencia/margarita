@@ -10,5 +10,6 @@ router.post("/:id/messages/local", AgentConversationsController.sendLocalMessage
 router.post("/:id/messages/template", AgentConversationsController.sendTemplateMessage);
 router.post("/:id/messages/free-text", AgentConversationsController.sendFreeTextMessage);
 router.post("/:id/close", AgentConversationsController.close);
+router.post("/:id/messages/:messageId/delete", AgentConversationsController.deleteMessage);
 
 export default router;

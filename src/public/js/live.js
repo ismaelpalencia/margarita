@@ -39,6 +39,42 @@
         return date.toLocaleString("es-MX");
     }
 
+    function formatTime(value) {
+        var date = new Date(value);
+
+        if (isNaN(date.getTime())) {
+            return "";
+        }
+
+        return date.toLocaleTimeString("es-MX", {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    var TICKS = {
+        CREATED: "🕓",
+        SENDING: "🕓",
+        SENT: "✓",
+        DELIVERED: "✓✓",
+        READ: "✓✓",
+        FAILED: "⚠"
+    };
+
+    var TICK_LABELS = {
+        CREATED: "Pendiente",
+        SENDING: "Enviando",
+        SENT: "Enviado",
+        DELIVERED: "Entregado",
+        READ: "Leído",
+        FAILED: "No entregado"
+    };
+
+    function applyStatus(element, status) {
+        element.textContent = TICKS[status] || "🕓";
+        element.title = TICK_LABELS[status] || status;
+    }
+
     function ensureToastContainer() {
         if (toastContainer) {
             return toastContainer;
@@ -121,11 +157,12 @@
         meta.className =
             "mt-2 text-right text-[11px] " +
             (isOut ? "text-emerald-100" : "text-slate-400");
-        meta.textContent = formatDate(message.createdAt) + " · ";
+        meta.textContent = formatTime(message.createdAt) + " ";
 
         var status = document.createElement("span");
         status.dataset.messageStatus = "";
-        status.textContent = message.status;
+        status.className = isOut ? "text-emerald-100 font-semibold" : "text-slate-400 font-semibold";
+        applyStatus(status, message.status);
 
         meta.appendChild(status);
         bubble.appendChild(meta);
@@ -222,7 +259,7 @@
         );
 
         if (statusElement) {
-            statusElement.textContent = payload.status;
+            applyStatus(statusElement, payload.status);
         }
     }
 

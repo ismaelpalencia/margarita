@@ -8,7 +8,11 @@ import { getRequiredParam } from "../utils/request";
 import { sendFreeTextMessageSchema } from "../validations/free-text-message.validation";
 import { sendLocalMessageSchema } from "../validations/message.validation";
 import { sendTemplateMessageSchema } from "../validations/template-message.validation";
-import { formatDateTimeMX, formatTimeMX } from "../utils/date";
+import {
+    formatDateTimeMX,
+    formatDayLabelMX,
+    formatTimeMX
+} from "../utils/date";
 
 export class AdminConversationsController {
     static async index(req: Request, res: Response) {
@@ -27,11 +31,13 @@ export class AdminConversationsController {
 
     static async show(req: Request, res: Response) {
         const conversationId = getRequiredParam(req, "id");
+        const includeDeleted = req.query.deleted === "1";
 
         const [conversation, agents, templates] = await Promise.all([
             ConversationService.getConversationForAdmin(
                 req.user!.workspaceId,
-                conversationId
+                conversationId,
+                { includeDeleted }
             ),
             UserService.listActiveAgents(req.user!.workspaceId),
             TemplateService.listApprovedTemplates(req.user!.workspaceId)
@@ -42,7 +48,9 @@ export class AdminConversationsController {
             conversation,
             agents,
             templates,
+            showDeleted: includeDeleted,
             formatDateTimeMX,
+            formatDayLabelMX,
             formatTimeMX,
             error: req.query.error || null,
             success: req.query.success || null
@@ -151,6 +159,82 @@ export class AdminConversationsController {
             return res.redirect(`/admin/conversations/${conversation.id}`);
         } catch {
             return res.redirect("/admin/contacts?error=conversation");
+        }
+    }
+
+    static async deleteMessage(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+        const messageId = getRequiredParam(req, "messageId");
+
+        try {
+            await MessageService.deleteMessage({
+                workspaceId: req.user!.workspaceId,
+                conversationId,
+                messageId,
+                actor: { id: req.user!.id, role: req.user!.role }
+            });
+
+            return res.redirect(
+                `/admin/conversations/${conversationId}?success=deleted`
+            );
+        } catch {
+            return res.redirect(
+                `/admin/conversations/${conversationId}?error=delete`
+            );
+        }
+    }
+
+    static async restoreMessage(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+        const messageId = getRequiredParam(req, "messageId");
+
+        try {
+            await MessageService.restoreMessage({
+                workspaceId: req.user!.workspaceId,
+                conversationId,
+                messageId,
+                actor: { id: req.user!.id, role: req.user!.role }
+            });
+
+            return res.redirect(
+                `/admin/conversations/${conversationId}?deleted=1&success=restored`
+            );
+        } catch {
+            return res.redirect(
+                `/admin/conversations/${conversationId}?deleted=1&error=restore`
+            );
+        }
+    }
+
+    static async purge(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+        const confirmation =
+            typeof req.body?.confirm === "string" ? req.body.confirm.trim() : "";
+
+        /**
+         * El borrado definitivo exige escribir la palabra: no basta con
+         * un clic ni con el diálogo del navegador.
+         */
+        if (confirmation.toUpperCase() !== "BORRAR") {
+            return res.redirect(
+                `/admin/conversations/${conversationId}?error=confirm`
+            );
+        }
+
+        try {
+            await ConversationService.purgeMessages(
+                req.user!.workspaceId,
+                conversationId,
+                req.user!.id
+            );
+
+            return res.redirect(
+                `/admin/conversations/${conversationId}?success=purged`
+            );
+        } catch {
+            return res.redirect(
+                `/admin/conversations/${conversationId}?error=purge`
+            );
         }
     }
 

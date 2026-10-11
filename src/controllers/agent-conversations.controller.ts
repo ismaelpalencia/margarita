@@ -7,7 +7,11 @@ import { getRequiredParam } from "../utils/request";
 import { sendFreeTextMessageSchema } from "../validations/free-text-message.validation";
 import { sendLocalMessageSchema } from "../validations/message.validation";
 import { sendTemplateMessageSchema } from "../validations/template-message.validation";
-import { formatDateTimeMX, formatTimeMX } from "../utils/date";
+import {
+    formatDateTimeMX,
+    formatDayLabelMX,
+    formatTimeMX
+} from "../utils/date";
 
 
 export class AgentConversationsController {
@@ -42,6 +46,7 @@ export class AgentConversationsController {
             conversation,
             templates,
             formatDateTimeMX,
+            formatDayLabelMX,
             formatTimeMX,
             success: req.query.success || null,
             error: req.query.error || null
@@ -134,6 +139,28 @@ export class AgentConversationsController {
         } catch {
             return res.redirect(
                 `/agent/conversations/${conversationId}?error=template`
+            );
+        }
+    }
+
+    static async deleteMessage(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+        const messageId = getRequiredParam(req, "messageId");
+
+        try {
+            await MessageService.deleteMessage({
+                workspaceId: req.user!.workspaceId,
+                conversationId,
+                messageId,
+                actor: { id: req.user!.id, role: req.user!.role }
+            });
+
+            return res.redirect(
+                `/agent/conversations/${conversationId}?success=message`
+            );
+        } catch {
+            return res.redirect(
+                `/agent/conversations/${conversationId}?error=message`
             );
         }
     }

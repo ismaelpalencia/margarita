@@ -1,0 +1,42 @@
+<%#
+    Botón de eliminar o restaurar un mensaje.
+    Espera: message y, opcionalmente, deleteUrl / restoreUrl.
+%>
+<%
+    const canRestore = typeof restoreUrl === "string" && restoreUrl !== "";
+    const canDelete = typeof deleteUrl === "string" && deleteUrl !== "";
+%>
+
+<% if (message.deletedAt && canRestore) { %>
+    <form action="<%= restoreUrl %>" method="POST" class="shrink-0 self-center">
+        <button
+            type="submit"
+            title="Restaurar en el chat"
+            class="flex h-7 w-7 items-center justify-center rounded-full text-slate-300 transition hover:bg-emerald-50 hover:text-emerald-600"
+        >
+            <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4" aria-hidden="true">
+                <path
+                    fill-rule="evenodd"
+                    d="M7.793 2.232a.75.75 0 01-.025 1.06L3.622 7.25h10.003a5.375 5.375 0 010 10.75H10.75a.75.75 0 010-1.5h2.875a3.875 3.875 0 000-7.75H3.622l4.146 3.957a.75.75 0 01-1.036 1.085l-5.5-5.25a.75.75 0 010-1.085l5.5-5.25a.75.75 0 011.061.025z"
+                    clip-rule="evenodd"
+                />
+            </svg>
+        </button>
+    </form>
+<% } else if (!message.deletedAt && canDelete) { %>
+    <form action="<%= deleteUrl %>" method="POST" class="shrink-0 self-center">
+        <button
+            type="submit"
+            title="Eliminar del chat (se puede restaurar)"
+            class="flex h-7 w-7 items-center justify-center rounded-full text-slate-300 transition hover:bg-red-50 hover:text-red-600 focus:opacity-100"
+        >
+            <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4" aria-hidden="true">
+                <path
+                    fill-rule="evenodd"
+                    d="M8.75 1a1 1 0 00-.97.757L7.44 3H4.5a.75.75 0 000 1.5h11a.75.75 0 000-1.5h-2.94l-.34-1.243A1 1 0 0011.25 1h-2.5zm-3 4.5h9l-.8 9.6a2 2 0 01-1.995 1.9H8.045a2 2 0 01-1.995-1.9l-.8-9.6z"
+                    clip-rule="evenodd"
+                />
+            </svg>
+        </button>
+    </form>
+<% } %>

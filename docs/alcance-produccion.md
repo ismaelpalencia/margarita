@@ -60,6 +60,9 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, un número 
 - **Historial de asignaciones** con quién movió qué y por qué.
 - **Tiempo real**: la bandeja se actualiza sin recargar, con eventos por socket autenticados con la misma sesión del panel.
 - **Multimedia entrante**: las fotos, el video, el audio y los documentos que envían los clientes se ven dentro del hilo, con visor y descarga. Las imágenes se descargan al recibirlas y el resto cuando alguien lo abre.
+- **Chat de conversación**: hilo con burbujas, separadores de fecha, palomitas de estado reales y barra de composición, con actualización en vivo.
+- **Borrado de mensajes**: ocultar un mensaje sin destruirlo (el admin puede verlo y restaurarlo) o borrar todo el hilo definitivamente escribiendo `BORRAR`.
+- **Respaldos**: descarga completa en JSON o exportación por entidad en CSV.
 - **Motivos de fallo traducidos**: los códigos de Meta (pago, ventana cerrada, número inválido, límites, plantillas) se explican en español en la bitácora y en el hilo.
 
 ### Auditoría y operación
@@ -111,6 +114,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Cabeceras y CORS** | Helmet activo y CORS restringido al dominio de la aplicación. La política de contenido (CSP) está desactivada para permitir las vistas actuales; se puede habilitar con nonces. |
 | **Exposición de secretos** | Los tokens nunca se envían al navegador (la vista recibe solo una versión enmascarada) y la bitácora redacta cualquier campo que parezca credencial. |
 | **Acceso a archivos** | Los archivos no son públicos: se sirven por un endpoint que exige sesión y valida que el usuario pueda ver esa conversación. Un agente sin la conversación recibe 404, y los archivos se guardan fuera del alcance del servidor web. |
+| **Borrado con intención** | Ocultar un mensaje es reversible y queda auditado. El borrado definitivo exige escribir `BORRAR` y también queda en la bitácora. El respaldo descargable **no incluye** credenciales de Meta ni contraseñas. |
 | **Retención** | La bitácora se purga a los 90 días y los eventos de webhook resueltos a los 30. |
 
 ### Lo que la seguridad NO cubre
@@ -120,7 +124,7 @@ Ser explícito aquí es parte del trato:
 1. **No hay autenticación de dos factores.** Quien tenga la contraseña del admin entra.
 2. **La base no está cifrada en reposo.** Un volcado de PostgreSQL expone conversaciones, teléfonos y contenido. Lo único cifrado son los tokens de Meta.
 3. **No hay antitivirus ni análisis de adjuntos** (relevante cuando se agregue multimedia).
-4. **No hay respaldos automáticos propios.** Depende de lo que ofrezca el proveedor; conviene activarlos.
+4. **No hay respaldos automáticos.** Existe la descarga manual (respaldos en JSON y CSV), pero nada la ejecuta sola: depende de que alguien la haga o de lo que ofrezca el proveedor; conviene activar los del proveedor.
 5. **No hay gestión de sesiones activas en la interfaz.** Se puede cerrar sesión, pero no ver ni revocar otras.
 6. **No hay rotación automática de secretos** ni caducidad de la `ENCRYPTION_KEY`.
 7. **No hay prueba de penetración.** Los controles están probados con pruebas automatizadas y verificación manual, no con un pentest externo.
@@ -179,7 +183,7 @@ Además de las pruebas unitarias, los flujos críticos se verificaron de punta a
 El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 
 1. **Envío de adjuntos** desde el panel (imágenes y documentos).
-2. **Interfaz tipo WhatsApp**: burbujas, palomitas de estado, barra de composición y vista móvil.
+2. **Buscador y filtros de bandeja**: encontrar conversaciones por nombre, teléfono o estado.
 3. **Respuestas rápidas**, contador de no leídos y búsqueda.
 4. **Campañas**: envío en cola con control de velocidad, programación y pausa.
 5. **Cumplimiento**: opt-in y baja automática.
