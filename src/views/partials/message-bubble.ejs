@@ -55,15 +55,7 @@
     const hasLogs = typeof logsUrl === "string" && logsUrl !== "";
 %>
 
-<div class="flex items-end gap-1.5 <%= isOut ? 'justify-end' : 'justify-start' %>" data-message-id="<%= message.id %>">
-    <% if (isOut) { %>
-        <%- include("message-actions", {
-            message,
-            deleteUrl: canDelete ? deleteUrl : null,
-            restoreUrl: canRestore ? restoreUrl : null
-        }) %>
-    <% } %>
-
+<div class="flex <%= isOut ? 'justify-end' : 'justify-start' %>" data-message-id="<%= message.id %>">
     <div class="max-w-[85%] rounded-2xl px-3 py-2 shadow-sm sm:max-w-[75%] sm:px-4 <%= tone %> <%= deleted ? 'opacity-50' : '' %>">
         <% if (deleted) { %>
             <p class="mb-1 text-[10px] font-semibold uppercase tracking-wide opacity-80">
@@ -114,14 +106,21 @@
             </p>
         <% } %>
 
-        <p class="mt-1 flex items-center justify-end gap-1 text-[10px] <%= isOut ? 'text-emerald-100' : 'text-slate-400' %>">
+        <div class="mt-1 flex items-center justify-end gap-1.5 text-[10px] <%= isOut ? 'text-emerald-100' : 'text-slate-400' %>">
             <span><%= message.createdAt.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }) %></span>
             <span
                 data-message-status
                 class="<%= tickColor %> font-semibold"
                 title="<%= tickLabel %>"
             ><%= tick %></span>
-        </p>
+
+            <%- include("message-actions", {
+                message,
+                isOut,
+                deleteUrl: canDelete ? deleteUrl : null,
+                restoreUrl: canRestore ? restoreUrl : null
+            }) %>
+        </div>
 
         <% if (message.status === "FAILED") { %>
             <p
@@ -139,11 +138,4 @@
         <% } %>
     </div>
 
-    <% if (!isOut) { %>
-        <%- include("message-actions", {
-            message,
-            deleteUrl: canDelete ? deleteUrl : null,
-            restoreUrl: canRestore ? restoreUrl : null
-        }) %>
-    <% } %>
 </div>

@@ -239,18 +239,26 @@
             placeholder.remove();
         }
 
+        /**
+         * El hilo tiene su propio scroll, así que se mide ahí y no en la
+         * ventana. Solo se baja solo si el usuario ya estaba al final,
+         * para no interrumpirlo si está leyendo mensajes anteriores.
+         */
         var shouldStickToBottom =
-            window.innerHeight + window.scrollY >=
-            document.body.offsetHeight - 120;
+            container.scrollHeight - container.scrollTop - container.clientHeight < 140;
 
         container.appendChild(buildMessageBubble(message));
 
         if (shouldStickToBottom) {
-            window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: "smooth"
-            });
+            scrollThreadToBottom(container, true);
         }
+    }
+
+    function scrollThreadToBottom(container, smooth) {
+        container.scrollTo({
+            top: container.scrollHeight,
+            behavior: smooth ? "smooth" : "auto"
+        });
     }
 
     function updateMessageStatus(payload) {
@@ -275,6 +283,28 @@
 
         hasConnectedBefore = true;
     });
+
+    /**
+     * Al abrir la conversación se muestra el final del hilo, como en
+     * cualquier chat: sin esto se ve el principio y parece que no hay
+     * mensajes nuevos.
+     */
+    if (page === "conversation") {
+        var thread = document.querySelector("[data-live-messages]");
+
+        if (thread) {
+            scrollThreadToBottom(thread, false);
+
+            /* Las imágenes cargan después y cambian la altura. */
+            window.addEventListener("load", function () {
+                scrollThreadToBottom(thread, false);
+            });
+
+            setTimeout(function () {
+                scrollThreadToBottom(thread, false);
+            }, 300);
+        }
+    }
 
     socket.on("conversation:message", function (payload) {
         if (!payload || !payload.message) {
