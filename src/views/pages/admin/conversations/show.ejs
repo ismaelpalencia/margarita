@@ -63,7 +63,7 @@
 
     <main class="mx-auto grid w-full max-w-7xl gap-4 px-3 py-4 lg:h-[calc(100dvh-88px)] lg:grid-cols-[1fr_340px] lg:px-4">
         <section class="flex h-[70dvh] min-h-[420px] flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 lg:h-full lg:min-h-0">
-            <div class="flex shrink-0 items-center gap-3 border-b border-slate-200 px-4 py-3">
+            <div class="flex shrink-0 flex-wrap items-center gap-3 border-b border-slate-200 px-4 py-3">
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
                     <%= initials %>
                 </div>
@@ -78,7 +78,7 @@
                     </p>
                 </div>
 
-                <div class="ml-auto flex shrink-0 items-center gap-2">
+                <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
                     <% if (conversation.whatsappNumber) { %>
                         <span
                             class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600"
@@ -131,7 +131,7 @@
             <% } %>
 
             <div
-                class="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-5"
+                class="min-h-[140px] flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-5"
                 style="background-color: #f4f7f5; background-image: radial-gradient(#dde5e0 1px, transparent 1px); background-size: 22px 22px;"
                 data-live-messages
             >
@@ -165,7 +165,15 @@
                 <% }) %>
             </div>
 
-            <div class="shrink-0 border-t border-slate-200 bg-white p-3">
+            <%
+                /**
+                 * El compositor se queda con lo mínimo: escribir, adjuntar y
+                 * elegir una respuesta rápida. Las acciones grandes viven en la
+                 * columna lateral, que tiene su propio scroll, para que nunca
+                 * tapen el hilo ni se salga nada de la pantalla.
+                 */
+            %>
+            <div class="max-h-[55%] shrink-0 overflow-y-auto border-t border-slate-200 bg-white p-3">
                 <% if (conversation.contact.optOutAt) { %>
                     <div class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-100">
                         <p class="font-bold">
@@ -241,148 +249,16 @@
                     </div>
                 <% } %>
 
-                <% if (hasOpenWindow && conversation.status === "OPEN" && !conversation.contact.optOutAt) { %>
-                    <details class="mt-3">
-                        <summary class="inline-flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50">
-                            📎 Adjuntar imagen o documento
-                        </summary>
-
-                        <form
-                            action="/admin/conversations/<%= conversation.id %>/messages/media"
-                            method="POST"
-                            enctype="multipart/form-data"
-                            class="mt-3 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3"
-                        >
-                            <input
-                                type="file"
-                                name="file"
-                                required
-                                class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
-                            />
-
-                            <input
-                                name="caption"
-                                placeholder="Texto opcional (el audio no lleva texto)"
-                                class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                            />
-
-                            <p class="text-xs text-slate-500">
-                                Imagen 5 MB · video y audio 16 MB · documentos 100 MB.
-                            </p>
-
-                            <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
-                                Enviar archivo
-                            </button>
-                        </form>
-                    </details>
-                <% } %>
-
-                <details class="mt-3">
-                    <summary class="cursor-pointer text-xs font-semibold text-slate-500">
-                        Más opciones: plantilla, nota interna y borrado
-                    </summary>
-
-                    <div class="mt-3 grid gap-3">
-                        <% if (!conversation.contact.optOutAt) { %>
-                        <form
-                            action="/admin/conversations/<%= conversation.id %>/messages/template"
-                            method="POST"
-                            class="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3"
-                        >
-                            <p class="text-sm font-semibold text-slate-800">
-                                Enviar plantilla
-                            </p>
-
-                            <% if (templates.length === 0) { %>
-                                <p class="text-xs text-slate-500">
-                                    No hay plantillas aprobadas sincronizadas.
-                                </p>
-                            <% } else { %>
-                                <select
-                                    name="templateId"
-                                    required
-                                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                                >
-                                    <option value="">Selecciona plantilla</option>
-
-                                    <% templates.forEach((template) => { %>
-                                        <option value="<%= template.id %>">
-                                            <%= template.name %> · <%= template.language %>
-                                        </option>
-                                    <% }) %>
-                                </select>
-
-                                <div class="grid gap-2 sm:grid-cols-3">
-                                    <% [1, 2, 3].forEach((position) => { %>
-                                        <input
-                                            name="variable<%= position %>"
-                                            placeholder="Variable <%= position %>"
-                                            class="rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                                        />
-                                    <% }) %>
-                                </div>
-
-                                <button class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-                                    Enviar plantilla
-                                </button>
-                            <% } %>
-                        </form>
-                        <% } %>
-
-                        <form
-                            action="/admin/conversations/<%= conversation.id %>/messages/local"
-                            method="POST"
-                            class="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3"
-                        >
-                            <p class="text-sm font-semibold text-slate-800">
-                                Nota interna
-                            </p>
-
-                            <textarea
-                                name="body"
-                                rows="2"
-                                required
-                                placeholder="Solo la ve el equipo. No se envía a WhatsApp."
-                                class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                            ></textarea>
-
-                            <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">
-                                Guardar nota
-                            </button>
-                        </form>
-
-                        <form
-                            action="/admin/conversations/<%= conversation.id %>/purge"
-                            method="POST"
-                            class="space-y-2 rounded-xl border border-red-200 bg-red-50 p-3"
-                            onsubmit="return confirm('Se eliminarán TODOS los mensajes de esta conversación. Esta acción no se puede deshacer. ¿Continuar?');"
-                        >
-                            <p class="text-sm font-semibold text-red-800">
-                                Borrar todo el chat
-                            </p>
-
-                            <p class="text-xs text-red-700">
-                                Elimina definitivamente los mensajes de esta conversación. Para
-                                confirmar, escribe <strong>BORRAR</strong>.
-                            </p>
-
-                            <input
-                                name="confirm"
-                                placeholder="BORRAR"
-                                autocomplete="off"
-                                class="w-full rounded-xl border border-red-300 px-3 py-2 text-sm"
-                            />
-
-                            <button class="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">
-                                Borrar todo el chat
-                            </button>
-                        </form>
-                    </div>
-                </details>
             </div>
         </section>
 
         <aside class="space-y-4 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+            <%- include("../../../partials/conversation-tools", {
+                conversation,
+                templates,
+                basePath: "/admin/conversations"
+            }) %>
+
             <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                 <h3 class="font-bold text-slate-800">
                     Asignación
@@ -528,6 +404,35 @@
                         </div>
                     <% }) %>
                 </div>
+            </section>
+
+            <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-red-200">
+                <h3 class="font-bold text-red-800">
+                    Zona de riesgo
+                </h3>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Borra definitivamente los mensajes de esta conversación. Para
+                    confirmar hay que escribir <strong>BORRAR</strong>.
+                </p>
+
+                <form
+                    action="/admin/conversations/<%= conversation.id %>/purge"
+                    method="POST"
+                    class="mt-4 space-y-3"
+                    onsubmit="return confirm('Se eliminarán TODOS los mensajes de esta conversación. Esta acción no se puede deshacer. ¿Continuar?');"
+                >
+                    <input
+                        name="confirm"
+                        placeholder="BORRAR"
+                        autocomplete="off"
+                        class="w-full rounded-xl border border-red-300 px-3 py-2 text-sm"
+                    />
+
+                    <button class="w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700">
+                        Borrar todo el chat
+                    </button>
+                </form>
             </section>
         </aside>
     </main>

@@ -69,7 +69,7 @@
 
     <main class="mx-auto grid w-full max-w-7xl gap-4 px-3 py-4 lg:h-[calc(100dvh-88px)] lg:grid-cols-[1fr_320px] lg:px-4">
         <section class="flex h-[70dvh] min-h-[420px] flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 lg:h-full lg:min-h-0">
-            <div class="flex shrink-0 items-center gap-3 border-b border-slate-200 px-4 py-3">
+            <div class="flex shrink-0 flex-wrap items-center gap-3 border-b border-slate-200 px-4 py-3">
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
                     <%= initials %>
                 </div>
@@ -84,7 +84,7 @@
                     </p>
                 </div>
 
-                <div class="ml-auto flex shrink-0 items-center gap-2">
+                <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
                     <% if (conversation.whatsappNumber) { %>
                         <span
                             class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600"
@@ -125,7 +125,7 @@
             <% } %>
 
             <div
-                class="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-5"
+                class="min-h-[140px] flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-5"
                 style="background-color: #f4f7f5; background-image: radial-gradient(#dde5e0 1px, transparent 1px); background-size: 22px 22px;"
                 data-live-messages
             >
@@ -161,7 +161,15 @@
                 <% }) %>
             </div>
 
-            <div class="shrink-0 border-t border-slate-200 bg-white p-3">
+            <%
+                /**
+                 * El compositor se queda con lo mínimo: escribir, adjuntar y
+                 * elegir una respuesta rápida. La plantilla y la nota interna
+                 * viven en la columna lateral, así el compositor no crece y no
+                 * tapa el hilo ni se sale de la pantalla.
+                 */
+            %>
+            <div class="max-h-[55%] shrink-0 overflow-y-auto border-t border-slate-200 bg-white p-3">
                 <% if (isOptedOut) { %>
                     <div class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-100">
                         <p class="font-bold">
@@ -223,162 +231,22 @@
                         Puedes escribir libremente porque el cliente respondió en las últimas 24 horas.
                     </p>
 
-                    <details class="mt-3">
-                        <summary class="inline-flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50">
-                            📎 Adjuntar imagen o documento
-                        </summary>
-
-                        <form
-                            action="/agent/conversations/<%= conversation.id %>/messages/media"
-                            method="POST"
-                            enctype="multipart/form-data"
-                            class="mt-3 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3"
-                        >
-                            <input
-                                type="file"
-                                name="file"
-                                required
-                                class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
-                            />
-
-                            <input
-                                name="caption"
-                                placeholder="Texto opcional (el audio no lleva texto)"
-                                class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                            />
-
-                            <p class="text-xs text-slate-500">
-                                Imagen 5 MB · video y audio 16 MB · documentos 100 MB.
-                            </p>
-
-                            <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
-                                Enviar archivo
-                            </button>
-                        </form>
-                    </details>
-
-                    <details class="mt-3">
-                        <summary class="cursor-pointer text-xs font-semibold text-slate-500">
-                            Más opciones: plantilla o nota interna
-                        </summary>
-
-                        <div class="mt-3 grid gap-3">
-                            <form
-                                action="/agent/conversations/<%= conversation.id %>/messages/template"
-                                method="POST"
-                                class="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3"
-                            >
-                                <p class="text-sm font-semibold text-slate-800">
-                                    Enviar plantilla
-                                </p>
-
-                                <% if (templates.length === 0) { %>
-                                    <p class="text-xs text-slate-500">
-                                        No hay plantillas aprobadas sincronizadas.
-                                    </p>
-                                <% } else { %>
-                                    <select
-                                        name="templateId"
-                                        required
-                                        class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                                    >
-                                        <option value="">Selecciona plantilla</option>
-
-                                        <% templates.forEach((template) => { %>
-                                            <option value="<%= template.id %>">
-                                                <%= template.name %> · <%= template.language %>
-                                            </option>
-                                        <% }) %>
-                                    </select>
-
-                                    <div class="grid gap-2 sm:grid-cols-3">
-                                        <% [1, 2, 3].forEach((position) => { %>
-                                            <input
-                                                name="variable<%= position %>"
-                                                placeholder="Variable <%= position %>"
-                                                class="rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                                            />
-                                        <% }) %>
-                                    </div>
-
-                                    <button class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-                                        Enviar plantilla
-                                    </button>
-                                <% } %>
-                            </form>
-
-                            <form
-                                action="/agent/conversations/<%= conversation.id %>/messages/local"
-                                method="POST"
-                                class="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3"
-                            >
-                                <p class="text-sm font-semibold text-slate-800">
-                                    Nota interna
-                                </p>
-
-                                <textarea
-                                    name="body"
-                                    rows="2"
-                                    required
-                                    placeholder="Solo la ve el equipo. No se envía a WhatsApp."
-                                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                                ></textarea>
-
-                                <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">
-                                    Guardar nota
-                                </button>
-                            </form>
-                        </div>
-                    </details>
                 <% } else { %>
                     <div class="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                        La ventana de 24 horas está cerrada: para reabrir la conversación hay que enviar una plantilla.
+                        La ventana de 24 horas está cerrada. Para reabrir la conversación,
+                        envía una plantilla desde el panel de la derecha.
                     </div>
-
-                    <form
-                        action="/agent/conversations/<%= conversation.id %>/messages/template"
-                        method="POST"
-                        class="mt-3 space-y-3"
-                    >
-                        <% if (templates.length === 0) { %>
-                            <p class="text-sm text-slate-500">
-                                No hay plantillas aprobadas sincronizadas.
-                            </p>
-                        <% } else { %>
-                            <select
-                                name="templateId"
-                                required
-                                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-                            >
-                                <option value="">Selecciona plantilla</option>
-
-                                <% templates.forEach((template) => { %>
-                                    <option value="<%= template.id %>">
-                                        <%= template.name %> · <%= template.language %>
-                                    </option>
-                                <% }) %>
-                            </select>
-
-                            <div class="grid gap-2 sm:grid-cols-3">
-                                <% [1, 2, 3].forEach((position) => { %>
-                                    <input
-                                        name="variable<%= position %>"
-                                        placeholder="Variable <%= position %>"
-                                        class="rounded-xl border border-slate-300 px-4 py-2 text-sm"
-                                    />
-                                <% }) %>
-                            </div>
-
-                            <button class="w-full rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
-                                Enviar plantilla
-                            </button>
-                        <% } %>
-                    </form>
                 <% } %>
             </div>
         </section>
 
         <aside class="space-y-4 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+            <%- include("../../../partials/conversation-tools", {
+                conversation,
+                templates,
+                basePath: "/agent/conversations"
+            }) %>
+
             <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                 <h3 class="font-bold text-slate-800">
                     Datos

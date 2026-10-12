@@ -1,0 +1,143 @@
+<%#
+    Acciones de una conversación que no son "escribir un mensaje":
+    enviar plantilla y dejar una nota interna.
+
+    Viven en la columna lateral, que tiene su propio scroll, para que el
+    compositor de abajo nunca crezca y tape el hilo.
+
+    Espera: conversation, templates, basePath
+%>
+<% if (!conversation.contact.optOutAt) { %>
+    <%
+        /**
+         * La ventana de 24 horas se calcula igual que en el hilo: solo se
+         * pueden enviar archivos mientras el cliente haya respondido.
+         */
+        const windowOpen =
+            conversation.lastIncomingMessageAt &&
+            Date.now() - new Date(conversation.lastIncomingMessageAt).getTime() <=
+                24 * 60 * 60 * 1000;
+    %>
+
+    <% if (windowOpen) { %>
+        <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <h3 class="font-bold text-slate-800">
+                Enviar archivo
+            </h3>
+
+            <p class="mt-1 text-xs text-slate-500">
+                Imagen 5 MB · video y audio 16 MB · documentos 100 MB. El audio no
+                lleva texto.
+            </p>
+
+            <form
+                action="<%= basePath %>/<%= conversation.id %>/messages/media"
+                method="POST"
+                enctype="multipart/form-data"
+                class="mt-4 space-y-3"
+            >
+                <input
+                    type="file"
+                    name="file"
+                    required
+                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+
+                <input
+                    name="caption"
+                    placeholder="Texto opcional"
+                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+
+                <button class="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                    Enviar archivo
+                </button>
+            </form>
+        </section>
+    <% } %>
+
+    <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+        <h3 class="font-bold text-slate-800">
+            Enviar plantilla
+        </h3>
+
+        <p class="mt-1 text-xs text-slate-500">
+            Es la única forma de reabrir la conversación cuando la ventana de
+            24 horas está cerrada.
+        </p>
+
+        <% if (templates.length === 0) { %>
+            <p class="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-xs text-slate-500">
+                No hay plantillas aprobadas sincronizadas. Sincronízalas en Admin → Plantillas.
+            </p>
+        <% } else { %>
+            <form
+                action="<%= basePath %>/<%= conversation.id %>/messages/template"
+                method="POST"
+                class="mt-4 space-y-3"
+            >
+                <select
+                    name="templateId"
+                    required
+                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                >
+                    <option value="">Selecciona plantilla</option>
+
+                    <% templates.forEach((template) => { %>
+                        <option value="<%= template.id %>">
+                            <%= template.name %> · <%= template.language %>
+                        </option>
+                    <% }) %>
+                </select>
+
+                <div class="grid gap-2 sm:grid-cols-3">
+                    <% [1, 2, 3].forEach((position) => { %>
+                        <input
+                            name="variable<%= position %>"
+                            placeholder="Variable <%= position %>"
+                            class="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                        />
+                    <% }) %>
+                </div>
+
+                <p class="text-xs text-slate-500">
+                    En el cuerpo de la plantilla, los valores fijos se escriben tal cual
+                    y el nombre del contacto con <span class="font-mono">{nombre}</span>.
+                </p>
+
+                <button class="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                    Enviar plantilla
+                </button>
+            </form>
+        <% } %>
+    </section>
+<% } %>
+
+<section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+    <h3 class="font-bold text-slate-800">
+        Nota interna
+    </h3>
+
+    <p class="mt-1 text-xs text-slate-500">
+        Solo la ve el equipo: no se envía a WhatsApp y no cuenta para el límite
+        diario de mensajes.
+    </p>
+
+    <form
+        action="<%= basePath %>/<%= conversation.id %>/messages/local"
+        method="POST"
+        class="mt-4 space-y-3"
+    >
+        <textarea
+            name="body"
+            rows="3"
+            required
+            placeholder="Por ejemplo: quedó de llamar mañana a las 10."
+            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+        ></textarea>
+
+        <button class="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+            Guardar nota
+        </button>
+    </form>
+</section>
