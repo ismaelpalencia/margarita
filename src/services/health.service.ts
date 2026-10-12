@@ -166,6 +166,8 @@ export class HealthService {
         return {
             ok: database === "up",
             app: appConfig.name,
+            version: appConfig.version,
+            commit: appConfig.commit || null,
             status: unhealthy ? "unhealthy" : degraded ? "degraded" : "healthy",
             httpStatus: unhealthy ? 503 : 200,
             environment: appConfig.env,

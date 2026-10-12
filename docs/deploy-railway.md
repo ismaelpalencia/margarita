@@ -175,9 +175,15 @@ Corre dentro del contenedor con la `DATABASE_URL` interna, antes de que arranque
 
 También puedes ejecutarlo a mano desde una terminal del servicio (por ejemplo con `railway ssh`) si solo quieres aplicarlo una vez.
 
-### El seed
+### El alta de la instalación
 
-**El seed es obligatorio la primera vez.** Las migraciones crean las tablas, pero el seed crea los datos: el workspace, la configuración operativa, el usuario admin y la cuenta de WhatsApp. Sin él la tabla `User` está vacía y el login responde siempre "Credenciales incorrectas", porque el usuario no existe. Las credenciales del panel son `ADMIN_EMAIL` y `ADMIN_PASSWORD`; las de PostgreSQL no sirven para entrar.
+En un despliegue nuevo, las migraciones crean las tablas pero no los datos. **Abre el dominio en el navegador**: si la instalación está vacía, la app lleva al asistente de alta (`/setup`), donde se crea la empresa y el usuario administrador. Después, en Admin → WhatsApp, se capturan las credenciales de Meta y el primer número.
+
+El asistente se cierra solo: en cuanto existe un workspace, `/setup` redirige al login.
+
+### El seed (alternativa)
+
+El seed sigue disponible para **reinstalar o reconfigurar** una instalación existente, y crea lo mismo que el asistente más la cuenta de WhatsApp a partir de las variables de entorno. Sin él ni el asistente, la tabla `User` está vacía y el login responde siempre "Credenciales incorrectas", porque el usuario no existe. Las credenciales del panel son `ADMIN_EMAIL` y `ADMIN_PASSWORD`; las de PostgreSQL no sirven para entrar.
 
 Lo más cómodo es correrlo dentro de Railway, desde una terminal del servicio de la app (no necesita URL pública ni `tsx`):
 

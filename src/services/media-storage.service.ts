@@ -145,3 +145,22 @@ export function deleteMediaFile(relativePath: string): void {
         /* Si ya no existe, no hay nada que hacer. */
     }
 }
+
+/**
+ * Borra todos los archivos de un workspace. Se usa al eliminar los datos
+ * de una instalación al terminar un contrato.
+ */
+export function deleteWorkspaceMedia(workspaceId: string): void {
+    if (!SAFE_ID.test(workspaceId)) {
+        return;
+    }
+
+    try {
+        fs.rmSync(path.resolve(mediaDir(), workspaceId), {
+            recursive: true,
+            force: true
+        });
+    } catch {
+        /* Si la carpeta no existe o no se puede borrar, no se detiene el proceso. */
+    }
+}

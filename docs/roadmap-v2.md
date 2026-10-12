@@ -115,6 +115,19 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ---
 
+## Sprint 40 — Listo para entregar a un cliente
+
+**Estado: completado.**
+
+| Área | Qué se hizo |
+| --- | --- |
+| Alta sin consola | `/setup` crea la empresa y el administrador en un despliegue vacío, y Admin → WhatsApp permite configurar la cuenta de Meta y el primer número. El asistente se cierra solo cuando existe un workspace. |
+| Cierre de contrato | Borrado total de la instalación escribiendo su identificador: elimina datos, credenciales y archivos, y deja constancia en la bitácora global. |
+| Versión visible | `/health` y Admin → Sistema reportan versión y commit, para saber qué corre cada instalación desplegada. |
+| Documentación | Runbook de alta por cliente, actualización de instalaciones, cierre y paquete legal en [`modelo-comercial.md`](modelo-comercial.md). |
+
+---
+
 ## Sprint 39 — Salud de la cuenta y campañas en cola
 
 **Estado: completado.**

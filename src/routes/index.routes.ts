@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { HomeController } from "../controllers/home.controller";
+import { SetupController } from "../controllers/setup.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import authRoutes from "./auth.routes";
 import adminRoutes from "./admin.routes";
@@ -26,5 +27,7 @@ router.use("/media", authMiddleware, mediaRoutes);
 
 router.get("/como-empezar", HomeController.howToStart);
 router.get("/aviso-de-privacidad", HomeController.privacy);
+router.get("/setup", SetupController.show);
+router.post("/setup", SetupController.submit);
 
 export default router;

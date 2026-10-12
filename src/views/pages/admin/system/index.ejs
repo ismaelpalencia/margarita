@@ -16,6 +16,13 @@
             <p class="mt-2 text-slate-600">
                 Revisa si Margarita está lista para operar con WhatsApp Cloud API.
             </p>
+
+            <p class="mt-2 text-xs text-slate-400">
+                Versión <span class="font-semibold text-slate-500"><%= version %></span>
+                <% if (commit) { %>
+                    · commit <span class="font-mono text-slate-500"><%= commit %></span>
+                <% } %>
+            </p>
         </div>
 
         <section class="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-5">

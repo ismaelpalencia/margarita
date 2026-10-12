@@ -8,6 +8,7 @@ import { loginSchema } from "../validations/auth.validation";
 export class AuthController {
     static showLogin(req: Request, res: Response) {
         const error = req.query.error;
+        const success = req.query.success;
 
         let message: string | null = null;
 
@@ -18,8 +19,13 @@ export class AuthController {
         return res.render("pages/auth/login", {
             appName: appConfig.name,
             error: message,
+            success:
+                success === "setup"
+                    ? "Instalación creada. Entra con el correo y la contraseña que registraste."
+                    : null,
             old: {
-                email: ""
+                email:
+                    typeof req.query.email === "string" ? req.query.email : ""
             }
         });
     }

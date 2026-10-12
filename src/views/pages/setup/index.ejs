@@ -1,0 +1,144 @@
+<%- include("../../partials/header", { title: "Configurar instalación - Margarita" }) %>
+
+<main class="flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 via-slate-100 to-white px-4 py-10">
+    <section class="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-200">
+        <div class="bg-slate-950 px-8 py-7 text-white">
+            <div class="flex items-center gap-3">
+                <img
+                    src="/brand/img/margarita-icon-128.png"
+                    alt="Margarita"
+                    class="h-11 w-11"
+                />
+
+                <div>
+                    <p class="text-lg font-black">
+                        <%= appName %>
+                    </p>
+
+                    <p class="text-xs text-slate-400">
+                        Configuración inicial
+                    </p>
+                </div>
+            </div>
+
+            <h1 class="mt-6 text-2xl font-black">
+                Configura tu instalación
+            </h1>
+
+            <p class="mt-2 text-sm text-slate-300">
+                Estos datos crean la empresa y el usuario administrador. Después
+                conectarás tu cuenta de WhatsApp desde el panel.
+            </p>
+        </div>
+
+        <div class="px-8 py-8">
+            <% if (error) { %>
+                <p class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                    <%= error %>
+                </p>
+            <% } %>
+
+            <form action="/setup" method="POST" class="grid gap-5 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                    <label class="mb-1 block text-sm font-semibold text-slate-700">
+                        Nombre de la empresa
+                    </label>
+
+                    <input
+                        name="workspaceName"
+                        required
+                        value="<%= values.workspaceName %>"
+                        placeholder="Ferretería López"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    />
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="mb-1 block text-sm font-semibold text-slate-700">
+                        Identificador
+                    </label>
+
+                    <input
+                        name="workspaceSlug"
+                        required
+                        value="<%= values.workspaceSlug %>"
+                        placeholder="ferreteria-lopez"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    />
+
+                    <p class="mt-1 text-xs text-slate-500">
+                        Solo letras minúsculas, números y guiones. Se usa para
+                        identificar la instalación.
+                    </p>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-semibold text-slate-700">
+                        Tu nombre
+                    </label>
+
+                    <input
+                        name="adminName"
+                        required
+                        value="<%= values.adminName %>"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    />
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-semibold text-slate-700">
+                        Tu correo
+                    </label>
+
+                    <input
+                        type="email"
+                        name="adminEmail"
+                        required
+                        value="<%= values.adminEmail %>"
+                        placeholder="admin@tuempresa.com"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    />
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="mb-1 block text-sm font-semibold text-slate-700">
+                        Contraseña
+                    </label>
+
+                    <input
+                        type="password"
+                        name="adminPassword"
+                        required
+                        autocomplete="new-password"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    />
+
+                    <p class="mt-1 text-xs text-slate-500">
+                        Mínimo 10 caracteres, con letras y números. Evita
+                        contraseñas obvias.
+                    </p>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <button class="w-full rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                        Crear la instalación
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 rounded-xl bg-slate-50 p-4 text-xs text-slate-600">
+                <p class="font-semibold text-slate-700">
+                    Qué sigue después de esto
+                </p>
+
+                <ol class="mt-2 list-decimal space-y-1 pl-5">
+                    <li>Entra con el correo y la contraseña que acabas de crear.</li>
+                    <li>En Admin → WhatsApp, captura las credenciales de tu cuenta de Meta.</li>
+                    <li>Registra el webhook en Meta con la dirección que te muestra el panel.</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+</main>
+
+<%- include("../../partials/footer") %>

@@ -19,9 +19,11 @@
             </p>
         </div>
 
-        <% if (success === "connection" || success === "updated" || success === "encrypted" || success === "already_encrypted" || success === "number_created" || success === "number_updated") { %>
+        <% if (success === "connection" || success === "updated" || success === "encrypted" || success === "already_encrypted" || success === "number_created" || success === "number_updated" || success === "account_created") { %>
             <p class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
-                <% if (success === "connection") { %>
+                <% if (success === "account_created") { %>
+                    Cuenta configurada. Ahora registra tu primer número aquí abajo.
+                <% } else if (success === "connection") { %>
                     Conexión con Meta validada correctamente.
                 <% } else if (success === "number_created") { %>
                     Número agregado. Ya puedes elegirlo en el encabezado.
@@ -41,6 +43,8 @@
             <p class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
                 <% if (error === "connection") { %>
                     No se pudo validar la conexión de ese número con Meta.
+                <% } else if (error === "account_create") { %>
+                    No se pudo configurar la cuenta. Revisa que no exista ya una.
                 <% } else if (error === "validation" || error === "number_validation") { %>
                     Revisa los datos: hay valores con formato inválido.
                 <% } else if (error === "number_create") { %>
@@ -55,10 +59,94 @@
 
         <% if (!account) { %>
             <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                <p class="text-slate-600">
-                    No hay una cuenta de WhatsApp configurada todavía. Se crea con el
-                    seed usando las variables de entorno
-                    (<code class="font-semibold">META_BUSINESS_ACCOUNT_ID</code> y el token).
+                <h2 class="text-xl font-bold text-slate-900">
+                    Conectar tu cuenta de WhatsApp
+                </h2>
+
+                <p class="mt-2 text-sm text-slate-600">
+                    Copia estos datos del panel de tu app en Meta (WhatsApp →
+                    Configuración de la API). Se guardan cifrados.
+                </p>
+
+                <div class="mt-4 rounded-xl bg-slate-50 p-4 text-xs text-slate-600">
+                    <p class="font-semibold text-slate-700">
+                        De dónde sale cada dato
+                    </p>
+
+                    <ul class="mt-2 list-disc space-y-1 pl-5">
+                        <li>
+                            <strong>Business Account ID</strong>: el identificador de tu
+                            cuenta de WhatsApp Business (WABA).
+                        </li>
+                        <li>
+                            <strong>Access token</strong>: el token permanente de un usuario
+                            del sistema con permiso sobre la WABA.
+                        </li>
+                        <li>
+                            <strong>Verify token</strong>: una cadena que tú eliges; se pega
+                            igual aquí y en la configuración del webhook en Meta.
+                        </li>
+                    </ul>
+                </div>
+
+                <form action="/admin/whatsapp/account" method="POST" class="mt-5 grid gap-4 md:grid-cols-2">
+                    <div>
+                        <label class="text-xs font-semibold uppercase text-slate-500">
+                            Business Account ID
+                        </label>
+                        <input
+                            name="businessAccountId"
+                            required
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold uppercase text-slate-500">
+                            API Version
+                        </label>
+                        <input
+                            name="apiVersion"
+                            value="v23.0"
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold uppercase text-slate-500">
+                            Access token
+                        </label>
+                        <input
+                            name="accessToken"
+                            required
+                            autocomplete="off"
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold uppercase text-slate-500">
+                            Verify token
+                        </label>
+                        <input
+                            name="verifyToken"
+                            required
+                            autocomplete="off"
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                        />
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <button class="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                            Guardar la cuenta
+                        </button>
+                    </div>
+                </form>
+
+                <p class="mt-4 text-xs text-slate-500">
+                    El webhook de Meta es
+                    <code class="break-all font-semibold"><%= webhookUrl %></code>
+                    y se configura una sola vez para toda la cuenta.
                 </p>
             </section>
         <% } else { %>

@@ -43,6 +43,9 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo).
 - Borrado de mensajes: ocultar un mensaje sin destruirlo (restaurable desde el panel del admin) y, como admin, borrar todo el hilo escribiendo `BORRAR` para confirmar.
 - Respaldos: descarga completa en JSON o exportación por entidad en CSV (contactos, conversaciones, mensajes, campañas, plantillas, usuarios y bitácora).
+- Alta autoservicio: en una instalación nueva, `/setup` crea la empresa y el usuario administrador desde el navegador, y Admin → WhatsApp permite capturar las credenciales de Meta y el primer número sin usar la consola. El asistente se cierra solo al quedar configurada la instalación.
+- Borrado total de la instalación: para cuando termina un contrato, elimina todos los datos y archivos escribiendo el identificador como confirmación, y deja constancia en la bitácora.
+- Versión visible: `/health` y Admin → Sistema reportan la versión y el commit desplegado, útil cuando hay varias instalaciones.
 - Campañas: crear seleccionando contactos o subiendo Excel/CSV con variables, enviar en cola (con pausa entre mensajes), pausar, reanudar, cancelar, ver errores y reintentar fallidos.
 - Salud de la cuenta: los avisos de Meta sobre plantillas (aprobada, rechazada, pausada) y sobre la calidad de los números se procesan y quedan en la bitácora, con nivel de error cuando exigen atención.
 - Logs: auditoría filtrable de webhook, Meta, campañas, **envíos de mensajes**, conversaciones y usuarios. Cada envío manual queda registrado como `MESSAGE_SENT` y cada fallo como `MESSAGE_FAILED`, con el motivo de Meta traducido al español.
@@ -342,6 +345,7 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | GET | `/como-empezar` | Guía de inicio |
 | GET | `/health` | Healthcheck (`200` con `status: healthy`) |
 | GET | `/auth/login` | Formulario de acceso |
+| GET/POST | `/setup` | Asistente de alta; solo funciona mientras no exista un workspace |
 | POST | `/auth/login` | Autentica y emite la cookie de sesión |
 | POST | `/auth/logout` | Cierra sesión y desactiva la sesión en base |
 | GET | `/webhooks/meta/whatsapp` | Verificación del webhook de Meta |
@@ -385,6 +389,7 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | GET | `/admin/logs` | Auditoría |
 | GET | `/admin/backup` | Respaldos y exportaciones |
 | GET | `/admin/backup/download` | Descarga respaldo (`?format=json` o `?format=csv&entity=messages`) |
+| POST | `/admin/backup/purge` | Elimina todos los datos de la instalación (requiere el identificador) |
 | GET | `/admin/system` | Checklist de configuración |
 | GET | `/admin/roadmap` | Alcance V1 vs V2 |
 
@@ -563,6 +568,7 @@ Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArg
 | [`docs/alcance-produccion.md`](docs/alcance-produccion.md) | Alcance actual, límites, seguridad y responsabilidades para uso en producción |
 | [`docs/multinumero.md`](docs/multinumero.md) | Diseño del multinúmero: modelo, migración, uso y pendientes |
 | [`docs/aviso-privacidad.md`](docs/aviso-privacidad.md) | Aviso de privacidad para revisar y publicar (la versión pública vive en `/aviso-de-privacidad`) |
+| [`docs/modelo-comercial.md`](docs/modelo-comercial.md) | Runbook de alta por cliente, actualización de instalaciones, cierre de contrato y paquete legal |
 | [`prisma/schema.prisma`](prisma/schema.prisma) | Esquema real de la base de datos |
 
 `Reglas_margarita.md` es una copia idéntica de `MArgarita.md`.

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import { SystemStatusService } from "../services/system-status.service";
+import { appConfig } from "../config/app.config";
 import { formatDateTimeMX } from "../utils/date";
 
 export class AdminSystemController {
@@ -12,6 +13,8 @@ export class AdminSystemController {
         return res.render("pages/admin/system/index", {
             user: req.user,
             status,
+            version: appConfig.version,
+            commit: appConfig.commit,
             formatDateTimeMX
         });
     }

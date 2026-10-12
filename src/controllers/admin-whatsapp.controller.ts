@@ -5,6 +5,7 @@ import { WhatsAppAccountService } from "../services/whatsapp-account.service";
 import { WhatsAppNumberService } from "../services/whatsapp-number.service";
 import { getRequiredParam } from "../utils/request";
 import { updateWhatsAppCredentialsSchema } from "../validations/whatsapp-account.validation";
+import { createWhatsAppAccountSchema } from "../validations/whatsapp-account.validation";
 import {
     createNumberSchema,
     updateNumberSchema
@@ -42,6 +43,27 @@ export class AdminWhatsAppController {
                 success: null,
                 error: message
             });
+        }
+    }
+
+    static async createAccount(req: Request, res: Response) {
+        const parsed = createWhatsAppAccountSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.redirect("/admin/whatsapp?error=validation");
+        }
+
+        try {
+            await WhatsAppAccountService.createAccount(req.user!.workspaceId, {
+                businessAccountId: parsed.data.businessAccountId,
+                apiVersion: parsed.data.apiVersion,
+                accessToken: parsed.data.accessToken,
+                verifyToken: parsed.data.verifyToken
+            });
+
+            return res.redirect("/admin/whatsapp?success=account_created");
+        } catch {
+            return res.redirect("/admin/whatsapp?error=account_create");
         }
     }
 

@@ -18,6 +18,56 @@ type UpdateAccountInput = {
  * comparten todos los números, más el verify token del webhook.
  */
 export class WhatsAppAccountService {
+    /**
+     * Crea la cuenta en una instalación nueva. En un despliegue que ya
+     * estaba andando la cuenta existe, así que no se permite duplicar.
+     */
+    static async createAccount(
+        workspaceId: string,
+        input: {
+            businessAccountId: string;
+            apiVersion?: string;
+            accessToken: string;
+            verifyToken: string;
+        }
+    ) {
+        const existing = await prisma.whatsAppAccount.findUnique({
+            where: {
+                workspaceId
+            }
+        });
+
+        if (existing) {
+            throw new Error("Esta instalación ya tiene una cuenta configurada.");
+        }
+
+        const account = await prisma.whatsAppAccount.create({
+            data: {
+                workspaceId,
+                businessAccountId: input.businessAccountId,
+                apiVersion: input.apiVersion || "v23.0",
+                accessToken: encryptSecret(input.accessToken),
+                verifyToken: encryptSecret(input.verifyToken)
+            }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.WHATSAPP_ACCOUNT,
+            action: "WHATSAPP_ACCOUNT_CREATED",
+            message: "Se configuró la cuenta de WhatsApp desde el panel.",
+            payload: {
+                businessAccountId: account.businessAccountId,
+                apiVersion: account.apiVersion
+            }
+        });
+
+        return {
+            id: account.id
+        };
+    }
+
     static async getAccount(workspaceId: string) {
         const account = await prisma.whatsAppAccount.findUnique({
             where: {

@@ -27,3 +27,34 @@ export const updateWhatsAppCredentialsSchema = z.object({
 export type UpdateWhatsAppCredentialsInput = z.infer<
     typeof updateWhatsAppCredentialsSchema
 >;
+
+/**
+ * Alta de la cuenta desde el panel, para no depender del seed en una
+ * instalación nueva.
+ */
+export const createWhatsAppAccountSchema = z.object({
+    businessAccountId: z
+        .string()
+        .trim()
+        .min(5, "El Business Account ID es obligatorio.")
+        .max(40, "El Business Account ID es demasiado largo."),
+    apiVersion: z
+        .string()
+        .trim()
+        .regex(/^v\d+\.\d+$/, "Usa el formato v23.0.")
+        .optional()
+        .transform((value) => (value && value.length > 0 ? value : undefined)),
+    accessToken: z
+        .string()
+        .trim()
+        .min(20, "El access token parece incompleto."),
+    verifyToken: z
+        .string()
+        .trim()
+        .min(4, "El verify token es obligatorio.")
+        .max(200, "El verify token es demasiado largo.")
+});
+
+export type CreateWhatsAppAccountInput = z.infer<
+    typeof createWhatsAppAccountSchema
+>;

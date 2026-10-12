@@ -66,6 +66,9 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Chat de conversación**: hilo con burbujas, separadores de fecha, palomitas de estado reales y barra de composición, con actualización en vivo.
 - **Borrado de mensajes**: ocultar un mensaje sin destruirlo (el admin puede verlo y restaurarlo) o borrar todo el hilo definitivamente escribiendo `BORRAR`.
 - **Respaldos**: descarga completa en JSON o exportación por entidad en CSV.
+- **Alta sin consola**: en una instalación nueva, `/setup` crea la empresa y el usuario administrador desde el navegador, y las credenciales de Meta y el primer número se capturan en Admin → WhatsApp. El asistente se cierra solo cuando la instalación queda configurada.
+- **Cierre de contrato**: el borrado total elimina mensajes, conversaciones, contactos, campañas, plantillas, usuarios, sesiones, credenciales y archivos, con la confirmación del identificador de la instalación y constancia en la bitácora.
+- **Versión en ejecución**: `/health` y Admin → Sistema reportan la versión y el commit desplegado, para saber qué corre cada instalación.
 - **Motivos de fallo traducidos**: los códigos de Meta (pago, ventana cerrada, número inválido, límites, plantillas) se explican en español en la bitácora y en el hilo.
 - **Salud de la cuenta**: los avisos de Meta sobre plantillas (aprobada, rechazada, pausada, marcada) y sobre la calidad de cada número se procesan, actualizan el estado en el panel y quedan en la bitácora con nivel de error cuando exigen atención.
 
@@ -196,16 +199,17 @@ El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 
 1. **Opt-in y baja automática** (BAJA/STOP), que es cumplimiento pero también protección de la calidad.
 2. **Aplicar los límites de mensajes manuales**, que hoy se configuran y no se validan.
+3. **Cifrado de la base en reposo**, si el sistema se entrega a terceros: un volcado hoy expone conversaciones y teléfonos.
 
 **Mejorar el día a día de la bandeja.**
 
-3. **Respuestas rápidas** guardadas.
-4. **Contador de no leídos**, búsqueda y filtros.
-5. **Botones y listas**: enviarlos e interpretar la respuesta del cliente.
+4. **Respuestas rápidas** guardadas.
+5. **Contador de no leídos**, búsqueda y filtros.
+6. **Botones y listas**: enviarlos e interpretar la respuesta del cliente.
 
 **Cuando el equipo crezca.**
 
-6. **Asignar números a agentes** y **repartir campañas entre números** (ver [`multinumero.md`](multinumero.md)).
+7. **Asignar números a agentes** y **repartir campañas entre números** (ver [`multinumero.md`](multinumero.md)).
 
 ---
 

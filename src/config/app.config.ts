@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import fs from "node:fs";
 import path from "node:path";
 
 import { normalizeAppUrl } from "../utils/url";
@@ -6,6 +7,25 @@ import { normalizeAppUrl } from "../utils/url";
 dotenv.config();
 
 const appUrl = normalizeAppUrl(process.env.APP_URL);
+
+/**
+ * Versión en ejecución. Sirve para saber qué está corriendo cada
+ * instalación cuando hay varias desplegadas.
+ */
+function readPackageVersion(): string {
+    try {
+        const raw = fs.readFileSync(
+            path.join(process.cwd(), "package.json"),
+            "utf8"
+        );
+
+        const parsed = JSON.parse(raw) as { version?: string };
+
+        return parsed.version || "desconocida";
+    } catch {
+        return "desconocida";
+    }
+}
 
 if (appUrl.normalized && process.env.APP_URL) {
     console.warn(
@@ -50,6 +70,9 @@ if (encryptionKey && encryptionKey.length < 32) {
 
 export const appConfig = {
     name: process.env.APP_NAME || "Margarita",
+    version: process.env.APP_VERSION?.trim() || readPackageVersion(),
+    /** Railway expone el commit desplegado en esta variable. */
+    commit: process.env.RAILWAY_GIT_COMMIT_SHA?.trim().slice(0, 7) || "",
     appUrl: appUrl.url,
     port: Number(process.env.PORT) || 3000,
     env: process.env.NODE_ENV || "development",
