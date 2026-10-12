@@ -172,6 +172,29 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ---
 
+## Sprint 41 — Cifrado de los datos personales en reposo
+
+**Estado: completado.** Se hizo antes de vender instalaciones a terceros: si un cliente contrata el uso, un volcado de su base no debe exponer su operación.
+
+| Área | Qué se hizo |
+| --- | --- |
+| Mecanismo | Extensión de Prisma (`$allOperations`) que cifra al escribir y descifra al leer, sin tocar los servicios ni las vistas. AES-256-GCM con `ENCRYPTION_KEY`, la misma llave que ya cifraba las credenciales de Meta. |
+| Campos | `Contact.phone`, `Contact.notes`, `Message.body`, `Message.mediaFilename`, `Message.metaPayload`, `Message.metaResponse`, `CampaignRecipient.phone`, `CampaignRecipient.variables`, `WhatsAppNumber.phoneNumber`, `Log.payload` y `WebhookEvent.payload` (el evento crudo de Meta), además de los tokens de Meta que ya estaban cubiertos. Los objetos se guardan como texto cifrado con el prefijo `encj:v1:`. |
+| Búsqueda por teléfono | `Contact.phoneHash`: índice ciego (HMAC-SHA256) que conserva la unicidad y la búsqueda exacta sin guardar el número en claro. La búsqueda por coincidencia parcial del teléfono ya no existe y la pantalla de Contactos lo explica. |
+| Migración sin cortar el servicio | La columna `phoneHash` se agrega con un marcador temporal (`legacy:<id>`) y la aplicación recalcula el índice real al arrancar, antes de atender webhooks. Los textos sin cifrar anteriores se leen tal cual, así que no hubo ventana de datos rotos. |
+| Cifrado del histórico | `npm run db:encrypt-data` cifra lo que quedó en claro (teléfonos, mensajes, bitácora, destinatarios, números y credenciales). Es idempotente y paginado. |
+| Verificación en el panel | Admin → Sistema ahora muestra una tarjeta de **Cifrado en reposo** con los registros que quedaron en claro, y WhatsApp reporta si las credenciales están cifradas leyendo la columna cruda (antes lo comprobaba sobre el valor ya descifrado, así que siempre decía que no). |
+
+### Verificación
+
+- 17 pruebas unitarias nuevas de cifrado, índice ciego, traducción de búsquedas y descifrado de resultados anidados.
+- Contra una base real: la migración conservó los contactos existentes, el arranque recalculó los índices, el alta de contactos y el webhook guardaron todo cifrado, y la lectura de contactos, mensajes, bitácora, destinatarios y números devolvió exactamente los mismos valores antes y después de cifrar.
+- Webhook firmado contra un contacto existente: no se duplicó y el mensaje entrante quedó cifrado en la base.
+
+**Límites de este sprint:** los nombres de contacto y los correos quedan en claro (la búsqueda por texto y el login dependen de ellos), los adjuntos en disco no se cifran y el cifrado es de campos, no del archivo de PostgreSQL.
+
+---
+
 ## Backlog del Sprint 35 (interactivos)
 
 | Función | Detalle |

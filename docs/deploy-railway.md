@@ -81,7 +81,7 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `META_BUSINESS_ACCOUNT_ID` | ID de la WABA | |
 | `META_VERIFY_TOKEN` | cadena que tú inventas | Debe ser idéntica a la de Meta |
 | `META_PHONE_NUMBER` | número con lada, sin signo + | |
-| `ENCRYPTION_KEY` | generador del repo (`npm run secrets:generate`) | Cifra los tokens de Meta en la base |
+| `ENCRYPTION_KEY` | generador del repo (`npm run secrets:generate`) | Llave del cifrado en reposo: teléfonos, mensajes, notas, bitácora y tokens de Meta |
 | `LOGIN_MAX_ATTEMPTS` | `5` | Intentos fallidos antes de bloquear |
 | `LOGIN_LOCK_MINUTES` | `15` | Duración del bloqueo |
 | `LOG_RETENTION_DAYS` | `90` | Días que se conserva la bitácora |
@@ -232,17 +232,36 @@ Para ver el estado sin modificar nada: `npx prisma migrate status`.
 
 Cuando quieras cambiar el esquema, hazlo en local con `npx prisma migrate dev --name descripcion` y sube la carpeta generada. Evita `db push` en producción: no deja historial y el siguiente `migrate deploy` puede detectar drift.
 
-### Cifrar credenciales existentes
+### Cifrado en reposo y datos que ya existían
 
-Si la base ya tenía tokens en texto plano antes de configurar `ENCRYPTION_KEY`, cifralos una vez. Lo más simple es desde el propio panel: **Admin → WhatsApp → Cifrar credenciales existentes**.
+La migración del cifrado (`20261012000000_cifrado_campos`) se aplica sola con el Pre-deploy Command: agrega `Contact.phoneHash` y marca los contactos existentes con un valor temporal. Al arrancar, la aplicación recalcula el índice real de cada uno antes de empezar a atender webhooks, así que no hay que hacer nada a mano; en la bitácora del servicio aparece cuántos contactos se actualizaron.
 
-`ENCRYPTION_KEY` debe quedarse quieta: si la cambias o la pierdes, los tokens ya cifrados dejan de poder leerse y tendrás que capturar de nuevo el `META_ACCESS_TOKEN` en Admin → WhatsApp.
+Después de eso, los datos nuevos ya se guardan cifrados. Lo que venía de antes sigue en claro hasta que se ejecute el cifrado del histórico.
+
+### Cifrar los datos existentes
+
+Si la base ya tenía datos en texto plano antes de configurar `ENCRYPTION_KEY`, cífralos una vez:
+
+- **Todo lo que quedó en claro** (teléfonos, mensajes, notas, payloads de Meta, eventos de webhook, bitácora, destinatarios de campaña y números de la WABA, además de los tokens): `npm run db:encrypt-data`. Es idempotente, se puede correr con la app en línea y solo actúa sobre lo que sigue en claro.
+- **Solo los tokens de Meta**, desde el panel: **Admin → WhatsApp → Cifrar credenciales existentes**.
+
+Admin → Sistema muestra una tarjeta de **Cifrado en reposo** con cuántos registros quedaron en claro: cuando marca 0, ya no queda nada pendiente.
+
+`ENCRYPTION_KEY` debe quedarse quieta: es la llave de todo lo cifrado. Si la cambias o la pierdes, los teléfonos, los mensajes, las notas y la bitácora dejan de poder leerse, además de los tokens. Guárdala fuera de Railway (gestor de contraseñas) y tenla a mano si vas a restaurar un respaldo.
 
 Con una URL pública también puedes hacerlo desde tu máquina:
 
 ```bash
-DATABASE_URL="<URL_PUBLICA>" npm run db:encrypt-secrets
+DATABASE_URL="<URL_PUBLICA>" npm run db:encrypt-data
 ```
+
+Si lo vas a correr dentro del contenedor de Railway (donde no hay devDependencies), usa la versión compilada:
+
+```bash
+npm run db:encrypt-data:dist
+```
+
+Los adjuntos (fotos, audios, documentos) no se cifran: viven en el Volume. Si el cliente exige cifrado en disco, hay que cifrar el volumen o mover los archivos a un almacenamiento con cifrado del proveedor.
 
 ### Volume para los archivos de los clientes
 

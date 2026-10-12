@@ -99,8 +99,9 @@ Un punto que hay que decir en voz alta: **en cuanto das soporte, tienes acceso a
 
 Lo que todavía no está listo, en orden de impacto:
 
-1. **Cifrado de la base en reposo.** Un volcado expone conversaciones y teléfonos. Es lo primero que va a preguntar un cliente con área de sistemas.
-2. **Plantilla de Railway** ("Deploy on Railway" apuntando a un repo plantilla) para que el alta sea de minutos y no de media hora.
-3. **Automatizar el alta de la WABA con Embedded Signup** (ser Tech Provider de Meta). Elimina el paso más difícil para el cliente, pero cambia el rol del proveedor y agrega obligaciones formales.
-4. **Panel de control de instalaciones**, si algún día hay muchos clientes: versiones, estado, renovaciones. Hoy se cubre con una hoja de cálculo.
-5. **Opt-in y baja automática (BAJA/STOP)**, que hoy es manual. Sin eso no conviene vender la herramienta a un cliente que envíe volumen.
+1. **Plantilla de Railway** ("Deploy on Railway" apuntando a un repo plantilla) para que el alta sea de minutos y no de media hora.
+2. **Automatizar el alta de la WABA con Embedded Signup** (ser Tech Provider de Meta). Elimina el paso más difícil para el cliente, pero cambia el rol del proveedor y agrega obligaciones formales.
+3. **Panel de control de instalaciones**, si algún día hay muchos clientes: versiones, estado, renovaciones. Hoy se cubre con una hoja de cálculo.
+4. **Opt-in y baja automática (BAJA/STOP)**, que hoy es manual. Sin eso no conviene vender la herramienta a un cliente que envíe volumen.
+
+Lo que ya se cerró (2026-10-12): **el cifrado en reposo**. Teléfonos, notas, contenido de los mensajes, payloads de Meta, eventos de webhook, variables de campaña, números de la WABA y bitácora se guardan cifrados con AES-256-GCM (`ENCRYPTION_KEY`), y el teléfono se busca por índice ciego. Conviene decir con precisión qué queda fuera, porque un área de sistemas lo va a preguntar: el disco (archivos de PostgreSQL y adjuntos) no está cifrado, y los nombres de contacto y los correos siguen en claro porque la búsqueda por texto y el inicio de sesión dependen de ellos. En una instalación que ya traía datos en claro, se cifran con `npm run db:encrypt-data`.

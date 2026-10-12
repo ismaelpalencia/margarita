@@ -77,8 +77,40 @@ test("rechaza un valor cifrado manipulado", () => {
     assert.throws(() => decryptSecret(tampered));
 });
 
-test("rechaza un valor cifrado con formato inválido", () => {
+test("un texto que solo se parece a un valor cifrado se trata como texto normal", () => {
     process.env.ENCRYPTION_KEY = TEST_KEY;
 
-    assert.throws(() => decryptSecret("enc:v1:formato-invalido"));
+    /**
+     * La marca de cifrado se valida con una forma estricta. Si no, un
+     * mensaje que empezara con "enc:v1:" se guardaría sin cifrar y además
+     * se intentaría descifrar al leerlo.
+     */
+    assert.equal(isEncrypted("enc:v1:formato-invalido"), false);
+    assert.equal(
+        decryptSecret("enc:v1:formato-invalido"),
+        "enc:v1:formato-invalido"
+    );
+
+    const cifrado = encryptSecret("enc:v1:formato-invalido");
+
+    assert.ok(isEncrypted(cifrado));
+    assert.equal(decryptSecret(cifrado), "enc:v1:formato-invalido");
+});
+
+test("un valor cifrado con la forma correcta pero manipulado sí falla", () => {
+    process.env.ENCRYPTION_KEY = TEST_KEY;
+
+    const encrypted = encryptSecret("dato-original");
+    const parts = encrypted.split(":");
+
+    const tampered = [
+        parts[0],
+        parts[1],
+        parts[2],
+        parts[3],
+        "A".repeat(parts[4].length || 4)
+    ].join(":");
+
+    assert.ok(isEncrypted(tampered));
+    assert.throws(() => decryptSecret(tampered));
 });

@@ -4,6 +4,22 @@ import { appConfig } from "../config/app.config";
 
 const PREFIX = "enc:v1:";
 
+/**
+ * Prefijo de los objetos que se guardan cifrados dentro de columnas Json.
+ * Se distingue del anterior para que, al leer, se sepa que además hay que
+ * volver a interpretar el contenido como JSON.
+ */
+export const JSON_PREFIX = "encj:v1:";
+
+/**
+ * Un valor cifrado tiene la forma `enc:v1:<iv>:<tag>:<datos>`.
+ *
+ * La comparación es estricta a propósito: así un texto escrito por una
+ * persona que casualmente empiece con "enc:v1:" no se confunde con un
+ * valor cifrado ni provoca que su mensaje se guarde sin cifrar.
+ */
+const ENCRYPTED_FORMAT = /^enc:v1:[A-Za-z0-9_-]{8,}:[A-Za-z0-9_-]{16,}:[A-Za-z0-9_-]*$/;
+
 let missingKeyWarned = false;
 
 /**
@@ -39,7 +55,15 @@ function deriveKey(secret: string): Buffer {
 }
 
 export function isEncrypted(value: string | null | undefined): boolean {
-    return typeof value === "string" && value.startsWith(PREFIX);
+    return typeof value === "string" && ENCRYPTED_FORMAT.test(value);
+}
+
+export function isEncryptedJson(value: unknown): boolean {
+    return (
+        typeof value === "string" &&
+        value.startsWith(JSON_PREFIX) &&
+        isEncrypted(value.slice(JSON_PREFIX.length))
+    );
 }
 
 export function encryptSecret(plain: string): string {
@@ -113,4 +137,86 @@ export function decryptSecret(value: string | null | undefined): string {
         decipher.update(Buffer.from(dataPart, "base64url")),
         decipher.final()
     ]).toString("utf8");
+}
+
+let decryptFailureWarned = false;
+
+/**
+ * Descifra sin lanzar. Se usa donde un valor ilegible no debe tumbar la
+ * consulta completa: se devuelve lo que hay y se avisa una sola vez.
+ */
+export function safeDecryptSecret(value: string | null | undefined): string {
+    try {
+        return decryptSecret(value);
+    } catch (error) {
+        if (!decryptFailureWarned) {
+            decryptFailureWarned = true;
+
+            console.warn(
+                "[crypto] No se pudo descifrar un valor. Revisa que ENCRYPTION_KEY sea la misma con la que se guardó:",
+                error instanceof Error ? error.message : error
+            );
+        }
+
+        return String(value ?? "");
+    }
+}
+
+/**
+ * Índice ciego: el mismo valor produce siempre el mismo resultado, pero
+ * no se puede recuperar el original. Sirve para mantener la unicidad y la
+ * búsqueda exacta de campos cifrados (por ejemplo el teléfono de un
+ * contacto) sin guardarlos en claro.
+ *
+ * Se usa HMAC con la llave de cifrado, no un hash simple: el espacio de
+ * los teléfonos es pequeño y se podría recorrer por fuerza bruta.
+ */
+export function blindIndex(value: string): string {
+    const secret = getEncryptionKey();
+
+    if (!secret) {
+        warnMissingKey();
+
+        return crypto.createHash("sha256").update(value, "utf8").digest("hex");
+    }
+
+    return crypto
+        .createHmac("sha256", deriveKey(secret))
+        .update(value, "utf8")
+        .digest("hex");
+}
+
+/**
+ * Guarda un objeto como texto cifrado dentro de una columna Json. El
+ * prefijo permite reconocerlo al leer y volver a convertirlo en objeto.
+ */
+export function encryptJson(value: unknown): string {
+    return JSON_PREFIX + encryptSecret(JSON.stringify(value ?? null));
+}
+
+/**
+ * Recupera un objeto guardado con `encryptJson`. Si el valor todavía está
+ * en claro (datos anteriores al cifrado), lo devuelve tal cual.
+ */
+export function decryptJson(value: unknown): unknown {
+    if (value === null || value === undefined) {
+        return null;
+    }
+
+    if (typeof value !== "string") {
+        /** Legado: la columna Json guardaba el objeto completo. */
+        return value;
+    }
+
+    const raw = value.startsWith(JSON_PREFIX)
+        ? value.slice(JSON_PREFIX.length)
+        : value;
+
+    const text = isEncrypted(raw) ? safeDecryptSecret(raw) : raw;
+
+    try {
+        return JSON.parse(text);
+    } catch {
+        return text;
+    }
 }

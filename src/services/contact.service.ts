@@ -1,9 +1,14 @@
 import { prisma } from "../config/prisma";
+import { blindIndex } from "../utils/crypto";
 import {
     CreateContactInput,
     UpdateContactInput
 } from "../validations/contact.validation";
-import { normalizeMexicanPhone } from "../utils/phone";
+import {
+    contactPhoneFields,
+    isValidMexicanPhone,
+    normalizeMexicanPhone
+} from "../utils/phone";
 
 type ListContactsParams = {
     workspaceId: string;
@@ -14,6 +19,17 @@ type ListContactsParams = {
 export class ContactService {
     static async listContacts(params: ListContactsParams) {
         const search = params.search?.trim();
+
+        /**
+         * El teléfono está cifrado, así que no se puede buscar por
+         * coincidencia parcial. Si lo que se escribió es un teléfono
+         * completo, se busca por su índice ciego; si no, la búsqueda queda
+         * en el nombre.
+         */
+        const phoneSearch =
+            search && isValidMexicanPhone(search)
+                ? normalizeMexicanPhone(search)
+                : null;
 
         return prisma.contact.findMany({
             where: {
@@ -34,11 +50,13 @@ export class ContactService {
                                       mode: "insensitive"
                                   }
                               },
-                              {
-                                  phone: {
-                                      contains: search.replace(/\D/g, "")
-                                  }
-                              }
+                              ...(phoneSearch
+                                  ? [
+                                        {
+                                            phoneHash: blindIndex(phoneSearch)
+                                        }
+                                    ]
+                                  : [])
                           ]
                       }
                     : {}),
@@ -76,14 +94,15 @@ export class ContactService {
 
     static async createContact(workspaceId: string, input: CreateContactInput) {
         const phone = normalizeMexicanPhone(input.phone);
+        const phoneFields = contactPhoneFields(phone);
 
         const validTagIds = await this.getValidTagIds(workspaceId, input.tagIds);
 
         const existingContact = await prisma.contact.findUnique({
             where: {
-                workspaceId_phone: {
+                workspaceId_phoneHash: {
                     workspaceId,
-                    phone
+                    phoneHash: phoneFields.phoneHash
                 }
             }
         });
@@ -115,7 +134,7 @@ export class ContactService {
             data: {
                 workspaceId,
                 customName: input.customName,
-                phone,
+                ...phoneFields,
                 notes: input.notes,
                 isActive: true,
                 tags: {

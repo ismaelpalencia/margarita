@@ -70,7 +70,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Historial de asignaciones (`AssignmentHistory`) para saber quién movió qué y por qué.
 - Actualizaciones en vivo en el navegador vía socket.io.
 - Cola de webhooks con reintentos y backoff: un fallo temporal ya no pierde mensajes.
-- Credenciales de Meta cifradas en la base de datos.
+- Cifrado en reposo de los datos personales: teléfonos, notas, contenido de los mensajes, payloads y eventos de Meta, variables de campaña y bitácora (AES-256-GCM), con índice ciego para el teléfono.
 - Bitácora con retención automática y credenciales redactadas.
 - Multimedia entrante: las fotos, el video, el audio y los documentos de los clientes se ven en el hilo. Las imágenes se descargan al recibirlas; el resto, cuando alguien lo abre.
 - Envío de archivos: adjuntar imágenes, video, audio o documentos dentro de la ventana de 24 horas, con texto opcional.
@@ -251,7 +251,7 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `META_BUSINESS_ACCOUNT_ID` | Sí | ID de la WhatsApp Business Account |
 | `META_VERIFY_TOKEN` | Sí | Cadena que tú eliges para verificar el webhook |
 | `META_PHONE_NUMBER` | Sí | Número visible del negocio |
-| `ENCRYPTION_KEY` | Sí | Cifra los tokens de Meta en la base (AES-256-GCM). Genera con `openssl rand -hex 32` |
+| `ENCRYPTION_KEY` | Sí | Llave del cifrado en reposo: tokens de Meta, teléfonos, mensajes, notas y bitácora (AES-256-GCM). Genera con `openssl rand -hex 32` |
 | `LOGIN_MAX_ATTEMPTS` | No | Intentos fallidos antes de bloquear la cuenta. Default `5` |
 | `LOGIN_LOCK_MINUTES` | No | Duración del bloqueo. Default `15` |
 | `LOG_RETENTION_DAYS` | No | Días que se conserva la bitácora. Default `90` |
@@ -271,7 +271,7 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 
 Sin `META_APP_SECRET` el webhook no valida el origen: en desarrollo solo registra un aviso, pero **en producción responde 401** y la app deja de recibir mensajes.
 
-Sin `ENCRYPTION_KEY` la app funciona igual, pero las credenciales de Meta quedan en texto plano y el panel de sistema lo marca como pendiente.
+Sin `ENCRYPTION_KEY` la app funciona igual, pero **nada se cifra en la base**: los tokens de Meta, los teléfonos, los mensajes y la bitácora quedan en texto plano. El panel de sistema lo marca como pendiente.
 
 ### Cómo generar los secretos
 
@@ -285,7 +285,7 @@ Genera cuatro valores y explica para qué sirve cada uno:
 
 | Clave | Para qué sirve |
 | --- | --- |
-| `ENCRYPTION_KEY` | Cifra con AES-256-GCM los tokens de Meta guardados en la base de datos |
+| `ENCRYPTION_KEY` | Cifra con AES-256-GCM todo lo sensible guardado en la base: tokens de Meta, teléfonos de contacto, contenido de mensajes, notas y bitácora |
 | `JWT_SECRET` | Firma las cookies de sesión del panel |
 | `META_VERIFY_TOKEN` | Se pega también en Meta para verificar el webhook |
 | `ADMIN_PASSWORD` | La usa el seed para crear tu usuario admin |
@@ -294,13 +294,29 @@ Con `--write-env` **nunca sobrescribe** lo que ya existe: solo agrega las claves
 
 ### Qué hace `ENCRYPTION_KEY` (y qué no)
 
-Cifra dos cosas: el `accessToken` y el `verifyToken` de la cuenta de WhatsApp que viven en la tabla `WhatsAppAccount`. La idea es que si alguien obtiene un volcado de la base —un respaldo, una captura de la pestaña Data de Railway, una cadena de conexión filtrada— no pueda usar esos tokens para mandar mensajes desde tu número.
+Cifra en la base, campo por campo, lo que puede hacer daño si alguien obtiene un volcado (un respaldo, una captura de la pestaña Data de Railway, una cadena de conexión filtrada):
+
+| Dónde | Qué se cifra |
+| --- | --- |
+| `WhatsAppAccount` | `accessToken` y `verifyToken` |
+| `Contact` | `phone` y `notes` (el teléfono se busca por `phoneHash`) |
+| `Message` | `body`, `mediaFilename`, `metaPayload`, `metaResponse` |
+| `CampaignRecipient` | `phone` y `variables` |
+| `WhatsAppNumber` | `phoneNumber` |
+| `Log` | `payload` |
+| `WebhookEvent` | `payload` (el evento crudo que manda Meta) |
+
+El cifrado y el descifrado son transparentes: los servicios y las vistas siguen trabajando con valores normales, así que nada del panel cambió.
+
+El teléfono es el único campo que no se puede comparar por coincidencia parcial: se guarda cifrado y con un índice ciego (`Contact.phoneHash`, un HMAC-SHA256 con esta misma llave) que conserva la unicidad y permite la búsqueda exacta. Por eso en Contactos hay que escribir el número completo.
+
+**Lo que queda sin cifrar:** los nombres de contacto (`profileName`, `customName`) y los correos de los usuarios, porque la búsqueda por texto y el inicio de sesión dependen de ellos; también los adjuntos en disco y los archivos de PostgreSQL. Está anotado como pendiente en [`docs/alcance-produccion.md`](docs/alcance-produccion.md).
 
 No tiene nada que ver con las contraseñas de los usuarios: esas se guardan con bcrypt, que es de una sola vía y no necesita llave.
 
-**Debe ser estable.** Si la cambias o la pierdes, los tokens ya cifrados dejan de poder leerse y la app no podrá hablar con Meta hasta que vuelvas a capturar el token en Admin → WhatsApp (o corras el seed otra vez con `META_ACCESS_TOKEN`).
+**Debe ser estable.** Si la cambias o la pierdes, los datos cifrados dejan de poder leerse: la app no podrá hablar con Meta (tokens ilegibles), los teléfonos mostrarán basura y las conversaciones no se podrán leer. No hay forma de recuperarlos sin esta llave, así que guárdala en un gestor de contraseñas.
 
-Si todavía no la tienes, la app funciona y guarda los tokens en texto plano; el panel lo muestra como pendiente en Admin → Sistema y puedes cifrarlos después sin recompilar nada.
+Si todavía no la tienes, la app funciona y guarda todo en texto plano; el panel lo muestra como pendiente en Admin → Sistema. Al configurarla, los datos que ya existían se cifran de una vez con `npm run db:encrypt-data` (idempotente) o, para las credenciales de Meta, con el botón **Admin → WhatsApp → Cifrar credenciales existentes**.
 
 ---
 
@@ -323,6 +339,9 @@ Si todavía no la tienes, la app funciona y guarda los tokens en texto plano; el
 | `npm run db:seed` | Carga datos iniciales |
 | `npm run db:seed:dist` | Igual, pero con el código compilado (no necesita `tsx`) |
 | `npm run secrets:generate` | Genera `ENCRYPTION_KEY`, `JWT_SECRET`, `META_VERIFY_TOKEN` y una contraseña para el admin |
+| `npm run db:encrypt-data` | Cifra los datos que quedaron en claro antes del cifrado en reposo (idempotente) |
+| `npm run db:encrypt-data:dist` | Lo mismo, con el código compilado: sirve dentro del contenedor, sin devDependencies |
+| `npm run db:encrypt-secrets` | Cifra únicamente los tokens de Meta que quedaron en claro |
 | `npm run db:studio` | Abre Prisma Studio |
 
 ### Integración continua
@@ -482,7 +501,7 @@ El cliente vive en `src/public/js/live.js` y se activa con atributos en `<body>`
 - **Bloqueo por fuerza bruta**: el login tiene su propio límite (10 peticiones por 15 minutos por IP) y, a nivel de cuenta, se bloquea `LOGIN_LOCK_MINUTES` minutos tras `LOGIN_MAX_ATTEMPTS` intentos fallidos. Cada intento fallido, cada bloqueo y cada acceso correcto quedan en la bitácora.
 - **Protección CSRF**: toda petición que cambia estado debe traer un `Origin` (o `Referer`) que coincida con `APP_URL`. Un formulario alojado en otro sitio recibe `403`. Las peticiones sin `Origin` (curl, healthchecks, webhooks de Meta) se permiten porque no son navegadores.
 - **`APP_URL` tolerante**: el valor se normaliza al arrancar, así que un dominio pegado sin `https://` (como lo muestra Railway) funciona igual y deja un aviso en los logs en lugar de desactivar la validación de origen en silencio. `/health` expone `publicUrl` para comprobar desde fuera qué URL cree tener la app.
-- **Cifrado de credenciales**: los tokens de Meta se guardan con AES-256-GCM usando `ENCRYPTION_KEY`. Los valores guardados antes de habilitar el cifrado se siguen leyendo y se pueden migrar con el botón del panel o con `npm run db:encrypt-secrets`.
+- **Cifrado en reposo**: con AES-256-GCM y `ENCRYPTION_KEY` se cifran los tokens de Meta, el teléfono y las notas de cada contacto, el contenido y los payloads de cada mensaje, las variables de campaña, los números de la WABA y la bitácora. El descifrado es transparente al leer, así que el panel no cambia. Los datos guardados antes de habilitar el cifrado se siguen leyendo y se migran con `npm run db:encrypt-data` (o `db:encrypt-secrets` solo para los tokens). El teléfono se compara por `phoneHash`, un índice ciego con la misma llave.
 - **Firma de webhook**: HMAC-SHA256 con comparación en tiempo constante.
 - **Validación**: todos los cuerpos de entrada pasan por esquemas Zod.
 - **Cabeceras**: Helmet habilitado.
@@ -509,7 +528,7 @@ La guía completa paso a paso está en [`docs/deploy-railway.md`](docs/deploy-ra
 | Puerto | `3000` |
 | Variables clave | `DATABASE_URL` (referencia al plugin de Postgres), `APP_URL` con el dominio público HTTPS, `NODE_ENV=production`, `JWT_SECRET` y las `META_*` |
 
-Los cuatro tropiezos más comunes: dejar `APP_URL` apuntando a localhost (rompe CORS y el socket), no incluir las devDependencies en el build cuando `NODE_ENV=production`, olvidar `META_APP_SECRET` (el webhook responde 401 en producción) y olvidar `ENCRYPTION_KEY` (las credenciales quedan sin cifrar).
+Los cuatro tropiezos más comunes: dejar `APP_URL` apuntando a localhost (rompe CORS y el socket), no incluir las devDependencies en el build cuando `NODE_ENV=production`, olvidar `META_APP_SECRET` (el webhook responde 401 en producción) y olvidar `ENCRYPTION_KEY` (nada se cifra en la base).
 
 El proyecto usa migraciones versionadas. Lo más simple es dejar que Railway las aplique dentro del contenedor, sin exponer la base ni copiar credenciales: configura el Pre-deploy Command con `node dist/tools/deploy-migrations.js`. Ese script detecta el estado de la base y resuelve los tres casos (base nueva, base existente sin historial y base ya baselinada) de forma idempotente.
 
@@ -528,7 +547,7 @@ El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 38 tests unitarios en verde y el flujo crítico está verificado de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login y cifrado de credenciales (22 comprobaciones de integración).
+Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 148 pruebas unitarias en verde y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, cifrado de credenciales y cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar).
 
 Lo que se cerró en el sprint de endurecimiento:
 
@@ -537,6 +556,7 @@ Lo que se cerró en el sprint de endurecimiento:
 - Exclusión del webhook del rate limit global, con límite propio.
 - Actualizaciones en vivo en las bandejas con socket.io.
 - Credenciales de Meta cifradas con AES-256-GCM y editables desde el panel.
+- Cifrado en reposo de teléfonos, notas, mensajes, payloads, variables de campaña y bitácora, con índice ciego para buscar el teléfono sin guardarlo en claro.
 - Bloqueo de cuenta por intentos fallidos y límite propio en el login.
 - Protección CSRF por origen y política mínima de contraseñas.
 - Retención automática de bitácora y eventos, con redacción de credenciales.

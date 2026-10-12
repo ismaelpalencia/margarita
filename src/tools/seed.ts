@@ -9,6 +9,7 @@ import {
 } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
+import { withEncryption } from "../config/prisma-encryption";
 import { encryptSecret } from "../utils/crypto";
 
 /**
@@ -88,9 +89,16 @@ export async function runSeed() {
     const metaPhoneNumber = String(process.env.META_PHONE_NUMBER).trim();
     const metaApiVersion = optionalText(process.env.META_API_VERSION) || "v23.0";
 
-    const prisma = new PrismaClient({
-        adapter: new PrismaPg({ connectionString })
-    });
+    /**
+     * El seed usa el mismo cifrado que la aplicación: si no, los datos
+     * iniciales (el token de Meta, el número de la WABA) quedarían en
+     * claro en la base.
+     */
+    const prisma = withEncryption(
+        new PrismaClient({
+            adapter: new PrismaPg({ connectionString })
+        })
+    );
 
     try {
         console.log("[seed] Creando datos iniciales...");

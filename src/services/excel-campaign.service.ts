@@ -8,7 +8,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
-import { normalizeMexicanPhone } from "../utils/phone";
+import { contactPhoneFields, normalizeMexicanPhone } from "../utils/phone";
 import {
     normalizeHeaderKey,
     resolveVariableSpecs
@@ -238,11 +238,13 @@ export class ExcelCampaignService {
         const contacts = [];
 
         for (const recipient of resolvedRows) {
+            const phoneFields = contactPhoneFields(recipient.phone);
+
             const contact = await prisma.contact.upsert({
                 where: {
-                    workspaceId_phone: {
+                    workspaceId_phoneHash: {
                         workspaceId: params.workspaceId,
-                        phone: recipient.phone
+                        phoneHash: phoneFields.phoneHash
                     }
                 },
                 update: {
@@ -251,7 +253,7 @@ export class ExcelCampaignService {
                 },
                 create: {
                     workspaceId: params.workspaceId,
-                    phone: recipient.phone,
+                    ...phoneFields,
                     customName: recipient.name || null,
                     isActive: true
                 },

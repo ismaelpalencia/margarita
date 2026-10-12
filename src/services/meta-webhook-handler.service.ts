@@ -21,7 +21,7 @@ import {
     MetaWebhookValue,
     MetaWebhookStatus
 } from "../types/meta-webhook";
-import { normalizeMexicanPhone } from "../utils/phone";
+import { contactPhoneFields, normalizeMexicanPhone } from "../utils/phone";
 import { describeMetaError } from "../utils/meta-error";
 import { emitToWorkspace } from "../sockets";
 import { AssignmentService } from "./assignment.service";
@@ -184,12 +184,13 @@ export class MetaWebhookHandlerService {
         }
 
         const normalizedPhone = normalizeMexicanPhone(message.from);
+        const phoneFields = contactPhoneFields(normalizedPhone);
 
         const contact = await prisma.contact.upsert({
             where: {
-                workspaceId_phone: {
+                workspaceId_phoneHash: {
                     workspaceId,
-                    phone: normalizedPhone
+                    phoneHash: phoneFields.phoneHash
                 }
             },
             update: {
@@ -199,7 +200,7 @@ export class MetaWebhookHandlerService {
             },
             create: {
                 workspaceId,
-                phone: normalizedPhone,
+                ...phoneFields,
                 profileName: profileName || null,
                 lastSeenAt: new Date(),
                 isActive: true

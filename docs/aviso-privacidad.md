@@ -84,6 +84,10 @@ Cuando ya no sean necesarios, los datos se eliminan o se anonimizan.
 
 - El acceso está restringido: cada persona de nuestro equipo entra con su propio
   usuario y contraseña, y solo ve las conversaciones que le corresponden.
+- Los datos de la conversación se guardan cifrados en la base de datos: el
+  número de teléfono, el contenido de los mensajes, los nombres de archivo, las
+  notas internas y la bitácora de operación. El cifrado es AES-256-GCM y la
+  llave se custodia fuera de la base de datos.
 - Las credenciales técnicas del canal de WhatsApp se guardan cifradas.
 - Los archivos se sirven únicamente a usuarios con sesión válida y con acceso a
   esa conversación.

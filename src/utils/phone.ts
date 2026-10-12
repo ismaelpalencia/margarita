@@ -1,3 +1,5 @@
+import { blindIndex } from "./crypto";
+
 export function normalizeMexicanPhone(rawPhone: string): string {
     const digits = rawPhone.replace(/\D/g, "");
 
@@ -39,4 +41,22 @@ export function isValidMexicanPhone(rawPhone: string): boolean {
     } catch {
         return false;
     }
+}
+
+/**
+ * Datos de teléfono de un contacto para guardarlo cifrado.
+ *
+ * El teléfono viaja en claro hasta Prisma; la extensión de cifrado lo
+ * guarda cifrado. El `phoneHash` es el índice ciego que conserva la
+ * unicidad y la búsqueda exacta, porque la columna del teléfono ya no se
+ * puede comparar.
+ */
+export function contactPhoneFields(phone: string): {
+    phone: string;
+    phoneHash: string;
+} {
+    return {
+        phone,
+        phoneHash: blindIndex(phone)
+    };
 }

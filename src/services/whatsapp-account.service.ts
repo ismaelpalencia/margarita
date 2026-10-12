@@ -104,11 +104,38 @@ export class WhatsAppAccountService {
             /**
              * Se muestran en la interfaz para que el admin sepa si las
              * credenciales ya están cifradas en la base de datos.
+              *
+              * Se consulta la columna cruda a propósito: al leer por la
+              * extensión de Prisma el token ya viene descifrado, así que
+              * `isEncrypted` siempre diría que no lo está.
              */
-            encryptedAtRest:
-                isEncrypted(account.accessToken) &&
-                isEncrypted(account.verifyToken)
+            encryptedAtRest: await this.credentialsAreEncrypted(workspaceId)
         };
+    }
+
+    /**
+     * Revisa las columnas tal como están guardadas, sin pasar por el
+     * descifrado transparente.
+     */
+    static async credentialsAreEncrypted(workspaceId: string): Promise<boolean> {
+        try {
+            const rows = await prisma.$queryRaw<
+                Array<{ accessToken: string | null; verifyToken: string | null }>
+            >`SELECT "accessToken", "verifyToken"
+                FROM "WhatsAppAccount"
+               WHERE "workspaceId" = ${workspaceId}
+               LIMIT 1`;
+
+            const account = rows[0];
+
+            return Boolean(
+                account &&
+                    isEncrypted(account.accessToken) &&
+                    isEncrypted(account.verifyToken)
+            );
+        } catch {
+            return false;
+        }
     }
 
     static async updateCredentials(

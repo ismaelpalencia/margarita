@@ -297,7 +297,9 @@ model Contact {
 
   profileName String?
   customName  String?
+  /** Teléfono cifrado; `phoneHash` es el índice ciego para búsquedas exactas. */
   phone       String
+  phoneHash   String
   notes       String?
 
   isActive Boolean @default(true)
@@ -311,8 +313,9 @@ model Contact {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([workspaceId, phone])
+  @@unique([workspaceId, phoneHash])
   @@index([workspaceId])
+  @@index([phoneHash])
   @@index([isActive])
 }
 

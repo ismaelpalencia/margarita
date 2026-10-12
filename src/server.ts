@@ -13,7 +13,7 @@ registerProcessGuards();
 
 initSocket(server);
 
-startBackgroundJobs();
+void startBackgroundJobs();
 
 server.listen(appConfig.port, () => {
     logger.info({

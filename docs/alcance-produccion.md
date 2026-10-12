@@ -2,7 +2,7 @@
 
 Documento de referencia para decidir y sostener el uso de Margarita en producción. Describe **lo que la herramienta hace hoy**, lo que no hace, los controles de seguridad vigentes y las responsabilidades que quedan del lado de quien la opera.
 
-Última revisión: 2026-10-11 (cierre del sprint de salud de cuenta y cola de campañas).
+Última revisión: 2026-10-12 (cifrado de los datos personales en reposo).
 
 ---
 
@@ -66,6 +66,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Chat de conversación**: hilo con burbujas, separadores de fecha, palomitas de estado reales y barra de composición, con actualización en vivo.
 - **Borrado de mensajes**: ocultar un mensaje sin destruirlo (el admin puede verlo y restaurarlo) o borrar todo el hilo definitivamente escribiendo `BORRAR`.
 - **Respaldos**: descarga completa en JSON o exportación por entidad en CSV.
+- **Cifrado en reposo**: los teléfonos, las notas de contacto, el contenido de los mensajes, los nombres de archivo, los payloads de Meta (incluido el evento crudo del webhook), las variables de campaña, los números de la WABA y la bitácora se guardan cifrados con AES-256-GCM. La aplicación descifra al leer, así que el panel funciona igual; del teléfono se guarda además un índice ciego (`phoneHash`) que conserva la unicidad y la búsqueda exacta sin tener el número en claro.
 - **Alta sin consola**: en una instalación nueva, `/setup` crea la empresa y el usuario administrador desde el navegador, y las credenciales de Meta y el primer número se capturan en Admin → WhatsApp. El asistente se cierra solo cuando la instalación queda configurada.
 - **Cierre de contrato**: el borrado total elimina mensajes, conversaciones, contactos, campañas, plantillas, usuarios, sesiones, credenciales y archivos, con la confirmación del identificador de la instalación y constancia en la bitácora.
 - **Versión en ejecución**: `/health` y Admin → Sistema reportan la versión y el commit desplegado, para saber qué corre cada instalación.
@@ -100,6 +101,8 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Un número pertenece a una sola WABA** | Es una regla de Meta, no de la aplicación: un número no se puede compartir entre dos cuentas. Moverlo exige quitarlo de una y registrarlo en la otra, con nueva verificación. |
 | **Sin permisos por número** | Con varios números, **todos los agentes ven todos**. Restringir qué números atiende cada agente está diseñado y pendiente. |
 | **Una réplica** | El tiempo real y la cola funcionan en una sola instancia. Con varias haría falta el adaptador de Redis. |
+| **Búsqueda de teléfono solo exacta** | El teléfono está cifrado, así que no se puede buscar por coincidencia parcial: en Contactos hay que escribir el número completo (10 dígitos) o buscar por nombre. |
+| **Nombres y correos en claro** | `Contact.profileName`, `Contact.customName` y los correos de usuarios quedan sin cifrar: la búsqueda por texto del panel y el inicio de sesión dependen de ellos. Cifrarlos exige cambiar la búsqueda a coincidencia exacta con índice ciego. |
 
 ---
 
@@ -110,7 +113,9 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | Área | Control |
 | --- | --- |
 | **Webhooks** | Firma `X-Hub-Signature-256` obligatoria, comparada en tiempo constante. Un payload sin firma válida se rechaza con 401. |
+| **Cifrado en reposo** | Los datos personales se guardan cifrados con AES-256-GCM: teléfono y notas del contacto, contenido y nombre de archivo de cada mensaje, payloads de Meta (respuestas, plantillas enviadas y evento crudo del webhook), variables de campaña, número de cada WABA y bitácora. El cifrado y el descifrado son transparentes (extensión de Prisma), así que ninguna consulta del panel ve texto cifrado. |
 | **Credenciales de Meta** | `accessToken` y `verifyToken` cifrados en la base con AES-256-GCM. Sin la variable `ENCRYPTION_KEY` no se pueden leer. |
+| **Índice ciego del teléfono** | `Contact.phoneHash` es un HMAC-SHA256 con la llave de cifrado: conserva la unicidad y la búsqueda exacta sin que el número se pueda recuperar del índice. |
 | **Sesiones** | JWT en cookie `httpOnly`, `secure` en producción y `SameSite=Lax`, con registro en base que permite revocarlas. Expiración de 7 días. |
 | **Contraseñas** | Hash con bcrypt (12 rondas). Mínimo 10 caracteres con letras y números, sin contraseñas obvias. |
 | **Fuerza bruta** | Bloqueo de la cuenta tras varios intentos fallidos (configurable) y límite propio de intentos por IP en el login. Todo queda auditado. |
@@ -130,11 +135,11 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 Ser explícito aquí es parte del trato:
 
 1. **No hay autenticación de dos factores.** Quien tenga la contraseña del admin entra.
-2. **La base no está cifrada en reposo.** Un volcado de PostgreSQL expone conversaciones, teléfonos y contenido. Lo único cifrado son los tokens de Meta.
-3. **No hay antitivirus ni análisis de adjuntos** (relevante cuando se agregue multimedia).
+2. **El cifrado es de campos, no del disco.** Un volcado de PostgreSQL ya no expone conversaciones, teléfonos ni notas, pero sí los nombres de contacto, los correos y la estructura general (con quién se habló, cuándo y cuánto). Los archivos de PostgreSQL y los adjuntos en disco tampoco están cifrados: quien tenga acceso al servidor puede leer todo lo que la aplicación no cifra.
+3. **No hay antitivirus ni análisis de adjuntos.** Los archivos se guardan tal como llegan (fuera de la base, en disco).
 4. **No hay respaldos automáticos.** Existe la descarga manual (respaldos en JSON y CSV), pero nada la ejecuta sola: depende de que alguien la haga o de lo que ofrezca el proveedor; conviene activar los del proveedor.
 5. **No hay gestión de sesiones activas en la interfaz.** Se puede cerrar sesión, pero no ver ni revocar otras.
-6. **No hay rotación automática de secretos** ni caducidad de la `ENCRYPTION_KEY`.
+6. **No hay rotación automática de secretos** ni caducidad de la `ENCRYPTION_KEY`. Perder esa llave deja ilegibles los campos cifrados, no solo los tokens.
 7. **No hay prueba de penetración.** Los controles están probados con pruebas automatizadas y verificación manual, no con un pentest externo.
 8. **No hay WAF ni protección DDoS propia.** Depende del borde del proveedor.
 
@@ -150,8 +155,8 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 - **Plantillas**: usar solo plantillas aprobadas para iniciar conversaciones.
 - **Calidad del número**: vigilar la calificación en el panel de Meta; los envíos masivos sin consentimiento la degradan.
 - **Calidad por número**: con varios números, cada uno se calienta y se vigila por separado. Un número nuevo arranca en el nivel mínimo de mensajería y necesita su nombre visible aprobado y su registro con PIN antes de enviar.
-- **Custodia de `ENCRYPTION_KEY`**: si se pierde, los tokens cifrados dejan de poder leerse y hay que capturarlos de nuevo.
-- **Respaldos de la base de datos**.
+- **Custodia de `ENCRYPTION_KEY`**: es la llave de los datos cifrados. Si se pierde, los teléfonos, los mensajes, las notas y la bitácora dejan de poder leerse, además de los tokens de Meta. Guárdala en un gestor de contraseñas, no solo en las variables del proveedor.
+- **Respaldos de la base de datos**. Cuidado con el respaldo: para restaurarlo y poder leer los datos hace falta la misma `ENCRYPTION_KEY`.
 
 ---
 
@@ -159,9 +164,9 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 130 pruebas unitarias en 21 archivos |
+| Pruebas automatizadas | 148 pruebas unitarias en 23 archivos |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
-| Migraciones | Versionadas en `prisma/migrations`, con seis aplicadas |
+| Migraciones | Versionadas en `prisma/migrations`, con siete aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
 
 Además de las pruebas unitarias, los flujos críticos se verificaron de punta a punta contra una base real:
@@ -170,6 +175,9 @@ Además de las pruebas unitarias, los flujos críticos se verificaron de punta a
 - Rechazo de firma inválida, de origen ajeno y de payload sin firma.
 - Bloqueo de cuenta por intentos fallidos y límite de intentos en el login.
 - Cifrado de credenciales y lectura de las mismas.
+- Cifrado en reposo contra una base con datos reales: la migración del `phoneHash` conserva los contactos existentes, el arranque recalcula los índices pendientes, el alta de un contacto y el webhook guardan teléfono, notas y cuerpos cifrados, y la aplicación sigue leyendo exactamente los mismos valores que antes de cifrar (comparación campo por campo de contactos, mensajes, bitácora, destinatarios de campaña y números de la WABA).
+- Cifrado del histórico con `npm run db:encrypt-data` sobre 72 registros existentes, sin que la aplicación cambie lo que lee.
+- Webhook firmado contra un contacto ya guardado: no se duplica el contacto y el mensaje entrante queda cifrado.
 - Estado `failed` de Meta → bitácora y conversación con el motivo traducido.
 - Envío de archivos contra un servidor que simula la Graph API: subida, envío por `media id`, guardado y servido de vuelta.
 - Multinúmero: alta de un segundo número, filtrado de la bandeja por número activo, dos hilos para el mismo contacto y envío por el número de cada hilo.
@@ -187,7 +195,8 @@ Además de las pruebas unitarias, los flujos críticos se verificaron de punta a
 | Falta de opt-in | Reportes de clientes y degradación de la calidad del número | Responsabilidad del operador |
 | Calidad de un número | Ese número envía menos o queda limitado | La calidad es por número, así que no arrastra a los demás; los avisos de Meta todavía se revisan en su panel (pendiente: alertas dentro de la app) |
 | Una sola instancia | Si el servicio se reinicia, la bandeja se reconecta sola | Railway reinicia el servicio automáticamente |
-| Pérdida de `ENCRYPTION_KEY` | Los tokens de Meta quedan ilegibles | Guardarla en un lugar seguro además de las variables |
+| Pérdida de `ENCRYPTION_KEY` | Los campos cifrados (teléfonos, mensajes, notas, bitácora) y los tokens de Meta quedan ilegibles | Guardarla en un lugar seguro además de las variables, y respaldarla junto con la base |
+| Búsqueda por teléfono parcial | Escribir parte del número ya no encuentra contactos | La pantalla de Contactos lo recuerda: se busca por el número completo o por nombre |
 
 ---
 
@@ -199,7 +208,7 @@ El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 
 1. **Opt-in y baja automática** (BAJA/STOP), que es cumplimiento pero también protección de la calidad.
 2. **Aplicar los límites de mensajes manuales**, que hoy se configuran y no se validan.
-3. **Cifrado de la base en reposo**, si el sistema se entrega a terceros: un volcado hoy expone conversaciones y teléfonos.
+3. **Cifrar los nombres de contacto y los correos**, que hoy quedan en claro porque la búsqueda por texto y el inicio de sesión dependen de ellos. Al cifrarlos, la búsqueda pasa a coincidencia exacta con índice ciego.
 
 **Mejorar el día a día de la bandeja.**
 
@@ -222,10 +231,13 @@ curl -s https://<tu-dominio>/health
 # Pruebas y tipos, en local
 npm test
 npx tsc --noEmit
+
+# Cifrar los datos que quedaron en claro antes del cifrado en reposo
+npm run db:encrypt-data
 ```
 
 En el panel:
 
-- **Admin → Sistema**: checklist de configuración y tarjetas de seguridad (cifrado, firma, cola, alertas, retención).
+- **Admin → Sistema**: checklist de configuración y tarjetas de seguridad (cifrado en reposo, firma, cola, alertas, retención). La tarjeta de cifrado dice cuántos registros quedaron en claro de antes del cifrado, si los hay.
 - **Admin → WhatsApp**: credenciales de la cuenta, números con su calidad, y cifrado.
 - **Admin → Logs**: qué pasó y por qué, con el detalle de cada evento.
