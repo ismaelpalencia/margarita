@@ -562,6 +562,7 @@ Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArg
 | [`docs/roadmap-v2.md`](docs/roadmap-v2.md) | Plan detallado de los siguientes sprints: multimedia, interactivos y campañas |
 | [`docs/alcance-produccion.md`](docs/alcance-produccion.md) | Alcance actual, límites, seguridad y responsabilidades para uso en producción |
 | [`docs/multinumero.md`](docs/multinumero.md) | Diseño del multinúmero: modelo, migración, uso y pendientes |
+| [`docs/aviso-privacidad.md`](docs/aviso-privacidad.md) | Aviso de privacidad para revisar y publicar (la versión pública vive en `/aviso-de-privacidad`) |
 | [`prisma/schema.prisma`](prisma/schema.prisma) | Esquema real de la base de datos |
 
 `Reglas_margarita.md` es una copia idéntica de `MArgarita.md`.

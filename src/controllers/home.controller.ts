@@ -18,4 +18,16 @@ export class HomeController {
             supportWhatsappUrl: `https://wa.me/${supportWhatsappNumber}`
         });
     }
+
+    /**
+     * Aviso de privacidad público. Es la dirección que se puede registrar
+     * en Meta y compartir con los clientes.
+     */
+    static async privacy(_req: Request, res: Response) {
+        return res.render("pages/home/privacy", {
+            title: "Aviso de privacidad - Margarita",
+            supportWhatsappNumber,
+            supportWhatsappUrl: `https://wa.me/${supportWhatsappNumber}`
+        });
+    }
 }

@@ -25,5 +25,6 @@ router.use("/webhooks", webhookRoutes);
 router.use("/media", authMiddleware, mediaRoutes);
 
 router.get("/como-empezar", HomeController.howToStart);
+router.get("/aviso-de-privacidad", HomeController.privacy);
 
 export default router;
