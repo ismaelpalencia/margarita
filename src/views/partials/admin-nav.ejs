@@ -54,8 +54,20 @@
                 Dashboard
             </a>
 
-            <a href="/admin/conversations" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a
+                href="/admin/conversations"
+                class="inline-flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
+            >
                 Conversaciones
+
+                <span
+                    data-unread-badge
+                    data-count="<%= unreadTotal || 0 %>"
+                    class="rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-bold text-white <%= (unreadTotal || 0) > 0 ? '' : 'hidden' %>"
+                    title="Mensajes sin leer"
+                >
+                    <%= unreadTotal || 0 %>
+                </span>
             </a>
 
             <a href="/admin/campaigns" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
@@ -68,6 +80,10 @@
 
             <a href="/admin/tags" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
                 Etiquetas
+            </a>
+
+            <a href="/admin/quick-replies" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+                Respuestas
             </a>
 
             <a href="/admin/users" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">

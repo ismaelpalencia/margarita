@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { ConversationService } from "../services/conversation.service";
 import { MessageService } from "../services/message.service";
 import { TemplateService } from "../services/template.service";
+import { QuickReplyService } from "../services/quick-reply.service";
 import { getRequiredParam } from "../utils/request";
 import { sendFreeTextMessageSchema } from "../validations/free-text-message.validation";
 import { sendLocalMessageSchema } from "../validations/message.validation";
@@ -16,15 +17,29 @@ import {
 
 export class AgentConversationsController {
     static async index(req: Request, res: Response) {
+        const search =
+            typeof req.query.search === "string" ? req.query.search : "";
+        const status =
+            typeof req.query.status === "string" ? req.query.status : "";
+        const onlyUnread = req.query.unread === "1";
+
         const conversations = await ConversationService.listForAgent(
             req.user!.workspaceId,
             req.user!.id,
-            req.activeNumber?.id
+            req.activeNumber?.id,
+            {
+                search: search || undefined,
+                status: status || undefined,
+                onlyUnread
+            }
         );
 
         return res.render("pages/agent/conversations/index", {
             user: req.user,
             conversations,
+            search,
+            status,
+            onlyUnread,
             success: req.query.success || null,
             error: req.query.error || null
         });
@@ -33,19 +48,26 @@ export class AgentConversationsController {
     static async show(req: Request, res: Response) {
         const conversationId = getRequiredParam(req, "id");
 
-        const [conversation, templates] = await Promise.all([
+        const [conversation, templates, quickReplies] = await Promise.all([
             ConversationService.getConversationForAgent(
                 req.user!.workspaceId,
                 req.user!.id,
                 conversationId
             ),
-            TemplateService.listApprovedTemplates(req.user!.workspaceId)
+            TemplateService.listApprovedTemplates(req.user!.workspaceId),
+            QuickReplyService.listActive(req.user!.workspaceId)
         ]);
+
+        await ConversationService.markAsRead(
+            req.user!.workspaceId,
+            conversation.id
+        );
 
         return res.render("pages/agent/conversations/show", {
             user: req.user,
             conversation,
             templates,
+            quickReplies,
             formatDateTimeMX,
             formatDayLabelMX,
             formatTimeMX,

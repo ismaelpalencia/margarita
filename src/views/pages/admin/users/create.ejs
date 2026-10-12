@@ -85,13 +85,15 @@
                     </label>
 
                     <p class="mt-2 text-xs text-slate-500">
-                        Si está apagado, el agente solo podrá responder conversaciones asignadas.
+                        Si está apagado, el agente no podrá enviar nada a WhatsApp: verá sus
+                        conversaciones y podrá dejar notas internas, pero cada intento de envío
+                        se bloquea con el motivo a la vista.
                     </p>
                 </div>
 
                 <div>
                     <label class="mb-1 block text-sm font-medium text-slate-700">
-                        Límite de mensajes manuales
+                        Límite de mensajes manuales por día
                     </label>
 
                     <input
@@ -104,7 +106,8 @@
                     />
 
                     <p class="mt-2 text-xs text-slate-500">
-                        Déjalo vacío para usar el límite global de la empresa.
+                        Déjalo vacío para usar el límite global de la empresa. El tope es
+                        diario y se reinicia solo a medianoche; no cuentan las notas internas.
                     </p>
                 </div>
 

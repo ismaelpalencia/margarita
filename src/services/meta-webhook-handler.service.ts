@@ -13,6 +13,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
+import { appConfig } from "../config/app.config";
 import {
     MetaWebhookMessage,
     MetaWebhookPayload,
@@ -23,6 +24,7 @@ import {
 } from "../types/meta-webhook";
 import { contactPhoneFields, normalizeMexicanPhone } from "../utils/phone";
 import { describeMetaError } from "../utils/meta-error";
+import { matchesOptOutKeyword } from "../utils/opt-out";
 import { emitToWorkspace } from "../sockets";
 import { AssignmentService } from "./assignment.service";
 import { LogService } from "./log.service";
@@ -247,7 +249,11 @@ export class MetaWebhookHandlerService {
                     : ConversationOperationalStatus.UNASSIGNED,
                 lastIncomingMessageAt: messageDate,
                 lastMessageAt: messageDate,
-                closedAt: null
+                closedAt: null,
+                /** Cada mensaje entrante suma uno al contador de no leídos. */
+                unreadCount: {
+                    increment: 1
+                }
             }
         });
 
@@ -260,9 +266,17 @@ export class MetaWebhookHandlerService {
             });
         }
 
+        const optedOut = await this.applyOptOutIfRequested({
+            workspaceId,
+            contactId: contact.id,
+            alreadyOptedOutAt: contact.optOutAt,
+            body: parsed.body
+        });
+
         emitToWorkspace(workspaceId, "conversation:message", {
             conversationId: conversation.id,
             assignedUserId: finalConversation.assignedUserId,
+            contactOptedOut: optedOut,
             contact: {
                 id: contact.id,
                 name:
@@ -306,6 +320,59 @@ export class MetaWebhookHandlerService {
                 conversationId: conversation.id
             }
         });
+    }
+
+    /**
+     * Baja automática: si el cliente escribió la palabra clave (por
+     * defecto STOP), el contacto queda dado de baja y no se le vuelve a
+     * escribir hasta que alguien lo reactive a propósito.
+     *
+     * No se responde nada automáticamente: la confirmación al cliente la
+     * manda una persona, porque enviar una plantilla nueva exige que esté
+     * aprobada en Meta.
+     */
+    private static async applyOptOutIfRequested(params: {
+        workspaceId: string;
+        contactId: string;
+        alreadyOptedOutAt: Date | null;
+        body?: string | null;
+    }): Promise<boolean> {
+        if (params.alreadyOptedOutAt) {
+            return false;
+        }
+
+        if (
+            !matchesOptOutKeyword(params.body, appConfig.optOutKeywords)
+        ) {
+            return false;
+        }
+
+        const optOutAt = new Date();
+
+        await prisma.contact.update({
+            where: {
+                id: params.contactId
+            },
+            data: {
+                optOutAt,
+                optOutSource: "keyword"
+            }
+        });
+
+        await LogService.create({
+            workspaceId: params.workspaceId,
+            level: LogLevel.WARN,
+            module: LogModule.CONTACT,
+            action: "CONTACT_OPT_OUT_KEYWORD",
+            message:
+                "El contacto pidió la baja desde WhatsApp: ya no se le enviarán mensajes.",
+            payload: {
+                contactId: params.contactId,
+                source: "keyword"
+            }
+        });
+
+        return true;
     }
 
     private static async getOrCreateConversationForIncomingMessage(params: {

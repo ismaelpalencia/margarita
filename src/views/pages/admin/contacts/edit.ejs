@@ -25,6 +25,59 @@
             </p>
         </section>
 
+        <section class="mb-6 rounded-2xl bg-white p-6 shadow">
+            <h2 class="text-lg font-bold text-slate-800">
+                Consentimiento
+            </h2>
+
+            <% if (contact.optOutAt) { %>
+                <div class="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-100">
+                    <p class="font-bold">
+                        Este contacto pidió la baja.
+                    </p>
+
+                    <p class="mt-1 text-xs">
+                        <%= contact.optOutSource === "keyword"
+                            ? "Lo pidió por WhatsApp, escribiendo la palabra clave."
+                            : "Se marcó desde el panel." %>
+                        No recibe mensajes ni campañas.
+                    </p>
+                </div>
+
+                <form action="/admin/contacts/<%= contact.id %>/opt-in" method="POST" class="mt-3">
+                    <input type="hidden" name="redirectTo" value="/admin/contacts/<%= contact.id %>/edit" />
+
+                    <button
+                        class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+                        onclick="return confirm('¿Reactivar a este contacto? Confirma que te autorizó de nuevo.');"
+                    >
+                        Reactivar (registrar consentimiento)
+                    </button>
+                </form>
+            <% } else { %>
+                <p class="mt-3 text-sm text-slate-600">
+                    <% if (contact.optInAt) { %>
+                        Consentimiento registrado. Puede recibir mensajes y campañas.
+                    <% } else { %>
+                        Sin consentimiento registrado. La herramienta no lo verifica:
+                        es responsabilidad de la empresa solo escribir a quien aceptó
+                        recibir mensajes.
+                    <% } %>
+                </p>
+
+                <form action="/admin/contacts/<%= contact.id %>/opt-out" method="POST" class="mt-3">
+                    <input type="hidden" name="redirectTo" value="/admin/contacts/<%= contact.id %>/edit" />
+
+                    <button
+                        class="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                        onclick="return confirm('¿Marcar la baja? Dejará de recibir mensajes y campañas.');"
+                    >
+                        Marcar la baja
+                    </button>
+                </form>
+            <% } %>
+        </section>
+
         <section class="rounded-2xl bg-white p-6 shadow">
             <% if (error) { %>
                 <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">

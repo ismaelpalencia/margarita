@@ -133,8 +133,12 @@ implica que ya no podemos prestarte el servicio, te lo haremos saber.
 ## 10. Dejar de recibir mensajes
 
 Puedes pedirnos que no te enviemos más mensajes en cualquier momento por los
-mismos medios. Atendemos la solicitud en un plazo máximo de **[PLAZO, POR EJEMPLO
-48 HORAS]**.
+mismos medios. Además, si respondes **STOP** por WhatsApp, el sistema marca tu
+número como dado de baja en el momento y deja de enviarte mensajes (incluidas
+campañas) sin que nadie tenga que intervenir; también quedamos en condiciones de
+atender la solicitud por otra vía, en un plazo máximo de **[PLAZO, POR EJEMPLO 48
+HORAS]**. Si en el futuro quieres volver a recibir mensajes, solo pídelo y
+registramos tu consentimiento de nuevo.
 
 ## 11. Cambios a este aviso
 

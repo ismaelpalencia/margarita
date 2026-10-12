@@ -195,6 +195,29 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ---
 
+## Sprint 42 — Bajas, límites diarios, respuestas rápidas y no leídos
+
+**Estado: completado.** Cierra los cuatro pendientes operativos que quedaban antes de vender instalaciones: cumplimiento de bajas, control de mensajes manuales y el día a día de la bandeja.
+
+| Área | Qué se hizo |
+| --- | --- |
+| Baja automática (STOP) | El webhook revisa el primer palabra del mensaje entrante contra `OPT_OUT_KEYWORDS` (por defecto `STOP`). Si coincide, el contacto queda dado de baja, se registra en la bitácora con nivel de advertencia y el evento en vivo recarga el hilo para mostrar el aviso. |
+| Bloqueo real de envíos | Un contacto dado de baja no recibe nada: ni respuestas manuales (texto, plantilla, archivo) ni campañas. Las campañas lo excluyen al crearse y, si la baja llega después, el worker marca al destinatario como `SKIPPED` con el motivo. |
+| Consentimiento | `Contact.optInAt` / `optOutAt` / `optOutSource`. La ficha del contacto permite registrar el opt-in, marcar la baja a mano y reactivar (queda auditado). La ficha de campaña avisa cuántos destinatarios no tienen consentimiento registrado, sin bloquear: la responsabilidad legal es del operador. |
+| Límites manuales | `canSendManualMessages` y `manualMessageLimit` (por día, hora local de la empresa) se validan al enviar, con el mensaje del motivo tal cual. El uso se calcula contando mensajes enviados, no un acumulado, por lo que se reinicia solo; se ve en Admin → Agentes y en el panel del agente. Se eliminó `User.manualMessagesUsed`. |
+| Notas internas | `Message.isInternalNote`: se marcan al crearse, se pintan distinto en el hilo y no cuentan para el tope diario. La migración marcó las notas que ya existían. |
+| Respuestas rápidas | Modelo `QuickReply` con CRUD en Admin → Respuestas, texto cifrado, `{nombre}` y `{telefono}` resueltos en el navegador, y un selector de un clic en el compositor del admin y del agente. |
+| No leídos | `Conversation.unreadCount`, que suma con cada mensaje entrante y se limpia al abrir el hilo. El encabezado muestra el total del número activo y la bandeja marca cada hilo con pendientes, en vivo. |
+| Búsqueda y filtros en la bandeja | Búsqueda por nombre (parcial) o teléfono (exacta, por índice ciego), filtros por estado y por asignación, y "solo sin leer". |
+| Defensa del cifrado | La extensión ahora falla con una explicación si una consulta intenta filtrar por un campo cifrado (`body`, `payload`, `variables`…), en lugar de devolver cero filas en silencio. |
+
+### Verificación
+
+- 10 pruebas unitarias nuevas de palabras de baja (acentos, signos, "STOP por favor", frases donde la palabra no encabeza) y de la defensa contra filtros imposibles.
+- 31 comprobaciones contra una base real: webhook con STOP → baja, bitácora y no leído; hilo con aviso, sin compositor y con envío bloqueado; campaña con puros bajas rechazada y campaña mixta con 1 excluido; reactivación con consentimiento; agente sin permiso bloqueado; uso diario contando solo envíos reales y bloqueo al llegar al tope; pantallas del agente y del admin.
+
+---
+
 ## Backlog del Sprint 35 (interactivos)
 
 | Función | Detalle |
@@ -218,14 +241,15 @@ Estas no bloquean nada y se priorizan según lo que pida la operación:
 
 1. **Variables de plantilla en encabezado y botones** (el cuerpo ya se resuelve por contacto).
 2. **Programar campañas** por fecha y hora (pausar y cancelar ya están).
-3. **Respuestas rápidas** guardadas y **contador de no leídos**.
-4. **Botones y listas interactivas**: enviarlos e interpretar la respuesta.
-5. **Límites de mensajes manuales**: `canSendManualMessages`, `manualMessageLimit` y `manualMessagesUsed` se configuran pero todavía no se aplican.
-6. **Opt-in y BAJA/STOP**: campo de consentimiento en `Contact` y baja automática al detectar la palabra clave.
-7. **Normalización de teléfonos** para números fuera de México.
-8. **Reportes**: métricas por campaña y por número.
-9. **Asignar números a agentes** y **repartir campañas entre números**.
-10. **Escalado a varias réplicas**: adaptador de Redis para socket.io y para las colas.
+3. **Botones y listas interactivas**: enviarlos e interpretar la respuesta.
+4. **Normalización de teléfonos** para números fuera de México.
+5. **Reportes**: métricas por campaña y por número.
+6. **Asignar números a agentes** y **repartir campañas entre números**.
+7. **No leídos por persona** (hoy el contador es por conversación).
+8. **Registro formal del opt-in**: quién lo dio, cuándo y por qué canal.
+9. **Escalado a varias réplicas**: adaptador de Redis para socket.io y para las colas.
+
+> Respuestas rápidas, contador de no leídos, límites manuales y opt-in/BAJA se cerraron en el Sprint 42; el cifrado en reposo, en el 41.
 
 ## Lo que sigue fuera de alcance
 

@@ -180,7 +180,36 @@
                     <%= campaign.duplicateRecipients %>
                 </p>
             </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-300">
+                <p class="text-sm text-slate-600">
+                    Excluidos por baja
+                </p>
+
+                <p class="mt-2 text-3xl font-bold text-slate-700">
+                    <%= campaign.skippedRecipients %>
+                </p>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Pidieron la baja (STOP): no se les envía nada.
+                </p>
+            </div>
         </section>
+
+        <%
+            const withoutConsent = campaign.recipients.filter(
+                (recipient) => recipient.contact && !recipient.contact.optInAt
+            ).length;
+        %>
+
+        <% if (withoutConsent > 0) { %>
+            <div class="mb-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-100">
+                <strong><%= withoutConsent %> destinatario(s) sin consentimiento registrado.</strong>
+                La herramienta no verifica el opt-in: es responsabilidad de la empresa
+                escribir solo a quien aceptó recibir mensajes. Puedes registrarlo en la
+                ficha de cada contacto.
+            </div>
+        <% } %>
 
         <section class="mb-6 grid gap-4 md:grid-cols-5">
             <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">

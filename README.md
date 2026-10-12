@@ -37,10 +37,12 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Cuenta de WhatsApp: ver número, calidad, `phoneNumberId` y probar conexión contra Meta.
 - Varios números por cuenta: agregar, editar, activar o desactivar números de la misma WABA, y elegir el **número activo** en el encabezado para trabajar desde él.
 - Plantillas: sincronizar las aprobadas desde Meta y verlas con su estado real.
-- Contactos: crear, editar, buscar, etiquetar y desactivar.
+- Contactos: crear, editar, buscar, etiquetar y desactivar, con consentimiento (opt-in), bajas y filtro de "solo bajas".
 - Etiquetas: crear, editar y desactivar.
-- Agentes: crear, editar, activar o desactivar, con permisos y límite de mensajes manuales.
-- Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo).
+- Agentes: crear, editar, activar o desactivar, con permisos y **límite diario** de mensajes manuales aplicado de verdad, y el uso de hoy a la vista.
+- Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo), búsqueda por nombre o teléfono, filtros por estado, asignación y no leídos, y contador de pendientes por hilo y en el encabezado.
+- Respuestas rápidas: textos guardados que se insertan con un clic (con `{nombre}` y `{telefono}` del contacto), editables en Admin → Respuestas.
+- Bajas automáticas: si el cliente escribe `STOP`, el contacto queda dado de baja y deja de recibir mensajes y campañas; reactivarlo es una decisión explícita y queda auditada.
 - Borrado de mensajes: ocultar un mensaje sin destruirlo (restaurable desde el panel del admin) y, como admin, borrar todo el hilo escribiendo `BORRAR` para confirmar.
 - Respaldos: descarga completa en JSON o exportación por entidad en CSV (contactos, conversaciones, mensajes, campañas, plantillas, usuarios y bitácora).
 - Alta autoservicio: en una instalación nueva, `/setup` crea la empresa y el usuario administrador desde el navegador, y Admin → WhatsApp permite capturar las credenciales de Meta y el primer número sin usar la consola. El asistente se cierra solo al quedar configurada la instalación.
@@ -56,7 +58,9 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 
 - Solo ve las conversaciones asignadas a él.
 - Estado operativo: `AVAILABLE`, `BUSY`, `BREAK`, `OFFLINE`. Al iniciar sesión no queda disponible automáticamente; debe activarse.
-- Responde con tres modos: mensaje local (nota interna, no sale a WhatsApp), texto libre dentro de la ventana de 24 horas, y plantilla aprobada cuando la ventana está cerrada.
+- Responde con cuatro modos: nota interna (marcada como tal en el hilo, no sale a WhatsApp), texto libre dentro de la ventana de 24 horas, archivos en la misma ventana, y plantilla aprobada cuando está cerrada.
+- Respuestas rápidas de un clic y bandeja con búsqueda, filtros y contador de no leídos.
+- Ve su tope diario de mensajes manuales y cuántos lleva usados.
 - Cierra conversaciones cuando terminan.
 
 ### Motor de WhatsApp (lo que corre por debajo)
@@ -265,6 +269,7 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `MEDIA_STORAGE_DIR` | Producción | Carpeta donde se guardan los archivos de los clientes. En Railway debe apuntar a un Volume. Default `uploads/media` |
 | `MEDIA_MAX_BYTES` | No | Tamaño máximo que se descarga de Meta. Default `26214400` (25 MB) |
 | `GRAPH_BASE_URL` | Solo pruebas | Base de la Graph API; vacío usa `https://graph.facebook.com` |
+| `OPT_OUT_KEYWORDS` | No | Palabras que dan de baja a un contacto al escribirlas (separadas por coma). Default `STOP` |
 | `CAMPAIGN_WORKER_INTERVAL_MS` | No | Cada cuánto revisa el worker de campañas. Default `5000` |
 | `CAMPAIGN_BATCH_SIZE` | No | Destinatarios por vuelta del worker. Default `10` |
 | `CAMPAIGN_SEND_INTERVAL_MS` | No | Pausa entre envíos, para no chocar con los límites de Meta. Default `700` |
@@ -378,6 +383,8 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | GET | `/admin/dashboard` | Resumen operativo |
 | GET/POST | `/admin/users`, `/admin/users/new`, `/admin/users/:id/edit`, `/admin/users/:id/toggle-status` | Gestión de agentes |
 | GET/POST | `/admin/contacts`, `/admin/contacts/new`, `/admin/contacts/:id/edit`, `/admin/contacts/:id/deactivate` | Gestión de contactos |
+| POST | `/admin/contacts/:id/opt-out`, `/admin/contacts/:id/opt-in` | Marca la baja o reactiva el consentimiento de un contacto |
+| GET/POST | `/admin/quick-replies`, `/admin/quick-replies/:id/edit`, `/admin/quick-replies/:id/active` | Respuestas rápidas |
 | GET/POST | `/admin/tags`, `/admin/tags/new`, `/admin/tags/:id/edit`, `/admin/tags/:id/deactivate` | Gestión de etiquetas |
 | GET | `/admin/whatsapp` | Detalle de la cuenta conectada |
 | POST | `/admin/whatsapp/test-connection` | Prueba la conexión contra Meta |
@@ -547,7 +554,7 @@ El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 148 pruebas unitarias en verde y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, cifrado de credenciales y cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar).
+Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 157 pruebas unitarias en verde y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos y exclusión de contactos dados de baja en campañas.
 
 Lo que se cerró en el sprint de endurecimiento:
 
@@ -557,6 +564,9 @@ Lo que se cerró en el sprint de endurecimiento:
 - Actualizaciones en vivo en las bandejas con socket.io.
 - Credenciales de Meta cifradas con AES-256-GCM y editables desde el panel.
 - Cifrado en reposo de teléfonos, notas, mensajes, payloads, variables de campaña y bitácora, con índice ciego para buscar el teléfono sin guardarlo en claro.
+- Baja automática por palabra clave (`OPT_OUT_KEYWORDS`, por defecto `STOP`), con bloqueo de envíos y reactivación auditada.
+- Límite diario de mensajes manuales aplicado, calculado sobre los envíos reales (las notas internas no cuentan).
+- Respuestas rápidas, contador de no leídos y filtros y búsqueda en la bandeja.
 - Bloqueo de cuenta por intentos fallidos y límite propio en el login.
 - Protección CSRF por origen y política mínima de contraseñas.
 - Retención automática de bitácora y eventos, con redacción de credenciales.
@@ -566,12 +576,13 @@ Lo que se cerró en el sprint de endurecimiento:
 Pendientes conocidos, en orden de impacto:
 
 1. **Variables fuera del cuerpo**: las campañas resuelven las variables del componente `BODY`. Las de encabezado o de botones con URL todavía no se llenan.
-2. **Límites de mensajes manuales**: `canSendManualMessages`, `manualMessageLimit` y `manualMessagesUsed` se configuran en la interfaz, pero aún no se validan ni se incrementan al enviar.
-3. **Normalización de teléfonos**: el normalizador asume México con prefijo `521`. Conviene contrastarlo contra el formato que Meta acepta hoy y, si el negocio crece fuera del país, generalizarlo.
-4. **Respuestas de botones e interactivos**: se registran de forma genérica, sin interpretar la opción elegida, y todavía no se pueden enviar botones ni listas.
-5. **Opt-in y manejo de BAJA/STOP**: no hay campo de consentimiento en `Contact` ni forma de honrar una baja de manera automática.
+2. **Normalización de teléfonos**: el normalizador asume México con prefijo `521`. Conviene contrastarlo contra el formato que Meta acepta hoy y, si el negocio crece fuera del país, generalizarlo.
+3. **Respuestas de botones e interactivos**: se registran de forma genérica, sin interpretar la opción elegida, y todavía no se pueden enviar botones ni listas.
+4. **Baja con otras palabras**: solo se detecta la palabra clave al inicio del mensaje; el resto se marca a mano desde la ficha del contacto.
+5. **Registro formal del opt-in**: hoy se guarda la fecha del consentimiento, no quién lo dio ni por qué canal.
 6. **Programación de campañas**: se pueden pausar y cancelar, pero no agendar por fecha y hora.
-7. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
+7. **No leídos por persona**: el contador es del hilo, no de cada usuario.
+8. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
 
 Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArgarita.md`](MArgarita.md) y visibles en `/admin/roadmap`.
 

@@ -11,6 +11,16 @@ export function nowInAppTimezone() {
     return dayjs().tz(appConfig.timezone);
 }
 
+/**
+ * Medianoche de hoy en la zona horaria indicada.
+ *
+ * Se usa para los topes diarios: así el contador se reinicia a la
+ * medianoche local de la empresa, no a la medianoche UTC.
+ */
+export function startOfTodayIn(timezone: string): Date {
+    return dayjs().tz(timezone).startOf("day").toDate();
+}
+
 export function formatDateForApp(date: Date) {
     return dayjs(date).tz(appConfig.timezone).format("YYYY-MM-DD HH:mm:ss");
 }

@@ -267,6 +267,32 @@ export async function encryptExistingData() {
             `Bitácora: ${logs.scanned} registros revisados, ${logs.updated} cifrados.`
         );
 
+        const quickReplies = await forEachPage(
+            (skip, take) =>
+                prisma.quickReply.findMany({
+                    skip,
+                    take,
+                    orderBy: ORDER_BY_ID,
+                    select: { id: true, body: true }
+                }),
+            async (quickReply) => {
+                if (isEncrypted(quickReply.body)) {
+                    return false;
+                }
+
+                await prisma.quickReply.update({
+                    where: { id: quickReply.id },
+                    data: { body: encryptSecret(quickReply.body) }
+                });
+
+                return true;
+            }
+        );
+
+        report.push(
+            `Respuestas rápidas: ${quickReplies.scanned} revisadas, ${quickReplies.updated} cifradas.`
+        );
+
         const events = await forEachPage(
             (skip, take) =>
                 prisma.webhookEvent.findMany({

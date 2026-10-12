@@ -1,6 +1,8 @@
+import { UserRole } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 
 import { appConfig } from "../config/app.config";
+import { ConversationService } from "../services/conversation.service";
 import { WhatsAppNumberService } from "../services/whatsapp-number.service";
 
 /**
@@ -36,6 +38,28 @@ export async function activeNumberMiddleware(
         res.locals.activeNumbers = numbers;
         res.locals.currentPath = req.originalUrl;
 
+        /**
+         * Aviso de mensajes sin leer del número activo. Solo se calcula al
+         * pintar una página (GET): en un POST la respuesta es un redirect.
+         */
+        res.locals.unreadTotal = 0;
+
+        if (req.method === "GET") {
+            try {
+                res.locals.unreadTotal = await ConversationService.countUnread({
+                    workspaceId: req.user!.workspaceId,
+                    whatsappNumberId: active?.id,
+                    assignedUserId:
+                        req.user!.role === UserRole.AGENT
+                            ? req.user!.id
+                            : undefined
+                });
+            } catch {
+                /** Si la base todavía no tiene la columna, la página sigue. */
+                res.locals.unreadTotal = 0;
+            }
+        }
+
         return next();
     } catch (error) {
         console.error("No se pudieron cargar los números:", error);
@@ -43,6 +67,7 @@ export async function activeNumberMiddleware(
         res.locals.activeNumber = null;
         res.locals.activeNumbers = [];
         res.locals.currentPath = req.originalUrl;
+        res.locals.unreadTotal = 0;
 
         return next();
     }

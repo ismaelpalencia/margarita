@@ -5,10 +5,12 @@ import {
     LogLevel,
     LogModule,
     MessageDirection,
+    Prisma,
     UserRole
 } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
+import { contactSearchOr } from "../utils/contact-search";
 import { emitToWorkspace } from "../sockets";
 import { describeMetaError } from "../utils/meta-error";
 import { LogService } from "./log.service";
@@ -19,6 +21,17 @@ type ListConversationsParams = {
     role: "ADMIN" | "AGENT";
     status?: string;
     whatsappNumberId?: string;
+};
+
+export type InboxFilters = {
+    status?: string;
+    search?: string;
+    /**
+     * `userId` para las asignadas a esa persona, `null` para las que no
+     * tienen dueño y `undefined` para no filtrar.
+     */
+    assignedTo?: string | null;
+    onlyUnread?: boolean;
 };
 
 export class ConversationService {
@@ -79,12 +92,54 @@ export class ConversationService {
         });
     }
 
-    static async listForAdmin(workspaceId: string, whatsappNumberId?: string) {
+    /**
+     * Condiciones de la bandeja: número activo, estado, búsqueda por
+     * contacto y filtros de asignación y no leídos.
+     */
+    private static inboxWhere(params: {
+        workspaceId: string;
+        whatsappNumberId?: string;
+        filters?: InboxFilters;
+        /** Restricción fija: un agente solo ve lo suyo. */
+        restrictToUserId?: string;
+    }): Prisma.ConversationWhereInput {
+        const filters = params.filters || {};
+        const search = filters.search?.trim() || "";
+
+        const assignedTo =
+            params.restrictToUserId !== undefined
+                ? params.restrictToUserId
+                : filters.assignedTo;
+
+        return {
+            workspaceId: params.workspaceId,
+            ...(params.whatsappNumberId
+                ? { whatsappNumberId: params.whatsappNumberId }
+                : {}),
+            ...(filters.status
+                ? { status: filters.status as ConversationStatus }
+                : {}),
+            ...(filters.onlyUnread ? { unreadCount: { gt: 0 } } : {}),
+            ...(assignedTo === null
+                ? { assignedUserId: null }
+                : assignedTo
+                  ? { assignedUserId: assignedTo }
+                  : {}),
+            ...(search ? { contact: { OR: contactSearchOr(search) } } : {})
+        };
+    }
+
+    static async listForAdmin(
+        workspaceId: string,
+        whatsappNumberId?: string,
+        filters?: InboxFilters
+    ) {
         return prisma.conversation.findMany({
-            where: {
+            where: this.inboxWhere({
                 workspaceId,
-                ...(whatsappNumberId ? { whatsappNumberId } : {})
-            },
+                whatsappNumberId,
+                filters
+            }),
             include: {
                 contact: true,
                 assignedUser: true,
@@ -115,14 +170,16 @@ export class ConversationService {
     static async listForAgent(
         workspaceId: string,
         agentId: string,
-        whatsappNumberId?: string
+        whatsappNumberId?: string,
+        filters?: InboxFilters
     ) {
         return prisma.conversation.findMany({
-            where: {
+            where: this.inboxWhere({
                 workspaceId,
-                assignedUserId: agentId,
-                ...(whatsappNumberId ? { whatsappNumberId } : {})
-            },
+                whatsappNumberId,
+                filters,
+                restrictToUserId: agentId
+            }),
             include: {
                 contact: true,
                 assignedUser: true,
@@ -148,6 +205,53 @@ export class ConversationService {
                 }
             ]
         });
+    }
+
+    /**
+     * Al abrir un hilo, sus mensajes entrantes dejan de contar como no
+     * leídos. El contador es por conversación, no por persona: si otro
+     * usuario tenía el hilo abierto, el aviso desaparece para todos.
+     */
+    static async markAsRead(workspaceId: string, conversationId: string) {
+        await prisma.conversation.updateMany({
+            where: {
+                id: conversationId,
+                workspaceId,
+                unreadCount: {
+                    gt: 0
+                }
+            },
+            data: {
+                unreadCount: 0
+            }
+        });
+    }
+
+    /** Total de mensajes sin leer, para el aviso del encabezado. */
+    static async countUnread(params: {
+        workspaceId: string;
+        whatsappNumberId?: string;
+        assignedUserId?: string;
+    }): Promise<number> {
+        const result = await prisma.conversation.aggregate({
+            where: {
+                workspaceId: params.workspaceId,
+                ...(params.whatsappNumberId
+                    ? { whatsappNumberId: params.whatsappNumberId }
+                    : {}),
+                ...(params.assignedUserId
+                    ? { assignedUserId: params.assignedUserId }
+                    : {}),
+                unreadCount: {
+                    gt: 0
+                }
+            },
+            _sum: {
+                unreadCount: true
+            }
+        });
+
+        return result._sum.unreadCount ?? 0;
     }
 
     static async openFromContact(

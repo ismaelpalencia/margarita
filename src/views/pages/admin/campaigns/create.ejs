@@ -239,6 +239,15 @@
                                 <div>
                                     <p class="font-semibold text-slate-900">
                                         <%= contact.customName || contact.profileName || contact.phone %>
+
+                                        <% if (contact.optOutAt) { %>
+                                            <span
+                                                class="ml-1 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700"
+                                                title="Pidió la baja: se excluirá de la campaña"
+                                            >
+                                                BAJA · se excluye
+                                            </span>
+                                        <% } %>
                                     </p>
 
                                     <p class="text-sm text-slate-500">

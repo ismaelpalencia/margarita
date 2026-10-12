@@ -243,3 +243,60 @@ test("avisa en claro si alguien intenta buscar el teléfono por partes", () => {
         /cifrado/
     );
 });
+
+test("avisa en claro si alguien busca dentro del cuerpo de un mensaje", () => {
+    process.env.ENCRYPTION_KEY = TEST_KEY;
+
+    assert.throws(
+        () =>
+            encryptWriteArgs("Message", "findMany", {
+                where: { body: { contains: "hola" } }
+            }),
+        /Message\.body/
+    );
+
+    assert.throws(
+        () =>
+            encryptWriteArgs("Message", "updateMany", {
+                where: { body: "texto exacto" }
+            }),
+        /Message\.body/
+    );
+
+    assert.throws(
+        () =>
+            encryptWriteArgs("QuickReply", "findMany", {
+                where: { body: { startsWith: "Hola" } }
+            }),
+        /QuickReply\.body/
+    );
+});
+
+test("deja pasar los filtros que no comparan el contenido", () => {
+    process.env.ENCRYPTION_KEY = TEST_KEY;
+
+    /** Preguntar si hay valor no es comparar el valor. */
+    assert.doesNotThrow(() =>
+        encryptWriteArgs("Message", "findMany", {
+            where: {
+                conversationId: "c1",
+                body: { not: null },
+                deletedAt: null
+            }
+        })
+    );
+
+    assert.doesNotThrow(() =>
+        encryptWriteArgs("Message", "findMany", {
+            where: {
+                OR: [{ wamid: { not: null } }, { body: { not: null } }]
+            }
+        })
+    );
+
+    assert.doesNotThrow(() =>
+        encryptWriteArgs("CampaignRecipient", "findMany", {
+            where: { campaignId: "x", variables: { not: null } }
+        })
+    );
+});

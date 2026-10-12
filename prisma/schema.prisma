@@ -153,6 +153,7 @@ model Workspace {
   messages        Message[]
   logs            Log[]
   webhookEvents   WebhookEvent[]
+  quickReplies    QuickReply[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -199,7 +200,6 @@ model User {
 
   canSendManualMessages Boolean @default(false)
   manualMessageLimit    Int?
-  manualMessagesUsed    Int @default(0)
 
   lastLoginAt DateTime?
 
@@ -210,6 +210,7 @@ model User {
 
   sentMessages Message[] @relation("MessageSentByUser")
   campaigns    Campaign[] @relation("CampaignCreatedBy")
+  quickReplies QuickReply[] @relation("QuickReplyCreatedBy")
 
   assignedConversations Conversation[] @relation("ConversationAssignedUser")
 
@@ -304,6 +305,15 @@ model Contact {
 
   isActive Boolean @default(true)
 
+  /**
+   * Consentimiento: cuándo aceptó recibir mensajes (se puede registrar a
+   * mano) y cuándo pidió la baja. Si `optOutAt` tiene valor, la herramienta
+   * no envía nada a ese contacto.
+   */
+  optInAt      DateTime?
+  optOutAt     DateTime?
+  optOutSource String?
+
   lastSeenAt DateTime?
 
   tags               ContactTag[]
@@ -316,6 +326,7 @@ model Contact {
   @@unique([workspaceId, phoneHash])
   @@index([workspaceId])
   @@index([phoneHash])
+  @@index([optOutAt])
   @@index([isActive])
 }
 
@@ -395,6 +406,12 @@ model Conversation {
   lastIncomingMessageAt DateTime?
   closedAt              DateTime?
 
+  /**
+   * Mensajes entrantes sin leer. Se incrementa con cada mensaje del cliente
+   * y se pone en cero cuando alguien abre el hilo.
+   */
+  unreadCount Int @default(0)
+
   messages    Message[]
   assignments AssignmentHistory[]
 
@@ -452,6 +469,12 @@ model Message {
    */
   deletedAt DateTime?
 
+  /**
+   * Nota interna: se ve en el panel y nunca sale a WhatsApp. No cuenta
+   * para el límite diario de mensajes manuales.
+   */
+  isInternalNote Boolean @default(false)
+
   metaPayload  Json?
   metaResponse Json?
 
@@ -465,6 +488,7 @@ model Message {
   @@index([status])
   @@index([direction])
   @@index([createdAt])
+  @@index([sentByUserId, createdAt])
 }
 
 model AssignmentHistory {
@@ -513,6 +537,8 @@ model Campaign {
   validRecipients     Int @default(0)
   invalidRecipients   Int @default(0)
   duplicateRecipients Int @default(0)
+  /** Contactos que no se incluyeron por haber pedido la baja. */
+  skippedRecipients   Int @default(0)
 
   recipients CampaignRecipient[]
   messages   Message[]
@@ -557,6 +583,32 @@ model CampaignRecipient {
   @@index([messageId])
   @@index([status])
   @@index([phone])
+}
+
+/**
+ * Respuesta rápida: un texto guardado que el equipo inserta en el hilo con
+ * un clic. Admite `{nombre}` y `{telefono}` del contacto.
+ */
+model QuickReply {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  title String
+  /** Texto de la respuesta, cifrado en la base como el resto del contenido. */
+  body  String
+
+  isActive Boolean @default(true)
+
+  createdById String?
+  createdBy   User?   @relation("QuickReplyCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, title])
+  @@index([workspaceId])
+  @@index([isActive])
 }
 
 model Log {

@@ -1,63 +1,35 @@
 import { prisma } from "../config/prisma";
-import { blindIndex } from "../utils/crypto";
+import { LogLevel, LogModule } from "@prisma/client";
+import { contactSearchOr } from "../utils/contact-search";
+import { LogService } from "./log.service";
 import {
     CreateContactInput,
     UpdateContactInput
 } from "../validations/contact.validation";
-import {
-    contactPhoneFields,
-    isValidMexicanPhone,
-    normalizeMexicanPhone
-} from "../utils/phone";
+import { contactPhoneFields, normalizeMexicanPhone } from "../utils/phone";
 
 type ListContactsParams = {
     workspaceId: string;
     search?: string;
     tagId?: string;
+    /** Solo los contactos que pidieron la baja. */
+    onlyOptedOut?: boolean;
 };
 
 export class ContactService {
     static async listContacts(params: ListContactsParams) {
         const search = params.search?.trim();
 
-        /**
-         * El teléfono está cifrado, así que no se puede buscar por
-         * coincidencia parcial. Si lo que se escribió es un teléfono
-         * completo, se busca por su índice ciego; si no, la búsqueda queda
-         * en el nombre.
-         */
-        const phoneSearch =
-            search && isValidMexicanPhone(search)
-                ? normalizeMexicanPhone(search)
-                : null;
-
         return prisma.contact.findMany({
             where: {
                 workspaceId: params.workspaceId,
                 isActive: true,
-                ...(search
+                ...(search ? { OR: contactSearchOr(search) } : {}),
+                ...(params.onlyOptedOut
                     ? {
-                          OR: [
-                              {
-                                  customName: {
-                                      contains: search,
-                                      mode: "insensitive"
-                                  }
-                              },
-                              {
-                                  profileName: {
-                                      contains: search,
-                                      mode: "insensitive"
-                                  }
-                              },
-                              ...(phoneSearch
-                                  ? [
-                                        {
-                                            phoneHash: blindIndex(phoneSearch)
-                                        }
-                                    ]
-                                  : [])
-                          ]
+                          optOutAt: {
+                              not: null
+                          }
                       }
                     : {}),
                 ...(params.tagId
@@ -211,6 +183,77 @@ export class ContactService {
                 isActive: false
             }
         });
+    }
+
+    /**
+     * Marca la baja a mano, por ejemplo cuando el cliente la pidió por
+     * teléfono o en persona. A partir de ahí no se le envía nada.
+     */
+    static async setOptOut(
+        workspaceId: string,
+        contactId: string,
+        source: "admin" | "keyword"
+    ) {
+        await this.getContactById(workspaceId, contactId);
+
+        const contact = await prisma.contact.update({
+            where: {
+                id: contactId
+            },
+            data: {
+                optOutAt: new Date(),
+                optOutSource: source
+            }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.WARN,
+            module: LogModule.CONTACT,
+            action: "CONTACT_OPT_OUT_MANUAL",
+            message: "Se marcó la baja de un contacto.",
+            payload: {
+                contactId,
+                source
+            }
+        });
+
+        return contact;
+    }
+
+    /**
+     * Reactiva a un contacto que había pedido la baja y deja registrado el
+     * consentimiento nuevo. Es una decisión explícita del operador: la
+     * herramienta no la toma sola.
+     */
+    static async setOptIn(workspaceId: string, contactId: string) {
+        const before = await this.getContactById(workspaceId, contactId);
+
+        const contact = await prisma.contact.update({
+            where: {
+                id: contactId
+            },
+            data: {
+                optOutAt: null,
+                optOutSource: null,
+                optInAt: new Date()
+            }
+        });
+
+        if (before.optOutAt) {
+            await LogService.create({
+                workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.CONTACT,
+                action: "CONTACT_OPT_IN",
+                message: "Se reactivó a un contacto que había pedido la baja.",
+                payload: {
+                    contactId
+                }
+            });
+        }
+
+        return contact;
     }
 
     private static async getValidTagIds(workspaceId: string, tagIds: string[]) {

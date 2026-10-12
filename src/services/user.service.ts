@@ -61,8 +61,7 @@ export class UserService {
                 status: UserStatus.OFFLINE,
                 isActive: true,
                 canSendManualMessages: input.canSendManualMessages,
-                manualMessageLimit: input.manualMessageLimit,
-                manualMessagesUsed: 0
+                manualMessageLimit: input.manualMessageLimit
             }
         });
     }

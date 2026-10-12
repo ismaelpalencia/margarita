@@ -16,11 +16,14 @@ export class AdminContactsController {
         const tagId =
             typeof req.query.tagId === "string" ? req.query.tagId : "";
 
+        const onlyOptedOut = req.query.bajas === "1";
+
         const [contacts, tags] = await Promise.all([
             ContactService.listContacts({
                 workspaceId: req.user!.workspaceId,
                 search,
-                tagId: tagId || undefined
+                tagId: tagId || undefined,
+                onlyOptedOut
             }),
             TagService.listTags(req.user!.workspaceId)
         ]);
@@ -31,6 +34,7 @@ export class AdminContactsController {
             tags,
             search,
             tagId,
+            onlyOptedOut,
             success: req.query.success || null
         });
     }
@@ -169,5 +173,68 @@ export class AdminContactsController {
         }
 
         return res.redirect("/admin/contacts?success=deactivated");
+    }
+
+    /**
+     * El destino de la redirección se valida para que solo pueda ser una
+     * ruta interna: aceptar una URL completa sería un redirect abierto.
+     */
+    private static safeRedirect(req: Request, fallback: string): string {
+        const raw =
+            typeof req.body?.redirectTo === "string"
+                ? req.body.redirectTo
+                : typeof req.query?.redirectTo === "string"
+                  ? req.query.redirectTo
+                  : "";
+
+        return raw.startsWith("/") && !raw.startsWith("//") ? raw : fallback;
+    }
+
+    static async optOut(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+
+        try {
+            await ContactService.setOptOut(
+                req.user!.workspaceId,
+                id,
+                "admin"
+            );
+        } catch {
+            return res.redirect(
+                AdminContactsController.safeRedirect(
+                    req,
+                    "/admin/contacts?error=opt-out"
+                )
+            );
+        }
+
+        return res.redirect(
+            AdminContactsController.safeRedirect(
+                req,
+                "/admin/contacts?success=opted-out"
+            )
+        );
+    }
+
+    static async optIn(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+
+        try {
+            await ContactService.setOptIn(req.user!.workspaceId, id);
+        } catch {
+            return res.redirect(
+                AdminContactsController.safeRedirect(
+                    req,
+                    "/admin/contacts?error=opt-in"
+                )
+            );
+        }
+
+        return res.redirect(
+            AdminContactsController.safeRedirect(
+                req,
+                "/admin/contacts?success=opted-in"
+            )
+        );
     }
 }

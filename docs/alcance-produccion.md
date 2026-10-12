@@ -2,7 +2,7 @@
 
 Documento de referencia para decidir y sostener el uso de Margarita en producción. Describe **lo que la herramienta hace hoy**, lo que no hace, los controles de seguridad vigentes y las responsabilidades que quedan del lado de quien la opera.
 
-Última revisión: 2026-10-12 (cifrado de los datos personales en reposo).
+Última revisión: 2026-10-12 (bajas automáticas, límites diarios, respuestas rápidas y no leídos).
 
 ---
 
@@ -32,14 +32,15 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 
 - **Dashboard** con conversaciones abiertas, conteo de agentes por estado, últimos mensajes entrantes y errores recientes.
 - **Agentes**: crear, editar, activar o desactivar, con permiso de envío manual y límite configurable.
-- **Contactos**: crear, editar, buscar por texto, filtrar por etiqueta, desactivar.
+- **Contactos**: crear, editar, buscar por texto, filtrar por etiqueta y por bajas, registrar el consentimiento (opt-in), marcar la baja a mano y desactivar.
 - **Etiquetas**: crear, editar, desactivar y asignar a contactos.
 - **Cuenta de WhatsApp**: administrar los números de la WABA (agregar, editar, activar o desactivar, ver calidad y estado de cada uno y probar su conexión); actualizar las credenciales de la cuenta (tokens, business account, versión de API) y cifrarlas.
 - **Plantillas**: sincronizar las plantillas de Meta con su estado real (`APPROVED`, `PENDING`, `REJECTED`).
-- **Conversaciones**: ver todas, abrir desde un contacto, responder, asignar y reasignar, cerrar y reabrir.
+- **Conversaciones**: ver todas, abrir desde un contacto, responder, asignar y reasignar, cerrar y reabrir, con búsqueda por nombre o teléfono, filtros por estado, por asignación y por no leídos, y el contador de pendientes por hilo.
 - **Campañas**: crear seleccionando contactos o subiendo Excel/CSV, **con variables** (texto fijo, el nombre o el teléfono del contacto, y cualquier columna del archivo), enviar, ver el estado por destinatario y reintentar los fallidos.
 - **Campañas en cola**: el envío corre en segundo plano, por lotes y con una pausa entre mensajes para no chocar con los límites de Meta. Se puede pausar, reanudar y cancelar, y la pantalla muestra el avance en vivo.
 - **Logs**: auditoría filtrable por nivel y módulo, con el detalle de cada evento.
+- **Respuestas rápidas**: textos guardados que el equipo inserta con un clic, con `{nombre}` y `{telefono}` del contacto.
 - **Sistema**: checklist de configuración y estado de seguridad, cola y worker.
 - **Roadmap**: alcance incluido y lo que está postergado.
 
@@ -48,6 +49,8 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - Ve **únicamente** las conversaciones asignadas a él (la restricción se aplica en la consulta a la base).
 - Estado operativo: `AVAILABLE`, `BUSY`, `BREAK`, `OFFLINE`. No queda disponible automáticamente al entrar.
 - Cuatro formas de responder: **nota local** (no sale a WhatsApp), **texto libre** dentro de la ventana de 24 horas, **archivos** (imagen, video, audio o documento) dentro de la misma ventana, y **plantilla aprobada** cuando está cerrada.
+- **Respuestas rápidas**: un clic inserta el texto guardado en el compositor, ya con el nombre y el teléfono del contacto.
+- **Bandeja con filtros y no leídos**: busca por nombre o teléfono, filtra por estado y por no leídos, y ve el contador de pendientes por hilo.
 - Cierra conversaciones.
 
 ### Motor de WhatsApp
@@ -71,6 +74,10 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Cierre de contrato**: el borrado total elimina mensajes, conversaciones, contactos, campañas, plantillas, usuarios, sesiones, credenciales y archivos, con la confirmación del identificador de la instalación y constancia en la bitácora.
 - **Versión en ejecución**: `/health` y Admin → Sistema reportan la versión y el commit desplegado, para saber qué corre cada instalación.
 - **Motivos de fallo traducidos**: los códigos de Meta (pago, ventana cerrada, número inválido, límites, plantillas) se explican en español en la bitácora y en el hilo.
+- **Baja automática (BAJA/STOP)**: si el cliente escribe la palabra clave (por defecto `STOP`, configurable con `OPT_OUT_KEYWORDS`), el contacto queda dado de baja y la herramienta deja de enviarle cualquier mensaje, incluso si estaba en una campaña en curso. La reactivación es una decisión explícita del operador y queda auditada.
+- **Límites de envío manual aplicados**: el permiso `canSendManualMessages` y el tope diario del agente se validan al enviar, con el motivo a la vista. El uso se calcula sobre los mensajes realmente enviados, así que se reinicia solo a medianoche local; las notas internas no cuentan.
+- **Notas internas diferenciadas**: se ven en el panel con su propia etiqueta (y sin palomitas) y nunca salen a WhatsApp.
+- **Defensa contra búsquedas imposibles**: si una consulta intenta filtrar por un campo cifrado (por ejemplo el cuerpo de un mensaje), la herramienta falla con una explicación en lugar de devolver cero filas en silencio.
 - **Salud de la cuenta**: los avisos de Meta sobre plantillas (aprobada, rechazada, pausada, marcada) y sobre la calidad de cada número se procesan, actualizan el estado en el panel y quedan en la bitácora con nivel de error cuando exigen atención.
 
 ### Auditoría y operación
@@ -94,9 +101,10 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Sin botones ni listas** | Se envían texto, plantillas y archivos, pero todavía no mensajes interactivos (botones o listas). |
 | **Variables solo en el cuerpo** | Las campañas resuelven las variables del componente `BODY` de la plantilla. Si la plantilla tiene variables en el encabezado o en un botón con URL, hoy no se llenan. |
 | **Campañas sin agendar** | Se pueden pausar, reanudar y cancelar, pero todavía no programar por fecha y hora. |
-| **Límites de envío manual sin aplicar** | El permiso `canSendManualMessages` y el límite por agente se configuran en la interfaz, pero **hoy no se validan al enviar**. |
 | **Respuestas de botones sin interpretar** | Si un cliente toca un botón, se guarda como mensaje interactivo genérico, sin saber qué opción eligió. |
-| **Sin opt-in ni BAJA/STOP** | No hay campo de consentimiento ni baja automática al detectar una palabra clave. |
+| **Baja solo por palabra clave** | Se detecta la palabra al inicio del mensaje (`STOP`, `STOP por favor`). Si el cliente la pide con otras palabras ("no me escriban más"), hay que marcarlo a mano desde su ficha. |
+| **El opt-in no se verifica** | La herramienta registra el consentimiento y respeta las bajas, pero no comprueba de dónde salió: registrar el opt-in es responsabilidad del operador. Las campañas avisan cuántos destinatarios no tienen consentimiento registrado. |
+| **No leídos por conversación** | El contador es del hilo, no de cada persona: si alguien abre la conversación, el aviso desaparece para todos. |
 | **Eventos de webhook acotados** | Se procesan los campos `messages`, `message_template_status_update` y `phone_number_quality_update`. Otros avisos de Meta se ignoran. |
 | **Un número pertenece a una sola WABA** | Es una regla de Meta, no de la aplicación: un número no se puede compartir entre dos cuentas. Moverlo exige quitarlo de una y registrarlo en la otra, con nueva verificación. |
 | **Sin permisos por número** | Con varios números, **todos los agentes ven todos**. Restringir qué números atiende cada agente está diseñado y pendiente. |
@@ -149,8 +157,8 @@ Ser explícito aquí es parte del trato:
 
 Hay cosas que la herramienta deja del lado de la empresa porque son decisiones de negocio o exigencias de Meta:
 
-- **Consentimiento (opt-in)**: solo escribir a personas que aceptaron recibir mensajes. La herramienta no lo verifica.
-- **Bajas**: honrar manualmente a quien pida no recibir más mensajes.
+- **Consentimiento (opt-in)**: solo escribir a personas que aceptaron recibir mensajes. La herramienta guarda el consentimiento que le registres y avisa cuántos destinatarios de una campaña no lo tienen, pero no lo verifica por ti.
+- **Bajas**: la herramienta deja de enviar en automático a quien escriba la palabra clave, y tú marcas la baja de quien la pida por otra vía (teléfono, mostrador). Reactivar a alguien es una decisión tuya y queda auditada.
 - **Método de pago en Meta**: si la cuenta no tiene método de pago válido, los envíos fallan con el código `131042` y no salen, aunque la app diga que todo está bien.
 - **Plantillas**: usar solo plantillas aprobadas para iniciar conversaciones.
 - **Calidad del número**: vigilar la calificación en el panel de Meta; los envíos masivos sin consentimiento la degradan.
@@ -164,9 +172,9 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 148 pruebas unitarias en 23 archivos |
+| Pruebas automatizadas | 157 pruebas unitarias en 24 archivos |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
-| Migraciones | Versionadas en `prisma/migrations`, con siete aplicadas |
+| Migraciones | Versionadas en `prisma/migrations`, con ocho aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
 
 Además de las pruebas unitarias, los flujos críticos se verificaron de punta a punta contra una base real:
@@ -183,6 +191,7 @@ Además de las pruebas unitarias, los flujos críticos se verificaron de punta a
 - Multinúmero: alta de un segundo número, filtrado de la bandeja por número activo, dos hilos para el mismo contacto y envío por el número de cada hilo.
 - Campañas en cola: el inicio responde en milisegundos, el worker envía por lotes con pausa entre mensajes, y pausar detiene el envío sin perder los pendientes.
 - Salud de la cuenta: plantilla rechazada y calidad marcada por webhook actualizan el estado en el panel y dejan el aviso en la bitácora con el nivel correcto.
+- Baja automática y límites (31 comprobaciones contra una base real): el webhook con `STOP` da de baja al contacto, deja el aviso en la bitácora y suma el no leído; el hilo muestra el aviso, esconde el cuadro de escritura y bloquea el envío manual; una campaña con puros contactos dados de baja no se crea, y una mixta excluye solo a esos; reactivar desde la ficha registra el consentimiento; un agente sin permiso no puede enviar, el uso del día cuenta solo los mensajes enviados (no las notas internas) y al llegar al tope se bloquea con el motivo.
 
 ---
 
@@ -191,8 +200,9 @@ Además de las pruebas unitarias, los flujos críticos se verificaron de punta a
 | Riesgo | Impacto | Mitigación hoy |
 | --- | --- | --- |
 | Campaña con muchos contactos | Podría tardar más de lo esperado | El envío va en cola con pausa entre mensajes, así que no se corta por timeout; se puede pausar y reanudar |
-| Límites de envío manual sin aplicar | Un agente podría escribir más de lo previsto | Acuerdo operativo con el equipo |
-| Falta de opt-in | Reportes de clientes y degradación de la calidad del número | Responsabilidad del operador |
+| Agente sin tope configurado | Podría escribir más de lo previsto | El tope global de la empresa aplica por defecto; el uso del día se ve en Admin → Agentes y en el panel del agente |
+| Consentimiento sin verificar | Reportes de clientes y degradación de la calidad del número | La baja por palabra clave es automática y las campañas avisan cuántos destinatarios no tienen opt-in registrado |
+| Baja pedida con otras palabras | El cliente sigue recibiendo mensajes | Se marca a mano desde la ficha del contacto; conviene revisar los mensajes que se lean como baja |
 | Calidad de un número | Ese número envía menos o queda limitado | La calidad es por número, así que no arrastra a los demás; los avisos de Meta todavía se revisan en su panel (pendiente: alertas dentro de la app) |
 | Una sola instancia | Si el servicio se reinicia, la bandeja se reconecta sola | Railway reinicia el servicio automáticamente |
 | Pérdida de `ENCRYPTION_KEY` | Los campos cifrados (teléfonos, mensajes, notas, bitácora) y los tokens de Meta quedan ilegibles | Guardarla en un lugar seguro además de las variables, y respaldarla junto con la base |
@@ -206,19 +216,20 @@ El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 
 **Proteger la operación.**
 
-1. **Opt-in y baja automática** (BAJA/STOP), que es cumplimiento pero también protección de la calidad.
-2. **Aplicar los límites de mensajes manuales**, que hoy se configuran y no se validan.
-3. **Cifrar los nombres de contacto y los correos**, que hoy quedan en claro porque la búsqueda por texto y el inicio de sesión dependen de ellos. Al cifrarlos, la búsqueda pasa a coincidencia exacta con índice ciego.
+1. **Cifrar los nombres de contacto y los correos**, que hoy quedan en claro porque la búsqueda por texto y el inicio de sesión dependen de ellos. Al cifrarlos, la búsqueda pasa a coincidencia exacta con índice ciego.
+2. **Registro formal del opt-in**: quién lo dio, cuándo y por qué canal, en lugar de una sola fecha.
+3. **Autenticación de dos factores** para el admin.
 
 **Mejorar el día a día de la bandeja.**
 
-4. **Respuestas rápidas** guardadas.
-5. **Contador de no leídos**, búsqueda y filtros.
-6. **Botones y listas**: enviarlos e interpretar la respuesta del cliente.
+4. **Botones y listas**: enviarlos e interpretar la respuesta del cliente.
+5. **Programar campañas** por fecha y hora.
+6. **Variables en encabezado y botones** de la plantilla.
 
 **Cuando el equipo crezca.**
 
 7. **Asignar números a agentes** y **repartir campañas entre números** (ver [`multinumero.md`](multinumero.md)).
+8. **No leídos por persona**, si el equipo crece y molesta que el aviso sea por conversación.
 
 ---
 
@@ -240,4 +251,6 @@ En el panel:
 
 - **Admin → Sistema**: checklist de configuración y tarjetas de seguridad (cifrado en reposo, firma, cola, alertas, retención). La tarjeta de cifrado dice cuántos registros quedaron en claro de antes del cifrado, si los hay.
 - **Admin → WhatsApp**: credenciales de la cuenta, números con su calidad, y cifrado.
+- **Admin → Agentes**: permiso de envío manual, tope diario y cuántos mensajes manuales lleva cada agente hoy.
+- **Admin → Contactos**: consentimiento y bajas (filtro "Solo bajas").
 - **Admin → Logs**: qué pasó y por qué, con el detalle de cada evento.

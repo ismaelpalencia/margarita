@@ -152,12 +152,27 @@ export class CampaignService {
                 id: true,
                 phone: true,
                 customName: true,
-                profileName: true
+                profileName: true,
+                optOutAt: true
             }
         });
 
         if (contacts.length === 0) {
             throw new Error("No hay contactos válidos para la campaña.");
+        }
+
+        /**
+         * Quien pidió la baja no entra en la campaña. Se excluye aquí, al
+         * crear, para que el conteo de la campaña sea el real y nadie
+         * tenga que acordarse de revisarlo antes de enviar.
+         */
+        const reachable = contacts.filter((contact) => !contact.optOutAt);
+        const skippedRecipients = contacts.length - reachable.length;
+
+        if (reachable.length === 0) {
+            throw new Error(
+                "Todos los contactos seleccionados pidieron la baja (STOP). No hay a quién enviar."
+            );
         }
 
         const requiredVariables = countTemplateVariables(template.components);
@@ -177,7 +192,7 @@ export class CampaignService {
          * guardan por destinatario: así queda registro exacto de lo que se
          * envió y el envío no depende de que el contacto cambie después.
          */
-        const recipients = contacts.map((contact) => {
+        const recipients = reachable.map((contact) => {
             const resolved = resolveVariableSpecs(
                 requiredVariables > 0 ? specs : [],
                 {
@@ -220,10 +235,11 @@ export class CampaignService {
                 createdById,
                 name: input.name,
                 status: CampaignStatus.DRAFT,
-                totalRecipients: contacts.length,
-                validRecipients: contacts.length,
+                totalRecipients: reachable.length,
+                validRecipients: reachable.length,
                 invalidRecipients: 0,
                 duplicateRecipients: 0,
+                skippedRecipients,
                 recipients: {
                     create: recipients.map((recipient) => ({
                         contactId: recipient.contactId,
@@ -248,6 +264,7 @@ export class CampaignService {
                 campaignId: campaign.id,
                 name: campaign.name,
                 recipients: campaign.recipients.length,
+                skippedForOptOut: skippedRecipients,
                 templateId: template.id
             }
         });
@@ -513,6 +530,7 @@ export class CampaignService {
 
         let sentCount = 0;
         let failedCount = 0;
+        let skippedCount = 0;
 
         for (const recipient of campaign.recipients) {
             if (sentCount + failedCount > 0) {
@@ -558,6 +576,43 @@ export class CampaignService {
                     stopped: true,
                     reason: `La campaña quedó en estado ${current?.status}.`
                 };
+            }
+
+            /**
+             * La baja se revisa al momento de enviar: puede haber llegado
+             * un STOP después de crear la campaña, y en ese caso el
+             * destinatario se marca como omitido en lugar de fallido.
+             */
+            if (recipient.contact?.optOutAt) {
+                await prisma.campaignRecipient.update({
+                    where: {
+                        id: recipient.id
+                    },
+                    data: {
+                        status: CampaignRecipientStatus.SKIPPED,
+                        errorCode: "OPT_OUT",
+                        errorMessage:
+                            "El contacto pidió la baja (STOP) antes del envío."
+                    }
+                });
+
+                skippedCount += 1;
+
+                await LogService.create({
+                    workspaceId,
+                    level: LogLevel.WARN,
+                    module: LogModule.CAMPAIGN,
+                    action: "CAMPAIGN_RECIPIENT_SKIPPED",
+                    message:
+                        "No se envió la campaña: el contacto pidió la baja (STOP).",
+                    payload: {
+                        campaignId: campaign.id,
+                        recipientId: recipient.id,
+                        contactId: recipient.contactId
+                    }
+                });
+
+                continue;
             }
 
             try {
@@ -756,6 +811,7 @@ export class CampaignService {
         return {
             sent: sentCount,
             failed: failedCount,
+            skipped: skippedCount,
             remaining,
             stopped: false,
             reason: null

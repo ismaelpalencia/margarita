@@ -1,6 +1,7 @@
 import { UserRole, UserStatus } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
+import { SendPolicyService } from "./send-policy.service";
 
 export class AgentService {
     static async getAgentDashboard(userId: string) {
@@ -10,12 +11,12 @@ export class AgentService {
             },
             select: {
                 id: true,
+                workspaceId: true,
                 name: true,
                 email: true,
                 status: true,
                 canSendManualMessages: true,
                 manualMessageLimit: true,
-                manualMessagesUsed: true,
                 workspace: {
                     select: {
                         settings: {
@@ -44,12 +45,26 @@ export class AgentService {
             agent.workspace.settings?.maxManualMessages ??
             0;
 
+        /**
+         * El uso de hoy se cuenta desde los mensajes enviados, no de un
+         * acumulado: así el número siempre cuadra con lo que hay en la
+         * conversación y se reinicia solo a medianoche.
+         */
+        const usage = await SendPolicyService.usageToday({
+            id: agent.id,
+            role: UserRole.AGENT,
+            workspaceId: agent.workspaceId,
+            canSendManualMessages: agent.canSendManualMessages,
+            manualMessageLimit: agent.manualMessageLimit
+        });
+
         return {
             agent,
             stats: {
                 assignedConversations,
-                manualMessagesUsed: agent.manualMessagesUsed,
-                manualMessageLimit
+                manualMessagesUsed: usage.used,
+                manualMessageLimit,
+                manualMessagesRemaining: usage.remaining
             }
         };
     }

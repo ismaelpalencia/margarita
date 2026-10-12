@@ -8,6 +8,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
+import { SendPolicyService } from "./send-policy.service";
 
 export class DashboardService {
     static async getAdminDashboard(workspaceId: string) {
@@ -169,7 +170,9 @@ export class DashboardService {
                 select: {
                     id: true,
                     name: true,
-                    status: true
+                    status: true,
+                    canSendManualMessages: true,
+                    manualMessageLimit: true
                 }
             }),
 
@@ -237,11 +240,26 @@ export class DashboardService {
             })
         ]);
 
+        /**
+         * Uso de hoy y tope efectivo del agente (el suyo o el de la
+         * empresa). Se calcula después porque depende de lo que se acaba
+         * de leer del usuario.
+         */
+        const manualUsage = await SendPolicyService.usageToday({
+            id: userId,
+            role: UserRole.AGENT,
+            workspaceId,
+            canSendManualMessages: Boolean(currentAgent?.canSendManualMessages),
+            manualMessageLimit: currentAgent?.manualMessageLimit ?? null
+        });
+
         return {
             currentAgent,
             stats: {
                 assignedOpenConversations,
-                inProgressConversations
+                inProgressConversations,
+                manualMessagesToday: manualUsage.used,
+                manualMessageLimit: manualUsage.limit
             },
             recentMessages,
             recentConversations

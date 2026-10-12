@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import { UserService } from "../services/user.service";
+import { SendPolicyService } from "../services/send-policy.service";
 import { getRequiredParam } from "../utils/request";
 import {
     createAgentSchema,
@@ -13,9 +14,13 @@ export class AdminUsersController {
 
         const agents = await UserService.listAgents(workspaceId);
 
+        /** Mensajes manuales enviados hoy por cada agente. */
+        const usageToday = await SendPolicyService.usageTodayByUser(workspaceId);
+
         return res.render("pages/admin/users/index", {
             user: req.user,
             agents,
+            usageToday,
             error: null,
             success: req.query.success || null
         });

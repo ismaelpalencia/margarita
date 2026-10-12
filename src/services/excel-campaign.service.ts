@@ -236,6 +236,7 @@ export class ExcelCampaignService {
         }
 
         const contacts = [];
+        let skippedRecipients = 0;
 
         for (const recipient of resolvedRows) {
             const phoneFields = contactPhoneFields(recipient.phone);
@@ -259,11 +260,27 @@ export class ExcelCampaignService {
                 },
                 select: {
                     id: true,
-                    phone: true
+                    phone: true,
+                    optOutAt: true
                 }
             });
 
+            /**
+             * Quien pidió la baja no entra en la campaña: se cuenta como
+             * omitido en lugar de enviarle algo que no quiere recibir.
+             */
+            if (contact.optOutAt) {
+                skippedRecipients += 1;
+                continue;
+            }
+
             contacts.push(contact);
+        }
+
+        if (contacts.length === 0) {
+            throw new Error(
+                "Todos los contactos del archivo pidieron la baja (STOP). No hay a quién enviar."
+            );
         }
 
         const campaign = await prisma.campaign.create({
@@ -278,6 +295,7 @@ export class ExcelCampaignService {
                 validRecipients: contacts.length,
                 invalidRecipients: parsedExcel.invalidRows.length,
                 duplicateRecipients: parsedExcel.duplicateCount,
+                skippedRecipients,
                 recipients: {
                     create: contacts.map((contact, index) => ({
                         contactId: contact.id,

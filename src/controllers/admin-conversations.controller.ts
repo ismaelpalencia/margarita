@@ -4,6 +4,7 @@ import { ConversationService } from "../services/conversation.service";
 import { MessageService } from "../services/message.service";
 import { TemplateService } from "../services/template.service";
 import { UserService } from "../services/user.service";
+import { QuickReplyService } from "../services/quick-reply.service";
 import { getRequiredParam } from "../utils/request";
 import { sendFreeTextMessageSchema } from "../validations/free-text-message.validation";
 import { sendLocalMessageSchema } from "../validations/message.validation";
@@ -16,15 +17,37 @@ import {
 
 export class AdminConversationsController {
     static async index(req: Request, res: Response) {
+        const status =
+            typeof req.query.status === "string" ? req.query.status : "";
+        const search =
+            typeof req.query.search === "string" ? req.query.search : "";
+        const assigned =
+            typeof req.query.assigned === "string" ? req.query.assigned : "";
+        const onlyUnread = req.query.unread === "1";
+
         const conversations = await ConversationService.listForAdmin(
             req.user!.workspaceId,
-            req.activeNumber?.id
+            req.activeNumber?.id,
+            {
+                status: status || undefined,
+                search: search || undefined,
+                assignedTo:
+                    assigned === "unassigned"
+                        ? null
+                        : assigned === "mine"
+                          ? req.user!.id
+                          : undefined,
+                onlyUnread
+            }
         );
 
         return res.render("pages/admin/conversations/index", {
             user: req.user,
             conversations,
-            status: typeof req.query.status === "string" ? req.query.status : "",
+            status,
+            search,
+            assigned,
+            onlyUnread,
             success: req.query.success || null,
             error: req.query.error || null
         });
@@ -34,21 +57,29 @@ export class AdminConversationsController {
         const conversationId = getRequiredParam(req, "id");
         const includeDeleted = req.query.deleted === "1";
 
-        const [conversation, agents, templates] = await Promise.all([
+        const [conversation, agents, templates, quickReplies] = await Promise.all([
             ConversationService.getConversationForAdmin(
                 req.user!.workspaceId,
                 conversationId,
                 { includeDeleted }
             ),
             UserService.listActiveAgents(req.user!.workspaceId),
-            TemplateService.listApprovedTemplates(req.user!.workspaceId)
+            TemplateService.listApprovedTemplates(req.user!.workspaceId),
+            QuickReplyService.listActive(req.user!.workspaceId)
         ]);
+
+        /** Abrir el hilo quita el aviso de no leídos. */
+        await ConversationService.markAsRead(
+            req.user!.workspaceId,
+            conversation.id
+        );
 
         return res.render("pages/admin/conversations/show", {
             user: req.user,
             conversation,
             agents,
             templates,
+            quickReplies,
             showDeleted: includeDeleted,
             formatDateTimeMX,
             formatDayLabelMX,

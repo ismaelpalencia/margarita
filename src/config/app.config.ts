@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { normalizeAppUrl } from "../utils/url";
+import { parseOptOutKeywords } from "../utils/opt-out";
 
 dotenv.config();
 
@@ -143,6 +144,12 @@ export const appConfig = {
     /** Tamaño máximo que se descarga de Meta (por defecto 25 MB). */
     mediaMaxBytes: Number(process.env.MEDIA_MAX_BYTES) || 25 * 1024 * 1024
     ,
+    /**
+     * Palabras que dan de baja a un contacto cuando las escribe un cliente.
+     * Varias se separan por coma: `OPT_OUT_KEYWORDS="STOP,BAJA"`.
+     */
+    optOutKeywords: parseOptOutKeywords(process.env.OPT_OUT_KEYWORDS),
+
     /**
      * Cola de campañas: cada cuánto revisa el worker, cuántos
      * destinatarios procesa por vuelta y cuánto espera entre envíos.

@@ -61,7 +61,7 @@
 
                 <div>
                     <label class="mb-1 block text-sm font-medium text-slate-700">
-                        Límite de mensajes manuales
+                        Límite de mensajes manuales por día
                     </label>
 
                     <input
@@ -74,6 +74,10 @@
 
                     <p class="mt-2 text-xs text-slate-500">
                         Déjalo vacío para usar el límite global de la empresa.
+                        El contador se reinicia solo a medianoche, hora de la empresa:
+                        cuenta los mensajes que el agente sí envía a WhatsApp, no las
+                        notas internas. Al llegar al tope, el envío se bloquea con el
+                        motivo a la vista.
                     </p>
                 </div>
 

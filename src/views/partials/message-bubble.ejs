@@ -12,6 +12,7 @@
     const isPlaceholder = body.startsWith("[") && body.endsWith("]");
     const showBody = body !== "" && !(hasMedia && isPlaceholder);
     const deleted = Boolean(message.deletedAt);
+    const isNote = Boolean(message.isInternalNote);
 
     const tickByStatus = {
         CREATED: "🕓",
@@ -42,9 +43,11 @@
                 ? "text-emerald-100"
                 : "text-slate-400";
 
-    const tone = isOut
-        ? "rounded-tr-sm bg-emerald-600 text-white"
-        : "rounded-tl-sm bg-white text-slate-800 ring-1 ring-slate-200";
+    const tone = isNote
+        ? "rounded-tr-sm bg-amber-100 text-amber-900 ring-1 ring-amber-200"
+        : isOut
+          ? "rounded-tr-sm bg-emerald-600 text-white"
+          : "rounded-tl-sm bg-white text-slate-800 ring-1 ring-slate-200";
 
     /**
      * Los enlaces son opcionales: cada vista decide cuáles ofrece. Se usa
@@ -60,6 +63,12 @@
         <% if (deleted) { %>
             <p class="mb-1 text-[10px] font-semibold uppercase tracking-wide opacity-80">
                 Eliminado
+            </p>
+        <% } %>
+
+        <% if (isNote) { %>
+            <p class="mb-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                Nota interna · solo la ve el equipo
             </p>
         <% } %>
 
@@ -106,13 +115,18 @@
             </p>
         <% } %>
 
-        <div class="mt-1 flex items-center justify-end gap-1.5 text-[10px] <%= isOut ? 'text-emerald-100' : 'text-slate-400' %>">
+        <div class="mt-1 flex items-center justify-end gap-1.5 text-[10px] <%= isNote ? 'text-amber-600' : isOut ? 'text-emerald-100' : 'text-slate-400' %>">
             <span><%= message.createdAt.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }) %></span>
-            <span
-                data-message-status
-                class="<%= tickColor %> font-semibold"
-                title="<%= tickLabel %>"
-            ><%= tick %></span>
+
+            <% if (isNote) { %>
+                <span title="No se envía a WhatsApp">📝</span>
+            <% } else { %>
+                <span
+                    data-message-status
+                    class="<%= tickColor %> font-semibold"
+                    title="<%= tickLabel %>"
+                ><%= tick %></span>
+            <% } %>
 
             <%- include("message-actions", {
                 message,

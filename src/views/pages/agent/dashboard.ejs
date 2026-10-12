@@ -82,6 +82,23 @@
                         <%= dashboard.stats.inProgressConversations %>
                     </p>
                 </div>
+
+                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                    <p class="text-sm font-medium text-slate-500">
+                        Mensajes manuales hoy
+                    </p>
+
+                    <p class="mt-3 text-4xl font-bold text-slate-900">
+                        <%= dashboard.stats.manualMessagesToday %>
+                        <span class="text-lg font-semibold text-slate-400">
+                            / <%= dashboard.stats.manualMessageLimit === null ? "sin tope" : dashboard.stats.manualMessageLimit %>
+                        </span>
+                    </p>
+
+                    <p class="mt-2 text-xs text-slate-500">
+                        Se reinicia a medianoche. Las notas internas no cuentan.
+                    </p>
+                </div>
             </div>
         </section>
 

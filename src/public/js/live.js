@@ -123,6 +123,7 @@
 
     function buildMessageBubble(message) {
         var isOut = message.direction === "OUT";
+        var isNote = message.isInternalNote === true;
         var mediaTypes = ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT"];
         var hasMedia = mediaTypes.indexOf(message.type) >= 0;
         var body = message.body || "";
@@ -135,7 +136,19 @@
         var bubble = document.createElement("div");
         bubble.className =
             "max-w-[75%] rounded-2xl px-4 py-3 shadow-sm " +
-            (isOut ? "bg-emerald-600 text-white" : "bg-white text-slate-800");
+            (isNote
+                ? "bg-amber-100 text-amber-900 ring-1 ring-amber-200"
+                : isOut
+                  ? "bg-emerald-600 text-white"
+                  : "bg-white text-slate-800");
+
+        if (isNote) {
+            var noteLabel = document.createElement("p");
+            noteLabel.className =
+                "mb-1 text-[10px] font-bold uppercase tracking-wide text-amber-700";
+            noteLabel.textContent = "Nota interna · solo la ve el equipo";
+            bubble.appendChild(noteLabel);
+        }
 
         if (hasMedia) {
             bubble.appendChild(buildMediaElement(message));
@@ -156,15 +169,21 @@
         var meta = document.createElement("p");
         meta.className =
             "mt-2 text-right text-[11px] " +
-            (isOut ? "text-emerald-100" : "text-slate-400");
+            (isNote ? "text-amber-600" : isOut ? "text-emerald-100" : "text-slate-400");
         meta.textContent = formatTime(message.createdAt) + " ";
 
-        var status = document.createElement("span");
-        status.dataset.messageStatus = "";
-        status.className = isOut ? "text-emerald-100 font-semibold" : "text-slate-400 font-semibold";
-        applyStatus(status, message.status);
+        if (isNote) {
+            var noteIcon = document.createElement("span");
+            noteIcon.textContent = "📝";
+            meta.appendChild(noteIcon);
+        } else {
+            var status = document.createElement("span");
+            status.dataset.messageStatus = "";
+            status.className = isOut ? "text-emerald-100 font-semibold" : "text-slate-400 font-semibold";
+            applyStatus(status, message.status);
 
-        meta.appendChild(status);
+            meta.appendChild(status);
+        }
         bubble.appendChild(meta);
         wrapper.appendChild(bubble);
 
@@ -220,6 +239,35 @@
         file.textContent = "📄 " + (message.body || "Documento");
 
         return file;
+    }
+
+    /**
+     * Suma al aviso de mensajes sin leer del encabezado. El valor de la
+     * página es el que calculó el servidor al renderizar; a partir de ahí
+     * se va sumando con cada mensaje entrante que llega en vivo.
+     */
+    function bumpUnreadBadge(amount) {
+        var badge = document.querySelector("[data-unread-badge]");
+
+        if (!badge) {
+            return;
+        }
+
+        var current = Number(badge.getAttribute("data-count"));
+
+        if (!isFinite(current)) {
+            current = 0;
+        }
+
+        var next = current + amount;
+
+        if (next < 0) {
+            next = 0;
+        }
+
+        badge.setAttribute("data-count", String(next));
+        badge.textContent = String(next);
+        badge.classList.toggle("hidden", next === 0);
     }
 
     function appendMessage(message) {
@@ -311,7 +359,20 @@
             return;
         }
 
-        if (page === "conversation" && payload.conversationId === conversationId) {
+        var isThisConversation =
+            page === "conversation" &&
+            payload.conversationId === conversationId;
+
+        /**
+         * Si el cliente acaba de pedir la baja, se recarga el hilo para
+         * que aparezca el aviso y desaparezca la barra de envío.
+         */
+        if (isThisConversation && payload.contactOptedOut) {
+            window.location.reload();
+            return;
+        }
+
+        if (isThisConversation) {
             appendMessage(payload.message);
             return;
         }
@@ -319,6 +380,8 @@
         if (payload.message.direction !== "IN") {
             return;
         }
+
+        bumpUnreadBadge(1);
 
         /**
          * En la bandeja del agente solo avisamos de lo que puede atender.

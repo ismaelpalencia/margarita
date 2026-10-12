@@ -118,6 +118,97 @@ function encryptJsonFields(data: JsonObject, fields: string[]) {
 
 type WriteRule = (data: JsonObject) => void;
 
+/**
+ * Campos cifrados que no se pueden comparar en un `where`.
+ *
+ * Una consulta como `where: { body: { contains: "hola" } }` compararía el
+ * texto contra el valor cifrado y devolvería cero filas en silencio, que es
+ * la peor forma de fallar. Aquí se convierte en un error con explicación.
+ *
+ * `{ not: null }` sí se permite: pregunta si hay valor, no cuál es.
+ */
+const ENCRYPTED_FIELDS: Record<string, string[]> = {
+    Contact: ["notes"],
+    Message: ["body", "mediaFilename", "metaPayload", "metaResponse"],
+    CampaignRecipient: ["phone", "variables"],
+    Log: ["payload"],
+    WebhookEvent: ["payload"],
+    QuickReply: ["body"],
+    WhatsAppNumber: ["phoneNumber"],
+    WhatsAppAccount: ["accessToken", "verifyToken"]
+};
+
+const COMPARISON_OPERATORS = [
+    "equals",
+    "contains",
+    "startsWith",
+    "endsWith",
+    "in",
+    "notIn",
+    "lt",
+    "lte",
+    "gt",
+    "gte"
+];
+
+/** ¿La condición compara el campo contra un valor? */
+function filterComparesValue(value: unknown, depth = 0): boolean {
+    if (typeof value === "string" || Array.isArray(value) || value instanceof Date) {
+        return true;
+    }
+
+    if (!isPlainObject(value)) {
+        return false;
+    }
+
+    if (depth > 4) {
+        return true;
+    }
+
+    return Object.entries(value).some(([operator, operatorValue]) => {
+        if (operatorValue === null || operatorValue === undefined) {
+            return false;
+        }
+
+        if (isPlainObject(operatorValue)) {
+            return filterComparesValue(operatorValue, depth + 1);
+        }
+
+        return COMPARISON_OPERATORS.includes(operator);
+    });
+}
+
+function guardEncryptedFilters(
+    model: string,
+    where: unknown,
+    depth = 0
+): void {
+    const fields = ENCRYPTED_FIELDS[model];
+
+    if (!fields || depth > 6 || !isPlainObject(where)) {
+        return;
+    }
+
+    for (const [key, value] of Object.entries(where)) {
+        if (fields.includes(key) && filterComparesValue(value)) {
+            throw new Error(
+                `El campo ${model}.${key} está cifrado en la base: no se puede ` +
+                    "buscar por su contenido. Filtra por otro campo (por ejemplo " +
+                    "el índice ciego del teléfono) o descifra en la aplicación."
+            );
+        }
+
+        if (
+            (key === "AND" || key === "OR" || key === "NOT") &&
+            Array.isArray(value)
+        ) {
+            for (const item of value) {
+                guardEncryptedFilters(model, item, depth + 1);
+            }
+        }
+    }
+}
+
 const WRITE_RULES: Record<string, WriteRule> = {
     Contact(data) {
         const phone = data.phone;
@@ -162,6 +253,10 @@ const WRITE_RULES: Record<string, WriteRule> = {
 
     Log(data) {
         encryptJsonFields(data, ["payload"]);
+    },
+
+    QuickReply(data) {
+        encryptTextFields(data, ["body"]);
     },
 
     /**
@@ -282,6 +377,10 @@ export function encryptWriteArgs(
 
     if (model === "Contact" && isPlainObject(next.where)) {
         next.where = translateContactWhere(next.where);
+    }
+
+    if (isPlainObject(next.where)) {
+        guardEncryptedFilters(model, next.where);
     }
 
     return next;

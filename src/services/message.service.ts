@@ -37,6 +37,7 @@ import {
 } from "../utils/media-message";
 import { emitToWorkspace } from "../sockets";
 import { LogService } from "./log.service";
+import { SendPolicyService } from "./send-policy.service";
 import { uploadMediaToMeta } from "./media.service";
 import {
     NumberCredentials,
@@ -105,6 +106,8 @@ export class MessageService {
                 type: MessageType.TEXT,
                 status: MessageStatus.CREATED,
                 source: MessageSource.MANUAL,
+                /** Nota interna: se ve en el panel y no sale a WhatsApp. */
+                isInternalNote: true,
                 body: params.input.body
             }
         });
@@ -127,6 +130,12 @@ export class MessageService {
             params.userId,
             params.role
         );
+
+        await SendPolicyService.assertCanSendManually({
+            userId: params.userId,
+            role: params.role,
+            contact: conversation.contact
+        });
 
         const [credentials, template] = await Promise.all([
             this.getSendingCredentials(conversation),
@@ -282,6 +291,12 @@ export class MessageService {
             params.role
         );
 
+        await SendPolicyService.assertCanSendManually({
+            userId: params.userId,
+            role: params.role,
+            contact: conversation.contact
+        });
+
         if (!isConversationWindowOpen(conversation.lastIncomingMessageAt)) {
             throw new Error(
                 "La ventana de 24 horas está cerrada. Usa una plantilla aprobada."
@@ -420,6 +435,7 @@ export class MessageService {
             type: MessageType;
             status: MessageStatus;
             source: MessageSource;
+            isInternalNote?: boolean;
             body: string | null;
             metaResponse: unknown;
             createdAt: Date;
@@ -477,6 +493,7 @@ export class MessageService {
                 type: message.type,
                 status: message.status,
                 source: message.source,
+                isInternalNote: Boolean(message.isInternalNote),
                 body: message.body,
                 createdAt: message.createdAt.toISOString()
             }
@@ -639,6 +656,12 @@ export class MessageService {
             params.userId,
             params.role
         );
+
+        await SendPolicyService.assertCanSendManually({
+            userId: params.userId,
+            role: params.role,
+            contact: conversation.contact
+        });
 
         if (!isConversationWindowOpen(conversation.lastIncomingMessageAt)) {
             throw new Error(

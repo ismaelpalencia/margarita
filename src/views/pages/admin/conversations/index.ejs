@@ -54,7 +54,15 @@
             </div>
         </section>
 
-        <form action="/admin/conversations" method="GET" class="mb-6 flex gap-3">
+        <form action="/admin/conversations" method="GET" class="mb-6 grid gap-3 md:grid-cols-[1fr_180px_180px_auto_auto]">
+            <input
+                type="search"
+                name="search"
+                value="<%= search %>"
+                placeholder="Buscar por nombre o teléfono"
+                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            />
+
             <select
                 name="status"
                 class="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
@@ -65,11 +73,32 @@
                 <option value="ARCHIVED" <% if (status === "ARCHIVED") { %> selected <% } %>>Archivadas</option>
             </select>
 
+            <select
+                name="assigned"
+                class="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            >
+                <option value="">Todas las asignaciones</option>
+                <option value="mine" <% if (assigned === "mine") { %> selected <% } %>>Asignadas a mí</option>
+                <option value="unassigned" <% if (assigned === "unassigned") { %> selected <% } %>>Sin asignar</option>
+            </select>
+
+            <label class="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-700">
+                <input
+                    type="checkbox"
+                    name="unread"
+                    value="1"
+                    class="h-4 w-4 rounded border-slate-300"
+                    <% if (onlyUnread) { %> checked <% } %>
+                />
+
+                Sin leer
+            </label>
+
             <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">
                 Filtrar
             </button>
 
-            <% if (status) { %>
+            <% if (status || search || assigned || onlyUnread) { %>
                 <a href="/admin/conversations" class="rounded-xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700">
                     Limpiar
                 </a>
@@ -109,8 +138,25 @@
 
                         <tr>
                             <td class="px-5 py-4">
-                                <div class="font-medium text-slate-800">
-                                    <%= conversation.contact.customName || conversation.contact.profileName || conversation.contact.phone %>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-medium text-slate-800">
+                                        <%= conversation.contact.customName || conversation.contact.profileName || conversation.contact.phone %>
+                                    </span>
+
+                                    <% if (conversation.unreadCount > 0) { %>
+                                        <span class="rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-bold text-white">
+                                            <%= conversation.unreadCount %>
+                                        </span>
+                                    <% } %>
+
+                                    <% if (conversation.contact.optOutAt) { %>
+                                        <span
+                                            class="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700"
+                                            title="Pidió la baja: no se le envían mensajes"
+                                        >
+                                            BAJA
+                                        </span>
+                                    <% } %>
                                 </div>
                                 <div class="mt-1 text-xs text-slate-400">
                                     <%= conversation.contact.phone %>
