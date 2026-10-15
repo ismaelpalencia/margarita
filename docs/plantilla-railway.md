@@ -12,7 +12,8 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 
 | Pieza | Qué hace |
 | --- | --- |
-| `buildCommand` | `npm ci --include=dev && npm run build` — instala también las devDependencies, que hacen falta para compilar TypeScript. Sin esto, el build falla con `NODE_ENV=production`. |
+| `package.json` → `engines` | Declara Node **20.19+/22.12+**: Prisma 7 se niega a instalar en Node 18. Es lo que Nixpacks lee para elegir la versión, junto con `.nvmrc`. |
+| `nixpacks.toml` | Instala con `npm ci --include=dev` (el instalador por defecto no trae TypeScript ni Tailwind con `NODE_ENV=production`) y compila con `npm run build`. |
 | `preDeployCommand` | `node dist/tools/deploy-migrations.js` — aplica las migraciones antes de levantar la app, resolviendo el caso de una base nueva, una con tablas y una ya versionada. |
 | `startCommand` | `npm start` |
 | `healthcheckPath` | `/health` — el despliegue se marca sano cuando la base y el worker responden. |
@@ -31,6 +32,7 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 
 | Variable | Valor | Por qué |
 | --- | --- | --- |
+| `NIXPACKS_NODE_VERSION` | `22.12.0` | Fija la versión de Node en el build. El repo ya la declara, pero aquí es explícita y no hay sorpresas. |
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` | Referencia al plugin; la plantilla la resuelve sola. |
 | `NODE_ENV` | `production` | Cookies seguras y menos ruido en los logs. |
 | `JWT_SECRET` | `${{secret(64)}}` | Lo genera Railway por instalación. |
@@ -74,7 +76,9 @@ Pasado eso ya opera. Lo que **no** se puede automatizar y hay que decirle: la cu
 
 | Síntoma | Causa | Solución |
 | --- | --- | --- |
-| El build falla por TypeScript | Se instaló sin devDependencies | Ya viene resuelto en `railway.json`; si lo cambias, mantén `--include=dev`. |
+| **`Prisma only supports Node.js versions 20.19+, 22.12+, 24.0+`** | El build arrancó con Node 18 (el instalador de Nixpacks corre antes que cualquier comando de build) | Agrega la variable de servicio `NIXPACKS_NODE_VERSION=22.12.0` y vuelve a desplegar. El repo ya declara `engines` y `.nvmrc`; la variable es el cinturón. |
+| El build falla por TypeScript | Se instaló sin devDependencies (`NODE_ENV=production`) | `nixpacks.toml` ya lo resuelve; si lo tocas, mantén `--include=dev`. |
+| El log del build muestra un `npm ci` pelón y nada más | El servicio tiene un **Build Command** propio en el panel que ignora lo del repo | Bórralo (Settings → Build) o ponlo idéntico: `npm ci --include=dev && npm run build`. |
 | La app arranca y muere en bucle | Falta `DATABASE_URL` o la referencia al plugin | Revisa las variables del servicio; el error del log ahora lo dice explícitamente. |
 | El panel rechaza las acciones (403 de origen) | `APP_URL` apuntando a otro dominio | Déjala vacía (toma el dominio de Railway) o fíjala con el dominio real. |
 | El webhook responde 401 | `META_APP_SECRET` mal capturado o de relleno | Recaptúralo en *Admin → WhatsApp*. |

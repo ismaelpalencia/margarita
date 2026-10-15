@@ -1,0 +1,16 @@
+# Configuración del build en Railway (Nixpacks).
+#
+# El instalador por defecto (`npm ci`) corre con `NODE_ENV=production`, así
+# que **no** instala TypeScript, Tailwind ni el CLI de Prisma: el build no
+# podría compilar. Aquí se piden explícitamente las devDependencies.
+#
+# La versión de Node no se fija aquí a propósito: se declara en
+# `package.json` (`engines`) y en `.nvmrc`, que es lo que Nixpacks lee. Si un
+# despliegue siguiera arrancando con Node 18, la variable de servicio
+# `NIXPACKS_NODE_VERSION=22.12.0` lo resuelve sin tocar el repositorio.
+
+[phases.install]
+cmds = ["npm ci --include=dev"]
+
+[phases.build]
+cmds = ["npm run build"]

@@ -21,11 +21,13 @@ Ya vienen configurados en [`railway.json`](../railway.json), así que en una ins
 
 | Concepto | Valor |
 | --- | --- |
-| Build command | `npm ci --include=dev && npm run build` |
+| Node | **22** (`engines` en `package.json` y `.nvmrc`). Prisma 7 no instala en Node 18 |
+| Build command | `npm ci --include=dev && npm run build` (ya en [`nixpacks.toml`](../nixpacks.toml)) |
 | Start command | `npm start` (ejecuta `node dist/server.js`) |
 | Healthcheck | `/health` |
 | Puerto | `3000` (defínelo con la variable `PORT`) |
 | Node | 22 (Prisma 7 no soporta versiones anteriores a 20.19) |
+| Si el build usa Node 18 | Agrega la variable `NIXPACKS_NODE_VERSION=22.12.0` al servicio y vuelve a desplegar |
 | Base de datos | PostgreSQL (plugin de Railway) |
 | Webhook | `https://<tu-dominio>/webhooks/meta/whatsapp` |
 
@@ -45,7 +47,7 @@ DATABASE_URL=${{Postgres.DATABASE_URL}}
 
 Al escribir `${{` Railway te autocompleta el nombre del servicio de Postgres. Esa URL interna solo funciona dentro de Railway, que es justo donde corre la app.
 
-Nota: no hace falta `Dockerfile`; Railway detecta Node con Nixpacks. Si quieres fijar la versión, agrega `"engines": { "node": ">=22" }` en `package.json` o un archivo `.nvmrc` con `22`.
+Nota: no hace falta `Dockerfile`; Railway detecta Node con Nixpacks. La versión ya viene fijada en `package.json` (`engines`) y en `.nvmrc`, y las devDependencies se instalan desde `nixpacks.toml`. Si un despliegue arrancara con Node 18 (el error dice `Prisma only supports Node.js versions 20.19+, 22.12+, 24.0+`), agrega la variable de servicio `NIXPACKS_NODE_VERSION=22.12.0`: es el cinturón que no depende del repositorio.
 
 ---
 
