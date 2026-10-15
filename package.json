@@ -24,6 +24,8 @@
     "db:restore:dist": "node dist/tools/restore-backup.js",
     "db:backup": "tsx src/tools/backup-now.ts",
     "db:backup:dist": "node dist/tools/backup-now.js",
+    "admin:reset-password": "tsx src/tools/reset-password.ts",
+    "admin:reset-password:dist": "node dist/tools/reset-password.js",
     "db:migrate-deploy": "tsx src/tools/deploy-migrations.ts",
     "db:studio": "prisma studio"
   },

@@ -3,63 +3,25 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Agentes | Margarita</title>
+    <title>Equipo | Margarita</title>
     <link rel="stylesheet" href="/css/style.css" />
 
     <%- include("../../../partials/brand-head") %>
 </head>
 
 <body class="min-h-screen bg-slate-100">
-    <header class="border-b bg-white">
-        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-7xl px-4 py-8">
+        <section class="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div>
-                <a href="/admin/dashboard" class="inline-block">
-                    <img src="/brand/img/margarita-wordmark-256.png" alt="Margarita" class="h-8 w-auto" />
-                </a>
-                <p class="text-sm text-slate-500">Agentes</p>
-            </div>
+                <h2 class="text-2xl font-bold text-slate-800">Equipo</h2>
 
-            <nav class="flex items-center gap-3">
-                <a href="/admin/dashboard" class="text-sm font-medium text-slate-700">
-                    Dashboard
-                </a>
-
-                <a href="/admin/users" class="text-sm font-medium text-emerald-700">
-                    Agentes
-                </a>
-                <a href="/admin/contacts" class="text-sm font-medium text-slate-700">
-                    Contactos
-                </a>
-                <a href="/admin/tags" class="text-sm font-medium text-slate-700">
-                    Etiquetas
-                </a>
-                <a href="/admin/whatsapp" class="text-sm font-medium text-slate-700">
-                    WhatsApp
-                </a>
-
-                <a href="/admin/templates" class="text-sm font-medium text-slate-700">
-                    Plantillas
-                </a>
-
-                <a href="/admin/conversations" class="text-sm font-medium text-slate-700">
-                    Conversaciones
-                </a>
-
-                <form action="/auth/logout" method="POST">
-                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
-                        Cerrar sesión
-                    </button>
-                </form>
-            </nav>
-        </div>
-    </header>
-
-    <main class="mx-auto max-w-6xl px-6 py-8">
-        <section class="mb-6 flex items-center justify-between">
-            <div>
-                <h2 class="text-2xl font-bold text-slate-800">Agentes</h2>
-                <p class="mt-1 text-slate-500">
-                    Administra los usuarios que atenderán conversaciones.
+                <p class="mt-1 max-w-3xl text-slate-500">
+                    Quién entra a esta instalación y con qué rol. Los
+                    <strong>administradores</strong> ven todo y configuran la cuenta;
+                    los <strong>agentes</strong> solo ven las conversaciones que se les
+                    asignan. Hay <strong><%= activeAdmins %></strong> administrador(es) activo(s).
                 </p>
             </div>
 
@@ -67,7 +29,7 @@
                 href="/admin/users/new"
                 class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
             >
-                Nuevo agente
+                Nuevo usuario
             </a>
         </section>
 
@@ -77,12 +39,18 @@
             </div>
         <% } %>
 
-        <section class="overflow-hidden rounded-2xl bg-white shadow">
+        <% if (error) { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                <%= error %>
+            </div>
+        <% } %>
+
+        <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
             <table class="w-full text-left text-sm">
                 <thead class="bg-slate-50 text-slate-500">
                     <tr>
                         <th class="px-5 py-4">Nombre</th>
-                        <th class="px-5 py-4">Correo</th>
+                        <th class="px-5 py-4">Rol</th>
                         <th class="px-5 py-4">Estado</th>
                         <th class="px-5 py-4">Activo</th>
                         <th class="px-5 py-4">Manual</th>
@@ -92,39 +60,55 @@
                 </thead>
 
                 <tbody class="divide-y divide-slate-100">
-                    <% if (agents.length === 0) { %>
+                    <% if (team.length === 0) { %>
                         <tr>
                             <td colspan="7" class="px-5 py-8 text-center text-slate-500">
-                                Todavía no hay agentes creados.
+                                Todavía no hay usuarios.
                             </td>
                         </tr>
                     <% } %>
 
-                    <% agents.forEach((agent) => { %>
+                    <% team.forEach((member) => { %>
+                        <%
+                            const usedToday = (usageToday || {})[member.id] || 0;
+                            const limit = member.manualMessageLimit;
+                            const isAdmin = member.role === "ADMIN";
+                            /** El último admin activo no se puede desactivar. */
+                            const cannotDeactivate =
+                                isAdmin && member.isActive && activeAdmins <= 1;
+                        %>
                         <tr>
-                            <td class="px-5 py-4 font-medium text-slate-800">
-                                <%= agent.name %>
+                            <td class="px-5 py-4">
+                                <div class="font-medium text-slate-800">
+                                    <%= member.name %>
+                                    <% if (member.id === user.id) { %>
+                                        <span class="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                                            tú
+                                        </span>
+                                    <% } %>
+                                </div>
+                                <div class="mt-1 text-xs text-slate-400"><%= member.email %></div>
+                            </td>
+
+                            <td class="px-5 py-4">
+                                <span class="rounded-full px-3 py-1 text-xs font-bold <%= isAdmin ? 'bg-emerald-50 text-emerald-700' : 'bg-sky-50 text-sky-700' %>">
+                                    <%= isAdmin ? "Administrador" : "Agente" %>
+                                </span>
                             </td>
 
                             <td class="px-5 py-4 text-slate-600">
-                                <%= agent.email %>
+                                <% if (member.role !== "ADMIN") { %>
+                                    <% if (member.status === "AVAILABLE") { %>Disponible<% } %>
+                                    <% if (member.status === "BUSY") { %>Ocupado<% } %>
+                                    <% if (member.status === "BREAK") { %>Pausa<% } %>
+                                    <% if (member.status === "OFFLINE") { %>Desconectado<% } %>
+                                <% } else { %>
+                                    <span class="text-slate-400">—</span>
+                                <% } %>
                             </td>
 
                             <td class="px-5 py-4">
-                                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-    <% if (agent.status === "AVAILABLE") { %>
-        Disponible
-    <% } else if (agent.status === "BUSY") { %>
-        Ocupado
-    <% } else if (agent.status === "BREAK") { %>
-        Pausa
-    <% } else { %>
-        Desconectado
-    <% } %>
-                                </span>
-
-                            <td class="px-5 py-4">
-                                <% if (agent.isActive) { %>
+                                <% if (member.isActive) { %>
                                     <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
                                         Activo
                                     </span>
@@ -136,7 +120,9 @@
                             </td>
 
                             <td class="px-5 py-4 text-slate-600">
-                                <% if (agent.canSendManualMessages) { %>
+                                <% if (isAdmin) { %>
+                                    <span class="text-slate-400">Sin tope</span>
+                                <% } else if (member.canSendManualMessages) { %>
                                     Sí
                                 <% } else { %>
                                     No
@@ -144,40 +130,45 @@
                             </td>
 
                             <td class="px-5 py-4 text-slate-600">
-                                <%
-                                    const usedToday = (usageToday || {})[agent.id] || 0;
-                                    const limit = agent.manualMessageLimit;
-                                %>
+                                <% if (isAdmin) { %>
+                                    <span class="text-slate-400">—</span>
+                                <% } else { %>
+                                    <span class="<%= limit !== null && usedToday >= limit ? 'font-bold text-red-700' : '' %>">
+                                        <%= usedToday %>
+                                    </span>
 
-                                <span class="<%= limit !== null && usedToday >= limit ? 'font-bold text-red-700' : 'text-slate-600' %>">
-                                    <%= usedToday %>
-                                </span>
-
-                                <span class="text-slate-400">
-                                    / <%= limit === null ? "sin tope" : limit %>
-                                </span>
+                                    <span class="text-slate-400">
+                                        / <%= limit === null ? "sin tope" : limit %>
+                                    </span>
+                                <% } %>
                             </td>
 
                             <td class="px-5 py-4">
                                 <div class="flex justify-end gap-2">
                                     <a
-                                        href="/admin/users/<%= agent.id %>/edit"
+                                        href="/admin/users/<%= member.id %>/edit"
                                         class="rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-200"
                                     >
                                         Editar
                                     </a>
 
-                                    <form action="/admin/users/<%= agent.id %>/toggle-status" method="POST">
+                                    <% if (cannotDeactivate) { %>
                                         <button
-                                            class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white"
+                                            disabled
+                                            title="Es el único administrador activo: crea otro antes de desactivarlo."
+                                            class="cursor-not-allowed rounded-lg bg-slate-200 px-3 py-2 text-xs font-medium text-slate-500"
                                         >
-                                            <% if (agent.isActive) { %>
-                                                Desactivar
-                                            <% } else { %>
-                                                Activar
-                                            <% } %>
+                                            Desactivar
                                         </button>
-                                    </form>
+                                    <% } else { %>
+                                        <form action="/admin/users/<%= member.id %>/toggle-status" method="POST">
+                                            <button
+                                                class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white"
+                                            >
+                                                <%= member.isActive ? "Desactivar" : "Activar" %>
+                                            </button>
+                                        </form>
+                                    <% } %>
                                 </div>
                             </td>
                         </tr>
@@ -185,6 +176,12 @@
                 </tbody>
             </table>
         </section>
+
+        <p class="mt-4 text-xs text-slate-500">
+            Cada persona puede cambiar su propia contraseña en
+            <a href="/account/password" class="font-semibold text-emerald-700 hover:underline">Mi cuenta</a>.
+            Si alguien la olvida, un administrador puede restablecerla desde su ficha.
+        </p>
     </main>
 </body>
 </html>

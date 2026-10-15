@@ -3,29 +3,26 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nuevo agente | Margarita</title>
+    <title>Nuevo usuario | Margarita</title>
     <link rel="stylesheet" href="/css/style.css" />
 
     <%- include("../../../partials/brand-head") %>
 </head>
 
 <body class="min-h-screen bg-slate-100">
-    <main class="mx-auto max-w-2xl px-6 py-10">
-        <section class="mb-6">
-            <a href="/admin/users" class="text-sm font-medium text-emerald-700">
-                ← Volver a agentes
-            </a>
+    <%- include("../../../partials/admin-nav", { user }) %>
 
-            <h1 class="mt-4 text-2xl font-bold text-slate-800">
-                Nuevo agente
-            </h1>
+    <main class="mx-auto max-w-3xl px-4 py-8">
+        <section class="mb-6">
+            <h1 class="text-2xl font-bold text-slate-900">Nuevo usuario</h1>
 
             <p class="mt-1 text-slate-500">
-                Crea un usuario para atender conversaciones.
+                Un <strong>administrador</strong> ve todo y configura la cuenta; un
+                <strong>agente</strong> solo atiende las conversaciones que se le asignan.
             </p>
         </section>
 
-        <section class="rounded-2xl bg-white p-6 shadow">
+        <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <% if (error) { %>
                 <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
                     <%= error %>
@@ -34,43 +31,65 @@
 
             <form action="/admin/users" method="POST" class="space-y-5">
                 <div>
-                    <label class="mb-1 block text-sm font-medium text-slate-700">
-                        Nombre
-                    </label>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">Nombre</label>
 
                     <input
                         name="name"
                         value="<%= old.name %>"
                         required
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
                 </div>
 
                 <div>
-                    <label class="mb-1 block text-sm font-medium text-slate-700">
-                        Correo
-                    </label>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">Correo</label>
 
                     <input
                         name="email"
                         type="email"
                         value="<%= old.email %>"
                         required
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
                 </div>
 
                 <div>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">Rol</label>
+
+                    <select
+                        name="role"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                    >
+                        <option value="AGENT" <% if (old.role !== "ADMIN") { %> selected <% } %>>
+                            Agente — atiende sus conversaciones
+                        </option>
+                        <option value="ADMIN" <% if (old.role === "ADMIN") { %> selected <% } %>>
+                            Administrador — acceso completo
+                        </option>
+                    </select>
+
+                    <p class="mt-2 text-xs text-slate-500">
+                        Puedes tener varios administradores. Nunca se permite dejar la
+                        instalación sin al menos uno activo.
+                    </p>
+                </div>
+
+                <div>
                     <label class="mb-1 block text-sm font-medium text-slate-700">
-                        Contraseña temporal
+                        Contraseña inicial
                     </label>
 
                     <input
                         name="password"
-                        type="password"
                         required
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        value="<%= suggestedPassword %>"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 font-mono text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
+
+                    <p class="mt-2 text-xs text-slate-500">
+                        Mínimo 10 caracteres con letras y números. La persona puede
+                        cambiarla después en «Mi cuenta».
+                    </p>
                 </div>
 
                 <div class="rounded-xl bg-slate-50 p-4">
@@ -81,19 +100,19 @@
                             class="h-4 w-4 rounded border-slate-300"
                         />
 
-                        Permitir mensajes manuales
+                        Permitir mensajes manuales (solo agentes)
                     </label>
 
                     <p class="mt-2 text-xs text-slate-500">
                         Si está apagado, el agente no podrá enviar nada a WhatsApp: verá sus
-                        conversaciones y podrá dejar notas internas, pero cada intento de envío
-                        se bloquea con el motivo a la vista.
+                        conversaciones y podrá dejar notas internas. Los administradores no
+                        tienen tope ni restricción.
                     </p>
                 </div>
 
                 <div>
                     <label class="mb-1 block text-sm font-medium text-slate-700">
-                        Límite de mensajes manuales por día
+                        Límite de mensajes manuales por día (solo agentes)
                     </label>
 
                     <input
@@ -102,20 +121,19 @@
                         min="0"
                         value="<%= old.manualMessageLimit %>"
                         placeholder="Ej. 100"
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
 
                     <p class="mt-2 text-xs text-slate-500">
-                        Déjalo vacío para usar el límite global de la empresa. El tope es
-                        diario y se reinicia solo a medianoche; no cuentan las notas internas.
+                        Déjalo vacío para usar el límite global de la empresa. No cuentan
+                        las notas internas.
                     </p>
                 </div>
 
                 <button
-                    type="submit"
                     class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700"
                 >
-                    Crear agente
+                    Crear usuario
                 </button>
             </form>
         </section>

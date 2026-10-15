@@ -93,6 +93,22 @@ export async function authMiddleware(
         req.user = userToAuthUser(session.user);
         req.tokenId = session.tokenId;
 
+        /**
+         * Si un administrador restableció la contraseña de esta persona, no
+         * se la dejamos usar sin cambiarla: así el administrador no conserva
+         * la contraseña con la que alguien entra a trabajar.
+         */
+        if (session.user.mustChangePassword) {
+            const path = req.originalUrl;
+            const canPass =
+                path.startsWith("/account/password") ||
+                path.startsWith("/auth/logout");
+
+            if (!canPass) {
+                return res.redirect("/account/password?required=1");
+            }
+        }
+
         return next();
     } catch {
         res.clearCookie(appConfig.cookieName);

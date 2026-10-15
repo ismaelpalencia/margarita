@@ -219,6 +219,13 @@ model User {
 
   isActive Boolean @default(true)
 
+  /**
+   * Cambio obligatorio de contraseña: se activa cuando un administrador
+   * restablece la contraseña de alguien. En el siguiente inicio de sesión el
+   * sistema solo deja cambiar la contraseña.
+   */
+  mustChangePassword Boolean @default(false)
+
   canSendManualMessages Boolean @default(false)
   manualMessageLimit    Int?
 

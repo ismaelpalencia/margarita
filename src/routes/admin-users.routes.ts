@@ -10,5 +10,6 @@ router.post("/", AdminUsersController.create);
 router.get("/:id/edit", AdminUsersController.showEdit);
 router.post("/:id", AdminUsersController.update);
 router.post("/:id/toggle-status", AdminUsersController.toggleStatus);
+router.post("/:id/password", AdminUsersController.resetPassword);
 
 export default router;

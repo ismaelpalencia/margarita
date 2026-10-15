@@ -197,6 +197,21 @@ export class SessionService {
         return result.count;
     }
 
+    /** Cierra todas las sesiones de una persona (cambio de contraseña, baja). */
+    static async revokeAllFor(userId: string): Promise<number> {
+        const result = await prisma.userSession.updateMany({
+            where: {
+                userId,
+                isActive: true
+            },
+            data: {
+                isActive: false
+            }
+        });
+
+        return result.count;
+    }
+
     /**
      * Deja cuando mucho `SESSION_MAX_ACTIVE` sesiones abiertas, cerrando las
      * más viejas. Se llama al iniciar sesión.

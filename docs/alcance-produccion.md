@@ -2,7 +2,7 @@
 
 Documento de referencia para decidir y sostener el uso de Margarita en producción. Describe **lo que la herramienta hace hoy**, lo que no hace, los controles de seguridad vigentes y las responsabilidades que quedan del lado de quien la opera.
 
-Última revisión: 2026-10-15 (respaldos automáticos verificados y restauración probada).
+Última revisión: 2026-10-15 (varios administradores y recuperación de contraseñas).
 
 ---
 
@@ -14,13 +14,13 @@ Margarita es una aplicación web para **operar la WhatsApp Business Cloud API de
 
 ### Modelo de despliegue
 
-Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta de WhatsApp Business (con uno o varios números) y un usuario administrador por despliegue. Cada cliente tiene su propio proyecto, su propia base de datos y su propio dominio.
+Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta de WhatsApp Business (con uno o varios números) y uno o varios administradores por despliegue. Cada cliente tiene su propio proyecto, su propia base de datos y su propio dominio.
 
 | Concepto | Valor actual |
 | --- | --- |
 | Empresas por instalación | 1 |
 | Números por instalación | Los que tenga la WABA (uno o varios) |
-| Roles | `ADMIN` (uno) y `AGENT` (los que se necesiten) |
+| Roles | `ADMIN` (uno o varios) y `AGENT` (los que se necesiten) |
 | Base de datos | PostgreSQL |
 | Alojamiento probado | Railway |
 
@@ -32,6 +32,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 
 - **Dashboard** con conversaciones abiertas, conteo de agentes por estado, últimos mensajes entrantes y errores recientes.
 - **Agentes**: crear, editar, activar o desactivar, con permiso de envío manual y límite configurable.
+- **Equipo**: crear administradores y agentes, cambiar el rol, activar o desactivar y restablecer contraseñas. La instalación nunca se queda sin un administrador activo: el sistema bloquea degradar o desactivar al último (y el botón aparece deshabilitado). Al desactivar a alguien se cierran sus sesiones.
 - **Contactos**: crear, editar, buscar por texto, filtrar por etiqueta y por bajas, registrar el consentimiento (opt-in), marcar la baja a mano y desactivar.
 - **Resultado de la gestión (cobranza)**: marcar en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota. Se marca desde el hilo, desde la ficha del contacto y en bloque desde la lista. Cada marcado deja historial con quién y cuándo.
 - **Reportes**: gestiones del periodo por resultado, persona y día; promesas vigentes con lo vencido arriba, cumplimiento (a tiempo, tarde, sin pago) y prometido contra pagado; lista de clientes sin contestación tras X intentos; y detalle exportable a CSV. Con filtros por fecha, persona, campaña y etiqueta.
@@ -114,8 +115,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Eventos de webhook acotados** | Se procesan los campos `messages`, `message_template_status_update` y `phone_number_quality_update`. Otros avisos de Meta se ignoran. |
 | **Un número pertenece a una sola WABA** | Es una regla de Meta, no de la aplicación: un número no se puede compartir entre dos cuentas. Moverlo exige quitarlo de una y registrarlo en la otra, con nueva verificación. |
 | **Sin permisos por número** | Con varios números, **todos los agentes ven todos**. Restringir qué números atiende cada agente está diseñado y pendiente. |
-| **Un solo administrador** | La instalación se crea con un admin y el panel solo permite crear agentes: no hay forma de tener un segundo administrador ni de promover a alguien. Si el admin pierde el acceso, se recupera con el seed (`ADMIN_PASSWORD`) o con acceso directo a la base, no desde la interfaz. |
-| **Sin recuperación de contraseña** | No hay "olvidé mi contraseña" ni envío de correo: la contraseña del admin se restablece corriendo el seed, y la de un agente la cambia el admin desde el panel. Cambiar una contraseña **no** cierra las sesiones abiertas (duran 7 días). |
+| **Recuperación de contraseña sin correo** | No hay "envié un enlace a tu correo": la herramienta no manda correos. Se resuelve con dos caminos: **un administrador restablece la contraseña** desde Equipo (y quien la recibe está obligado a cambiarla al entrar), o **desde el servidor** con `npm run admin:reset-password -- --email=…` cuando nadie puede entrar. Si el cliente pierde el acceso a la consola y a todas las cuentas de administrador, la salida es la base de datos. |
 | **Ajustes del workspace inertes** | `autoAssign`, `assignmentMode`, `businessHoursStart/End`, `outOfHoursMessage`, `maxActiveConversations` y `reopenedConversationMode` existen en la base pero **ningún código los lee y no hay pantalla para editarlos**. La auto-asignación al agente con menos carga siempre está activa. No prometas horarios de atención ni mensajes fuera de horario. |
 | **Adjuntos en disco** | Fotos, audios y documentos viven en el sistema de archivos, no en la base. Sin un Volume configurado se pierden en cada deploy (y no están cifrados). |
 | **Límite de peticiones por IP** | El tope del panel (300 cada 15 minutos) es por IP, no por usuario: varios agentes en la misma oficina comparten ese cupo y pueden empezar a recibir 429 en horas cargadas. |
@@ -141,7 +141,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Credenciales de Meta** | `accessToken` y `verifyToken` cifrados en la base con AES-256-GCM. Sin la variable `ENCRYPTION_KEY` no se pueden leer. |
 | **Índice ciego del teléfono** | `Contact.phoneHash` es un HMAC-SHA256 con la llave de cifrado: conserva la unicidad y la búsqueda exacta sin que el número se pueda recuperar del índice. |
 | **Sesiones** | JWT en cookie `httpOnly`, `secure` en producción y `SameSite=Lax`, con registro en base que permite revocarlas. Expiración absoluta de 7 días, **cierre por inactividad** (`SESSION_IDLE_MINUTES`, 12 h por defecto), **tope de dispositivos** por usuario (`SESSION_MAX_ACTIVE`, 3 por defecto: al entrar en uno más se cierra el más viejo) y lista visible con revocación individual o masiva. |
-| **Contraseñas** | Hash con bcrypt (12 rondas). Mínimo 10 caracteres con letras y números, sin contraseñas obvias. |
+| **Contraseñas** | Hash con bcrypt (12 rondas). Mínimo 10 caracteres con letras y números, sin contraseñas obvias. Cada persona cambia la suya en «Mi cuenta» (con la actual) y **al cambiarla se cierran las demás sesiones**. Cuando un administrador la restablece, quien la recibe **debe cambiarla antes de operar**: así nadie conserva la contraseña de otro. |
 | **Fuerza bruta** | Bloqueo de la cuenta tras varios intentos fallidos (configurable) y límite propio de intentos por IP en el login. Todo queda auditado. |
 | **Autorización** | Separación estricta `ADMIN` / `AGENT`. Un agente solo puede leer y responder las conversaciones asignadas a él, y la restricción se aplica en la consulta, no solo en la vista. |
 | **CSRF** | Toda petición que cambia estado debe venir del mismo dominio configurado en `APP_URL`. Un dominio ajeno recibe 403. |
@@ -184,7 +184,7 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 - **Custodia de `ENCRYPTION_KEY`**: es la llave de los datos cifrados. Si se pierde, los teléfonos, los mensajes, las notas y la bitácora dejan de poder leerse, además de los tokens de Meta. Guárdala en un gestor de contraseñas, no solo en las variables del proveedor.
 - **Respaldos de la base de datos**. Cuidado con el respaldo: para restaurarlo y poder leer los datos hace falta la misma `ENCRYPTION_KEY`.
 - **Descargar el respaldo fuera del servidor** de vez en cuando: el respaldo automático vive en el mismo lugar que la base, así que cubre un borrado accidental o una migración mal hecha, no la pérdida del disco completo. Y **probar una restauración** al menos una vez (`npm run db:restore -- --file=… --dry-run` para validar, sin `--dry-run` para restaurar).
-- **Acceso del administrador**: definir quién más puede entrar, dónde se guarda la contraseña del admin y qué se hará si esa persona no está. Hoy hay un solo administrador y la recuperación no está en la interfaz.
+- **Acceso del administrador**: crear un segundo administrador desde Equipo y comprobar que puede entrar; definir quién más tiene acceso y dónde se guarda la contraseña. Con un solo admin, cualquier olvido depende del servidor.
 - **Respaldos y adjuntos**: confirmar que el volumen de archivos existe y que alguien descarga respaldos con regularidad, porque nada de eso ocurre solo.
 
 ---
@@ -193,9 +193,9 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 180 pruebas unitarias en 28 archivos |
+| Pruebas automatizadas | 189 pruebas unitarias en 29 archivos |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
-| Migraciones | Versionadas en `prisma/migrations`, con nueve aplicadas |
+| Migraciones | Versionadas en `prisma/migrations`, con diez aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
 | Verificación de integración | **Manual.** Los flujos de la lista de abajo se comprueban con scripts contra una base real, pero esos scripts no viven en el repo ni corren en CI: una regresión en el camino de datos puede pasar el pipeline sin que nadie la note. |
 | Pruebas de interfaz | **Ninguna automatizada.** Los cambios de layout se verifican a mano (capturas en escritorio y móvil); no hay pruebas de navegador. |
@@ -219,6 +219,7 @@ Además de las pruebas unitarias, los flujos críticos se verificaron de punta a
 - Interfaz del chat revisada con capturas reales en escritorio (1366×900) y móvil (390×844): el compositor se queda en una línea, las acciones (archivo, plantilla, nota y borrado) se ven sin achicar la ventana y el encabezado no se corta. Fue justo lo que faltaba: el primer intento seguía rompiéndose en móvil y solo se vio al mirar la captura.
 - Resultados y reportes (36 comprobaciones contra una base real y capturas de las pantallas): promesa con monto y fecha cifrados; la promesa vencida se deduce con los días de atraso correctos; marcar pagado la cierra y la saca de la lista de trabajo; el cumplimiento la cuenta como pagada tarde; tres mensajes salientes suman tres intentos y una respuesta los reinicia; el marcado en bloque alcanza a varios contactos; una promesa sin fecha se rechaza con aviso; los cuatro reportes exportan CSV; y el monto se mostró cifrado en la base cruda.
 - **Restauración de un respaldo probada de verdad**: se creó una copia, se borraron **todos** los mensajes y se corrompieron las notas de los contactos, y la restauración devolvió los 41 mensajes y las notas originales byte por byte (comparadas con `diff`). La aplicación siguió leyendo los datos descifrados después de restaurar, porque el respaldo conserva el cifrado tal cual. En esa prueba se descubrió y corrigió el orden de inserción (`Message` referencia a `Campaign`). También se verificó la retención podando con `BACKUP_KEEP=2`, y que `/health`, el panel y el botón de respaldo manual responden.
+- **Equipo y contraseñas (16 + 20 comprobaciones)**: se crea un segundo administrador, entra y ve todas las pantallas; con dos admins se puede degradar a uno, pero **degradar o desactivar al último se bloquea** con el motivo a la vista y el botón deshabilitado; un usuario degradado pierde el panel (403) y conserva el de agente. Sobre contraseñas: al restablecerla se cierran las sesiones de esa persona, al entrar el sistema la obliga a cambiarla (no puede ir a ninguna otra pantalla), el cambio propio exige la contraseña actual y rechaza confirmaciones que no coinciden, y la consola `admin:reset-password` genera una temporal, cierra sesiones y también obliga al cambio.
 
 ---
 
@@ -234,7 +235,7 @@ Además de las pruebas unitarias, los flujos críticos se verificaron de punta a
 | Una sola instancia | Si el servicio se reinicia, la bandeja se reconecta sola | Railway reinicia el servicio automáticamente |
 | Pérdida de `ENCRYPTION_KEY` | Los campos cifrados (teléfonos, mensajes, notas, bitácora) y los tokens de Meta quedan ilegibles | Guardarla en un lugar seguro además de las variables, y respaldarla junto con la base |
 | Búsqueda por teléfono parcial | Escribir parte del número ya no encuentra contactos | La pantalla de Contactos lo recuerda: se busca por el número completo o por nombre |
-| Admin único sin recuperación desde la interfaz | Si esa persona falta, la instalación queda sin quien la administre | Acordar con el cliente quién más tiene acceso y restablecer la contraseña con el seed o la base; está en la lista de lo que sigue |
+| Un solo administrador | Si esa persona falta, la instalación queda sin quien la administre | Crear un segundo administrador desde Equipo; la regla impide quedarse en cero, pero no obliga a tener dos. La recuperación desde el servidor existe (`npm run admin:reset-password`) |
 | Falta de respaldos automáticos | Un borrado accidental o una corrupción se vuelve pérdida definitiva | Descarga manual desde el panel; conviene activar los respaldos del proveedor y probar una restauración |
 | Adjuntos sin Volume | Los archivos enviados se pierden en cada deploy | Configurar `MEDIA_STORAGE_DIR` apuntando a un Volume y verificarlo en el checklist de alta |
 | Cupo de peticiones compartido | Varios agentes en la misma oficina pueden recibir 429 | Subir el tope o limitar por usuario cuando haya equipo; hoy el acuerdo es operativo |
@@ -249,7 +250,7 @@ El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 
 1. **Respaldos automáticos y una restauración probada.** Es lo único que evita que un incidente se vuelva pérdida definitiva; hoy la descarga es manual y nadie la ejecuta sola.
 2. **Suite de integración automatizada** con una base de datos en CI, para que la verificación de los flujos críticos deje de depender de scripts manuales.
-3. **Segundo administrador y recuperación de contraseña**, más decidir si los ajustes inertes del workspace se implementan o se quitan de la base.
+3. **Decidir si los ajustes inertes del workspace** (horarios, modo de asignación, máximo de conversaciones) se implementan o se quitan de la base.
 
 **Proteger la operación.**
 

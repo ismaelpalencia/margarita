@@ -39,7 +39,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Plantillas: sincronizar las aprobadas desde Meta y verlas con su estado real.
 - Contactos: crear, editar, buscar, etiquetar y desactivar, con consentimiento (opt-in), bajas y filtro de "solo bajas".
 - Etiquetas: crear, editar y desactivar.
-- Agentes: crear, editar, activar o desactivar, con permisos y **límite diario** de mensajes manuales aplicado de verdad, y el uso de hoy a la vista.
+- Equipo: crear **administradores y agentes**, cambiar el rol, activar o desactivar y **restablecer contraseñas**. Nunca se puede dejar la instalación sin un administrador activo. Los agentes tienen permisos y **límite diario** de mensajes manuales aplicado de verdad, con el uso de hoy a la vista.
 - Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo), búsqueda por nombre o teléfono, filtros por estado, asignación y no leídos, y contador de pendientes por hilo y en el encabezado.
 - Respuestas rápidas: textos guardados que se insertan con un clic (con `{nombre}` y `{telefono}` del contacto), editables en Admin → Respuestas.
 - Bajas automáticas: si el cliente escribe `STOP`, el contacto queda dado de baja y deja de recibir mensajes y campañas; reactivarlo es una decisión explícita y queda auditada.
@@ -363,6 +363,7 @@ Si todavía no la tienes, la app funciona y guarda todo en texto plano; el panel
 | `npm run db:encrypt-secrets` | Cifra únicamente los tokens de Meta que quedaron en claro |
 | `npm run db:backup` | Crea un respaldo de la base ahora mismo (útil antes de un cambio delicado) |
 | `npm run db:restore` | Restaura un respaldo: `--file=<archivo.mgb>`, con `--dry-run` para validar y `--yes` para aplicarlo |
+| `npm run admin:reset-password` | Restablece una contraseña desde el servidor: `--email=<correo> [--password=<nueva>]` |
 | `npm run db:studio` | Abre Prisma Studio |
 
 ### Integración continua
@@ -400,6 +401,8 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | GET/POST | `/admin/users`, `/admin/users/new`, `/admin/users/:id/edit`, `/admin/users/:id/toggle-status` | Gestión de agentes |
 | GET/POST | `/admin/contacts`, `/admin/contacts/new`, `/admin/contacts/:id/edit`, `/admin/contacts/:id/deactivate` | Gestión de contactos |
 | POST | `/admin/contacts/:id/opt-out`, `/admin/contacts/:id/opt-in` | Marca la baja o reactiva el consentimiento de un contacto |
+| POST | `/admin/users/:id/password` | Restablece la contraseña de un usuario (obliga a cambiarla al entrar) |
+| GET/POST | `/account/password` | Cada persona cambia su propia contraseña (admin y agente) |
 | POST | `/admin/contacts/:id/outcome`, `/admin/contacts/outcomes/bulk` | Registra el resultado de la gestión (individual o en bloque) |
 | GET | `/admin/reports` | Reportes de gestión (gestiones, promesas, sin contestación y detalle) |
 | GET | `/admin/reports/export` | Descarga el reporte actual en CSV |
@@ -577,7 +580,7 @@ El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 180 pruebas unitarias en verde y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones y **restauración de un respaldo probada borrando datos a propósito**.
+Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 189 pruebas unitarias en verde y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas y **restauración de un respaldo probada borrando datos a propósito**.
 
 Lo que se cerró en el sprint de endurecimiento:
 

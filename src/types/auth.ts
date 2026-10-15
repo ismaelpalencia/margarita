@@ -6,4 +6,6 @@ export type AuthUser = {
     role: UserRole;
     email: string;
     name: string;
+    /** Si es true, el sistema obliga a cambiar la contraseña antes de operar. */
+    mustChangePassword: boolean;
 };

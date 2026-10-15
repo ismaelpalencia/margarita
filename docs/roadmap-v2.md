@@ -289,6 +289,26 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ---
 
+## Sprint 46 — Varios administradores y recuperación de contraseñas
+
+**Estado: completado.** Cierra lo que un cliente pregunta en la primera reunión: "¿y si el que sabe la contraseña no está?".
+
+| Área | Qué se hizo |
+| --- | --- |
+| Varios administradores | Admin → **Equipo** lista administradores y agentes; se puede crear con cualquier rol, cambiarlo, activar y desactivar. Antes el panel solo creaba agentes y el único admin era el del alta. |
+| Regla del último admin | Nunca se puede dejar la instalación sin un administrador activo: degradar o desactivar al último se bloquea con el motivo a la vista (y el botón aparece deshabilitado). La regla vive en `team-rules.ts`, sin tocar la base, y tiene pruebas. |
+| Restablecer contraseña | Un administrador la restablece desde la ficha del usuario (con sugerencia de contraseña temporal). Se cierran **todas** las sesiones de esa persona y, al entrar, el sistema la obliga a cambiarla antes de operar: el administrador no se queda sabiendo la contraseña definitiva de nadie. |
+| Cambio propio | Página **Mi cuenta** para ambos roles (dentro y fuera del panel según corresponda): pide la contraseña actual y, al guardar, cierra las demás sesiones. |
+| Consola | `npm run admin:reset-password -- --email=…` genera (o recibe) una contraseña temporal, cierra sesiones y fuerza el cambio. Es la salida cuando nadie puede entrar. |
+| Sin correo, a propósito | No se montó envío de correo solo para "olvidé mi contraseña": sería un proveedor externo más y otra superficie de ataque para un caso que se resuelve desde el panel o el servidor. Está documentado como límite. |
+
+### Verificación
+
+- 9 pruebas unitarias de las reglas del equipo y del generador de contraseñas.
+- 36 comprobaciones contra una base real: segundo administrador que entra y ve todo; degradar con dos admins permitido y con uno bloqueado (incluido desactivar); usuario degradado con 403 en el panel y 200 en el de agente; reseteo que cierra sesiones y obliga al cambio; cambio propio con validaciones; y la consola generando contraseña y forzando el cambio.
+
+---
+
 ## Backlog del Sprint 35 (interactivos)
 
 | Función | Detalle |

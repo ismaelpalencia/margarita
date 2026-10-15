@@ -39,12 +39,14 @@ export function userToAuthUser(user: {
     role: AuthUser["role"];
     email: string;
     name: string;
+    mustChangePassword?: boolean;
 }): AuthUser {
     return {
         id: user.id,
         workspaceId: user.workspaceId,
         role: user.role,
         email: user.email,
-        name: user.name
+        name: user.name,
+        mustChangePassword: Boolean(user.mustChangePassword)
     };
 }

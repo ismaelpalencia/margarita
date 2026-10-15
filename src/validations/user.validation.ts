@@ -1,59 +1,77 @@
+import { UserRole } from "@prisma/client";
 import { z } from "zod";
 
 import { passwordSchema } from "./password.validation";
 
-export const createAgentSchema = z.object({
-    name: z
-        .string()
-        .trim()
-        .min(2, "El nombre debe tener al menos 2 caracteres."),
-    email: z
-        .string()
-        .trim()
-        .email("Ingresa un correo válido.")
-        .toLowerCase(),
+const nameField = z
+    .string()
+    .trim()
+    .min(2, "El nombre debe tener al menos 2 caracteres.");
+
+const emailField = z
+    .string()
+    .trim()
+    .email("Ingresa un correo válido.")
+    .toLowerCase();
+
+const limitField = z
+    .string()
+    .optional()
+    .transform((value) => {
+        if (!value || value.trim() === "") return null;
+
+        return Number(value);
+    })
+    .refine((value) => value === null || Number.isInteger(value), {
+        message: "El límite debe ser un número entero."
+    })
+    .refine((value) => value === null || value >= 0, {
+        message: "El límite no puede ser negativo."
+    });
+
+const permissionField = z
+    .optional(z.literal("on"))
+    .transform((value) => value === "on");
+
+export const createUserSchema = z.object({
+    name: nameField,
+    email: emailField,
     password: passwordSchema,
-    canSendManualMessages: z
-        .optional(z.literal("on"))
-        .transform((value) => value === "on"),
-    manualMessageLimit: z
-        .string()
-        .optional()
-        .transform((value) => {
-            if (!value || value.trim() === "") return null;
-            return Number(value);
-        })
-        .refine((value) => value === null || Number.isInteger(value), {
-            message: "El límite debe ser un número entero."
-        })
-        .refine((value) => value === null || value >= 0, {
-            message: "El límite no puede ser negativo."
-        })
+    role: z.nativeEnum(UserRole, {
+        errorMap: () => ({ message: "Elige un rol válido." })
+    }),
+    canSendManualMessages: permissionField,
+    manualMessageLimit: limitField
 });
 
-export type CreateAgentInput = z.infer<typeof createAgentSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;
 
-export const updateAgentSchema = z.object({
-    name: z
-        .string()
-        .trim()
-        .min(2, "El nombre debe tener al menos 2 caracteres."),
-    canSendManualMessages: z
-        .optional(z.literal("on"))
-        .transform((value) => value === "on"),
-    manualMessageLimit: z
-        .string()
-        .optional()
-        .transform((value) => {
-            if (!value || value.trim() === "") return null;
-            return Number(value);
-        })
-        .refine((value) => value === null || Number.isInteger(value), {
-            message: "El límite debe ser un número entero."
-        })
-        .refine((value) => value === null || value >= 0, {
-            message: "El límite no puede ser negativo."
-        })
+export const updateUserSchema = z.object({
+    name: nameField,
+    role: z.nativeEnum(UserRole, {
+        errorMap: () => ({ message: "Elige un rol válido." })
+    }),
+    canSendManualMessages: permissionField,
+    manualMessageLimit: limitField
 });
 
-export type UpdateAgentInput = z.infer<typeof updateAgentSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+
+export const resetPasswordSchema = z.object({
+    password: passwordSchema
+});
+
+export const changePasswordSchema = z
+    .object({
+        currentPassword: z
+            .string()
+            .min(1, "Escribe tu contraseña actual."),
+        password: passwordSchema,
+        confirmPassword: z
+            .string()
+            .min(1, "Repite la contraseña nueva.")
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+        message: "La contraseña nueva y su confirmación no coinciden.",
+        path: ["confirmPassword"]
+    });
