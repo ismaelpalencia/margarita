@@ -84,6 +84,11 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `ENCRYPTION_KEY` | generador del repo (`npm run secrets:generate`) | Llave del cifrado en reposo: teléfonos, mensajes, notas, bitácora y tokens de Meta |
 | `OPT_OUT_KEYWORDS` | `STOP` | Palabras que dan de baja a un contacto al escribirlas (separadas por coma) |
 | `OUTCOME_NO_ANSWER_ATTEMPTS` | `3` | Intentos sin respuesta que llevan a un cliente a "sin contestación" en los reportes |
+| `SESSION_IDLE_MINUTES` | `720` | Minutos de inactividad antes de cerrar la sesión sola |
+| `SESSION_MAX_ACTIVE` | `3` | Dispositivos con sesión abierta por usuario |
+| `SUPPORT_WHATSAPP` | — | Número comercial que aparece en la página pública (`https://wa.me/…`) |
+| `SUPPORT_EMAIL` | — | Correo comercial de contacto |
+| `SETUP_SERVICE_PRICE` | — | Precio del servicio de conexión con Meta que se muestra en la página pública |
 | `LOGIN_MAX_ATTEMPTS` | `5` | Intentos fallidos antes de bloquear |
 | `LOGIN_LOCK_MINUTES` | `15` | Duración del bloqueo |
 | `LOG_RETENTION_DAYS` | `90` | Días que se conserva la bitácora |

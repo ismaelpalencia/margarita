@@ -28,3 +28,19 @@ export function getSessionExpiresAt(): Date {
 
     return date;
 }
+
+/**
+ * ¿La sesión lleva demasiado tiempo sin usarse? Se toma la última actividad
+ * y, si nunca hubo, la fecha de creación.
+ *
+ * Vive aquí, y no en el servicio, para poder probarla sin base de datos.
+ */
+export function isSessionIdle(
+    session: { lastSeenAt: Date | null; createdAt: Date },
+    idleLimitMs: number,
+    now = new Date()
+): boolean {
+    const reference = session.lastSeenAt ?? session.createdAt;
+
+    return now.getTime() - reference.getTime() > idleLimitMs;
+}

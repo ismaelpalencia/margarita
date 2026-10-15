@@ -4,6 +4,7 @@ import { WorkspaceStatus } from "@prisma/client";
 import { appConfig } from "../config/app.config";
 import { prisma } from "../config/prisma";
 import { userToAuthUser, verifyAuthToken } from "../utils/jwt";
+import { SessionService } from "../services/session.service";
 
 export async function authMiddleware(
     req: Request,
@@ -49,6 +50,25 @@ export async function authMiddleware(
 
             res.clearCookie(appConfig.cookieName);
             return res.redirect("/auth/login");
+        }
+
+        /**
+         * Cierre por inactividad: una sesión abandonada no debe seguir viva
+         * solo porque la cookie no expiró.
+         */
+        if (SessionService.isIdle(session)) {
+            await prisma.userSession.update({
+                where: {
+                    id: session.id
+                },
+                data: {
+                    isActive: false
+                }
+            });
+
+            res.clearCookie(appConfig.cookieName);
+
+            return res.redirect("/auth/login?error=idle");
         }
 
         if (!session.user.isActive) {

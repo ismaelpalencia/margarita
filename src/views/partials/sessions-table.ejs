@@ -1,0 +1,84 @@
+<%#
+    Tabla de sesiones activas con cierre individual.
+    Espera: sessions, basePath, showUser
+%>
+<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+    <table class="w-full text-left text-sm">
+        <thead class="bg-slate-50 text-slate-500">
+            <tr>
+                <% if (showUser) { %>
+                    <th class="px-5 py-4">Usuario</th>
+                <% } %>
+                <th class="px-5 py-4">Dispositivo</th>
+                <th class="px-5 py-4">IP</th>
+                <th class="px-5 py-4">Última actividad</th>
+                <th class="px-5 py-4">Entró</th>
+                <th class="px-5 py-4 text-right">Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody class="divide-y divide-slate-100">
+            <% if (sessions.length === 0) { %>
+                <tr>
+                    <td colspan="<%= showUser ? 6 : 5 %>" class="px-5 py-8 text-center text-slate-500">
+                        No hay sesiones activas.
+                    </td>
+                </tr>
+            <% } %>
+
+            <% sessions.forEach((session) => { %>
+                <tr class="<%= session.isCurrent ? 'bg-emerald-50/40' : '' %>">
+                    <% if (showUser) { %>
+                        <td class="px-5 py-4">
+                            <div class="font-medium text-slate-800"><%= session.userName %></div>
+                            <div class="text-xs text-slate-400"><%= session.userEmail %></div>
+                        </td>
+                    <% } %>
+
+                    <td class="px-5 py-4 text-slate-700">
+                        <%= session.device %>
+
+                        <% if (session.isCurrent) { %>
+                            <span class="ml-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
+                                Esta sesión
+                            </span>
+                        <% } %>
+                    </td>
+
+                    <td class="px-5 py-4 text-slate-500">
+                        <%= session.ip || "—" %>
+                    </td>
+
+                    <td class="px-5 py-4 text-slate-600">
+                        <%= formatDateTimeMX(session.lastSeenAt || session.createdAt) %>
+                    </td>
+
+                    <td class="px-5 py-4 text-slate-500">
+                        <%= formatDateTimeMX(session.createdAt) %>
+                    </td>
+
+                    <td class="px-5 py-4 text-right">
+                        <% if (session.isCurrent) { %>
+                            <span class="text-xs text-slate-400">
+                                Usa "Cerrar sesión"
+                            </span>
+                        <% } else { %>
+                            <form
+                                action="<%= basePath %>/revoke"
+                                method="POST"
+                                class="inline"
+                                onsubmit="return confirm('¿Cerrar esta sesión? El dispositivo tendrá que volver a entrar.');"
+                            >
+                                <input type="hidden" name="tokenId" value="<%= session.tokenId %>" />
+
+                                <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white">
+                                    Cerrar
+                                </button>
+                            </form>
+                        <% } %>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</section>

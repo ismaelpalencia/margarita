@@ -1,8 +1,15 @@
 <%- include("../../partials/header", { title }) %>
 
+<%
+    /** Sin número configurado, el contacto cae al correo o a la guía. */
+    const contactUrl =
+        supportWhatsappUrl ||
+        (supportEmail ? `mailto:${supportEmail}` : "/como-empezar");
+%>
+
 <main class="min-h-screen bg-white text-slate-950">
     <section class="relative overflow-hidden">
-        <div class="absolute inset-x-0 top-0 h-[520px] bg-gradient-to-b from-emerald-50 via-white to-white"></div>
+        <div class="absolute inset-x-0 top-0 h-[560px] bg-gradient-to-b from-emerald-50 via-white to-white"></div>
 
         <div class="relative mx-auto max-w-7xl px-6 py-8">
             <header class="flex items-center justify-between">
@@ -19,7 +26,7 @@
                         Cómo empezar
                     </a>
 
-                    <a href="<%= supportWhatsappUrl %>" target="_blank" class="hover:text-emerald-700">
+                    <a href="<%= contactUrl %>" class="hover:text-emerald-700">
                         Soporte
                     </a>
 
@@ -36,17 +43,18 @@
             <div class="grid min-h-[720px] items-center gap-14 py-16 lg:grid-cols-[1.05fr_0.95fr]">
                 <section>
                     <div class="inline-flex rounded-full bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 ring-1 ring-emerald-100">
-                        WhatsApp Cloud API para equipos pequeños
+                        Cobranza por WhatsApp, sin hojas sueltas
                     </div>
 
                     <h1 class="mt-8 max-w-4xl text-5xl font-black leading-[1.05] tracking-tight text-slate-950 md:text-6xl">
-                        Campañas, conversaciones y agentes en un solo panel.
+                        Cobra por WhatsApp sin perder el hilo.
                     </h1>
 
                     <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-                        Margarita ayuda a operar WhatsApp Business Cloud API de forma simple:
-                        plantillas aprobadas, campañas desde Excel, recepción de mensajes,
-                        asignación a agentes y monitoreo básico.
+                        Margarita registra <strong>en qué quedó cada cliente</strong>
+                        —prometió pagar, pagó, no contestó, número equivocado—, cuenta
+                        los intentos sin respuesta, te dice <strong>a quién escribirle
+                        hoy</strong> y te deja el reporte listo para Excel.
                     </p>
 
                     <div class="mt-10 flex flex-col gap-3 sm:flex-row">
@@ -54,14 +62,15 @@
                             Ver cómo empezar
                         </a>
 
-                        <a href="<%= supportWhatsappUrl %>" target="_blank" class="rounded-xl bg-white px-6 py-4 text-center text-sm font-black text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50">
-                            Contactar por WhatsApp
+                        <a href="<%= contactUrl %>" class="rounded-xl bg-white px-6 py-4 text-center text-sm font-black text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50">
+                            Pedir una demostración
                         </a>
                     </div>
 
                     <p class="mt-5 max-w-xl text-sm leading-6 text-slate-500">
-                        Para usar Margarita se requiere configurar WhatsApp Business Platform en Meta.
-                        Te acompañamos en el proceso de conexión y puesta en marcha.
+                        Se conecta a tu propia cuenta de WhatsApp Business (Meta): los
+                        datos y las conversaciones son tuyos. Si no quieres pelear con
+                        la configuración de Meta, <strong>la hacemos nosotros</strong>.
                     </p>
                 </section>
 
@@ -73,81 +82,74 @@
 
                                 <div>
                                     <p class="text-sm font-black text-slate-950">
-                                        Operación Margarita
+                                        Hoy toca escribirle a
                                     </p>
 
                                     <p class="text-xs font-medium text-slate-500">
-                                        Panel de control
+                                        Lista de trabajo del día
                                     </p>
                                 </div>
                             </div>
 
-                            <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-                                Activo
+                            <span class="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-700">
+                                3 vencidas
                             </span>
                         </div>
 
-                        <div class="mt-5 grid gap-4">
-                            <div class="rounded-2xl bg-emerald-50 p-4">
-                                <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">
-                                    Campañas
-                                </p>
-
-                                <p class="mt-2 text-2xl font-black text-slate-950">
-                                    Excel → Plantilla aprobada
-                                </p>
-
-                                <p class="mt-1 text-sm text-slate-600">
-                                    Carga contactos y envía mensajes aprobados por Meta.
-                                </p>
-                            </div>
-
-                            <div class="grid gap-4 sm:grid-cols-2">
-                                <div class="rounded-2xl bg-slate-50 p-4">
-                                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">
-                                        Conversaciones
-                                    </p>
-
-                                    <p class="mt-2 text-3xl font-black text-slate-950">
-                                        24h
-                                    </p>
-
-                                    <p class="text-sm text-slate-500">
-                                        Respuesta libre
-                                    </p>
-                                </div>
-
-                                <div class="rounded-2xl bg-slate-50 p-4">
-                                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">
-                                        Agentes
-                                    </p>
-
-                                    <p class="mt-2 text-3xl font-black text-slate-950">
-                                        Equipo
-                                    </p>
-
-                                    <p class="text-sm text-slate-500">
-                                        Asignación simple
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="rounded-2xl border border-slate-200 p-4">
+                        <div class="mt-4 space-y-3">
+                            <div class="rounded-2xl border border-red-100 bg-red-50/60 p-4">
                                 <div class="flex items-center justify-between">
                                     <p class="text-sm font-bold text-slate-800">
-                                        Estado Meta
+                                        Promesa vencida
                                     </p>
 
-                                    <span class="text-xs font-bold text-emerald-700">
-                                        Configurable
+                                    <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-red-700">
+                                        5 días
                                     </span>
                                 </div>
 
-                                <div class="mt-3 h-2 rounded-full bg-slate-100">
-                                    <div class="h-2 w-4/5 rounded-full bg-emerald-500"></div>
+                                <p class="mt-2 text-xs text-slate-600">
+                                    $1,500.00 · compromiso del 10/10
+                                </p>
+                            </div>
+
+                            <div class="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-bold text-slate-800">
+                                        Vence hoy
+                                    </p>
+
+                                    <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-sky-700">
+                                        $800.00
+                                    </span>
                                 </div>
+
+                                <p class="mt-2 text-xs text-slate-600">
+                                    Convenio a 3 pagos · primer pago hoy
+                                </p>
+                            </div>
+
+                            <div class="rounded-2xl border border-amber-100 bg-amber-50/60 p-4">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-bold text-slate-800">
+                                        Sin contestar
+                                    </p>
+
+                                    <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-amber-700">
+                                        4 intentos
+                                    </span>
+                                </div>
+
+                                <p class="mt-2 text-xs text-slate-600">
+                                    Nunca ha respondido · marcar y pasar al siguiente
+                                </p>
                             </div>
                         </div>
+
+                        <p class="mt-4 text-[11px] leading-5 text-slate-500">
+                            Los intentos se cuentan solos con los mensajes enviados: no hay
+                            nada que capturar a mano.
+                        </p>
                     </div>
                 </section>
             </div>
@@ -155,58 +157,159 @@
     </section>
 
     <section class="border-y border-slate-200 bg-slate-50">
-        <div class="mx-auto grid max-w-7xl gap-6 px-6 py-12 md:grid-cols-3">
-            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                <p class="text-lg font-black text-slate-950">
-                    Campañas desde Excel
-                </p>
+        <div class="mx-auto max-w-7xl px-6 py-16">
+            <h2 class="text-3xl font-black text-slate-950">
+                Lo que la herramienta hace hoy
+            </h2>
 
-                <p class="mt-2 text-sm leading-6 text-slate-600">
-                    Carga contactos y crea campañas usando plantillas previamente aprobadas.
-                </p>
-            </div>
+            <p class="mt-3 max-w-3xl text-slate-600">
+                Es una herramienta de operación, no un CRM: se enfoca en que el
+                equipo de cobranza trabaje ordenado y que al final del día haya
+                números que mostrar.
+            </p>
 
-            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                <p class="text-lg font-black text-slate-950">
-                    Conversaciones asignables
-                </p>
-
-                <p class="mt-2 text-sm leading-6 text-slate-600">
-                    Recibe mensajes entrantes, abre conversaciones y asígnalas a agentes.
-                </p>
-            </div>
-
-            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                <p class="text-lg font-black text-slate-950">
-                    Soporte de conexión
-                </p>
-
-                <p class="mt-2 text-sm leading-6 text-slate-600">
-                    Te guiamos para conectar tu cuenta de Meta y comenzar con una prueba controlada.
-                </p>
+            <div class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <% [
+                    ["Resultado de cada gestión", "Promesa de pago, pagado, convenio, promesa incumplida, sin contestación, número inválido, no le interesa o volver a llamar, con monto, fecha compromiso y nota. Cada marcado deja historial con quién y cuándo."],
+                    ["Promesas vencidas automáticas", "Una promesa con fecha pasada aparece como vencida con los días de atraso, sin que nadie tenga que marcarla. Si el cliente paga después, marcar pagado la resuelve sola."],
+                    ["Intentos sin contestación", "Se cuentan con los mensajes enviados desde la última respuesta del cliente. Nada que capturar: el sistema te dice quién lleva 3, 4 o 10 intentos sin responder."],
+                    ["Lista de trabajo del día", "Una pantalla que junta lo que ya venció, lo que vence hoy, lo de esta semana y los que no contestan, en ese orden de urgencia."],
+                    ["Reportes y CSV", "Gestiones por persona y por día, promesas, cumplimiento (a tiempo, tarde, sin pago), prometido contra cobrado, y semana a semana. Todo descargable para Excel."],
+                    ["Campañas con plantillas", "Sube un Excel y manda plantillas aprobadas con variables, por lotes y con pausa, sin chocar con los límites de Meta. Pausa, reanuda y reintenta."],
+                    ["Varios números, un equipo", "Varios números de la misma cuenta de WhatsApp Business con su propia bandeja. Asignación de conversaciones a cada persona y contador de no leídos."],
+                    ["Bajas y consentimiento", "Si el cliente escribe STOP, queda dado de baja al instante y deja de recibir mensajes y campañas. Reactivarlo es una decisión explícita y queda auditada."],
+                    ["Datos protegidos", "Teléfonos, mensajes, notas y montos se guardan cifrados en la base. Sesiones con cierre por inactividad, tope de dispositivos y lista de accesos visible."]
+                ].forEach(([title, detail]) => { %>
+                    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                        <p class="text-lg font-black text-slate-950"><%= title %></p>
+                        <p class="mt-2 text-sm leading-6 text-slate-600"><%= detail %></p>
+                    </div>
+                <% }) %>
             </div>
         </div>
     </section>
 
     <section class="bg-white">
         <div class="mx-auto max-w-7xl px-6 py-16">
+            <h2 class="text-3xl font-black text-slate-950">
+                Cómo se pone a andar
+            </h2>
+
+            <div class="mt-8 grid gap-6 md:grid-cols-3">
+                <div class="rounded-2xl border border-slate-200 p-6">
+                    <p class="text-sm font-black text-emerald-700">Paso 1</p>
+                    <p class="mt-2 text-lg font-black text-slate-950">Conectas WhatsApp</p>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        Tu cuenta de WhatsApp Business en Meta (la puedes tener ya, o la
+                        creamos). Se configura un número dedicado, el token permanente y el
+                        webhook firmado.
+                    </p>
+                </div>
+
+                <div class="rounded-2xl border border-slate-200 p-6">
+                    <p class="text-sm font-black text-emerald-700">Paso 2</p>
+                    <p class="mt-2 text-lg font-black text-slate-950">Subes tu cartera</p>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        Contactos con etiquetas, o directamente un Excel. Cada persona
+                        entra con su usuario y solo ve lo que le toca.
+                    </p>
+                </div>
+
+                <div class="rounded-2xl border border-slate-200 p-6">
+                    <p class="text-sm font-black text-emerald-700">Paso 3</p>
+                    <p class="mt-2 text-lg font-black text-slate-950">Trabajas y mides</p>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        El equipo marca el resultado de cada conversación y cada mañana
+                        empieza con la lista de a quién escribirle. Al final, el reporte sale
+                        en CSV.
+                    </p>
+                </div>
+            </div>
+
+            <a href="/como-empezar" class="mt-8 inline-flex text-sm font-black text-emerald-700 hover:text-emerald-800">
+                Ver la guía paso a paso de Meta →
+            </a>
+        </div>
+    </section>
+
+    <section class="border-y border-slate-200 bg-slate-50">
+        <div class="mx-auto max-w-7xl px-6 py-16">
             <div class="rounded-[2rem] bg-slate-950 p-8 text-white md:p-10">
                 <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
                     <div>
-                        <h2 class="text-3xl font-black">
-                            ¿Quieres conectar tu WhatsApp a Margarita?
+                        <p class="text-sm font-black uppercase tracking-wide text-emerald-400">
+                            Servicio de conexión
+                        </p>
+
+                        <h2 class="mt-3 text-3xl font-black">
+                            Si no quieres pelear con Meta, lo hacemos nosotros.
                         </h2>
 
                         <p class="mt-3 max-w-3xl text-slate-300">
-                            Escríbenos por WhatsApp. Revisamos si tu negocio ya tiene lo necesario
-                            en Meta Business y te indicamos el siguiente paso.
+                            Configuramos tu app de Meta, la cuenta de WhatsApp Business, el
+                            número dedicado, el token permanente, el webhook firmado, las
+                            plantillas y una prueba de punta a punta. Tú solo entras a
+                            trabajar.
+                            <strong class="text-white"> Precio: <%= setupServicePrice %>.</strong>
+                        </p>
+
+                        <p class="mt-4 max-w-3xl text-sm text-slate-400">
+                            La herramienta es tuya y vive en tu propia instalación: no
+                            compartes cuenta ni datos con otros negocios.
                         </p>
                     </div>
 
-                    <a href="<%= supportWhatsappUrl %>" target="_blank" class="rounded-xl bg-emerald-500 px-6 py-4 text-center text-sm font-black text-white hover:bg-emerald-400">
-                        Contactar soporte
+                    <a href="<%= contactUrl %>" class="rounded-xl bg-emerald-500 px-6 py-4 text-center text-sm font-black text-white hover:bg-emerald-400">
+                        Quiero que me ayuden
                     </a>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-white">
+        <div class="mx-auto max-w-7xl px-6 py-16">
+            <h2 class="text-2xl font-black text-slate-950">
+                Lo que necesitas de tu lado
+            </h2>
+
+            <p class="mt-2 max-w-3xl text-sm text-slate-600">
+                Para que funcione no basta la herramienta: hay cosas que solo puede
+                resolver la empresa. Preferimos decirlo antes.
+            </p>
+
+            <ul class="mt-6 grid gap-3 text-sm text-slate-700 md:grid-cols-2">
+                <li class="rounded-xl bg-slate-50 px-4 py-3">
+                    Una cuenta de <strong>Meta Business</strong> (con verificación de negocio
+                    si vas a enviar a volumen).
+                </li>
+                <li class="rounded-xl bg-slate-50 px-4 py-3">
+                    Un <strong>número dedicado</strong> que no esté en uso en la app normal
+                    de WhatsApp (ordinario o Business).
+                </li>
+                <li class="rounded-xl bg-slate-50 px-4 py-3">
+                    Un <strong>método de pago</strong> válido en Meta: sin él la cuenta no
+                    envía, aunque la herramienta diga que todo está listo.
+                </li>
+                <li class="rounded-xl bg-slate-50 px-4 py-3">
+                    <strong>Plantillas aprobadas</strong> para iniciar conversaciones y
+                    respetar las <strong>bajas</strong> de quien pida no recibir mensajes.
+                </li>
+            </ul>
+
+            <div class="mt-8 rounded-2xl bg-emerald-50 px-6 py-5 ring-1 ring-emerald-100">
+                <p class="text-sm font-black text-emerald-900">
+                    ¿Quieres verlo con tus datos?
+                </p>
+
+                <p class="mt-1 text-sm text-emerald-800">
+                    Te mostramos la herramienta funcionando con un caso de cobranza real
+                    antes de que decidas nada.
+                </p>
+
+                <a href="<%= contactUrl %>" class="mt-4 inline-flex rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700">
+                    Agendar demostración
+                </a>
             </div>
         </div>
     </section>

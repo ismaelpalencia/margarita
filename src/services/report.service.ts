@@ -548,6 +548,179 @@ export class ReportService {
         return isOpenPromise(type);
     }
 
+    /**
+     * Lista de trabajo del día: a quién escribirle hoy y por qué.
+     *
+     * El orden es el de urgencia real: primero las promesas que ya se
+     * pasaron, luego lo que vence hoy, después la semana y al final los que
+     * llevan varios intentos sin contestar.
+     */
+    static async todayWorklist(
+        workspaceId: string,
+        todayStart: Date,
+        threshold: number
+    ) {
+        const timezone = await SendPolicyService.timezoneFor(workspaceId);
+        const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+        const weekEnd = new Date(todayStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        const [pending, noAnswer] = await Promise.all([
+            this.pendingPromises(workspaceId, todayStart),
+            this.noAnswerCandidates(workspaceId, threshold)
+        ]);
+
+        return {
+            timezone,
+            overdue: pending.items.filter((item) => item.daysLate > 0),
+            dueToday: pending.items.filter(
+                (item) =>
+                    item.dueAt >= todayStart && item.dueAt < tomorrowStart
+            ),
+            dueThisWeek: pending.items.filter(
+                (item) => item.dueAt >= tomorrowStart && item.dueAt < weekEnd
+            ),
+            noAnswer,
+            overdueAmount: pending.items
+                .filter((item) => item.daysLate > 0)
+                .reduce((sum, item) => sum + (item.amount ?? 0), 0)
+        };
+    }
+
+    /**
+     * Tendencias: cómo se movió la gestión semana a semana y cómo va el
+     * cumplimiento de cada persona.
+     *
+     * Se calcula sobre las gestiones del rango y el historial de promesas y
+     * pagos, en la aplicación (los montos están cifrados).
+     */
+    static async trends(filters: ReportFilters, timezone: string) {
+        const [rows, promises, payments, users] = await Promise.all([
+            this.detailRows(filters),
+            prisma.contactOutcome.findMany({
+                where: {
+                    workspaceId: filters.workspaceId,
+                    type: { in: OPEN_PROMISE_TYPES },
+                    createdAt: { gte: filters.from, lt: filters.to }
+                },
+                select: {
+                    id: true,
+                    contactId: true,
+                    type: true,
+                    amount: true,
+                    dueAt: true,
+                    createdAt: true,
+                    createdById: true
+                },
+                take: MAX_REPORT_ROWS
+            }),
+            prisma.contactOutcome.findMany({
+                where: {
+                    workspaceId: filters.workspaceId,
+                    type: ContactOutcomeType.PAID
+                },
+                select: {
+                    contactId: true,
+                    amount: true,
+                    paidAt: true,
+                    createdAt: true
+                },
+                orderBy: { createdAt: "asc" }
+            }),
+            prisma.user.findMany({
+                where: { workspaceId: filters.workspaceId },
+                select: { id: true, name: true }
+            })
+        ]);
+
+        const weekKey = (date: Date) =>
+            dayjs(date).tz(timezone).startOf("week").format("YYYY-MM-DD");
+
+        const weeks = new Map<
+            string,
+            { gestiones: number; promesas: number; prometido: number; pagos: number; cobrado: number }
+        >();
+
+        for (const row of rows) {
+            const key = weekKey(row.createdAt);
+            const current =
+                weeks.get(key) ??
+                { gestiones: 0, promesas: 0, prometido: 0, pagos: 0, cobrado: 0 };
+
+            current.gestiones += 1;
+
+            if (isOpenPromise(row.type)) {
+                current.promesas += 1;
+                current.prometido += row.amount ?? 0;
+            }
+
+            if (row.type === ContactOutcomeType.PAID) {
+                current.pagos += 1;
+                current.cobrado += row.amount ?? 0;
+            }
+
+            weeks.set(key, current);
+        }
+
+        /** Cumplimiento por persona, con la misma regla que el reporte general. */
+        const byUser = new Map<
+            string,
+            {
+                name: string;
+                onTime: number;
+                late: number;
+                unpaid: number;
+                promisedAmount: number;
+                paidAmount: number;
+            }
+        >();
+
+        const paymentsByContact = payments.map((payment) => ({
+            contactId: payment.contactId,
+            amount: parseAmount(payment.amount),
+            paidAt: payment.paidAt,
+            createdAt: payment.createdAt
+        }));
+
+        const userIds = [...new Set(promises.map((promise) => promise.createdById))];
+
+        for (const userId of userIds) {
+            const userPromises = promises.filter(
+                (promise) => promise.createdById === userId
+            );
+            const name =
+                users.find((user) => user.id === userId)?.name ??
+                "Sin usuario";
+
+            const classified = classifyPromises(
+                userPromises.map((promise) => ({
+                    id: promise.id,
+                    contactId: promise.contactId,
+                    type: promise.type,
+                    amount: parseAmount(promise.amount),
+                    dueAt: promise.dueAt,
+                    createdAt: promise.createdAt
+                })),
+                paymentsByContact
+            );
+
+            byUser.set(userId ?? "sin-usuario", {
+                name,
+                onTime: classified.onTime,
+                late: classified.late,
+                unpaid: classified.unpaid,
+                promisedAmount: classified.promisedAmount,
+                paidAmount: classified.paidAmount
+            });
+        }
+
+        return {
+            weeks: [...weeks.entries()]
+                .map(([week, value]) => ({ week, ...value }))
+                .sort((a, b) => (a.week < b.week ? 1 : -1)),
+            byUser: [...byUser.values()].sort((a, b) => b.onTime - a.onTime)
+        };
+    }
+
     static defaultThreshold(): number {
         return appConfig.outcomeNoAnswerAttempts;
     }

@@ -273,6 +273,11 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `GRAPH_BASE_URL` | Solo pruebas | Base de la Graph API; vacío usa `https://graph.facebook.com` |
 | `OPT_OUT_KEYWORDS` | No | Palabras que dan de baja a un contacto al escribirlas (separadas por coma). Default `STOP` |
 | `OUTCOME_NO_ANSWER_ATTEMPTS` | No | Intentos sin respuesta con los que un cliente entra a "sin contestación" en los reportes. Default `3` |
+| `SESSION_IDLE_MINUTES` | No | Minutos de inactividad antes de cerrar la sesión sola. Default `720` (12 h) |
+| `SESSION_MAX_ACTIVE` | No | Dispositivos con sesión abierta por usuario. Default `3` |
+| `SUPPORT_WHATSAPP` | Comercial | Número de contacto (dígitos con lada país) que aparece en la página pública |
+| `SUPPORT_EMAIL` | Comercial | Correo de contacto alterno |
+| `SETUP_SERVICE_PRICE` | Comercial | Precio del servicio de conexión con Meta que se muestra en la página pública |
 | `CAMPAIGN_WORKER_INTERVAL_MS` | No | Cada cuánto revisa el worker de campañas. Default `5000` |
 | `CAMPAIGN_BATCH_SIZE` | No | Destinatarios por vuelta del worker. Default `10` |
 | `CAMPAIGN_SEND_INTERVAL_MS` | No | Pausa entre envíos, para no chocar con los límites de Meta. Default `700` |
@@ -390,6 +395,7 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | POST | `/admin/contacts/:id/outcome`, `/admin/contacts/outcomes/bulk` | Registra el resultado de la gestión (individual o en bloque) |
 | GET | `/admin/reports` | Reportes de gestión (gestiones, promesas, sin contestación y detalle) |
 | GET | `/admin/reports/export` | Descarga el reporte actual en CSV |
+| GET/POST | `/admin/sessions`, `/admin/sessions/revoke`, `/admin/sessions/revoke-others` | Sesiones activas de la empresa, cierre individual y masivo |
 | GET/POST | `/admin/quick-replies`, `/admin/quick-replies/:id/edit`, `/admin/quick-replies/:id/active` | Respuestas rápidas |
 | GET/POST | `/admin/tags`, `/admin/tags/new`, `/admin/tags/:id/edit`, `/admin/tags/:id/deactivate` | Gestión de etiquetas |
 | GET | `/admin/whatsapp` | Detalle de la cuenta conectada |
@@ -607,6 +613,9 @@ Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArg
 | [`docs/multinumero.md`](docs/multinumero.md) | Diseño del multinúmero: modelo, migración, uso y pendientes |
 | [`docs/aviso-privacidad.md`](docs/aviso-privacidad.md) | Aviso de privacidad para revisar y publicar (la versión pública vive en `/aviso-de-privacidad`) |
 | [`docs/modelo-comercial.md`](docs/modelo-comercial.md) | Runbook de alta por cliente, actualización de instalaciones, cierre de contrato y paquete legal |
+| [`docs/propuesta-comercial.md`](docs/propuesta-comercial.md) | Plantilla de propuesta comercial lista para llenar |
+| [`docs/guia-meta.md`](docs/guia-meta.md) | Guía de conexión con Meta para el cliente (versión publicada en `/como-empezar`) |
+| [`docs/reportes-cobranza.md`](docs/reportes-cobranza.md) | Diseño del módulo de resultados de gestión y reportes de cobranza |
 | [`prisma/schema.prisma`](prisma/schema.prisma) | Esquema real de la base de datos |
 
 `Reglas_margarita.md` es una copia idéntica de `MArgarita.md`.

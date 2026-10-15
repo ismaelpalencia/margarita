@@ -14,6 +14,13 @@ export class AuthController {
 
         if (error === "workspace_suspended") {
             message = "El servicio de tu empresa está suspendido.";
+        } else if (error === "idle") {
+            message =
+                `Tu sesión se cerró por inactividad (${Math.round(
+                    appConfig.sessionIdleMinutes / 60
+                )} horas sin usarla). Vuelve a entrar.`;
+        } else if (error === "revoked") {
+            message = "Esa sesión se cerró desde el panel de sesiones.";
         }
 
         return res.render("pages/auth/login", {

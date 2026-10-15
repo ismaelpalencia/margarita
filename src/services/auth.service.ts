@@ -10,6 +10,7 @@ import { getSessionExpiresAt } from "../utils/session";
 import { signAuthToken } from "../utils/jwt";
 import { LogLevel, LogModule } from "@prisma/client";
 import { LogService } from "./log.service";
+import { SessionService } from "./session.service";
 
 type LoginContext = {
     ip?: string;
@@ -142,6 +143,13 @@ export class AuthService {
                 lastSeenAt: new Date()
             }
         });
+
+        /**
+         * Tope de dispositivos: al entrar en uno nuevo se cierra la sesión
+         * más vieja, para que una contraseña filtrada no deje sesiones
+         * abiertas en equipos ajenos.
+         */
+        await SessionService.enforceLimit(user.id, user.workspaceId);
 
         await prisma.user.update({
             where: {

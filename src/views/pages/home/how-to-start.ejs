@@ -1,5 +1,11 @@
 <%- include("../../partials/header", { title }) %>
 
+<%
+    const contactUrl =
+        supportWhatsappUrl ||
+        (supportEmail ? `mailto:${supportEmail}` : "/");
+%>
+
 <main class="min-h-screen bg-white text-slate-950">
     <section class="border-b border-slate-200 bg-white">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
@@ -23,81 +29,139 @@
         <div class="mx-auto max-w-7xl px-6 py-16">
             <div class="max-w-4xl">
                 <p class="text-sm font-bold uppercase tracking-wide text-emerald-700">
-                    Proceso de conexión
+                    Guía de conexión
                 </p>
 
                 <h1 class="mt-3 text-5xl font-black tracking-tight text-slate-950">
-                    Antes de usar Margarita, tu WhatsApp debe estar listo en Meta.
+                    Lo que hay que hacer en Meta, paso por paso.
                 </h1>
 
                 <p class="mt-6 text-lg leading-8 text-slate-600">
-                    Margarita opera sobre WhatsApp Business Platform / Cloud API. Eso significa que
-                    no funciona como WhatsApp Web ni como la app normal de WhatsApp Business:
-                    primero se debe preparar la cuenta de Meta, el número, las plantillas y el webhook.
+                    Margarita funciona sobre <strong>WhatsApp Business Platform</strong>
+                    (la API de Meta), no sobre WhatsApp Web ni la app normal. Antes de
+                    usarla hay que dejar lista la cuenta de Meta. Esta guía es todo lo
+                    que se necesita.
                 </p>
+
+                <div class="mt-8 rounded-2xl bg-slate-950 p-6 text-white">
+                    <p class="text-lg font-black">
+                        ¿Prefieres no hacerlo tú?
+                    </p>
+
+                    <p class="mt-2 max-w-3xl text-slate-300">
+                        Nosotros configuramos la app de Meta, la cuenta de WhatsApp
+                        Business, el número dedicado, el token permanente, el webhook
+                        firmado, las plantillas y una prueba de punta a punta.
+                        <strong class="text-white">Precio: <%= setupServicePrice %>.</strong>
+                    </p>
+
+                    <a href="<%= contactUrl %>" class="mt-4 inline-flex rounded-xl bg-emerald-500 px-6 py-3 text-sm font-black text-white hover:bg-emerald-400">
+                        Pedir que me ayuden
+                    </a>
+                </div>
             </div>
         </div>
     </section>
 
     <section class="bg-white">
-        <div class="mx-auto grid max-w-7xl gap-8 px-6 py-16 lg:grid-cols-[0.9fr_1.1fr]">
-            <aside class="rounded-[2rem] bg-slate-950 p-8 text-white">
-                <img src="/brand/img/margarita-icon-128.png" alt="Margarita" class="h-16 w-16" />
+        <div class="mx-auto grid max-w-7xl gap-8 px-6 py-16 lg:grid-cols-[0.85fr_1.15fr]">
+            <aside class="lg:sticky lg:top-6 lg:self-start">
+                <div class="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                    <h2 class="text-xl font-black text-slate-950">
+                        Ten a mano esto
+                    </h2>
 
-                <h2 class="mt-6 text-3xl font-black">
-                    Soporte Margarita
-                </h2>
+                    <p class="mt-2 text-sm text-slate-600">
+                        Son los datos que te va a pedir Meta y que después se
+                        capturan en Margarita (Admin → WhatsApp).
+                    </p>
 
-                <p class="mt-3 text-slate-300">
-                    El alta depende de Meta. Te ayudamos a revisar el estado de tu cuenta,
-                    preparar datos y conectar Margarita cuando estés listo.
-                </p>
+                    <dl class="mt-4 space-y-3 text-sm">
+                        <% [
+                            ["App ID", "Identificador de tu app de Meta."],
+                            ["App Secret", "Con él se valida la firma de cada webhook. Si falta o es de relleno, Meta recibe 401 y no llega nada."],
+                            ["Cuenta de WhatsApp Business (WABA ID)", "La cuenta que agrupa tus números."],
+                            ["Phone Number ID", "Identificador del número que envía."],
+                            ["Número visible", "El número con el que te verán los clientes."],
+                            ["Token permanente", "Del usuario de sistema, con permisos de mensajería."],
+                            ["Verify token", "Una cadena que tú inventas y pegas en los dos lados."]
+                        ].forEach(([term, detail]) => { %>
+                            <div class="rounded-xl bg-slate-50 px-4 py-3">
+                                <dt class="font-bold text-slate-800"><%= term %></dt>
+                                <dd class="mt-1 text-xs leading-5 text-slate-600"><%= detail %></dd>
+                            </div>
+                        <% }) %>
+                    </dl>
+                </div>
 
-                <a href="<%= supportWhatsappUrl %>" target="_blank" class="mt-8 inline-flex rounded-xl bg-emerald-500 px-6 py-4 text-sm font-black text-white hover:bg-emerald-400">
-                    Contactar por WhatsApp
-                </a>
+                <div class="mt-4 rounded-[2rem] bg-emerald-50 p-6 ring-1 ring-emerald-100">
+                    <h3 class="text-lg font-black text-emerald-900">
+                        Tiempo estimado
+                    </h3>
 
-                <p class="mt-4 text-sm text-slate-400">
-                    WhatsApp: <%= supportWhatsappNumber %>
-                </p>
+                    <p class="mt-2 text-sm text-emerald-800">
+                        Entre 1 y 3 horas de trabajo, repartidas en uno o dos días: la
+                        verificación del negocio y la aprobación de plantillas las
+                        controla Meta, no nosotros.
+                    </p>
+                </div>
             </aside>
 
             <section class="space-y-4">
                 <% [
                     {
                         step: "01",
-                        title: "Tener un negocio real listo para operar",
-                        text: "Define nombre comercial, giro, datos de contacto y el número que se usará para WhatsApp Business Platform."
+                        title: "Cuenta y portafolio de Meta Business",
+                        text: "Entra a business.facebook.com y crea (o usa) tu portafolio comercial: ahí viven la cuenta de WhatsApp y el método de pago.",
+                        check: "Verifica tu negocio si vas a enviar a volumen y agrega un método de pago válido. Sin método de pago, la cuenta no envía aunque todo lo demás esté listo."
                     },
                     {
                         step: "02",
-                        title: "Preparar Meta Business",
-                        text: "El negocio debe operar desde un portafolio/cuenta empresarial de Meta. En algunos casos Meta puede solicitar verificación de empresa o validaciones adicionales."
+                        title: "Crea la app en Meta Developers",
+                        text: "En developers.facebook.com crea una app de tipo «Business» y agrégale el producto WhatsApp. De ahí salen el App ID y el App Secret (Configuración → Básica → Mostrar).",
+                        check: "Copia el App Secret tal cual. Es el dato que valida que cada webhook viene de Meta."
                     },
                     {
                         step: "03",
-                        title: "Conectar o registrar el número de WhatsApp",
-                        text: "El número debe quedar asociado a WhatsApp Business Platform. No debe estar ocupado de forma incompatible con otra cuenta o configuración."
+                        title: "Cuenta de WhatsApp Business (WABA)",
+                        text: "Dentro del producto WhatsApp se crea (o se vincula) la cuenta de WhatsApp Business. De ahí sale el WABA ID que se captura en Margarita.",
+                        check: "Nombre de la cuenta, zona horaria y categoría: revisa que el nombre sea el real del negocio; cambiarlo después implica nueva revisión."
                     },
                     {
                         step: "04",
-                        title: "Crear una app en Meta Developers",
-                        text: "Desde Meta Developers se obtiene el Phone Number ID, WABA ID, token de acceso y se configura el webhook."
+                        title: "Agrega el número dedicado",
+                        text: "Registra el número que va a enviar y recibir. Meta lo verifica por SMS o llamada. Al terminar, tendrás el Phone Number ID.",
+                        check: "El número no debe estar en uso en la app normal de WhatsApp (ordinaria ni Business). Si ya lo usas ahí, primero hay que eliminarlo de esa app. El nombre visible debe cumplir las reglas de Meta."
                     },
                     {
                         step: "05",
-                        title: "Crear plantillas aprobadas",
-                        text: "Para iniciar conversaciones con clientes se usan plantillas aprobadas. Margarita las sincroniza y permite enviarlas desde campañas o conversaciones."
+                        title: "Token permanente",
+                        text: "En el portafolio comercial crea un usuario de sistema con los permisos de mensajería de WhatsApp y genera su token permanente.",
+                        check: "Los tokens de prueba duran 24 horas: si usas uno, al día siguiente deja de enviar y parece que la herramienta se rompió."
                     },
                     {
                         step: "06",
-                        title: "Conectar Margarita",
-                        text: "Con los datos de Meta configurados, Margarita puede recibir webhooks, sincronizar plantillas, enviar mensajes y administrar conversaciones."
+                        title: "Configura el webhook",
+                        text: "En la app de Meta → WhatsApp → Configuración, registra la URL del webhook de tu instalación y el verify token que tú inventes. Después suscribe el campo «messages».",
+                        check: "La URL es https://TU-DOMINIO/webhooks/meta/whatsapp y el verify token debe ser idéntico al que capturen en Margarita. Si no coincide, la verificación falla."
                     },
                     {
                         step: "07",
-                        title: "Prueba piloto",
-                        text: "Antes de operar en grande, se recomienda probar con 1 a 3 contactos autorizados: envío de plantilla, respuesta entrante, asignación y logs."
+                        title: "Crea la primera plantilla",
+                        text: "Las plantillas son la única forma de iniciar una conversación. Créala en Meta (categoría, idioma y variables) y espera la aprobación, que suele tardar minutos u horas.",
+                        check: "Ejemplo de cuerpo: «Hola {{1}}, tenemos pendiente tu pago de {{2}}. ¿Cómo te ayudamos?». En Margarita se sincroniza sola."
+                    },
+                    {
+                        step: "08",
+                        title: "Captura todo en Margarita",
+                        text: "En Admin → WhatsApp captura App Secret, token, WABA ID, versión de API y el número. Después sincroniza plantillas desde Admin → Plantillas.",
+                        check: "Los tokens y el App Secret se guardan cifrados en la base."
+                    },
+                    {
+                        step: "09",
+                        title: "Prueba de punta a punta",
+                        text: "Manda una plantilla a 1 o 3 personas autorizadas, pide que respondan y revisa que el mensaje entre, se asigne y quede en la bitácora.",
+                        check: "Con esa prueba confirmas webhook, envío, recepción y asignación antes de operar en grande."
                     }
                 ].forEach((item) => { %>
                     <article class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
@@ -114,6 +178,10 @@
                                 <p class="mt-2 leading-7 text-slate-600">
                                     <%= item.text %>
                                 </p>
+
+                                <p class="mt-3 rounded-xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
+                                    <strong>Ojo con esto:</strong> <%= item.check %>
+                                </p>
                             </div>
                         </div>
                     </article>
@@ -124,55 +192,48 @@
 
     <section class="border-t border-slate-200 bg-slate-50">
         <div class="mx-auto max-w-7xl px-6 py-16">
-            <div class="grid gap-6 lg:grid-cols-3">
-                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                    <p class="text-lg font-black text-slate-950">
-                        Margarita no reemplaza Meta
-                    </p>
+            <h2 class="text-3xl font-black text-slate-950">
+                Los tropiezos más comunes
+            </h2>
 
-                    <p class="mt-2 text-sm leading-6 text-slate-600">
-                        Margarita es el panel operativo. La aprobación de plantillas, el número,
-                        los permisos y la cuenta empresarial dependen de Meta.
-                    </p>
-                </div>
+            <p class="mt-3 max-w-3xl text-slate-600">
+                Todos estos los vimos pasar. Si algo no funciona, casi siempre es
+                uno de ellos.
+            </p>
 
-                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                    <p class="text-lg font-black text-slate-950">
-                        Campañas responsables
-                    </p>
-
-                    <p class="mt-2 text-sm leading-6 text-slate-600">
-                        Solo deben enviarse mensajes a contactos autorizados. Una mala calidad
-                        de envío puede afectar la cuenta de WhatsApp.
-                    </p>
-                </div>
-
-                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                    <p class="text-lg font-black text-slate-950">
-                        Acompañamiento inicial
-                    </p>
-
-                    <p class="mt-2 text-sm leading-6 text-slate-600">
-                        El primer paso recomendado es escribir al soporte para revisar si tu cuenta
-                        ya está lista o qué falta preparar.
-                    </p>
-                </div>
+            <div class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <% [
+                    ["El webhook responde 401", "El App Secret capturado no es el de la app (o quedó un valor de relleno). Meta entrega y el sistema rechaza: no llega ni un mensaje."],
+                    ["«Se envió» pero no llega", "Casi siempre es el método de pago de Meta: sin él, la cuenta devuelve el error 131042 y el mensaje nunca sale."],
+                    ["No puedo iniciar conversación", "Fuera de la ventana de 24 horas solo se puede iniciar con una plantilla aprobada. El texto libre solo funciona si el cliente escribió en las últimas 24 horas."],
+                    ["La plantilla fue rechazada", "Suele pasar por categoría mal elegida o por contenido promocional en una plantilla declarada como servicio. Se corrige y se reenvía."],
+                    ["El número no se puede registrar", "Todavía está en la app normal de WhatsApp. Hay que eliminarlo de ahí (y perder ese historial de app) antes de registrarlo en la API."],
+                    ["La calidad del número bajó", "Demasiados envíos a gente que no pidió recibirlos, o muchos bloqueos. Se degrada el envío y, si sigue, la cuenta se restringe."]
+                ].forEach(([title, detail]) => { %>
+                    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                        <p class="text-base font-black text-slate-950"><%= title %></p>
+                        <p class="mt-2 text-sm leading-6 text-slate-600"><%= detail %></p>
+                    </div>
+                <% }) %>
             </div>
 
-            <div class="mt-8 rounded-[2rem] bg-emerald-600 p-8 text-white">
+            <div class="mt-10 rounded-[2rem] bg-slate-950 p-8 text-white">
                 <div class="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
                     <div>
                         <h2 class="text-3xl font-black">
-                            ¿No sabes si tu cuenta de Meta está lista?
+                            ¿Te lo configuramos nosotros?
                         </h2>
 
-                        <p class="mt-3 text-emerald-50">
-                            Escríbenos y revisamos contigo el proceso antes de intentar conectar Margarita.
+                        <p class="mt-3 max-w-3xl text-slate-300">
+                            Incluye el alta en Meta, el número dedicado, el token
+                            permanente, el webhook firmado, la primera plantilla y la
+                            prueba de punta a punta.
+                            <strong class="text-white">Precio: <%= setupServicePrice %>.</strong>
                         </p>
                     </div>
 
-                    <a href="<%= supportWhatsappUrl %>" target="_blank" class="rounded-xl bg-white px-6 py-4 text-center text-sm font-black text-emerald-700 hover:bg-emerald-50">
-                        Hablar con soporte
+                    <a href="<%= contactUrl %>" class="rounded-xl bg-emerald-500 px-6 py-4 text-center text-sm font-black text-white hover:bg-emerald-400">
+                        Hablar con nosotros
                     </a>
                 </div>
             </div>

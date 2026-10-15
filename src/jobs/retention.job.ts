@@ -3,12 +3,14 @@ import { WebhookEventStatus } from "@prisma/client";
 import { appConfig } from "../config/app.config";
 import { logger } from "../config/logger";
 import { prisma } from "../config/prisma";
+import { SessionService } from "../services/session.service";
 
 export const retentionState = {
     lastRunAt: null as Date | null,
     lastResult: null as {
         logsDeleted: number;
         eventsDeleted: number;
+        sessionsClosed: number;
     } | null
 };
 
@@ -45,9 +47,16 @@ export async function runRetention() {
         }
     });
 
+    /**
+     * Sesiones abandonadas: se marcan inactivas las vencidas o sin uso. No
+     * se borran, porque el historial de accesos sirve para auditar.
+     */
+    const sessionsClosed = await SessionService.purgeStale();
+
     const result = {
         logsDeleted: logs.count,
-        eventsDeleted: events.count
+        eventsDeleted: events.count,
+        sessionsClosed
     };
 
     retentionState.lastRunAt = new Date();

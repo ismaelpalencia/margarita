@@ -13,7 +13,14 @@ import {
     OUTCOME_TYPES
 } from "../utils/outcome";
 
-const VIEWS = ["gestiones", "promesas", "intentos", "detalle"] as const;
+const VIEWS = [
+    "hoy",
+    "gestiones",
+    "promesas",
+    "intentos",
+    "tendencias",
+    "detalle"
+] as const;
 
 type ReportView = (typeof VIEWS)[number];
 
@@ -85,7 +92,7 @@ export class AdminReportsController {
 
         const filters = readFilters(req, range);
 
-        const [summary, gestiones, promises, compliance, noAnswer] =
+        const [summary, gestiones, promises, compliance, noAnswer, worklist, trends] =
             await Promise.all([
                 ReportService.outcomeSummary(req.user!.workspaceId),
                 view === "gestiones" || view === "detalle"
@@ -105,6 +112,16 @@ export class AdminReportsController {
                           req.user!.workspaceId,
                           ReportService.defaultThreshold()
                       )
+                    : null,
+                view === "hoy"
+                    ? ReportService.todayWorklist(
+                          req.user!.workspaceId,
+                          range.todayStart,
+                          ReportService.defaultThreshold()
+                      )
+                    : null,
+                view === "tendencias"
+                    ? ReportService.trends(filters, range.timezone)
                     : null
             ]);
 
@@ -116,6 +133,8 @@ export class AdminReportsController {
             promises,
             compliance,
             noAnswer,
+            worklist,
+            trends,
             threshold: ReportService.defaultThreshold(),
             agents,
             tags,

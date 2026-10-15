@@ -241,6 +241,31 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ---
 
+## Sprint 44 — Fase 3 de reportes, sesiones y giro a cobranza
+
+**Estado: completado.** Cierra el módulo de cobranza, endurece las sesiones y cambia el posicionamiento comercial.
+
+| Área | Qué se hizo |
+| --- | --- |
+| Lista del día | Vista **Hoy** en Reportes: promesas vencidas con monto, compromisos de hoy, de la semana y clientes sin contestar, en orden de urgencia y con acceso directo a la ficha. |
+| Tendencias | Vista **Tendencias**: gestiones, promesas, prometido, pagos y cobrado semana a semana, más el cumplimiento de promesas por persona. |
+| Sesiones | Cierre por inactividad (`SESSION_IDLE_MINUTES`, 12 h), tope de dispositivos por usuario (`SESSION_MAX_ACTIVE`, 3) con cierre de la más vieja, lista visible con dispositivo, IP y última actividad, y revocación individual o masiva. El admin ve las de toda la empresa; el agente, las suyas. |
+| Limpieza | El job de retención marca inactivas las sesiones vencidas o abandonadas (no las borra: sirven para auditar). |
+| Posicionamiento | La página pública (`/`) y la guía (`/como-empezar`) se reescribieron para **cobranza**: qué hace la herramienta, cómo se pone a andar, los nueve pasos de Meta con sus tropiezos comunes y la oferta de conexión con precio configurable. |
+| Paquete comercial | [`propuesta-comercial.md`](propuesta-comercial.md) lista para llenar, [`guia-meta.md`](guia-meta.md) para el cliente y [`modelo-comercial.md`](modelo-comercial.md) con posicionamiento, paquetes y el flujo para mandar propuestas. |
+
+### Decisión sobre las IP
+
+**No se ata la sesión a una IP.** En datos móviles y en redes de oficina con salida compartida la IP cambia sola durante el día; bloquear por IP dejaría fuera a la gente legítima y no detendría a un atacante con la contraseña. En su lugar: cierre por inactividad, tope de dispositivos, lista visible con IP y dispositivo, y revocación con un clic.
+
+### Verificación
+
+- 6 pruebas unitarias nuevas (identificación de dispositivo y cierre por inactividad).
+- 13 comprobaciones de sesiones contra una base real: tope de dispositivos (la más vieja queda fuera), cierre masivo, acceso sin cookie y lista con la sesión actual marcada; más el cierre por inactividad verificado moviendo la fecha de la sesión 13 horas atrás.
+- Capturas de la pantalla de sesiones, de la lista del día y de la página pública.
+
+---
+
 ## Backlog del Sprint 35 (interactivos)
 
 | Función | Detalle |

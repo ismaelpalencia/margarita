@@ -2,6 +2,30 @@
 
 Cómo se entrega la herramienta a un cliente, qué se le pide, qué se queda del lado del proveedor y qué falta para que sea autoservicio.
 
+## Posicionamiento (actualizado 2026-10-15)
+
+**Margarita se vende como herramienta de cobranza por WhatsApp.**
+
+La estrategia cambió: en lugar de competir como "panel general de WhatsApp"
+(donde hay decenas de herramientas más grandes), se ataca el nicho de
+**cobranza**, donde el valor es concreto y medible: promesas de pago,
+cumplimiento, intentos sin respuesta y reportes que el jefe de cobranza lleva a
+la junta.
+
+Lo que se vende son **dos cosas**:
+
+1. **La herramienta** (suscripción mensual): el panel operativo con el módulo de
+   cobranza.
+2. **El servicio de conexión con Meta** (pago único): el trámite que todo el
+   mundo subestima y que casi nadie quiere hacer. Detalle en
+   [`guia-meta.md`](guia-meta.md); la oferta aparece en la página pública
+   (`/` y `/como-empezar`) con el precio de `SETUP_SERVICE_PRICE`.
+
+**Para mandar propuestas** ya está: la página pública explica qué hace la
+herramienta, la guía de Meta explica el trámite (y ofrece hacerlo nosotros) y
+[`propuesta-comercial.md`](propuesta-comercial.md) es la plantilla lista para
+llenar. Ver "Cómo mandar una propuesta" más abajo.
+
 ## El modelo
 
 **Una instalación por cliente**: su proyecto en Railway, su base de datos, su dominio, su cuenta de WhatsApp. El proveedor (tú) despliega; el cliente opera y es dueño de su número, de su método de pago en Meta y de sus datos.
@@ -95,6 +119,32 @@ Antes del primer cliente conviene tener, revisado por un abogado:
 
 Un punto que hay que decir en voz alta: **en cuanto das soporte, tienes acceso a datos personales de los clientes del cliente**. Eso te convierte en encargado del tratamiento, con obligaciones de confidencialidad, acceso controlado y borrado. Es la razón por la que el borrado total y el registro de accesos existen.
 
+## Cómo mandar una propuesta
+
+1. **Demostración** (30 min): se muestra la herramienta con datos de ejemplo y se
+   pregunta cómo trabajan hoy la cobranza (cuántas personas, cuántos casos al
+   mes, de dónde salen los teléfonos).
+2. **Requisitos**: se revisa que el cliente tenga (o quiera crear) cuenta de Meta
+   Business con método de pago y un número dedicado. Si no, se incluye el
+   servicio de conexión en la propuesta.
+3. **Propuesta**: se llena [`propuesta-comercial.md`](propuesta-comercial.md) y se
+   manda. Se adjunta o se comparte [`guia-meta.md`](guia-meta.md) para que su
+   área de sistemas vea en qué se está metiendo.
+4. **Cierre**: anticipo del servicio de conexión y alta (ver el runbook de abajo).
+5. **Piloto**: 1–3 contactos, una plantilla y una semana de uso antes de
+   comprometer volumen.
+
+## Paquetes sugeridos
+
+| Paquete | Para quién | Incluye |
+| --- | --- | --- |
+| **Esencial** | Quien solo necesita enviar y atender WhatsApp | Bandeja, varios números, campañas con plantillas, bajas (STOP), respuestas rápidas, consentimiento, bitácora y respaldos |
+| **Cobranza** | Equipos de cobranza (el paquete que se empuja) | Todo lo de Esencial + resultado de gestión con montos y fechas compromiso, promesas vencidas automáticas, intentos sin contestación, lista de trabajo del día y reportes con exportación |
+| **Equipo** | Varios cobradores o agentes | Todo lo de Cobranza + usuarios por rol, límite diario de mensajes por persona, contador de no leídos y control de sesiones |
+
+El **servicio de conexión con Meta** se cobra aparte en todos los paquetes (o se
+incluye como gancho en contratos anuales).
+
 ## Qué falta para venderlo en serie
 
 Lo que todavía no está listo, en orden de impacto:
@@ -102,9 +152,12 @@ Lo que todavía no está listo, en orden de impacto:
 1. **Plantilla de Railway** ("Deploy on Railway" apuntando a un repo plantilla) para que el alta sea de minutos y no de media hora.
 2. **Automatizar el alta de la WABA con Embedded Signup** (ser Tech Provider de Meta). Elimina el paso más difícil para el cliente, pero cambia el rol del proveedor y agrega obligaciones formales.
 3. **Panel de control de instalaciones**, si algún día hay muchos clientes: versiones, estado, renovaciones. Hoy se cubre con una hoja de cálculo.
-4. **Plantilla de aviso de privacidad por cliente** ya está, pero conviene un anexo de tratamiento de datos cuando el cliente envíe volumen.
+4. **Respaldos automáticos probados**: para *mandar* propuestas no hace falta, pero antes de operar el primer cliente sí. Hoy el respaldo se descarga a mano y nadie lo verifica.
+5. **Segundo administrador y recuperación de contraseña**: hoy la instalación tiene un solo admin y se recupera por consola. Un cliente que no quiere depender de nosotros va a preguntarlo.
 
-Lo que ya se cerró (2026-10-12):
+Lo que ya se cerró (2026-10-15):
+
+- **Módulo de cobranza**: resultado de gestión con historial, promesas con monto y fecha compromiso (cifrados), promesa vencida automática, intentos sin contestación calculados, marcado en bloque y reportes con exportación. Además, control de sesiones (cierre por inactividad, tope de dispositivos y revocación) y landing y guía de Meta orientadas a cobranza.
 
 - **Cifrado en reposo.** Teléfonos, notas, contenido de los mensajes, payloads de Meta, eventos de webhook, variables de campaña, números de la WABA y bitácora se guardan cifrados con AES-256-GCM (`ENCRYPTION_KEY`), y el teléfono se busca por índice ciego. Conviene decir con precisión qué queda fuera, porque un área de sistemas lo va a preguntar: el disco (archivos de PostgreSQL y adjuntos) no está cifrado, y los nombres de contacto y los correos siguen en claro porque la búsqueda por texto y el inicio de sesión dependen de ellos. En una instalación que ya traía datos en claro, se cifran con `npm run db:encrypt-data`.
 - **Baja automática (STOP) y límites diarios.** Si un cliente escribe `STOP`, el sistema lo da de baja al instante y deja de escribirle, incluso en campañas; reactivarlo es una decisión explícita que queda auditada. El consentimiento (opt-in) se registra por contacto y las campañas avisan cuántos destinatarios no lo tienen. Los mensajes manuales por agente tienen tope diario aplicado de verdad.

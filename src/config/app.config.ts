@@ -114,6 +114,29 @@ export const appConfig = {
     loginMaxAttempts: Number(process.env.LOGIN_MAX_ATTEMPTS) || 5,
     loginLockMinutes: Number(process.env.LOGIN_LOCK_MINUTES) || 15,
 
+    /**
+     * Minutos de inactividad tras los cuales la sesión se cierra sola, y
+     * cuántos dispositivos puede tener abiertos un usuario a la vez.
+     *
+     * El tope se aplica al iniciar sesión: si se pasa, se cierra la sesión
+     * más vieja. Es preferible a atar la sesión a una IP, que dejaría fuera
+     * a cualquiera cuando cambie de red (datos móviles, oficina, casa).
+     */
+    sessionIdleMinutes: Number(process.env.SESSION_IDLE_MINUTES) || 720,
+    maxActiveSessions: Number(process.env.SESSION_MAX_ACTIVE) || 3,
+
+    /**
+     * Contacto comercial que se muestra en la página pública. El número va
+     * en dígitos con lada país (para wa.me) y el precio del servicio de
+     * conexión se escribe tal cual se quiere mostrar.
+     */
+    supportWhatsapp: process.env.SUPPORT_WHATSAPP?.replace(/\D/g, "") || "",
+    supportEmail: process.env.SUPPORT_EMAIL?.trim() || "",
+    setupServicePrice:
+        process.env.SETUP_SERVICE_PRICE?.trim() ||
+        "se cotiza según tu caso",
+
+
     logRetentionDays: Number(process.env.LOG_RETENTION_DAYS) || 90,
     webhookEventRetentionDays:
         Number(process.env.WEBHOOK_EVENT_RETENTION_DAYS) || 30,

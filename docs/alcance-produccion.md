@@ -2,7 +2,7 @@
 
 Documento de referencia para decidir y sostener el uso de Margarita en producción. Describe **lo que la herramienta hace hoy**, lo que no hace, los controles de seguridad vigentes y las responsabilidades que quedan del lado de quien la opera.
 
-Última revisión: 2026-10-15 (reportes de gestión y cobranza: promesas, pagos e intentos).
+Última revisión: 2026-10-15 (control de sesiones, página pública de cobranza y lista de trabajo del día).
 
 ---
 
@@ -35,6 +35,9 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Contactos**: crear, editar, buscar por texto, filtrar por etiqueta y por bajas, registrar el consentimiento (opt-in), marcar la baja a mano y desactivar.
 - **Resultado de la gestión (cobranza)**: marcar en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota. Se marca desde el hilo, desde la ficha del contacto y en bloque desde la lista. Cada marcado deja historial con quién y cuándo.
 - **Reportes**: gestiones del periodo por resultado, persona y día; promesas vigentes con lo vencido arriba, cumplimiento (a tiempo, tarde, sin pago) y prometido contra pagado; lista de clientes sin contestación tras X intentos; y detalle exportable a CSV. Con filtros por fecha, persona, campaña y etiqueta.
+- **Lista de trabajo del día**: una pantalla que junta lo vencido, lo que vence hoy, lo de esta semana y los clientes sin contestar, en orden de urgencia, con acceso directo a la ficha.
+- **Tendencias**: gestiones, promesas, prometido, pagos y cobrado semana a semana, más el cumplimiento de promesas por persona.
+- **Sesiones**: cada quien ve desde qué dispositivo y qué IP entró, cierra sesiones individuales y puede cerrar todas las demás. El admin ve las de toda la empresa.
 - **Etiquetas**: crear, editar, desactivar y asignar a contactos.
 - **Cuenta de WhatsApp**: administrar los números de la WABA (agregar, editar, activar o desactivar, ver calidad y estado de cada uno y probar su conexión); actualizar las credenciales de la cuenta (tokens, business account, versión de API) y cifrarlas.
 - **Plantillas**: sincronizar las plantillas de Meta con su estado real (`APPROVED`, `PENDING`, `REJECTED`).
@@ -136,7 +139,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Cifrado en reposo** | Los datos personales se guardan cifrados con AES-256-GCM: teléfono y notas del contacto, contenido y nombre de archivo de cada mensaje, payloads de Meta (respuestas, plantillas enviadas y evento crudo del webhook), variables de campaña, número de cada WABA y bitácora. El cifrado y el descifrado son transparentes (extensión de Prisma), así que ninguna consulta del panel ve texto cifrado. |
 | **Credenciales de Meta** | `accessToken` y `verifyToken` cifrados en la base con AES-256-GCM. Sin la variable `ENCRYPTION_KEY` no se pueden leer. |
 | **Índice ciego del teléfono** | `Contact.phoneHash` es un HMAC-SHA256 con la llave de cifrado: conserva la unicidad y la búsqueda exacta sin que el número se pueda recuperar del índice. |
-| **Sesiones** | JWT en cookie `httpOnly`, `secure` en producción y `SameSite=Lax`, con registro en base que permite revocarlas. Expiración de 7 días. |
+| **Sesiones** | JWT en cookie `httpOnly`, `secure` en producción y `SameSite=Lax`, con registro en base que permite revocarlas. Expiración absoluta de 7 días, **cierre por inactividad** (`SESSION_IDLE_MINUTES`, 12 h por defecto), **tope de dispositivos** por usuario (`SESSION_MAX_ACTIVE`, 3 por defecto: al entrar en uno más se cierra el más viejo) y lista visible con revocación individual o masiva. |
 | **Contraseñas** | Hash con bcrypt (12 rondas). Mínimo 10 caracteres con letras y números, sin contraseñas obvias. |
 | **Fuerza bruta** | Bloqueo de la cuenta tras varios intentos fallidos (configurable) y límite propio de intentos por IP en el login. Todo queda auditado. |
 | **Autorización** | Separación estricta `ADMIN` / `AGENT`. Un agente solo puede leer y responder las conversaciones asignadas a él, y la restricción se aplica en la consulta, no solo en la vista. |
@@ -159,7 +162,7 @@ Ser explícito aquí es parte del trato:
 2. **El cifrado es de campos, no del disco.** Un volcado de PostgreSQL ya no expone conversaciones, teléfonos ni notas, pero sí los nombres de contacto, los correos y la estructura general (con quién se habló, cuándo y cuánto). Los archivos de PostgreSQL y los adjuntos en disco tampoco están cifrados: quien tenga acceso al servidor puede leer todo lo que la aplicación no cifra.
 3. **No hay antitivirus ni análisis de adjuntos.** Los archivos se guardan tal como llegan (fuera de la base, en disco).
 4. **No hay respaldos automáticos.** Existe la descarga manual (respaldos en JSON y CSV), pero nada la ejecuta sola: depende de que alguien la haga o de lo que ofrezca el proveedor; conviene activar los del proveedor.
-5. **No hay gestión de sesiones activas en la interfaz.** Se puede cerrar sesión, pero no ver ni revocar otras.
+5. **La sesión no se ata a la IP ni al dispositivo.** Se registra la IP y el dispositivo y se muestran en la lista de sesiones, se cierra por inactividad y hay tope de dispositivos, pero **no se bloquea** una sesión por venir de otra IP: en datos móviles y redes compartidas la IP cambia sola durante el día y bloquearla dejaría a la gente fuera sin motivo. La IP sirve para detectar, no para bloquear.
 6. **No hay rotación automática de secretos** ni caducidad de la `ENCRYPTION_KEY`. Perder esa llave deja ilegibles los campos cifrados, no solo los tokens.
 7. **No hay prueba de penetración.** Los controles están probados con pruebas automatizadas y verificación manual, no con un pentest externo.
 8. **No hay WAF ni protección DDoS propia.** Depende del borde del proveedor.

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mis sesiones | Margarita</title>
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <%- include("../../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <header class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+            <a href="/agent/dashboard" class="inline-block">
+                <img src="/brand/img/margarita-wordmark-256.png" alt="Margarita" class="h-7 w-auto" />
+            </a>
+
+            <nav class="flex items-center gap-3">
+                <a href="/agent/conversations" class="text-sm font-medium text-slate-700">
+                    ← Mis conversaciones
+                </a>
+
+                <form action="/auth/logout" method="POST">
+                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
+                        Cerrar sesión
+                    </button>
+                </form>
+            </nav>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-4 py-8">
+        <section class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">Mis sesiones</h2>
+
+            <p class="mt-1 max-w-3xl text-slate-500">
+                Los dispositivos desde donde tienes abierta la sesión. Se cierra
+                sola después de <strong><%= idleHours %> horas</strong> sin
+                usarse, y puedes tener cuando mucho
+                <strong><%= maxActive %></strong> a la vez.
+            </p>
+        </section>
+
+        <% if (success) { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                <%= success === "revoked-others"
+                    ? "Se cerraron tus otras sesiones."
+                    : "Sesión cerrada." %>
+            </div>
+        <% } %>
+
+        <% if (error) { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                <%= error === "current"
+                    ? "Esa es tu sesión actual: para cerrarla usa «Cerrar sesión»."
+                    : "No se pudo cerrar la sesión." %>
+            </div>
+        <% } %>
+
+        <section class="mb-4 flex flex-wrap items-center gap-3">
+            <form action="/agent/sessions/revoke-others" method="POST">
+                <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                    Cerrar mis otras sesiones
+                </button>
+            </form>
+
+            <p class="text-xs text-slate-500">
+                Úsalo si viste algo que no reconoces en la lista.
+            </p>
+        </section>
+
+        <%- include("../../../partials/sessions-table", {
+            sessions,
+            basePath: "/agent/sessions",
+            showUser: false
+        }) %>
+    </main>
+</body>
+</html>

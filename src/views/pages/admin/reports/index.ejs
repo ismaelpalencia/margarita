@@ -50,9 +50,11 @@
 
         <nav class="mb-4 flex flex-wrap gap-2">
             <% [
+                ["hoy", "Hoy"],
                 ["gestiones", "Gestiones"],
                 ["promesas", "Promesas"],
                 ["intentos", "Sin contestación"],
+                ["tendencias", "Tendencias"],
                 ["detalle", "Detalle"]
             ].forEach(([key, label]) => { %>
                 <a
@@ -353,6 +355,229 @@
                                 <td class="px-5 py-4 text-slate-600">
                                     <%= item.outcomeType ? outcomeLabels[item.outcomeType] : "Sin resultado" %>
                                 </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </section>
+        <% } %>
+
+        <% if (view === "hoy" && worklist) { %>
+            <section class="mb-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <h3 class="text-lg font-bold text-slate-800">A quién escribirle hoy</h3>
+
+                <p class="mt-1 text-sm text-slate-500">
+                    Ordenado por urgencia: promesas pasadas, compromisos de hoy,
+                    compromisos de la semana y clientes que llevan
+                    <%= threshold %> o más intentos sin contestar.
+                </p>
+
+                <div class="mt-4 grid gap-3 sm:grid-cols-4">
+                    <div class="rounded-xl bg-red-50 px-3 py-2">
+                        <p class="text-xs font-semibold text-red-700">Promesas vencidas</p>
+                        <p class="text-2xl font-bold text-red-700"><%= worklist.overdue.length %></p>
+                        <p class="text-[11px] text-red-700">
+                            <%= formatAmount(worklist.overdueAmount) %>
+                        </p>
+                    </div>
+
+                    <div class="rounded-xl bg-sky-50 px-3 py-2">
+                        <p class="text-xs font-semibold text-sky-700">Vencen hoy</p>
+                        <p class="text-2xl font-bold text-sky-700"><%= worklist.dueToday.length %></p>
+                    </div>
+
+                    <div class="rounded-xl bg-slate-50 px-3 py-2">
+                        <p class="text-xs font-semibold text-slate-600">Esta semana</p>
+                        <p class="text-2xl font-bold text-slate-700"><%= worklist.dueThisWeek.length %></p>
+                    </div>
+
+                    <div class="rounded-xl bg-amber-50 px-3 py-2">
+                        <p class="text-xs font-semibold text-amber-700">Sin contestar</p>
+                        <p class="text-2xl font-bold text-amber-700"><%= worklist.noAnswer.length %></p>
+                    </div>
+                </div>
+            </section>
+
+            <% [
+                ["Promesas vencidas", worklist.overdue, "red"],
+                ["Vencen hoy", worklist.dueToday, "sky"],
+                ["Esta semana", worklist.dueThisWeek, "slate"]
+            ].forEach(([title, items, tone]) => { %>
+                <% if (items.length > 0) { %>
+                    <section class="mb-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                        <h3 class="border-b border-slate-100 px-5 py-4 font-bold text-slate-800">
+                            <%= title %> (<%= items.length %>)
+                        </h3>
+
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-500">
+                                <tr>
+                                    <th class="px-5 py-3">Contacto</th>
+                                    <th class="px-5 py-3">Teléfono</th>
+                                    <th class="px-5 py-3">Monto</th>
+                                    <th class="px-5 py-3">Compromiso</th>
+                                    <th class="px-5 py-3">Atraso</th>
+                                    <th class="px-5 py-3 text-right">Acción</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y divide-slate-100">
+                                <% items.forEach((item) => { %>
+                                    <tr class="<%= item.daysLate > 0 ? 'bg-red-50/40' : '' %>">
+                                        <td class="px-5 py-3 font-medium text-slate-800"><%= item.contactName %></td>
+                                        <td class="px-5 py-3 text-slate-600"><%= item.contactPhone %></td>
+                                        <td class="px-5 py-3 text-slate-700">
+                                            <%= item.amount === null ? "—" : formatAmount(item.amount) %>
+                                        </td>
+                                        <td class="px-5 py-3 text-slate-600">
+                                            <%= item.dueAt.toLocaleDateString("es-MX") %>
+                                        </td>
+                                        <td class="px-5 py-3">
+                                            <% if (item.daysLate > 0) { %>
+                                                <span class="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">
+                                                    <%= item.daysLate %> días
+                                                </span>
+                                            <% } else { %>
+                                                <span class="text-slate-400">Al día</span>
+                                            <% } %>
+                                        </td>
+                                        <td class="px-5 py-3 text-right">
+                                            <a
+                                                href="/admin/contacts/<%= item.contactId %>/edit"
+                                                class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white"
+                                            >
+                                                Abrir ficha
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </section>
+                <% } %>
+            <% }) %>
+
+            <% if (worklist.noAnswer.length > 0) { %>
+                <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                    <h3 class="border-b border-slate-100 px-5 py-4 font-bold text-slate-800">
+                        Sin contestar tras <%= threshold %> intentos (<%= worklist.noAnswer.length %>)
+                    </h3>
+
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-500">
+                            <tr>
+                                <th class="px-5 py-3">Contacto</th>
+                                <th class="px-5 py-3">Teléfono</th>
+                                <th class="px-5 py-3">Intentos</th>
+                                <th class="px-5 py-3">¿Ha respondido?</th>
+                                <th class="px-5 py-3 text-right">Acción</th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="divide-y divide-slate-100">
+                            <% worklist.noAnswer.forEach((item) => { %>
+                                <tr>
+                                    <td class="px-5 py-3 font-medium text-slate-800"><%= item.name %></td>
+                                    <td class="px-5 py-3 text-slate-600"><%= item.phone %></td>
+                                    <td class="px-5 py-3 font-bold text-amber-700"><%= item.attempts %></td>
+                                    <td class="px-5 py-3 text-slate-600"><%= item.hasInbound ? "Sí" : "Nunca" %></td>
+                                    <td class="px-5 py-3 text-right">
+                                        <a
+                                            href="/admin/contacts/<%= item.contactId %>/edit"
+                                            class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white"
+                                        >
+                                            Abrir ficha
+                                        </a>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </section>
+            <% } %>
+
+            <% if (worklist.overdue.length + worklist.dueToday.length + worklist.dueThisWeek.length + worklist.noAnswer.length === 0) { %>
+                <div class="rounded-2xl bg-white p-8 text-center text-slate-500 shadow-sm ring-1 ring-slate-200">
+                    No hay pendientes: ni promesas por vencer, ni clientes sin contestar.
+                </div>
+            <% } %>
+        <% } %>
+
+        <% if (view === "tendencias" && trends) { %>
+            <section class="mb-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                <h3 class="border-b border-slate-100 px-5 py-4 font-bold text-slate-800">
+                    Semana a semana
+                </h3>
+
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500">
+                        <tr>
+                            <th class="px-5 py-3">Semana del</th>
+                            <th class="px-5 py-3">Gestiones</th>
+                            <th class="px-5 py-3">Promesas</th>
+                            <th class="px-5 py-3">Prometido</th>
+                            <th class="px-5 py-3">Pagos</th>
+                            <th class="px-5 py-3">Cobrado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-slate-100">
+                        <% if (trends.weeks.length === 0) { %>
+                            <tr>
+                                <td colspan="6" class="px-5 py-8 text-center text-slate-500">
+                                    Sin gestiones en el periodo.
+                                </td>
+                            </tr>
+                        <% } %>
+
+                        <% trends.weeks.forEach((week) => { %>
+                            <tr>
+                                <td class="px-5 py-3 font-medium text-slate-700"><%= week.week %></td>
+                                <td class="px-5 py-3 text-slate-600"><%= week.gestiones %></td>
+                                <td class="px-5 py-3 text-slate-600"><%= week.promesas %></td>
+                                <td class="px-5 py-3 text-slate-700"><%= formatAmount(week.prometido) %></td>
+                                <td class="px-5 py-3 text-slate-600"><%= week.pagos %></td>
+                                <td class="px-5 py-3 font-semibold text-emerald-700"><%= formatAmount(week.cobrado) %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                <h3 class="border-b border-slate-100 px-5 py-4 font-bold text-slate-800">
+                    Cumplimiento de promesas por persona
+                </h3>
+
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500">
+                        <tr>
+                            <th class="px-5 py-3">Persona</th>
+                            <th class="px-5 py-3">A tiempo</th>
+                            <th class="px-5 py-3">Tarde</th>
+                            <th class="px-5 py-3">Sin pago</th>
+                            <th class="px-5 py-3">Prometido</th>
+                            <th class="px-5 py-3">Pagado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-slate-100">
+                        <% if (trends.byUser.length === 0) { %>
+                            <tr>
+                                <td colspan="6" class="px-5 py-8 text-center text-slate-500">
+                                    Nadie registró promesas en el periodo.
+                                </td>
+                            </tr>
+                        <% } %>
+
+                        <% trends.byUser.forEach((item) => { %>
+                            <tr>
+                                <td class="px-5 py-3 font-medium text-slate-800"><%= item.name %></td>
+                                <td class="px-5 py-3 font-semibold text-emerald-700"><%= item.onTime %></td>
+                                <td class="px-5 py-3 text-amber-700"><%= item.late %></td>
+                                <td class="px-5 py-3 text-slate-600"><%= item.unpaid %></td>
+                                <td class="px-5 py-3 text-slate-700"><%= formatAmount(item.promisedAmount) %></td>
+                                <td class="px-5 py-3 text-slate-700"><%= formatAmount(item.paidAmount) %></td>
                             </tr>
                         <% }) %>
                     </tbody>
