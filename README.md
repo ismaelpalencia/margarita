@@ -324,12 +324,14 @@ Cifra en la base, campo por campo, lo que puede hacer daño si alguien obtiene u
 | `WhatsAppNumber` | `phoneNumber` |
 | `Log` | `payload` |
 | `WebhookEvent` | `payload` (el evento crudo que manda Meta) |
+| `User` | `email` (el correo de acceso) y `twoFactorSecret` (la clave del segundo factor) |
+| `ContactOutcome` | `note` y `amount` |
 
 El cifrado y el descifrado son transparentes: los servicios y las vistas siguen trabajando con valores normales, así que nada del panel cambió.
 
-El teléfono es el único campo que no se puede comparar por coincidencia parcial: se guarda cifrado y con un índice ciego (`Contact.phoneHash`, un HMAC-SHA256 con esta misma llave) que conserva la unicidad y permite la búsqueda exacta. Por eso en Contactos hay que escribir el número completo.
+Hay dos campos que no se pueden comparar por coincidencia parcial porque están cifrados y se buscan con un índice ciego (HMAC-SHA256 con esta misma llave): el **teléfono del contacto** (`Contact.phoneHash`) y el **correo de acceso del usuario** (`User.emailHash`). El índice conserva la unicidad y la búsqueda exacta. Por eso en Contactos hay que escribir el número completo; el correo se resuelve solo (el inicio de sesión traduce el correo completo a su índice) y una consulta por partes falla con explicación.
 
-**Lo que queda sin cifrar:** los nombres de contacto (`profileName`, `customName`) y los correos de los usuarios, porque la búsqueda por texto y el inicio de sesión dependen de ellos; también los adjuntos en disco y los archivos de PostgreSQL. Está anotado como pendiente en [`docs/alcance-produccion.md`](docs/alcance-produccion.md).
+**Lo que queda sin cifrar:** los nombres de contacto (`profileName`, `customName`), porque la búsqueda por texto del panel depende de ellos; también los adjuntos en disco y los archivos de PostgreSQL. Está anotado como pendiente en [`docs/alcance-produccion.md`](docs/alcance-produccion.md).
 
 No tiene nada que ver con las contraseñas de los usuarios: esas se guardan con bcrypt, que es de una sola vía y no necesita llave.
 
@@ -545,14 +547,14 @@ El cliente vive en `src/public/js/live.js` y se activa con atributos en `<body>`
 ## 12. Seguridad
 
 - **Autenticación**: JWT en cookie `httpOnly`, con registro en `UserSession` para poder revocar sesiones. La cookie usa `secure` en producción y `sameSite=lax`.
-- **Verificación en dos pasos (TOTP)**: opcional por cuenta y se activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación. Está implementada con `node:crypto` (RFC 6238), sin dependencias nuevas. El secreto se guarda cifrado y la activación no se completa hasta confirmar un código. La contraseña correcta ya no abre sesión por sí sola: devuelve un desafío firmado de 5 minutos y los códigos fallidos cuentan como intentos fallidos (bloquean la cuenta igual que una contraseña mal escrita). Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo, con constancia en la bitácora.
+- **Verificación en dos pasos (TOTP)**: opcional por cuenta y se activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación (Google Authenticator, Authy, Microsoft Authenticator, 1Password, Bitwarden o la app **Contraseñas** de Apple): es el estándar, así que funciona igual en todas. Está implementada con `node:crypto` (RFC 6238), sin dependencias nuevas. El secreto se guarda cifrado y la activación no se completa hasta confirmar un código. La contraseña correcta ya no abre sesión por sí sola: devuelve un desafío firmado de 5 minutos y los códigos fallidos cuentan como intentos fallidos (bloquean la cuenta igual que una contraseña mal escrita). Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo, con constancia en la bitácora.
 - **Autorización**: `authMiddleware` en todas las rutas privadas y `requireRole` separando `ADMIN` de `AGENT`. Un agente solo puede ver y responder sus conversaciones asignadas; esa restricción se aplica también en la consulta a base de datos.
 - **Contraseñas**: hash con bcrypt (12 rondas). Política mínima de 10 caracteres con letras y números, y lista negra de contraseñas obvias al crear o editar agentes.
 - **Bloqueo por fuerza bruta**: el login tiene su propio límite (10 peticiones por 15 minutos por IP) y, a nivel de cuenta, se bloquea `LOGIN_LOCK_MINUTES` minutos tras `LOGIN_MAX_ATTEMPTS` intentos fallidos. Cada intento fallido, cada bloqueo y cada acceso correcto quedan en la bitácora.
 - **Protección CSRF**: toda petición que cambia estado debe traer un `Origin` (o `Referer`) que coincida con `APP_URL`. Un formulario alojado en otro sitio recibe `403`. Las peticiones sin `Origin` (curl, healthchecks, webhooks de Meta) se permiten porque no son navegadores.
 - **`APP_URL` tolerante**: el valor se normaliza al arrancar, así que un dominio pegado sin `https://` (como lo muestra Railway) funciona igual y deja un aviso en los logs en lugar de desactivar la validación de origen en silencio. `/health` expone `publicUrl` para comprobar desde fuera qué URL cree tener la app.
 - **Alta sin configurar variables**: si `APP_URL` no está definida, se usa el dominio público de Railway; mientras la instalación no tenga empresa ni admin, la raíz y la pantalla de login llevan al asistente `/setup`; y `railway.json` deja el build, las migraciones, el arranque y el healthcheck listos para la plantilla.
-- **Cifrado en reposo**: con AES-256-GCM y `ENCRYPTION_KEY` se cifran los tokens de Meta, el teléfono y las notas de cada contacto, el contenido y los payloads de cada mensaje, las variables de campaña, los números de la WABA y la bitácora. El descifrado es transparente al leer, así que el panel no cambia. Los datos guardados antes de habilitar el cifrado se siguen leyendo y se migran con `npm run db:encrypt-data` (o `db:encrypt-secrets` solo para los tokens). El teléfono se compara por `phoneHash`, un índice ciego con la misma llave.
+- **Cifrado en reposo**: con AES-256-GCM y `ENCRYPTION_KEY` se cifran los tokens de Meta, el teléfono y las notas de cada contacto, el contenido y los payloads de cada mensaje, las variables de campaña, los números de la WABA, el correo de acceso de cada usuario y la bitácora. El descifrado es transparente al leer, así que el panel no cambia. Los datos guardados antes de habilitar el cifrado se siguen leyendo y se migran con `npm run db:encrypt-data` (o `db:encrypt-secrets` solo para los tokens); el correo y su índice se completan solos al arrancar el servicio. Teléfono y correo se comparan por su índice ciego (`phoneHash`, `emailHash`), con la misma llave.
 - **Firma de webhook**: HMAC-SHA256 con comparación en tiempo constante.
 - **Validación**: todos los cuerpos de entrada pasan por esquemas Zod.
 - **Cabeceras**: Helmet habilitado.
@@ -622,6 +624,7 @@ Lo que se cerró en el sprint de endurecimiento:
 
 Pendientes conocidos, en orden de impacto:
 
+1. **Cifrar los nombres de contacto**: `profileName` y `customName` siguen en claro porque la búsqueda por texto del panel depende de ellos. Cifrarlos obliga a pasar esa búsqueda a coincidencia exacta con índice ciego.
 1. **Variables fuera del cuerpo**: las campañas resuelven las variables del componente `BODY`. Las de encabezado o de botones con URL todavía no se llenan.
 2. **Normalización de teléfonos**: el normalizador asume México con prefijo `521`. Conviene contrastarlo contra el formato que Meta acepta hoy y, si el negocio crece fuera del país, generalizarlo.
 3. **Respuestas de botones e interactivos**: se registran de forma genérica, sin interpretar la opción elegida, y todavía no se pueden enviar botones ni listas.

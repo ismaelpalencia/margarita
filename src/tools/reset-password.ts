@@ -6,6 +6,8 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 import { generatePassword } from "../utils/team-rules";
 import crypto from "node:crypto";
+import { withEncryption } from "../config/prisma-encryption";
+import { emailIndex } from "../utils/email";
 
 /**
  * Restablece la contraseña de un usuario desde el servidor.
@@ -56,13 +58,21 @@ async function main() {
         );
     }
 
-    const prisma = new PrismaClient({
-        adapter: new PrismaPg({ connectionString })
-    });
+    /**
+     * Se usa el cliente **con** cifrado: el correo está cifrado en la base y
+     * se busca por su índice ciego, así que una consulta cruda no encontraría
+     * a nadie. Además, este camino deja la bitácora en el mismo formato que el
+     * resto de la aplicación.
+     */
+    const prisma = withEncryption(
+        new PrismaClient({
+            adapter: new PrismaPg({ connectionString })
+        })
+    );
 
     try {
         const user = await prisma.user.findUnique({
-            where: { email },
+            where: { emailHash: emailIndex(email) },
             select: {
                 id: true,
                 name: true,

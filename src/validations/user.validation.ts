@@ -2,6 +2,7 @@ import { UserRole } from "@prisma/client";
 import { z } from "zod";
 
 import { passwordSchema } from "./password.validation";
+import { normalizeEmail } from "../utils/email";
 
 const nameField = z
     .string()
@@ -12,7 +13,7 @@ const emailField = z
     .string()
     .trim()
     .email("Ingresa un correo válido.")
-    .toLowerCase();
+    .transform(normalizeEmail);
 
 const limitField = z
     .string()

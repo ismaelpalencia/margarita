@@ -12,6 +12,7 @@ import { LogLevel, LogModule } from "@prisma/client";
 import { LogService } from "./log.service";
 import { SessionService } from "./session.service";
 import { verifyTotp } from "../utils/totp";
+import { emailIndex } from "../utils/email";
 
 type LoginContext = {
     ip?: string;
@@ -20,9 +21,12 @@ type LoginContext = {
 
 export class AuthService {
     static async login(input: LoginInput, context: LoginContext) {
+        /**
+         * El correo está cifrado en la base: se busca por su índice ciego.
+         */
         const user = await prisma.user.findUnique({
             where: {
-                email: input.email
+                emailHash: emailIndex(input.email)
             },
             include: {
                 workspace: true

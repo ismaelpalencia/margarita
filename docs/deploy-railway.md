@@ -89,7 +89,7 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `META_BUSINESS_ACCOUNT_ID` | ID de la WABA | |
 | `META_VERIFY_TOKEN` | cadena que tú inventas | Debe ser idéntica a la de Meta |
 | `META_PHONE_NUMBER` | número con lada, sin signo + | |
-| `ENCRYPTION_KEY` | generador del repo (`npm run secrets:generate`) | Llave del cifrado en reposo: teléfonos, mensajes, notas, bitácora y tokens de Meta |
+| `ENCRYPTION_KEY` | generador del repo (`npm run secrets:generate`) | Llave del cifrado en reposo y de los índices ciegos: teléfonos, mensajes, notas, correos de acceso, bitácora y tokens de Meta |
 | `OPT_OUT_KEYWORDS` | `STOP` | Palabras que dan de baja a un contacto al escribirlas (separadas por coma) |
 | `OUTCOME_NO_ANSWER_ATTEMPTS` | `3` | Intentos sin respuesta que llevan a un cliente a "sin contestación" en los reportes |
 | `SESSION_IDLE_MINUTES` | `720` | Minutos de inactividad antes de cerrar la sesión sola |
@@ -262,12 +262,14 @@ Después de eso, los datos nuevos ya se guardan cifrados. Lo que venía de antes
 
 Si la base ya tenía datos en texto plano antes de configurar `ENCRYPTION_KEY`, cífralos una vez:
 
-- **Todo lo que quedó en claro** (teléfonos, mensajes, notas, payloads de Meta, eventos de webhook, bitácora, destinatarios de campaña y números de la WABA, además de los tokens): `npm run db:encrypt-data`. Es idempotente, se puede correr con la app en línea y solo actúa sobre lo que sigue en claro.
+- **Todo lo que quedó en claro** (teléfonos, mensajes, notas, payloads de Meta, eventos de webhook, bitácora, destinatarios de campaña, números de la WABA y correos de acceso, además de los tokens): `npm run db:encrypt-data`. Es idempotente, se puede correr con la app en línea y solo actúa sobre lo que sigue en claro.
+
+Una advertencia sobre los correos: desde la migración `20261015040000_cifrado_correos`, el correo de cada usuario se guarda cifrado y se busca por su índice ciego (`emailHash`). La migración marca los usuarios existentes y **la aplicación los cifra e indexa antes de escuchar peticiones**, así que no hay nada que hacer a mano; si el índice quedara sin calcular, esa persona no podría entrar. Por eso el arranque del servicio espera a ese recálculo (tarda milisegundos y solo aplica a las filas marcadas).
 - **Solo los tokens de Meta**, desde el panel: **Admin → WhatsApp → Cifrar credenciales existentes**.
 
 Admin → Sistema muestra una tarjeta de **Cifrado en reposo** con cuántos registros quedaron en claro: cuando marca 0, ya no queda nada pendiente.
 
-`ENCRYPTION_KEY` debe quedarse quieta: es la llave de todo lo cifrado. Si la cambias o la pierdes, los teléfonos, los mensajes, las notas y la bitácora dejan de poder leerse, además de los tokens. Guárdala fuera de Railway (gestor de contraseñas) y tenla a mano si vas a restaurar un respaldo.
+`ENCRYPTION_KEY` debe quedarse quieta: es la llave de todo lo cifrado **y de los índices ciegos**. Si la cambias o la pierdes, los teléfonos, los mensajes, las notas, los correos de acceso y la bitácora dejan de poder leerse, además de los tokens; y los índices dejan de coincidir, así que los usuarios dejan de poder entrar. Guárdala fuera de Railway (gestor de contraseñas) y tenla a mano si vas a restaurar un respaldo.
 
 Con una URL pública también puedes hacerlo desde tu máquina:
 

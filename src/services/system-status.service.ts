@@ -4,6 +4,7 @@ import { prisma } from "../config/prisma";
 import { appConfig } from "../config/app.config";
 import { isEncrypted } from "../utils/crypto";
 import { LEGACY_PHONE_HASH_PREFIX } from "../jobs/phone-hash.job";
+import { LEGACY_EMAIL_HASH_PREFIX } from "../jobs/email-hash.job";
 import { BackupFileService } from "./backup-file.service";
 import { UserService } from "./user.service";
 
@@ -22,7 +23,9 @@ export class SystemStatusService {
                 credentials,
                 plaintextContacts,
                 plaintextMessages,
-                pendingPhoneHashes
+                pendingPhoneHashes,
+                plaintextEmails,
+                pendingEmailHashes
             ] = await Promise.all([
                 prisma.$queryRaw<
                     Array<{ accessToken: string | null; verifyToken: string | null }>
@@ -51,6 +54,21 @@ export class SystemStatusService {
                             startsWith: LEGACY_PHONE_HASH_PREFIX
                         }
                     }
+                }),
+
+                prisma.$queryRaw<Array<{ total: bigint }>>`
+                    SELECT count(*) AS total
+                      FROM "User"
+                     WHERE "workspaceId" = ${workspaceId}
+                       AND "email" NOT LIKE 'enc:v1:%'`,
+
+                prisma.user.count({
+                    where: {
+                        workspaceId,
+                        emailHash: {
+                            startsWith: LEGACY_EMAIL_HASH_PREFIX
+                        }
+                    }
                 })
             ]);
 
@@ -64,7 +82,9 @@ export class SystemStatusService {
                 ),
                 plaintextContacts: Number(plaintextContacts[0]?.total ?? 0),
                 plaintextMessages: Number(plaintextMessages[0]?.total ?? 0),
-                pendingPhoneHashes
+                pendingPhoneHashes,
+                plaintextEmails: Number(plaintextEmails[0]?.total ?? 0),
+                pendingEmailHashes
             };
         } catch {
             /**
@@ -76,7 +96,9 @@ export class SystemStatusService {
                 credentialsEncrypted: false,
                 plaintextContacts: 0,
                 plaintextMessages: 0,
-                pendingPhoneHashes: 0
+                pendingPhoneHashes: 0,
+                plaintextEmails: 0,
+                pendingEmailHashes: 0
             };
         }
     }
@@ -214,6 +236,9 @@ export class SystemStatusService {
                 plaintextContacts: encryption.plaintextContacts,
                 plaintextMessages: encryption.plaintextMessages,
                 pendingPhoneHashes: encryption.pendingPhoneHashes,
+                /** Correos de acceso que todavía quedaron en claro. */
+                plaintextEmails: encryption.plaintextEmails,
+                pendingEmailHashes: encryption.pendingEmailHashes,
                 /** Estado del respaldo automático. */
                 backups: backups
                     ? {

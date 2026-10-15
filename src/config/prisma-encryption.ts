@@ -9,6 +9,7 @@ import {
     isEncryptedJson,
     safeDecryptSecret
 } from "../utils/crypto";
+import { normalizeEmail } from "../utils/email";
 
 /**
  * Cifrado de campos en reposo, transparente para el resto de la aplicación.
@@ -135,7 +136,7 @@ const ENCRYPTED_FIELDS: Record<string, string[]> = {
     WebhookEvent: ["payload"],
     QuickReply: ["body"],
     ContactOutcome: ["note", "amount"],
-    User: ["twoFactorSecret"],
+    User: ["email", "twoFactorSecret"],
     WhatsAppNumber: ["phoneNumber"],
     WhatsAppAccount: ["accessToken", "verifyToken"]
 };
@@ -273,8 +274,34 @@ const WRITE_RULES: Record<string, WriteRule> = {
     /**
      * El secreto de la verificación en dos pasos es una credencial: con él se
      * generan los códigos de esa persona. Se cifra como los tokens de Meta.
+     *
+     * El correo también se cifra, y con él va su índice ciego: es lo que
+     * permite mantener la unicidad y resolver el inicio de sesión sin
+     * guardarlo en claro. El índice se calcula solo cuando el valor llega en
+     * claro: si ya viene cifrado (por ejemplo al restaurar un respaldo, que
+     * trae el índice guardado en la misma fila), no se toca para no
+     * indexar el texto cifrado.
      */
     User(data) {
+        const email = data.email;
+
+        if (typeof email === "string" && email.length > 0 && !isEncrypted(email)) {
+            const normalized = normalizeEmail(email);
+
+            data.email = encryptSecret(normalized);
+            data.emailHash = blindIndex(normalized);
+        } else if (
+            isPlainObject(email) &&
+            typeof email.set === "string" &&
+            email.set.length > 0 &&
+            !isEncrypted(email.set)
+        ) {
+            const normalized = normalizeEmail(email.set);
+
+            data.email = { ...email, set: encryptSecret(normalized) };
+            data.emailHash = blindIndex(normalized);
+        }
+
         encryptTextFields(data, ["twoFactorSecret"]);
     },
 
@@ -356,6 +383,85 @@ function translateContactWhere(where: unknown): unknown {
     return next;
 }
 
+/**
+ * Traduce las condiciones por correo al índice ciego.
+ *
+ * Aquí sí es imprescindible: medio sistema busca usuarios por `email` (el
+ * inicio de sesión, el alta de usuarios, el reseteo de contraseña por
+ * consola). En lugar de cambiar cada consulta, se traduce en un solo lugar y
+ * todas siguen escribiendo lo mismo. Si algún día se busca por coincidencia
+ * parcial, la guardia de campos cifrados lo detiene con explicación en vez
+ * de devolver cero filas.
+ */
+function translateEmailFilter(value: unknown): unknown {
+    if (typeof value === "string") {
+        return blindIndex(normalizeEmail(value));
+    }
+
+    if (!isPlainObject(value)) {
+        return value;
+    }
+
+    /**
+     * Por partes no se puede: el correo está cifrado y el índice ciego solo
+     * sirve para igualdades. Se avisa en lugar de devolver cero filas, que
+     * sería la peor forma de fallar.
+     */
+    if (
+        Object.keys(value).some((operator) =>
+            ["contains", "startsWith", "endsWith"].includes(operator)
+        )
+    ) {
+        throw new Error(
+            "El correo del usuario está cifrado: no se puede buscar por " +
+                "coincidencias parciales. Busca por el correo completo (se " +
+                "traduce solo al índice ciego) o por otro campo."
+        );
+    }
+
+    const next: JsonObject = { ...value };
+
+    if (typeof next.equals === "string") {
+        next.equals = blindIndex(normalizeEmail(next.equals));
+    }
+
+    if (Array.isArray(next.in)) {
+        next.in = next.in.map((item) =>
+            typeof item === "string" ? blindIndex(normalizeEmail(item)) : item
+        );
+    }
+
+    if (typeof next.not === "string") {
+        next.not = blindIndex(normalizeEmail(next.not));
+    }
+
+    return next;
+}
+
+function translateUserWhere(where: unknown): unknown {
+    if (!isPlainObject(where)) {
+        return where;
+    }
+
+    const next: JsonObject = {};
+
+    for (const [key, value] of Object.entries(where)) {
+        if (key === "email") {
+            next.emailHash = translateEmailFilter(value);
+            continue;
+        }
+
+        if ((key === "AND" || key === "OR" || key === "NOT") && Array.isArray(value)) {
+            next[key] = value.map(translateUserWhere);
+            continue;
+        }
+
+        next[key] = value;
+    }
+
+    return next;
+}
+
 export function encryptWriteArgs(
     model: string,
     operation: string,
@@ -396,6 +502,10 @@ export function encryptWriteArgs(
 
     if (model === "Contact" && isPlainObject(next.where)) {
         next.where = translateContactWhere(next.where);
+    }
+
+    if (model === "User" && isPlainObject(next.where)) {
+        next.where = translateUserWhere(next.where);
     }
 
     if (isPlainObject(next.where)) {

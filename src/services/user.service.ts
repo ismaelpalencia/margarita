@@ -17,6 +17,7 @@ import { checkAdminRemoval, checkRoleChange, generatePassword, TeamMember } from
 import { LogService } from "./log.service";
 import { SessionService } from "./session.service";
 import { buildOtpAuthUrl, generateTotpSecret, verifyTotp } from "../utils/totp";
+import { emailIndex } from "../utils/email";
 
 /**
  * Nombre con el que la app de autenticación etiqueta la cuenta. Se arma con
@@ -113,9 +114,14 @@ export class UserService {
     }
 
     static async createUser(workspaceId: string, input: CreateUserInput) {
+        /**
+         * El correo va cifrado en la columna `email`; la unicidad se revisa
+         * contra el índice ciego (`emailHash`), que es lo que sí se puede
+         * comparar sin descifrar nada.
+         */
         const existingUser = await prisma.user.findUnique({
             where: {
-                email: input.email
+                emailHash: emailIndex(input.email)
             }
         });
 
@@ -130,6 +136,7 @@ export class UserService {
                 workspaceId,
                 name: input.name,
                 email: input.email,
+                emailHash: emailIndex(input.email),
                 password: passwordHash,
                 role: input.role,
                 status: UserStatus.OFFLINE,

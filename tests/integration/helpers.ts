@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 
 import { prisma } from "../../src/config/prisma";
 import { encryptSecret } from "../../src/utils/crypto";
+import { emailIndex } from "../../src/utils/email";
 
 /**
  * Andamiaje de las pruebas de integración.
@@ -100,6 +101,7 @@ export async function createWorkspaceFixture(): Promise<WorkspaceFixture> {
             workspaceId: workspace.id,
             name: "Admin de prueba",
             email: adminEmail,
+            emailHash: emailIndex(adminEmail),
             password: await bcrypt.hash(adminPassword, 4),
             role: UserRole.ADMIN,
             status: UserStatus.OFFLINE,

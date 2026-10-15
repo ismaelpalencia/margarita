@@ -11,6 +11,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 import { withEncryption } from "../config/prisma-encryption";
 import { encryptSecret } from "../utils/crypto";
+import { emailIndex } from "../utils/email";
 
 /**
  * Carga inicial: workspace, configuración operativa, el usuario admin y
@@ -138,7 +139,7 @@ export async function runSeed() {
 
         const admin = await prisma.user.upsert({
             where: {
-                email: adminEmail
+                emailHash: emailIndex(adminEmail)
             },
             update: {
                 workspaceId: workspace.id,
@@ -153,6 +154,7 @@ export async function runSeed() {
                 workspaceId: workspace.id,
                 name: adminName,
                 email: adminEmail,
+                emailHash: emailIndex(adminEmail),
                 password: passwordHash,
                 role: UserRole.ADMIN,
                 status: UserStatus.OFFLINE,

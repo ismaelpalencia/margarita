@@ -1,9 +1,17 @@
 import assert from "node:assert/strict";
 import test, { after, before } from "node:test";
 
-import { MessageDirection, MessageSource, MessageStatus, MessageType } from "@prisma/client";
+import {
+    MessageDirection,
+    MessageSource,
+    MessageStatus,
+    MessageType,
+    UserRole
+} from "@prisma/client";
 
 import { prisma } from "../../src/config/prisma";
+import { AuthService } from "../../src/services/auth.service";
+import { UserService } from "../../src/services/user.service";
 import { blindIndex } from "../../src/utils/crypto";
 import { contactPhoneFields } from "../../src/utils/phone";
 import {
@@ -192,4 +200,83 @@ test("los datos que ya existían sin cifrar se siguen leyendo", async () => {
 
     assert.equal(throughApp.phone, phone, "un teléfono viejo se lee tal cual");
     assert.equal(throughApp.notes, "nota antigua en claro");
+});
+
+test("el correo del usuario queda cifrado y el acceso sigue funcionando", async () => {
+    const email = `prueba-integracion-correo-${Date.now()}@ejemplo.mx`;
+
+    const created = await UserService.createUser(fixture.workspaceId, {
+        name: "Persona con correo cifrado",
+        email,
+        password: "ClaveDelCorreo123",
+        role: UserRole.AGENT,
+        canSendManualMessages: true,
+        manualMessageLimit: 10
+    });
+
+    /** Lo que hay en la columna, sin descifrar: tiene que ser texto cifrado. */
+    const rows = await rawPrisma().$queryRaw<
+        Array<{ email: string; emailHash: string }>
+    >`SELECT "email", "emailHash" FROM "User" WHERE "id" = ${created.id}`;
+
+    const stored = rows[0];
+
+    assert.ok(stored, "el usuario debe existir");
+    assert.ok(
+        isCiphertext(stored!.email),
+        `el correo debe estar cifrado y llegó: ${stored!.email}`
+    );
+    assert.equal(
+        stored!.emailHash,
+        blindIndex(email),
+        "el índice ciego debe corresponder al correo"
+    );
+    assert.ok(
+        !stored!.emailHash.includes("@"),
+        "el índice no puede dejar ver el correo"
+    );
+
+    /** Y la aplicación lo lee en claro (y el login lo encuentra). */
+    const throughApp = await prisma.user.findUniqueOrThrow({
+        where: { id: created.id },
+        select: { email: true }
+    });
+
+    assert.equal(throughApp.email, email, "el correo se lee tal cual");
+
+    const login = await AuthService.login(
+        { email: email.toUpperCase(), password: "ClaveDelCorreo123" },
+        { ip: "127.0.0.1" }
+    );
+
+    assert.ok(
+        "token" in login,
+        "el acceso funciona aunque cambie el uso de mayúsculas"
+    );
+
+    /** Un correo repetido se sigue rechazando (la unicidad vive en el índice). */
+    await expectRejects(
+        () =>
+            UserService.createUser(fixture.workspaceId, {
+                name: "Otra persona",
+                email,
+                password: "ClaveDelCorreo123",
+                role: UserRole.AGENT,
+                canSendManualMessages: true,
+                manualMessageLimit: 10
+            }),
+        /ya existe un usuario con ese correo/i,
+        "no se puede repetir el correo"
+    );
+});
+
+test("no se puede buscar por partes del correo", async () => {
+    await expectRejects(
+        () =>
+            prisma.user.findMany({
+                where: { email: { contains: "ejemplo.mx" } }
+            }),
+        /está cifrado|no se puede buscar/i,
+        "buscar por coincidencia parcial del correo debe fallar con explicación"
+    );
 });

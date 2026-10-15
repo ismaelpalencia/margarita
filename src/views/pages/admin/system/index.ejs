@@ -156,10 +156,12 @@
                 <%
                     const pendingPlaintext =
                         status.hardening.plaintextContacts +
-                        status.hardening.plaintextMessages;
+                        status.hardening.plaintextMessages +
+                        status.hardening.plaintextEmails;
                     const encryptionComplete =
                         pendingPlaintext === 0 &&
-                        status.hardening.pendingPhoneHashes === 0;
+                        status.hardening.pendingPhoneHashes === 0 &&
+                        status.hardening.pendingEmailHashes === 0;
                 %>
                 <div class="rounded-xl p-4 ring-1 <%= encryptionComplete ? 'bg-emerald-50 ring-emerald-200' : 'bg-amber-50 ring-amber-200' %>">
                     <p class="text-sm font-bold <%= encryptionComplete ? 'text-emerald-800' : 'text-amber-800' %>">
@@ -167,9 +169,9 @@
                     </p>
                     <p class="mt-1 text-xs <%= encryptionComplete ? 'text-emerald-700' : 'text-amber-700' %>">
                         <% if (encryptionComplete) { %>
-                            Teléfonos, mensajes, notas, archivos, eventos de Meta y bitácora se guardan cifrados con AES-256-GCM.
+                            Teléfonos, mensajes, notas, archivos, eventos de Meta, bitácora y los correos de acceso se guardan cifrados con AES-256-GCM.
                         <% } else { %>
-                            Quedan <%= pendingPlaintext %> registro(s) guardados en claro de antes del cifrado<% if (status.hardening.pendingPhoneHashes > 0) { %>, y <%= status.hardening.pendingPhoneHashes %> contacto(s) sin índice de teléfono<% } %>.
+                            Quedan <%= pendingPlaintext %> registro(s) guardados en claro de antes del cifrado<% if (status.hardening.pendingPhoneHashes > 0) { %>, <%= status.hardening.pendingPhoneHashes %> contacto(s) sin índice de teléfono<% } %><% if (status.hardening.pendingEmailHashes > 0) { %>, <%= status.hardening.pendingEmailHashes %> usuario(s) sin índice de correo<% } %>.
                             Ejecuta <span class="font-mono">npm run db:encrypt-data</span> para cifrarlos.
                         <% } %>
                     </p>

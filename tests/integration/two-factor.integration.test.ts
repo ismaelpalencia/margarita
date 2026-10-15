@@ -8,6 +8,7 @@ import { appConfig } from "../../src/config/app.config";
 import { AuthService } from "../../src/services/auth.service";
 import { UserService } from "../../src/services/user.service";
 import { totpCode } from "../../src/utils/totp";
+import { emailIndex } from "../../src/utils/email";
 import {
     cleanupWorkspace,
     createWorkspaceFixture,
@@ -428,7 +429,7 @@ test("por HTTP: activar, fallar con un código malo y confirmar con el bueno", a
 
     /** 4. El código bueno la deja activada. */
     const me = await prisma.user.findUniqueOrThrow({
-        where: { email },
+        where: { emailHash: emailIndex(email) },
         select: { id: true }
     });
     const state = await UserService.twoFactorState(me.id);

@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 
 import { prisma } from "../../src/config/prisma";
 import { SetupService } from "../../src/services/setup.service";
+import { emailIndex } from "../../src/utils/email";
 import { destructiveAllowed } from "./helpers";
 
 /**
@@ -52,7 +53,7 @@ test(
         );
 
         const admin = await prisma.user.findUniqueOrThrow({
-            where: { email: adminEmail },
+            where: { emailHash: emailIndex(adminEmail) },
             select: {
                 id: true,
                 workspaceId: true,

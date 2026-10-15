@@ -216,6 +216,7 @@ id
 workspaceId
 name
 email
+emailHash
 password
 role
 status
@@ -237,7 +238,8 @@ updatedAt
 | `id`                    | String          | Identificador único                       |
 | `workspaceId`           | String          | Relación con Workspace                    |
 | `name`                  | String          | Nombre del usuario                        |
-| `email`                 | String          | Correo de acceso                          |
+| `email`                 | String          | Correo de acceso, **cifrado** (AES-256-GCM) |
+| `emailHash`             | String          | Índice ciego del correo (HMAC-SHA256): único, es lo que se compara |
 | `password`              | String          | Hash de contraseña                        |
 | `role`                  | Enum            | Rol del usuario                           |
 | `status`                | Enum            | Estado operativo                          |
@@ -248,6 +250,12 @@ updatedAt
 | `twoFactorSecret`       | String / Null   | Secreto TOTP, **cifrado** (AES-256-GCM)   |
 | `twoFactorEnabledAt`    | DateTime / Null | Cuándo se confirmó la verificación en dos pasos. Vacío = no está activa |
 | `lastLoginAt`           | DateTime / Null | Último inicio de sesión                   |
+
+### Nota sobre el correo cifrado
+
+`email` guarda el correo cifrado y `emailHash` es su índice ciego: el mismo correo produce siempre el mismo índice, pero del índice no se puede volver al correo. La unicidad y el inicio de sesión usan el índice (`where: { emailHash: emailIndex(correo) }`), y la extensión de Prisma traduce sola cualquier consulta que todavía pregunte por `email`. Buscar por coincidencia parcial del correo no es posible: falla con explicación en lugar de devolver nada.
+
+Los usuarios que ya existían antes de la migración reciben un marcador temporal (`legacy:<id>`) que la aplicación reemplaza al arrancar, porque el índice necesita la llave de cifrado y esa nunca está en la base.
 
 ### Nota sobre la verificación en dos pasos
 
@@ -1017,7 +1025,8 @@ slug único
 ## User
 
 ```text
-email único
+email cifrado
+emailHash único
 workspaceId index
 role index
 status index

@@ -191,7 +191,7 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 - Contra una base real: la migración conservó los contactos existentes, el arranque recalculó los índices, el alta de contactos y el webhook guardaron todo cifrado, y la lectura de contactos, mensajes, bitácora, destinatarios y números devolvió exactamente los mismos valores antes y después de cifrar.
 - Webhook firmado contra un contacto existente: no se duplicó y el mensaje entrante quedó cifrado en la base.
 
-**Límites de este sprint:** los nombres de contacto y los correos quedan en claro (la búsqueda por texto y el login dependen de ellos), los adjuntos en disco no se cifran y el cifrado es de campos, no del archivo de PostgreSQL.
+**Límites de este sprint:** los nombres de contacto quedaron en claro (la búsqueda por texto depende de ellos; los correos se cifraron después, en el Sprint 50), los adjuntos en disco no se cifran y el cifrado es de campos, no del archivo de PostgreSQL.
 
 ---
 
@@ -396,6 +396,29 @@ Nueve pruebas de integración nuevas contra PostgreSQL, además de las ocho unit
 ### Documentación
 
 Se actualizó `docs/alcance-produccion.md`: la verificación en dos pasos entró en «lo que puede hacer hoy», en los controles de seguridad y en «qué sigue» ya no aparece como pendiente. El punto que decía «no hay autenticación de dos factores» se reescribió con la verdad de hoy: **es opcional por cuenta** y nadie puede obligarla desde el panel.
+
+---
+
+## Sprint 50 — Cifrado de los correos de acceso
+
+**Estado: completado.**
+
+Objetivo: cerrar el penúltimo dato personal que quedaba en claro. De la deuda anotada («cifrar los nombres de contacto y los correos»), el nombre se dejó fuera a propósito y por decisión del operador: la búsqueda por texto del panel depende de él y cifrarlo la degrada a coincidencia exacta. El correo, en cambio, no tenía ese problema: solo se usa para entrar y para escribir a la persona.
+
+| Área | Qué se hizo |
+| --- | --- |
+| Esquema | `User.email` pasa a guardarse cifrado (AES-256-GCM, misma llave que el resto) y se agrega `emailHash`, el índice ciego (HMAC-SHA256) que conserva la **unicidad** y resuelve el inicio de sesión. El índice único sobre `email` se retira: con IV aleatorio, el mismo correo cifrado dos veces da textos distintos, así que una unicidad sobre el texto cifrado no detectaría duplicados. |
+| Migración | `20261015040000_cifrado_correos`. Las filas existentes reciben el marcador `legacy:<id>` porque el índice depende de la llave de cifrado, que no está en la base. |
+| Recálculo | Un trabajo de arranque (`email-hash.job.ts`) cifra el correo de esos usuarios y calcula su índice. A diferencia del de teléfonos, corre **antes de escuchar peticiones** (`bootstrap` en `server.ts`): si corriera después, quien ya tenía cuenta no podría entrar durante ese instante. |
+| Traducción transparente | La extensión de Prisma convierte cualquier `where: { email }` al índice ciego y calcula el índice al escribir, así que los servicios siguen escribiendo `email`. Los sitios que el compilador exige explícitos (alta de usuario, seed, setup, `admin:reset-password`, pruebas) usan `emailIndex()`. Buscar por partes del correo **falla con explicación** en lugar de devolver cero filas. |
+| Herramientas | `db:encrypt-data` también cifra e indexa correos (idempotente). `admin:reset-password` pasa a usar el cliente **con** cifrado: con el crudo ya no encontraría a nadie, y además ahora deja su bitácora en el mismo formato cifrado que el resto. La restauración de respaldos calcula el índice al vuelo si el archivo es anterior a la migración. |
+| Panel | La tarjeta de cifrado en Admin → Sistema cuenta también los correos pendientes y los usuarios sin índice. |
+
+### Verificación
+
+- Dos pruebas de integración nuevas: el correo queda cifrado en la columna cruda y el índice corresponde al correo; el acceso funciona (incluso escribiendo el correo en mayúsculas), un correo repetido se rechaza y buscar por partes falla con explicación.
+- Contra la base de desarrollo real: los tres usuarios existentes se cifraron al arrancar, su índice quedó calculado y se comprobó que cada uno se encuentra por su índice (el camino exacto del login).
+- Suite completa: 201 unitarias y 41 de integración en verde.
 
 ---
 

@@ -66,9 +66,7 @@ Tus datos **no se venden ni se ceden** a terceros con fines propios. Se comparte
 | Proveedor de avisos técnicos (opcional) | Mensajes de error del sistema, que pueden incluir un fragmento de datos | Avisar a nuestro equipo cuando algo falla |
 
 Las conversaciones se revisan únicamente por el personal de la empresa encargado
-de atenderte, y el acceso está restringido por usuario y contraseña. Ese personal
-puede añadir además un segundo factor de seguridad: un código temporal que genera
-su teléfono al iniciar sesión.
+de atenderte, y el acceso está restringido por usuario y contraseña.
 
 ## 5. Cuánto tiempo conservamos los datos
 
@@ -90,8 +88,9 @@ Cuando ya no sean necesarios, los datos se eliminan o se anonimizan.
   puede activar por cuenta.
 - Los datos de la conversación se guardan cifrados en la base de datos: el
   número de teléfono, el contenido de los mensajes, los nombres de archivo, las
-  notas internas y la bitácora de operación. El cifrado es AES-256-GCM y la
-  llave se custodia fuera de la base de datos.
+  notas internas, la bitácora de operación y los datos de acceso de nuestro
+  personal (correo y segundo factor). El cifrado es AES-256-GCM y la llave se
+  custodia fuera de la base de datos.
 - Las credenciales técnicas del canal de WhatsApp se guardan cifradas.
 - Los archivos se sirven únicamente a usuarios con sesión válida y con acceso a
   esa conversación.

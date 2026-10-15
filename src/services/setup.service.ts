@@ -3,6 +3,7 @@ import { LogLevel, LogModule, UserRole, UserStatus, WorkspaceStatus } from "@pri
 
 import { prisma } from "../config/prisma";
 import { LogService } from "./log.service";
+import { emailIndex } from "../utils/email";
 
 export type CreateWorkspaceInput = {
     workspaceName: string;
@@ -54,6 +55,7 @@ export class SetupService {
                 workspaceId: workspace.id,
                 name: input.adminName,
                 email: input.adminEmail,
+                emailHash: emailIndex(input.adminEmail),
                 password: await bcrypt.hash(input.adminPassword, 12),
                 role: UserRole.ADMIN,
                 status: UserStatus.OFFLINE,

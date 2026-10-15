@@ -2,7 +2,21 @@
 
 Documento de referencia para decidir y sostener el uso de Margarita en producción. Describe **lo que la herramienta hace hoy**, lo que no hace, los controles de seguridad vigentes y las responsabilidades que quedan del lado de quien la opera.
 
-Última revisión: 2026-10-15 (verificación en dos pasos y limpieza de ajustes inertes).
+Última revisión: 2026-10-15 (verificación en dos pasos, cifrado de los correos de acceso y limpieza de ajustes inertes).
+
+### ¿Se puede ofrecer hoy?
+
+Sí, como **instalación por empresa** en Railway: el alta de un cliente nuevo toma minutos, el producto cubre el ciclo completo de WhatsApp (campañas, bandeja, agentes, cobranza y reportes) y los datos personales que guarda están cifrados en la base. Antes de firmar conviene que el cliente y tú tengan claro lo siguiente:
+
+| Punto | Estado |
+| --- | --- |
+| Cuenta de WhatsApp y método de pago en Meta | **Del cliente.** Es el trámite que más tarda (verificación del negocio, nombre visible y registro del número con PIN). Hay [`guia-meta.md`](guia-meta.md) para acompañarlo; si se pide ayuda, se cobra aparte. |
+| Opt-in de los contactos | **Del cliente.** La herramienta lo registra y respeta las bajas, pero no verifica de dónde salió el consentimiento. |
+| Respaldos fuera del servidor | **Del cliente (u operación compartida).** Hay copia automática cada 24 h, pero vive en el mismo Volume que la base: alguien tiene que descargarla de vez en cuando. |
+| Nombres de los contactos | **Único dato personal que queda en claro**, porque la búsqueda por texto del panel depende de ellos. Está documentado como límite y es el siguiente pendiente. |
+| Verificación en dos pasos | **Disponible y opcional.** Se activa por cuenta; conviene dejarla puesta en las de administrador (el panel dice cuántas están cubiertas). |
+
+Lo que **no** está en el producto y no se debe prometer: botones o listas interactivas (ni interpretar su respuesta), programar campañas por fecha, variables de plantilla en encabezado o botones, números fuera de México, permisos por número, multi-instancia y respaldo en la nube del proveedor.
 
 ---
 
@@ -40,7 +54,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Lista de trabajo del día**: una pantalla que junta lo vencido, lo que vence hoy, lo de esta semana y los clientes sin contestar, en orden de urgencia, con acceso directo a la ficha.
 - **Tendencias**: gestiones, promesas, prometido, pagos y cobrado semana a semana, más el cumplimiento de promesas por persona.
 - **Sesiones**: cada quien ve desde qué dispositivo y qué IP entró, cierra sesiones individuales y puede cerrar todas las demás. El admin ve las de toda la empresa.
-- **Verificación en dos pasos (2FA)**: cada persona la activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación (Google Authenticator, Authy, Microsoft Authenticator) usando un código TOTP de 6 dígitos. Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo y queda en la bitácora con quién lo hizo. El panel de Sistema muestra cuántas cuentas y cuántos administradores la tienen.
+- **Verificación en dos pasos (2FA)**: cada persona la activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación —Google Authenticator, Authy, Microsoft Authenticator, 1Password, Bitwarden o la app **Contraseñas** de Apple— usando un código TOTP de 6 dígitos (el estándar RFC 6238, SHA-1, 30 segundos). Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo y queda en la bitácora con quién lo hizo. El panel de Sistema muestra cuántas cuentas y cuántos administradores la tienen.
 - **Etiquetas**: crear, editar, desactivar y asignar a contactos.
 - **Cuenta de WhatsApp**: administrar los números de la WABA (agregar, editar, activar o desactivar, ver calidad y estado de cada uno y probar su conexión); actualizar las credenciales de la cuenta (tokens, business account, versión de API) y cifrarlas.
 - **Plantillas**: sincronizar las plantillas de Meta con su estado real (`APPROVED`, `PENDING`, `REJECTED`).
@@ -123,7 +137,8 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Límite de peticiones por IP** | El tope del panel (300 cada 15 minutos) es por IP, no por usuario: varios agentes en la misma oficina comparten ese cupo y pueden empezar a recibir 429 en horas cargadas. |
 | **Una réplica** | El tiempo real y la cola funcionan en una sola instancia. Con varias haría falta el adaptador de Redis. |
 | **Búsqueda de teléfono solo exacta** | El teléfono está cifrado, así que no se puede buscar por coincidencia parcial: en Contactos hay que escribir el número completo (10 dígitos) o buscar por nombre. |
-| **Nombres y correos en claro** | `Contact.profileName`, `Contact.customName` y los correos de usuarios quedan sin cifrar: la búsqueda por texto del panel y el inicio de sesión dependen de ellos. Cifrarlos exige cambiar la búsqueda a coincidencia exacta con índice ciego. |
+| **Nombres de contacto en claro** | `Contact.profileName` y `Contact.customName` quedan sin cifrar porque la búsqueda por texto del panel depende de ellos; cifrarlos obliga a pasar esa búsqueda a coincidencia exacta con índice ciego. Es el único dato personal que sigue en claro: **los correos de acceso de los usuarios ya se cifran** (2026-10-15). |
+| **Búsqueda de correo solo exacta** | El correo del usuario está cifrado y se resuelve con índice ciego: el inicio de sesión funciona igual y el correo se ve en el panel, pero una consulta por partes del correo falla con explicación en lugar de devolver resultados. En la práctica el panel no tiene buscador de usuarios. |
 | **"Pagado" no es conciliación** | Marcar pagado es una anotación operativa: la herramienta no comprueba que el dinero entró, no maneja pagos parciales ni saldos. Los reportes de monto son de promesas y pagos registrados, no un estado de cuenta. |
 | **Los montos no se suman en SQL** | Van cifrados en la base (y también en el historial), así que los totales se calculan en la aplicación sobre las filas del periodo. Con el volumen de una cobranza normal es instantáneo; si algún día fueran cientos de miles de gestiones por periodo, habría que paginar el cálculo. |
 | **Un intento es un mensaje que salió** | Se cuentan los mensajes salientes que no fallaron y que no son notas internas, posteriores al último mensaje del cliente. Una llamada telefónica no cuenta salvo que se registre el resultado a mano. |
@@ -139,9 +154,9 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | Área | Control |
 | --- | --- |
 | **Webhooks** | Firma `X-Hub-Signature-256` obligatoria, comparada en tiempo constante. Un payload sin firma válida se rechaza con 401. |
-| **Cifrado en reposo** | Los datos personales se guardan cifrados con AES-256-GCM: teléfono y notas del contacto, contenido y nombre de archivo de cada mensaje, payloads de Meta (respuestas, plantillas enviadas y evento crudo del webhook), variables de campaña, número de cada WABA y bitácora. El cifrado y el descifrado son transparentes (extensión de Prisma), así que ninguna consulta del panel ve texto cifrado. |
+| **Cifrado en reposo** | Los datos personales se guardan cifrados con AES-256-GCM: teléfono y notas del contacto, contenido y nombre de archivo de cada mensaje, payloads de Meta (respuestas, plantillas enviadas y evento crudo del webhook), variables de campaña, número de cada WABA, **correo de acceso de cada usuario** y bitácora. El cifrado y el descifrado son transparentes (extensión de Prisma), así que ninguna consulta del panel ve texto cifrado. Un respaldo o un volcado de la base no muestra conversaciones, teléfonos ni correos. |
 | **Credenciales de Meta** | `accessToken` y `verifyToken` cifrados en la base con AES-256-GCM. Sin la variable `ENCRYPTION_KEY` no se pueden leer. |
-| **Índice ciego del teléfono** | `Contact.phoneHash` es un HMAC-SHA256 con la llave de cifrado: conserva la unicidad y la búsqueda exacta sin que el número se pueda recuperar del índice. |
+| **Índices ciegos** | `Contact.phoneHash` y `User.emailHash` son HMAC-SHA256 con la llave de cifrado: conservan la unicidad y la búsqueda exacta sin que el valor se pueda recuperar del índice. Son los que sostienen el inicio de sesión y la detección de teléfonos o correos repetidos. |
 | **Sesiones** | JWT en cookie `httpOnly`, `secure` en producción y `SameSite=Lax`, con registro en base que permite revocarlas. Expiración absoluta de 7 días, **cierre por inactividad** (`SESSION_IDLE_MINUTES`, 12 h por defecto), **tope de dispositivos** por usuario (`SESSION_MAX_ACTIVE`, 3 por defecto: al entrar en uno más se cierra el más viejo) y lista visible con revocación individual o masiva. |
 | **Contraseñas** | Hash con bcrypt (12 rondas). Mínimo 10 caracteres con letras y números, sin contraseñas obvias. Cada persona cambia la suya en «Mi cuenta» (con la actual) y **al cambiarla se cierran las demás sesiones**. Cuando un administrador la restablece, quien la recibe **debe cambiarla antes de operar**: así nadie conserva la contraseña de otro. |
 | **Fuerza bruta** | Bloqueo de la cuenta tras varios intentos fallidos (configurable) y límite propio de intentos por IP en el login. Todo queda auditado. |
@@ -164,7 +179,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 Ser explícito aquí es parte del trato:
 
 1. **La verificación en dos pasos es opcional y no se puede obligar desde el panel.** Está disponible para cualquier cuenta y el panel de Sistema muestra cuántos administradores la usan, pero si nadie la activa, la contraseña sigue siendo el único factor. Activarla es una decisión de cada persona (o una regla de la empresa, por acuerdo del operador); conviene que los administradores la tengan puesta.
-2. **El cifrado es de campos, no del disco.** Un volcado de PostgreSQL ya no expone conversaciones, teléfonos ni notas, pero sí los nombres de contacto, los correos y la estructura general (con quién se habló, cuándo y cuánto). Los archivos de PostgreSQL y los adjuntos en disco tampoco están cifrados: quien tenga acceso al servidor puede leer todo lo que la aplicación no cifra.
+2. **El cifrado es de campos, no del disco.** Un volcado de PostgreSQL ya no expone conversaciones, teléfonos, notas, correos ni credenciales, pero sí los **nombres de los contactos** y la estructura general (con quién se habló, cuándo y cuánto). Los archivos de PostgreSQL y los adjuntos en disco tampoco están cifrados: quien tenga acceso al servidor puede leer todo lo que la aplicación no cifra.
 3. **No hay antitivirus ni análisis de adjuntos.** Los archivos se guardan tal como llegan (fuera de la base, en disco).
 4. **Los respaldos viven en el mismo servidor.** Hay copia automática cada 24 h y se puede descargar, pero **nadie la saca de ahí sola**: si el disco (o el Volume) se pierde, se pierden la base y sus copias. Conviene descargar una de vez en cuando a un lugar externo, o activar también los respaldos del proveedor. Y los adjuntos no entran en el respaldo.
 5. **La sesión no se ata a la IP ni al dispositivo.** Se registra la IP y el dispositivo y se muestran en la lista de sesiones, se cierra por inactividad y hay tope de dispositivos, pero **no se bloquea** una sesión por venir de otra IP: en datos móviles y redes compartidas la IP cambia sola durante el día y bloquearla dejaría a la gente fuera sin motivo. La IP sirve para detectar, no para bloquear.
@@ -184,7 +199,7 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 - **Plantillas**: usar solo plantillas aprobadas para iniciar conversaciones.
 - **Calidad del número**: vigilar la calificación en el panel de Meta; los envíos masivos sin consentimiento la degradan.
 - **Calidad por número**: con varios números, cada uno se calienta y se vigila por separado. Un número nuevo arranca en el nivel mínimo de mensajería y necesita su nombre visible aprobado y su registro con PIN antes de enviar.
-- **Custodia de `ENCRYPTION_KEY`**: es la llave de los datos cifrados. Si se pierde, los teléfonos, los mensajes, las notas y la bitácora dejan de poder leerse, además de los tokens de Meta. Guárdala en un gestor de contraseñas, no solo en las variables del proveedor.
+- **Custodia de `ENCRYPTION_KEY`**: es la llave de los datos cifrados **y de los índices ciegos**. Si se pierde, los teléfonos, los mensajes, las notas, la bitácora y los correos de acceso dejan de poder leerse, además de los tokens de Meta; y los índices dejan de coincidir, así que nadie podría entrar. Guárdala en un gestor de contraseñas, no solo en las variables del proveedor.
 - **Respaldos de la base de datos**. Cuidado con el respaldo: para restaurarlo y poder leer los datos hace falta la misma `ENCRYPTION_KEY`.
 - **Descargar el respaldo fuera del servidor** de vez en cuando: el respaldo automático vive en el mismo lugar que la base, así que cubre un borrado accidental o una migración mal hecha, no la pérdida del disco completo. Y **probar una restauración** al menos una vez (`npm run db:restore -- --file=… --dry-run` para validar, sin `--dry-run` para restaurar).
 - **Acceso del administrador**: crear un segundo administrador desde Equipo y comprobar que puede entrar; definir quién más tiene acceso y dónde se guarda la contraseña. Con un solo admin, cualquier olvido depende del servidor.
@@ -196,9 +211,9 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 201 pruebas unitarias en 30 archivos + **39 pruebas de integración** contra PostgreSQL |
+| Pruebas automatizadas | 201 pruebas unitarias en 30 archivos + **41 pruebas de integración** contra PostgreSQL |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
-| Migraciones | Versionadas en `prisma/migrations`, con doce aplicadas |
+| Migraciones | Versionadas en `prisma/migrations`, con trece aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
 | Entorno de build | Node 22 declarado en `package.json` (`engines`) y `.nvmrc`. `nixpacks.toml` instala con `npm install --include=dev` (no `npm ci`: borra `node_modules` y choca con el caché del builder) y compila con `npm run build`. El Build Command del servicio debe quedar vacío para que la instalación no se ejecute dos veces. |
 | Verificación de integración | **Automatizada**: un trabajo de CI levanta PostgreSQL, aplica las migraciones y corre la suite contra esa base (`npm run test:integration`). Cubre webhook firmado de punta a punta, cifrado en reposo, campañas, resultados de gestión, sesiones, contraseñas y respaldos. Dos pruebas destructivas (alta desde cero y restauración) solo corren en CI, donde la base es desechable, con `INTEGRATION_DESTRUCTIVE=1`. |
@@ -209,7 +224,7 @@ Además de las pruebas unitarias, hay una **suite de integración** que corre en
 
 - **Webhook firmado → cola → worker → mensaje guardado**: sin firma responde 401; con firma encola y el worker procesa, resuelve la empresa por el número, crea el contacto (con teléfono cifrado y encontrable por índice ciego), abre el hilo, suma el no leído y no duplica nada cuando Meta reintenta el mismo `wamid`.
 - **Baja automática**: un mensaje `STOP` da de baja al contacto y lo registra en la bitácora; una frase que solo menciona la palabra no da de baja a nadie.
-- **Cifrado en reposo**: teléfono, notas, cuerpo del mensaje, payload de Meta, monto y variables se escriben cifrados (se comprueba en la columna cruda) y se leen en claro por la aplicación; filtrar por un campo cifrado falla con explicación; los datos anteriores al cifrado se siguen leyendo.
+- **Cifrado en reposo**: teléfono, notas, cuerpo del mensaje, payload de Meta, monto, variables y **correo del usuario** se escriben cifrados (se comprueba en la columna cruda) y se leen en claro por la aplicación; filtrar por un campo cifrado falla con explicación; los datos anteriores al cifrado se siguen leyendo. En el correo se comprueba además el camino completo: el índice ciego queda calculado, el acceso funciona aunque se escriba el correo en mayúsculas y un correo repetido se rechaza.
 - **Campañas**: resuelven `{nombre}`, cifran teléfono y variables del destinatario, excluyen a quien pidió la baja, rechazan una campaña sin destinatarios válidos y se pueden poner en cola y pausar sin perder pendientes.
 - **Resultados de gestión**: la promesa vencida se deduce con los días de atraso correctos, marcar pagado la cierra y sale de la lista de trabajo, el cumplimiento la cuenta como pagada tarde, los intentos se cuentan solos y se reinician al responder, el marcado en bloque deja historial con autor.
 - **Sesiones y contraseñas**: tope de dispositivos, cierre de sesiones al restablecer la contraseña y al desactivar a alguien, cambio obligatorio, y la regla que impide quedarse sin administrador activo.
@@ -269,7 +284,7 @@ El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 
 **Proteger la operación.**
 
-2. **Cifrar los nombres de contacto y los correos**, que hoy quedan en claro porque la búsqueda por texto y el inicio de sesión dependen de ellos. Al cifrarlos, la búsqueda pasa a coincidencia exacta con índice ciego.
+2. **Cifrar los nombres de contacto**, que hoy quedan en claro porque la búsqueda por texto del panel depende de ellos. Al cifrarlos, esa búsqueda pasa a coincidencia exacta con índice ciego. (Los correos de acceso ya se cifraron el 2026-10-15.)
 3. **Registro formal del opt-in**: quién lo dio, cuándo y por qué canal, en lugar de una sola fecha.
 
 **Mejorar el día a día de la bandeja.**

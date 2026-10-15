@@ -13,6 +13,8 @@ import {
     BackupFileService
 } from "../services/backup-file.service";
 import { decodeSnapshot, humanSize } from "../utils/backup-format";
+import { blindIndex, isEncrypted, safeDecryptSecret } from "../utils/crypto";
+import { normalizeEmail } from "../utils/email";
 
 /**
  * Restaura un respaldo sobre la base actual.
@@ -62,6 +64,46 @@ function chunk<T>(items: T[], size: number): T[][] {
     }
 
     return result;
+}
+
+/**
+ * Los respaldos hechos antes del cifrado de correos no traen `emailHash`
+ * (la columna todavía no existía) y los que se hicieron justo después traen
+ * el marcador `legacy:` de la migración. La columna es obligatoria, así que
+ * sin esto la restauración fallaría a la mitad; y con el marcador, nadie de
+ * esa instalación podría entrar. Se calcula aquí, descifrando el correo si
+ * hace falta, porque la llave sí está disponible en el servidor.
+ */
+function prepareUserRows(rows: unknown[]): unknown[] {
+    return rows.map((row) => {
+        const copy = { ...(row as Record<string, unknown>) };
+        const email = typeof copy.email === "string" ? copy.email : null;
+
+        if (!email) {
+            return copy;
+        }
+
+        const current = copy.emailHash;
+
+        if (
+            typeof current === "string" &&
+            current.length > 0 &&
+            !current.startsWith("legacy:")
+        ) {
+            return copy;
+        }
+
+        const plaintext = isEncrypted(email) ? safeDecryptSecret(email) : email;
+
+        if (!plaintext) {
+            return copy;
+        }
+
+        return {
+            ...copy,
+            emailHash: blindIndex(normalizeEmail(plaintext))
+        };
+    });
 }
 
 async function main() {
@@ -153,7 +195,12 @@ async function main() {
         console.log("[restaurar] Insertando el respaldo (de padres a hijos)…");
 
         for (const table of tables) {
-            const rows = reviveDates(table, payload.tables[table] ?? []);
+            const rows = reviveDates(
+                table,
+                table === "User"
+                    ? prepareUserRows(payload.tables[table] ?? [])
+                    : payload.tables[table] ?? []
+            );
 
             if (rows.length === 0) {
                 continue;

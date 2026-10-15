@@ -203,7 +203,15 @@ model User {
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   name     String
-  email    String   @unique
+  /**
+   * Correo de acceso, **cifrado** en la base (AES-256-GCM, como el resto de
+   * los datos personales). `emailHash` es el índice ciego que conserva la
+   * unicidad y permite encontrarlo en el inicio de sesión sin tenerlo en
+   * claro; se calcula siempre sobre el correo normalizado (minúsculas y sin
+   * espacios).
+   */
+  email     String
+  emailHash String   @unique
   password String
 
   role   UserRole

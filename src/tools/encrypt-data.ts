@@ -11,6 +11,7 @@ import {
     isEncryptedJson
 } from "../utils/crypto";
 import { normalizeMexicanPhone } from "../utils/phone";
+import { normalizeEmail } from "../utils/email";
 
 /**
  * Cifra los datos que quedaron guardados en claro antes del cifrado en
@@ -379,6 +380,46 @@ export async function encryptExistingData() {
 
         report.push(
             `Credenciales de Meta: ${accounts.scanned} cuentas revisadas, ${accounts.updated} cifradas.`
+        );
+
+        /**
+         * Correos de acceso. Además de cifrar el correo hay que calcular su
+         * índice ciego, que es con el que se resuelve el inicio de sesión:
+         * dejarlo sin calcular equivaldría a bloquear la cuenta.
+         */
+        const users = await forEachPage(
+            (skip, take) =>
+                prisma.user.findMany({
+                    skip,
+                    take,
+                    orderBy: ORDER_BY_ID,
+                    select: { id: true, email: true, emailHash: true }
+                }),
+            async (user) => {
+                const email = normalizeEmail(user.email);
+                const needsEncrypt = !isEncrypted(user.email);
+                const needsIndex = user.emailHash !== blindIndex(email);
+
+                if (!needsEncrypt && !needsIndex) {
+                    return false;
+                }
+
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: {
+                        email: needsEncrypt
+                            ? encryptSecret(email)
+                            : user.email,
+                        emailHash: blindIndex(email)
+                    }
+                });
+
+                return true;
+            }
+        );
+
+        report.push(
+            `Correos de acceso: ${users.scanned} revisados, ${users.updated} cifrados o indexados.`
         );
 
         console.log("[cifrado] Listo.");

@@ -55,7 +55,7 @@ Margarita es un panel para **cobrar por WhatsApp con orden**: registra en qué q
 
 **Seguridad.**
 
-- Datos cifrados en la base (teléfonos, mensajes, notas y **montos**).
+- Datos cifrados en la base (teléfonos, mensajes, notas, **montos** y los correos de acceso). Los nombres de contacto quedan en claro porque la búsqueda por texto depende de ellos: se dice antes de firmar.
 - Sesiones con **cierre por inactividad**, tope de dispositivos y lista visible con revocación.
 - **Bitácora** de accesos y de cada cambio, con retención configurable.
 - Permisos por rol: cada persona ve solo sus conversaciones.

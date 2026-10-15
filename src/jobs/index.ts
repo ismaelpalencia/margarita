@@ -1,4 +1,5 @@
 import { logger } from "../config/logger";
+import { backfillUserEmails } from "./email-hash.job";
 import { backfillPhoneHashes } from "./phone-hash.job";
 import { startRetentionJob } from "./retention.job";
 import { startWebhookWorker } from "./webhook-worker";
@@ -12,8 +13,22 @@ import { startBackupJob } from "./backup.job";
  * Antes de empezar a atender webhooks se recalculan los índices ciegos de
  * teléfono que la migración de cifrado dejó pendientes: si un contacto
  * viejo conservara el marcador, un mensaje entrante crearía un duplicado.
+ *
+ * El correo de los usuarios se cifra y se indexa en el arranque del
+ * servidor, antes de escuchar peticiones (`server.ts`): es lo que hace
+ * posible que la gente que ya existía siga entrando.
  */
 export async function startBackgroundJobs() {
+    try {
+        await backfillUserEmails();
+    } catch (error) {
+        logger.error(
+            { error: error instanceof Error ? error.message : error },
+            "No se pudo cifrar el correo de los usuarios anteriores al cifrado. " +
+                "Si la base todavía no tiene las migraciones aplicadas, se resolverá en el siguiente arranque."
+        );
+    }
+
     try {
         await backfillPhoneHashes();
     } catch (error) {
