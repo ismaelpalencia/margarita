@@ -2,12 +2,33 @@ import dotenv from "dotenv";
 import fs from "node:fs";
 import path from "node:path";
 
-import { normalizeAppUrl } from "../utils/url";
+import { resolveAppUrl } from "../utils/url";
 import { parseOptOutKeywords } from "../utils/opt-out";
 
 dotenv.config();
 
-const appUrl = normalizeAppUrl(process.env.APP_URL);
+/**
+ * URL pública de la instalación.
+ *
+ * Si no hay `APP_URL`, se usa el dominio público que Railway expone en
+ * `RAILWAY_PUBLIC_DOMAIN`. En una instalación recién creada desde la
+ * plantilla nadie ha configurado nada todavía, y sin este respaldo la
+ * validación de origen (CSRF) quedaría desactivada y el webhook aparecería
+ * incompleto: era el error número uno del alta manual.
+ */
+const resolvedAppUrl = resolveAppUrl({
+    APP_URL: process.env.APP_URL,
+    RAILWAY_PUBLIC_DOMAIN: process.env.RAILWAY_PUBLIC_DOMAIN
+});
+
+const appUrl = resolvedAppUrl.url;
+
+if (resolvedAppUrl.source === "RAILWAY_PUBLIC_DOMAIN") {
+    console.warn(
+        `[config] APP_URL no está definida: se usa el dominio público de Railway (${appUrl.url}). ` +
+            "Puedes fijarla como variable para no depender de él."
+    );
+}
 
 /**
  * Versión en ejecución. Sirve para saber qué está corriendo cada

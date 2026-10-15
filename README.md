@@ -237,7 +237,7 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | Variable | Obligatoria | Descripción |
 | --- | --- | --- |
 | `APP_NAME` | No | Nombre de la aplicación. Default `Margarita` |
-| `APP_URL` | Sí | URL pública base **con esquema** (`https://dominio`). Se usa para CORS, socket.io, la validación CSRF y la URL del webhook |
+| `APP_URL` | Producción | URL pública base **con esquema** (`https://dominio`). Se usa para CORS, socket.io, la validación CSRF y la URL del webhook. Si falta, se toma `RAILWAY_PUBLIC_DOMAIN`, así que en Railway se puede dejar vacía |
 | `PORT` | Sí | Puerto HTTP. Default `3000` |
 | `NODE_ENV` | Sí | `development` o `production` (activa cookies `secure`) |
 | `TIMEZONE` | No | Default `America/Mexico_City` |
@@ -534,6 +534,7 @@ El cliente vive en `src/public/js/live.js` y se activa con atributos en `<body>`
 - **Bloqueo por fuerza bruta**: el login tiene su propio límite (10 peticiones por 15 minutos por IP) y, a nivel de cuenta, se bloquea `LOGIN_LOCK_MINUTES` minutos tras `LOGIN_MAX_ATTEMPTS` intentos fallidos. Cada intento fallido, cada bloqueo y cada acceso correcto quedan en la bitácora.
 - **Protección CSRF**: toda petición que cambia estado debe traer un `Origin` (o `Referer`) que coincida con `APP_URL`. Un formulario alojado en otro sitio recibe `403`. Las peticiones sin `Origin` (curl, healthchecks, webhooks de Meta) se permiten porque no son navegadores.
 - **`APP_URL` tolerante**: el valor se normaliza al arrancar, así que un dominio pegado sin `https://` (como lo muestra Railway) funciona igual y deja un aviso en los logs en lugar de desactivar la validación de origen en silencio. `/health` expone `publicUrl` para comprobar desde fuera qué URL cree tener la app.
+- **Alta sin configurar variables**: si `APP_URL` no está definida, se usa el dominio público de Railway; mientras la instalación no tenga empresa ni admin, la raíz y la pantalla de login llevan al asistente `/setup`; y `railway.json` deja el build, las migraciones, el arranque y el healthcheck listos para la plantilla.
 - **Cifrado en reposo**: con AES-256-GCM y `ENCRYPTION_KEY` se cifran los tokens de Meta, el teléfono y las notas de cada contacto, el contenido y los payloads de cada mensaje, las variables de campaña, los números de la WABA y la bitácora. El descifrado es transparente al leer, así que el panel no cambia. Los datos guardados antes de habilitar el cifrado se siguen leyendo y se migran con `npm run db:encrypt-data` (o `db:encrypt-secrets` solo para los tokens). El teléfono se compara por `phoneHash`, un índice ciego con la misma llave.
 - **Firma de webhook**: HMAC-SHA256 con comparación en tiempo constante.
 - **Validación**: todos los cuerpos de entrada pasan por esquemas Zod.
@@ -580,7 +581,7 @@ El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 189 pruebas unitarias en verde y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas y **restauración de un respaldo probada borrando datos a propósito**.
+Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 193 pruebas unitarias en verde y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas, **restauración de un respaldo probada borrando datos a propósito** y **alta de una instalación vacía recorriendo el asistente como un cliente nuevo**.
 
 Lo que se cerró en el sprint de endurecimiento:
 
@@ -623,6 +624,7 @@ Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArg
 | [`MArgarita.md`](MArgarita.md) | Documento de producto: alcance, roles, reglas de negocio y roadmap V1/V2 |
 | [`base-datos.md`](base-datos.md) | Diseño de la base de datos entidad por entidad |
 | [`docs/deploy-railway.md`](docs/deploy-railway.md) | Guía de despliegue en Railway |
+| [`docs/plantilla-railway.md`](docs/plantilla-railway.md) | Publicar la plantilla para dar de alta clientes en minutos |
 | [`docs/roadmap-v2.md`](docs/roadmap-v2.md) | Plan detallado de los siguientes sprints: multimedia, interactivos y campañas |
 | [`docs/alcance-produccion.md`](docs/alcance-produccion.md) | Alcance actual, límites, seguridad y responsabilidades para uso en producción |
 | [`docs/multinumero.md`](docs/multinumero.md) | Diseño del multinúmero: modelo, migración, uso y pendientes |

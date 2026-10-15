@@ -4,9 +4,19 @@ import { UserRole } from "@prisma/client";
 import { appConfig } from "../config/app.config";
 import { AuthService } from "../services/auth.service";
 import { loginSchema } from "../validations/auth.validation";
+import { SetupService } from "../services/setup.service";
 
 export class AuthController {
-    static showLogin(req: Request, res: Response) {
+    static async showLogin(req: Request, res: Response) {
+        /**
+         * Si la instalación todavía no tiene empresa ni administrador, se
+         * avisa aquí: quien llegue al login de un despliegue nuevo tiene que
+         * pasar por el asistente, no adivinar que existe.
+         */
+        const notConfigured = await SetupService.isConfigured()
+            .then((configured) => !configured)
+            .catch(() => false);
+
         const error = req.query.error;
         const success = req.query.success;
 
@@ -25,6 +35,7 @@ export class AuthController {
 
         return res.render("pages/auth/login", {
             appName: appConfig.name,
+            notConfigured,
             error: message,
             success:
                 success === "setup"

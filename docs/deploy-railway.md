@@ -2,6 +2,8 @@
 
 Guía operativa para subir Margarita (WhatsApp Business Cloud API) a Railway sin sorpresas.
 
+> **¿Es un cliente nuevo?** Para eso está [`plantilla-railway.md`](plantilla-railway.md): publicar la plantilla una vez y después cada alta son minutos, sin configurar variables a mano. Esta guía es el camino manual (útil para tu propio entorno o si prefieres controlar cada paso).
+
 ## Resumen en 6 pasos
 
 1. Crear el proyecto en Railway y agregar el plugin PostgreSQL.
@@ -14,6 +16,8 @@ Guía operativa para subir Margarita (WhatsApp Business Cloud API) a Railway sin
 ---
 
 ## 1. Datos clave del proyecto
+
+Ya vienen configurados en [`railway.json`](../railway.json), así que en una instalación nueva no hay que capturarlos a mano:
 
 | Concepto | Valor |
 | --- | --- |

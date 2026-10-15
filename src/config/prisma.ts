@@ -8,7 +8,12 @@ import { EncryptedPrismaClient, withEncryption } from "./prisma-encryption";
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
-    throw new Error("DATABASE_URL no está definido.");
+    throw new Error(
+        "DATABASE_URL no está definido. En Railway: agrega el plugin de PostgreSQL " +
+            "y en las variables del servicio de la app debe existir " +
+            "`DATABASE_URL` con la referencia `${{Postgres.DATABASE_URL}}` " +
+            "(la plantilla ya la trae; si borraste la referencia, vuelve a crearla)."
+    );
 }
 
 const adapter = new PrismaPg({

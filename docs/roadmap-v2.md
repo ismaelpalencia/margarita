@@ -309,6 +309,30 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ---
 
+## Sprint 47 — Alta de un cliente en minutos
+
+**Estado: completado.** El paso más caro del alta dejó de ser configurar variables y rutas: ahora es un enlace.
+
+| Área | Qué se hizo |
+| --- | --- |
+| Configuración de despliegue | `railway.json` con build (`npm ci --include=dev && npm run build`), migraciones antes de arrancar (`node dist/tools/deploy-migrations.js`), `npm start`, healthcheck en `/health` y política de reinicio. Nada que capturar a mano en el panel. |
+| `APP_URL` automática | Si no está definida, se usa `RAILWAY_PUBLIC_DOMAIN`. Era el error número uno del alta (rompía CSRF y la URL del webhook) y ahora es imposible de cometer. |
+| Asistente visible | Mientras la instalación no tenga empresa ni administrador, la raíz `/` redirige a `/setup` y el login muestra el aviso con el enlace. Antes había que saber la ruta. |
+| Mensaje de error útil | Si falta `DATABASE_URL`, el arranque explica cómo agregar el plugin y la referencia, en lugar de morir con `DATABASE_URL no está definido`. |
+| Plantilla y runbook | [`plantilla-railway.md`](plantilla-railway.md): publicar la plantilla (15 minutos, una vez), las variables con las funciones de Railway (`${{secret(64)}}`, `${{Postgres.DATABASE_URL}}`), el Volume en `/data`, la verificación post-deploy y los tropiezos comunes. |
+| Ejemplo de entorno | `.env.example` completo, con las variables nuevas (respaldos, sesiones, bajas, campañas, contacto comercial) para el camino manual. |
+
+### Verificación
+
+**Alta completa de una instalación vacía, contra una base real** (con respaldo verificado antes y restauración después):
+
+- Con la base vacía, `GET /` responde 302 hacia `/setup`, el login muestra «Esta instalación todavía no está configurada» con el enlace, y `/health` reporta `adminUserExists: false`.
+- Recorriendo el asistente como un cliente nuevo (empresa + administrador), `POST /setup` crea todo y redirige al login con el correo precargado; a partir de ahí `/setup` se cierra solo (redirige al login) y el panel queda operativo: dashboard, equipo, reportes, WhatsApp y respaldos responden 200 con la sesión nueva.
+- `APP_URL` se toma de `RAILWAY_PUBLIC_DOMAIN` cuando no hay variable: arrancando sin `.env` y sin `APP_URL` (como en Railway), `/health` reporta `publicUrl: https://despacho-prueba.up.railway.app` y el log explica de dónde salió la URL. Se añadieron 4 pruebas unitarias a `resolveAppUrl`, y una de ellas encontró un caso real: si el proveedor entregara el dominio **con** esquema, se generaba `https://https://…`.
+- Después de la prueba se restauró la base desde el respaldo y quedó igual que antes (2 contactos, 41 mensajes, 3 usuarios, 1 campaña).
+
+---
+
 ## Backlog del Sprint 35 (interactivos)
 
 | Función | Detalle |

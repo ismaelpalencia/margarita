@@ -38,6 +38,8 @@ Este modelo **no necesita multi-tenant, licenciamiento ni panel de superadmin**.
 
 Tiempo estimado: **30 a 45 minutos** de trabajo del proveedor, más lo que tarde el cliente con Meta.
 
+> **Camino rápido (recomendado para clientes nuevos):** con la **plantilla de Railway** publicada una vez, el alta baja a minutos y sin configurar variables a mano. El paso a paso para publicarla está en [`plantilla-railway.md`](plantilla-railway.md). El runbook de abajo sigue siendo el camino manual (y el que se usa para la propia instalación).
+
 ### 1. El cliente prepara su parte en Meta
 
 Es lo que más tarda y no se puede saltar. El cliente necesita:
@@ -149,16 +151,16 @@ incluye como gancho en contratos anuales).
 
 Lo que todavía no está listo, en orden de impacto:
 
-1. **Plantilla de Railway** ("Deploy on Railway" apuntando a un repo plantilla) para que el alta sea de minutos y no de media hora.
-2. **Automatizar el alta de la WABA con Embedded Signup** (ser Tech Provider de Meta). Elimina el paso más difícil para el cliente, pero cambia el rol del proveedor y agrega obligaciones formales.
-3. **Panel de control de instalaciones**, si algún día hay muchos clientes: versiones, estado, renovaciones. Hoy se cubre con una hoja de cálculo.
-4. **Sacar el respaldo del servidor**: la copia automática ya existe y se puede descargar, pero nadie la mueve a un lugar externo. Para el cliente conviene ofrecerlo como parte del servicio (o activar los respaldos del proveedor).
+1. **Automatizar el alta de la WABA con Embedded Signup** (ser Tech Provider de Meta). Elimina el paso más difícil para el cliente, pero cambia el rol del proveedor y agrega obligaciones formales.
+2. **Panel de control de instalaciones**, si algún día hay muchos clientes: versiones, estado, renovaciones. Hoy se cubre con una hoja de cálculo.
+3. **Sacar el respaldo del servidor**: la copia automática ya existe y se puede descargar, pero nadie la mueve a un lugar externo. Para el cliente conviene ofrecerlo como parte del servicio (o activar los respaldos del proveedor).
 
 Lo que ya se cerró (2026-10-15):
 
 - **Módulo de cobranza**: resultado de gestión con historial, promesas con monto y fecha compromiso (cifrados), promesa vencida automática, intentos sin contestación calculados, marcado en bloque y reportes con exportación. Además, control de sesiones (cierre por inactividad, tope de dispositivos y revocación) y landing y guía de Meta orientadas a cobranza.
 - **Respaldos automáticos con restauración probada**: copia completa de la base cada 24 h, cifrada, verificada al crearse y con retención; se crea y descarga desde el panel y se restaura con un comando. Se probó restaurando datos borrados a propósito.
 - **Varios administradores y recuperación de contraseñas**: el cliente puede tener más de un admin (con la regla de nunca quedarse sin ninguno activo), restablecer contraseñas desde el panel con cambio obligatorio al entrar, cambiar la propia desde «Mi cuenta», y recuperar el acceso por consola si nadie puede entrar.
+- **Alta en minutos**: `railway.json` deja build, migraciones, arranque y healthcheck configurados; la app toma `APP_URL` del dominio de Railway y la raíz manda al asistente `/setup` mientras la instalación no esté configurada. Publicar la plantilla toma 15 minutos una sola vez (ver [`plantilla-railway.md`](plantilla-railway.md)).
 
 - **Cifrado en reposo.** Teléfonos, notas, contenido de los mensajes, payloads de Meta, eventos de webhook, variables de campaña, números de la WABA y bitácora se guardan cifrados con AES-256-GCM (`ENCRYPTION_KEY`), y el teléfono se busca por índice ciego. Conviene decir con precisión qué queda fuera, porque un área de sistemas lo va a preguntar: el disco (archivos de PostgreSQL y adjuntos) no está cifrado, y los nombres de contacto y los correos siguen en claro porque la búsqueda por texto y el inicio de sesión dependen de ellos. En una instalación que ya traía datos en claro, se cifran con `npm run db:encrypt-data`.
 - **Baja automática (STOP) y límites diarios.** Si un cliente escribe `STOP`, el sistema lo da de baja al instante y deja de escribirle, incluso en campañas; reactivarlo es una decisión explícita que queda auditada. El consentimiento (opt-in) se registra por contacto y las campañas avisan cuántos destinatarios no lo tienen. Los mensajes manuales por agente tienen tope diario aplicado de verdad.

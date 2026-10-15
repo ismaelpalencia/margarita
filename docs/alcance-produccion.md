@@ -2,7 +2,7 @@
 
 Documento de referencia para decidir y sostener el uso de Margarita en producción. Describe **lo que la herramienta hace hoy**, lo que no hace, los controles de seguridad vigentes y las responsabilidades que quedan del lado de quien la opera.
 
-Última revisión: 2026-10-15 (varios administradores y recuperación de contraseñas).
+Última revisión: 2026-10-15 (alta de un cliente en minutos con plantilla de Railway).
 
 ---
 
@@ -78,6 +78,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Respaldos automáticos**: cada `BACKUP_INTERVAL_HOURS` (24 por defecto) se guarda una copia completa de la base en el servidor, comprimida y cifrada con la misma llave de los datos. Cada copia se **verifica al crearse** (se vuelve a leer y descifrar) y se conservan las últimas `BACKUP_KEEP` (7 por defecto). Se pueden crear a mano, descargar y verificar desde Admin → Respaldos, y `/health` reporta la edad del último.
 - **Cifrado en reposo**: los teléfonos, las notas de contacto, el contenido de los mensajes, los nombres de archivo, los payloads de Meta (incluido el evento crudo del webhook), las variables de campaña, los números de la WABA y la bitácora se guardan cifrados con AES-256-GCM. La aplicación descifra al leer, así que el panel funciona igual; del teléfono se guarda además un índice ciego (`phoneHash`) que conserva la unicidad y la búsqueda exacta sin tener el número en claro.
 - **Alta sin consola**: en una instalación nueva, `/setup` crea la empresa y el usuario administrador desde el navegador, y las credenciales de Meta y el primer número se capturan en Admin → WhatsApp. El asistente se cierra solo cuando la instalación queda configurada.
+- **Alta en minutos**: el repositorio trae `railway.json` con el build, las migraciones previas al arranque, el comando de arranque y el healthcheck, así que una instalación desde plantilla no requiere configurar nada a mano. Mientras no exista empresa ni administrador, la raíz y el login llevan solos al asistente. Si falta `APP_URL`, se usa el dominio público de Railway. El paso a paso está en [`plantilla-railway.md`](plantilla-railway.md).
 - **Cierre de contrato**: el borrado total elimina mensajes, conversaciones, contactos, campañas, plantillas, usuarios, sesiones, credenciales y archivos, con la confirmación del identificador de la instalación y constancia en la bitácora.
 - **Versión en ejecución**: `/health` y Admin → Sistema reportan la versión y el commit desplegado, para saber qué corre cada instalación.
 - **Motivos de fallo traducidos**: los códigos de Meta (pago, ventana cerrada, número inválido, límites, plantillas) se explican en español en la bitácora y en el hilo.
@@ -193,7 +194,7 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 189 pruebas unitarias en 29 archivos |
+| Pruebas automatizadas | 193 pruebas unitarias en 29 archivos |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
 | Migraciones | Versionadas en `prisma/migrations`, con diez aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
@@ -220,6 +221,7 @@ Además de las pruebas unitarias, los flujos críticos se verificaron de punta a
 - Resultados y reportes (36 comprobaciones contra una base real y capturas de las pantallas): promesa con monto y fecha cifrados; la promesa vencida se deduce con los días de atraso correctos; marcar pagado la cierra y la saca de la lista de trabajo; el cumplimiento la cuenta como pagada tarde; tres mensajes salientes suman tres intentos y una respuesta los reinicia; el marcado en bloque alcanza a varios contactos; una promesa sin fecha se rechaza con aviso; los cuatro reportes exportan CSV; y el monto se mostró cifrado en la base cruda.
 - **Restauración de un respaldo probada de verdad**: se creó una copia, se borraron **todos** los mensajes y se corrompieron las notas de los contactos, y la restauración devolvió los 41 mensajes y las notas originales byte por byte (comparadas con `diff`). La aplicación siguió leyendo los datos descifrados después de restaurar, porque el respaldo conserva el cifrado tal cual. En esa prueba se descubrió y corrigió el orden de inserción (`Message` referencia a `Campaign`). También se verificó la retención podando con `BACKUP_KEEP=2`, y que `/health`, el panel y el botón de respaldo manual responden.
 - **Equipo y contraseñas (16 + 20 comprobaciones)**: se crea un segundo administrador, entra y ve todas las pantallas; con dos admins se puede degradar a uno, pero **degradar o desactivar al último se bloquea** con el motivo a la vista y el botón deshabilitado; un usuario degradado pierde el panel (403) y conserva el de agente. Sobre contraseñas: al restablecerla se cierran las sesiones de esa persona, al entrar el sistema la obliga a cambiarla (no puede ir a ninguna otra pantalla), el cambio propio exige la contraseña actual y rechaza confirmaciones que no coinciden, y la consola `admin:reset-password` genera una temporal, cierra sesiones y también obliga al cambio.
+- **Alta de una instalación vacía**: con la base sin empresa ni administrador, la raíz manda a `/setup` y `/health` lo reporta (`adminUserExists: false`); el asistente crea la empresa y el administrador desde el navegador; a partir de ahí el asistente se cierra solo y el panel queda operativo con esa cuenta. Se probó con un respaldo previo y se restauró la base al terminar.
 
 ---
 

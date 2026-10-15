@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import { appConfig } from "../config/app.config";
+import { SetupService } from "../services/setup.service";
 
 /**
  * Datos de contacto comercial. Se configuran por variables de entorno para
@@ -20,6 +21,20 @@ function supportContext() {
 
 export class HomeController {
     static async index(_req: Request, res: Response) {
+        /**
+         * Instalación recién creada (por ejemplo desde la plantilla de
+         * Railway): en lugar de la página de venta, se manda al asistente de
+         * alta. Así el cliente entra directo a configurar y no tiene que
+         * adivinar la ruta.
+         */
+        try {
+            if (!(await SetupService.isConfigured())) {
+                return res.redirect("/setup");
+            }
+        } catch {
+            /** Si la base no responde, se muestra la landing normal. */
+        }
+
         return res.render("pages/home/index", {
             title: "Margarita - WhatsApp operativo",
             ...supportContext()

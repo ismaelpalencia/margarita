@@ -1,0 +1,88 @@
+# Alta de un cliente en minutos (plantilla de Railway)
+
+Objetivo: que un cliente nuevo pase de "aceptó la propuesta" a "tiene su panel corriendo" **sin que nadie configure variables a mano**. Se logra con una plantilla de Railway publicada una sola vez, más el asistente `/setup` que ya trae la aplicación.
+
+Publicar la plantilla toma **unos 15 minutos, una sola vez**. Después, cada cliente es: mandarle un enlace → entra → configura su empresa y su admin → captura sus datos de Meta (o se los ponemos nosotros como servicio).
+
+---
+
+## Lo que ya está listo en el repositorio
+
+No hay que configurar nada en el panel de Railway para el build ni el arranque: viene en [`railway.json`](../railway.json).
+
+| Pieza | Qué hace |
+| --- | --- |
+| `buildCommand` | `npm ci --include=dev && npm run build` — instala también las devDependencies, que hacen falta para compilar TypeScript. Sin esto, el build falla con `NODE_ENV=production`. |
+| `preDeployCommand` | `node dist/tools/deploy-migrations.js` — aplica las migraciones antes de levantar la app, resolviendo el caso de una base nueva, una con tablas y una ya versionada. |
+| `startCommand` | `npm start` |
+| `healthcheckPath` | `/health` — el despliegue se marca sano cuando la base y el worker responden. |
+| `restartPolicyType` | `ON_FAILURE` con 10 reintentos: un fallo pasajero no deja la instalación caída. |
+| **Sin `APP_URL`** | Si no está definida, la app usa `RAILWAY_PUBLIC_DOMAIN`. Era el error número uno del alta manual (rompía CSRF y la URL del webhook). |
+| **Asistente `/setup`** | La raíz `/` redirige ahí mientras la instalación no tenga empresa y administrador. El cliente no tiene que adivinar la ruta. |
+| **`.env.example`** | La lista completa de variables, para el camino manual. |
+
+## Publicar la plantilla (una vez)
+
+1. Entra a Railway → **New** → **Template** → *Deploy from GitHub repo* y elige este repositorio.
+2. **Agrega PostgreSQL**: en el editor de la plantilla, *Add service* → *Database* → *PostgreSQL*.
+3. **Agrega un Volume** al servicio de la app: *Add* → *Volume*, con punto de montaje `/data`.
+   Sirve para los adjuntos de los clientes **y** para los respaldos; sin él se pierden en cada deploy.
+4. **Variables del servicio de la app** (en el editor de la plantilla, no en el proyecto):
+
+| Variable | Valor | Por qué |
+| --- | --- | --- |
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` | Referencia al plugin; la plantilla la resuelve sola. |
+| `NODE_ENV` | `production` | Cookies seguras y menos ruido en los logs. |
+| `JWT_SECRET` | `${{secret(64)}}` | Lo genera Railway por instalación. |
+| `ENCRYPTION_KEY` | `${{secret(64)}}` | **Llave del cifrado**: genera una distinta por cliente y nunca la reutilices entre instalaciones. |
+| `MEDIA_STORAGE_DIR` | `/data/media` | Adjuntos en el Volume. |
+| `BACKUP_DIR` | `/data/backups` | Respaldos en el Volume. |
+| `APP_NAME` | `Margarita` | Nombre que ve el cliente. |
+| `TIMEZONE` | `America/Mexico_City` | Para fechas, topes diarios y reportes. |
+| `SUPPORT_WHATSAPP` | tu número con lada | Aparece en la página pública del cliente. |
+| `SUPPORT_EMAIL` | tu correo | Contacto comercial. |
+| `SETUP_SERVICE_PRICE` | tu precio | Lo que cobras por la conexión con Meta. |
+
+   Marca como **requeridas** solo `DATABASE_URL`, `JWT_SECRET` y `ENCRYPTION_KEY`; el resto ya trae valor por defecto en el código.
+
+   > **`APP_URL` déjala vacía a propósito**: se toma sola del dominio público. Si algún cliente usa dominio propio, la fija después y listo.
+
+5. **Publica la plantilla** (*Publish template*) y copia el enlace: queda como `https://railway.com/new/template/<id>`.
+6. Prueba el enlace una vez con una cuenta de Railway de prueba y cronometra: es la prueba de que el alta quedó en minutos.
+
+## Lo que hace el cliente (o hacemos nosotros)
+
+1. Abre el enlace de la plantilla y despliega (2–3 minutos).
+2. Al terminar, Railway le da un dominio; al abrirlo, la app lo lleva sola a `/setup`, donde crea **su empresa y su usuario administrador**.
+3. Entra con ese usuario y captura sus credenciales de Meta en *Admin → WhatsApp* (o se las capturamos nosotros como parte del servicio de conexión, ver [`guia-meta.md`](guia-meta.md)).
+4. Sincroniza plantillas en *Admin → Plantillas* y hace una prueba con 1–3 contactos.
+
+Pasado eso ya opera. Lo que **no** se puede automatizar y hay que decirle: la cuenta de Meta Business con método de pago, el número dedicado y la aprobación de plantillas son de Meta.
+
+## Verificación post-deploy (5 minutos)
+
+| Comprobación | Cómo |
+| --- | --- |
+| La app está sana | Abrir `/health`: `status healthy` y `checks.database` en true. |
+| Migraciones aplicadas | En los logs del deploy: `[migraciones] Listo. La base quedó al día`. |
+| Cifrado configurado | `/health` → `checks.encryptionKeyConfigured` en true. |
+| La instalación quedó configurada | `/` ya no redirige a `/setup` y el login funciona. |
+| Respaldos funcionando | *Admin → Respaldos*: "Al día" y la carpeta `/data/backups`. |
+| El webhook responde | En Meta, la verificación del webhook acepta la URL `https://<dominio>/webhooks/meta/whatsapp`. |
+
+## Errores que vimos en el camino
+
+| Síntoma | Causa | Solución |
+| --- | --- | --- |
+| El build falla por TypeScript | Se instaló sin devDependencies | Ya viene resuelto en `railway.json`; si lo cambias, mantén `--include=dev`. |
+| La app arranca y muere en bucle | Falta `DATABASE_URL` o la referencia al plugin | Revisa las variables del servicio; el error del log ahora lo dice explícitamente. |
+| El panel rechaza las acciones (403 de origen) | `APP_URL` apuntando a otro dominio | Déjala vacía (toma el dominio de Railway) o fíjala con el dominio real. |
+| El webhook responde 401 | `META_APP_SECRET` mal capturado o de relleno | Recaptúralo en *Admin → WhatsApp*. |
+| Se pierden los adjuntos en cada deploy | No hay Volume montado en `/data` | Agrega el Volume y verifica `MEDIA_STORAGE_DIR`. |
+| Los datos cifrados no se leen | Se cambió `ENCRYPTION_KEY` | Restaura la llave original; sin ella no hay forma de recuperar el contenido. |
+
+## Costos que conviene tener claros
+
+1. **Railway**: el plan del cliente cubre la app + PostgreSQL + Volume. Es el costo de infraestructura que se traslada a la suscripción.
+2. **Meta**: las conversaciones las cobra Meta directo al cliente, aparte de nuestra factura.
+3. **El respaldo vive en el mismo Volume**: si el cliente borra el proyecto, se va todo. Conviene descargar un respaldo a un lugar externo de vez en cuando (Admin → Respaldos).

@@ -3,6 +3,8 @@ export type NormalizedUrl = {
     normalized: boolean;
 };
 
+export type AppUrlSource = "APP_URL" | "RAILWAY_PUBLIC_DOMAIN" | "DEFAULT";
+
 function isLocalHost(value: string): boolean {
     return /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i.test(value);
 }
@@ -50,6 +52,41 @@ export function normalizeAppUrl(raw: string | null | undefined): NormalizedUrl {
         url: candidate,
         normalized: true
     };
+}
+
+/**
+ * De dónde sale la URL pública de la instalación.
+ *
+ * En Railway, `RAILWAY_PUBLIC_DOMAIN` es el dominio que el propio proveedor
+ * asigna. Usarlo cuando falta `APP_URL` evita el tropiezo clásico del alta:
+ * sin URL, la validación de origen (CSRF) queda desactivada y el panel
+ * muestra un webhook incompleto, sin que nada lo advierta.
+ */
+export function resolveAppUrl(env: {
+    APP_URL?: string | null;
+    RAILWAY_PUBLIC_DOMAIN?: string | null;
+}): { url: NormalizedUrl; source: AppUrlSource } {
+    const explicit = env.APP_URL?.trim();
+
+    if (explicit) {
+        return { url: normalizeAppUrl(explicit), source: "APP_URL" };
+    }
+
+    const railway = env.RAILWAY_PUBLIC_DOMAIN?.trim();
+
+    if (railway) {
+        /**
+         * Se le pasa tal cual: `normalizeAppUrl` agrega `https://` cuando
+         * viene sin esquema (lo normal en Railway) y no lo duplica si algún
+         * día lo entrega con él.
+         */
+        return {
+            url: normalizeAppUrl(railway),
+            source: "RAILWAY_PUBLIC_DOMAIN"
+        };
+    }
+
+    return { url: normalizeAppUrl(""), source: "DEFAULT" };
 }
 
 /** Dominio (host + puerto) de una URL, o null si no se puede leer. */
