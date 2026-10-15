@@ -67,6 +67,24 @@ export class AuthController {
                 userAgent: req.get("user-agent")
             });
 
+            /**
+             * La cuenta tiene verificación en dos pasos: la contraseña fue
+             * correcta, pero todavía no hay sesión. Se pide el código.
+             */
+            if ("twoFactorRequired" in result) {
+                return res.render("pages/auth/login", {
+                    appName: appConfig.name,
+                    notConfigured: false,
+                    error: null,
+                    success: null,
+                    twoFactor: {
+                        challengeToken: result.challengeToken,
+                        email: parsed.data.email
+                    },
+                    old: { email: parsed.data.email }
+                });
+            }
+
             res.cookie(appConfig.cookieName, result.token, {
                   httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
@@ -91,6 +109,49 @@ export class AuthController {
                 old: {
                     email: req.body.email || ""
                 }
+            });
+        }
+    }
+
+    /** Segundo paso: el código de la app de autenticación. */
+    static async verifyTwoFactor(req: Request, res: Response) {
+        const challengeToken =
+            typeof req.body?.challengeToken === "string"
+                ? req.body.challengeToken
+                : "";
+        const code = typeof req.body?.code === "string" ? req.body.code : "";
+        const email =
+            typeof req.body?.email === "string" ? req.body.email : "";
+
+        try {
+            const result = await AuthService.verifyTwoFactor(
+                { challengeToken, code },
+                { ip: req.ip, userAgent: req.get("user-agent") }
+            );
+
+            res.cookie(appConfig.cookieName, result.token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                maxAge: 7 * 24 * 60 * 60 * 1000
+            });
+
+            if (result.user.role === UserRole.ADMIN) {
+                return res.redirect("/admin/dashboard");
+            }
+
+            return res.redirect("/agent/dashboard");
+        } catch (error) {
+            return res.status(400).render("pages/auth/login", {
+                appName: appConfig.name,
+                notConfigured: false,
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : "No se pudo verificar el código.",
+                success: null,
+                twoFactor: { challengeToken, email },
+                old: { email }
             });
         }
     }

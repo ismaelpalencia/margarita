@@ -20,6 +20,8 @@ const loginLimiter = rateLimit({
 
 router.get("/login", AuthController.showLogin);
 router.post("/login", loginLimiter, AuthController.login);
+/** Segundo paso: mismo límite, porque el código también se puede adivinar. */
+router.post("/login/2fa", loginLimiter, AuthController.verifyTwoFactor);
 router.post("/logout", authMiddleware, AuthController.logout);
 
 export default router;

@@ -2,7 +2,7 @@
 
 Documento de referencia para decidir y sostener el uso de Margarita en producción. Describe **lo que la herramienta hace hoy**, lo que no hace, los controles de seguridad vigentes y las responsabilidades que quedan del lado de quien la opera.
 
-Última revisión: 2026-10-15 (alta de un cliente en minutos con plantilla de Railway).
+Última revisión: 2026-10-15 (verificación en dos pasos y limpieza de ajustes inertes).
 
 ---
 
@@ -31,6 +31,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 ### Panel de administrador
 
 - **Dashboard** con conversaciones abiertas, conteo de agentes por estado, últimos mensajes entrantes y errores recientes.
+- **Sin horarios de atención**: no hay horario laboral, mensaje fuera de horario ni modo de asignación configurable. La asignación automática es siempre al agente disponible con menos carga y la interfaz está solo en español. (Esos ajustes existían en la base sin que ningún código los leyera; se quitaron el 2026-10-15 para que la base no prometa lo que la herramienta no hace.)
 - **Agentes**: crear, editar, activar o desactivar, con permiso de envío manual y límite configurable.
 - **Equipo**: crear administradores y agentes, cambiar el rol, activar o desactivar y restablecer contraseñas. La instalación nunca se queda sin un administrador activo: el sistema bloquea degradar o desactivar al último (y el botón aparece deshabilitado). Al desactivar a alguien se cierran sus sesiones.
 - **Contactos**: crear, editar, buscar por texto, filtrar por etiqueta y por bajas, registrar el consentimiento (opt-in), marcar la baja a mano y desactivar.
@@ -39,6 +40,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Lista de trabajo del día**: una pantalla que junta lo vencido, lo que vence hoy, lo de esta semana y los clientes sin contestar, en orden de urgencia, con acceso directo a la ficha.
 - **Tendencias**: gestiones, promesas, prometido, pagos y cobrado semana a semana, más el cumplimiento de promesas por persona.
 - **Sesiones**: cada quien ve desde qué dispositivo y qué IP entró, cierra sesiones individuales y puede cerrar todas las demás. El admin ve las de toda la empresa.
+- **Verificación en dos pasos (2FA)**: cada persona la activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación (Google Authenticator, Authy, Microsoft Authenticator) usando un código TOTP de 6 dígitos. Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo y queda en la bitácora con quién lo hizo. El panel de Sistema muestra cuántas cuentas y cuántos administradores la tienen.
 - **Etiquetas**: crear, editar, desactivar y asignar a contactos.
 - **Cuenta de WhatsApp**: administrar los números de la WABA (agregar, editar, activar o desactivar, ver calidad y estado de cada uno y probar su conexión); actualizar las credenciales de la cuenta (tokens, business account, versión de API) y cifrarlas.
 - **Plantillas**: sincronizar las plantillas de Meta con su estado real (`APPROVED`, `PENDING`, `REJECTED`).
@@ -117,7 +119,6 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Un número pertenece a una sola WABA** | Es una regla de Meta, no de la aplicación: un número no se puede compartir entre dos cuentas. Moverlo exige quitarlo de una y registrarlo en la otra, con nueva verificación. |
 | **Sin permisos por número** | Con varios números, **todos los agentes ven todos**. Restringir qué números atiende cada agente está diseñado y pendiente. |
 | **Recuperación de contraseña sin correo** | No hay "envié un enlace a tu correo": la herramienta no manda correos. Se resuelve con dos caminos: **un administrador restablece la contraseña** desde Equipo (y quien la recibe está obligado a cambiarla al entrar), o **desde el servidor** con `npm run admin:reset-password -- --email=…` cuando nadie puede entrar. Si el cliente pierde el acceso a la consola y a todas las cuentas de administrador, la salida es la base de datos. |
-| **Ajustes del workspace inertes** | `autoAssign`, `assignmentMode`, `businessHoursStart/End`, `outOfHoursMessage`, `maxActiveConversations` y `reopenedConversationMode` existen en la base pero **ningún código los lee y no hay pantalla para editarlos**. La auto-asignación al agente con menos carga siempre está activa. No prometas horarios de atención ni mensajes fuera de horario. |
 | **Adjuntos en disco** | Fotos, audios y documentos viven en el sistema de archivos, no en la base. Sin un Volume configurado se pierden en cada deploy (y no están cifrados). |
 | **Límite de peticiones por IP** | El tope del panel (300 cada 15 minutos) es por IP, no por usuario: varios agentes en la misma oficina comparten ese cupo y pueden empezar a recibir 429 en horas cargadas. |
 | **Una réplica** | El tiempo real y la cola funcionan en una sola instancia. Con varias haría falta el adaptador de Redis. |
@@ -144,6 +145,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Sesiones** | JWT en cookie `httpOnly`, `secure` en producción y `SameSite=Lax`, con registro en base que permite revocarlas. Expiración absoluta de 7 días, **cierre por inactividad** (`SESSION_IDLE_MINUTES`, 12 h por defecto), **tope de dispositivos** por usuario (`SESSION_MAX_ACTIVE`, 3 por defecto: al entrar en uno más se cierra el más viejo) y lista visible con revocación individual o masiva. |
 | **Contraseñas** | Hash con bcrypt (12 rondas). Mínimo 10 caracteres con letras y números, sin contraseñas obvias. Cada persona cambia la suya en «Mi cuenta» (con la actual) y **al cambiarla se cierran las demás sesiones**. Cuando un administrador la restablece, quien la recibe **debe cambiarla antes de operar**: así nadie conserva la contraseña de otro. |
 | **Fuerza bruta** | Bloqueo de la cuenta tras varios intentos fallidos (configurable) y límite propio de intentos por IP en el login. Todo queda auditado. |
+| **Verificación en dos pasos** | TOTP (RFC 6238) hecho con `node:crypto`, sin dependencias nuevas: funciona con cualquier app de autenticación (Google Authenticator, Authy, Microsoft Authenticator). Cada persona la activa desde Mi cuenta → Seguridad. El secreto se guarda **cifrado** (AES-256-GCM) y la activación no se completa hasta confirmar un código, para que nadie se quede fuera por escanear mal. Los códigos fallidos cuentan como intentos fallidos y bloquean la cuenta igual que una contraseña mal escrita. Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo, con constancia en la bitácora. |
 | **Autorización** | Separación estricta `ADMIN` / `AGENT`. Un agente solo puede leer y responder las conversaciones asignadas a él, y la restricción se aplica en la consulta, no solo en la vista. |
 | **CSRF** | Toda petición que cambia estado debe venir del mismo dominio configurado en `APP_URL`. Un dominio ajeno recibe 403. |
 | **Validación** | Los cuerpos de entrada del panel pasan por esquemas Zod. El webhook se valida con la firma HMAC en lugar de un esquema. |
@@ -161,7 +163,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 
 Ser explícito aquí es parte del trato:
 
-1. **No hay autenticación de dos factores.** Quien tenga la contraseña del admin entra.
+1. **La verificación en dos pasos es opcional y no se puede obligar desde el panel.** Está disponible para cualquier cuenta y el panel de Sistema muestra cuántos administradores la usan, pero si nadie la activa, la contraseña sigue siendo el único factor. Activarla es una decisión de cada persona (o una regla de la empresa, por acuerdo del operador); conviene que los administradores la tengan puesta.
 2. **El cifrado es de campos, no del disco.** Un volcado de PostgreSQL ya no expone conversaciones, teléfonos ni notas, pero sí los nombres de contacto, los correos y la estructura general (con quién se habló, cuándo y cuánto). Los archivos de PostgreSQL y los adjuntos en disco tampoco están cifrados: quien tenga acceso al servidor puede leer todo lo que la aplicación no cifra.
 3. **No hay antitivirus ni análisis de adjuntos.** Los archivos se guardan tal como llegan (fuera de la base, en disco).
 4. **Los respaldos viven en el mismo servidor.** Hay copia automática cada 24 h y se puede descargar, pero **nadie la saca de ahí sola**: si el disco (o el Volume) se pierde, se pierden la base y sus copias. Conviene descargar una de vez en cuando a un lugar externo, o activar también los respaldos del proveedor. Y los adjuntos no entran en el respaldo.
@@ -194,16 +196,27 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 193 pruebas unitarias en 29 archivos |
+| Pruebas automatizadas | 201 pruebas unitarias en 30 archivos + **39 pruebas de integración** contra PostgreSQL |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
-| Migraciones | Versionadas en `prisma/migrations`, con diez aplicadas |
+| Migraciones | Versionadas en `prisma/migrations`, con doce aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
 | Entorno de build | Node 22 declarado en `package.json` (`engines`) y `.nvmrc`. `nixpacks.toml` instala con `npm install --include=dev` (no `npm ci`: borra `node_modules` y choca con el caché del builder) y compila con `npm run build`. El Build Command del servicio debe quedar vacío para que la instalación no se ejecute dos veces. |
-| Verificación de integración | **Manual.** Los flujos de la lista de abajo se comprueban con scripts contra una base real, pero esos scripts no viven en el repo ni corren en CI: una regresión en el camino de datos puede pasar el pipeline sin que nadie la note. |
+| Verificación de integración | **Automatizada**: un trabajo de CI levanta PostgreSQL, aplica las migraciones y corre la suite contra esa base (`npm run test:integration`). Cubre webhook firmado de punta a punta, cifrado en reposo, campañas, resultados de gestión, sesiones, contraseñas y respaldos. Dos pruebas destructivas (alta desde cero y restauración) solo corren en CI, donde la base es desechable, con `INTEGRATION_DESTRUCTIVE=1`. |
 | Pruebas de interfaz | **Ninguna automatizada.** Los cambios de layout se verifican a mano (capturas en escritorio y móvil); no hay pruebas de navegador. |
 | Estilo de código | Sin linter ni formateador automático: la consistencia se mantiene a mano. |
 
-Además de las pruebas unitarias, los flujos críticos se verificaron de punta a punta contra una base real:
+Además de las pruebas unitarias, hay una **suite de integración** que corre en CI contra un PostgreSQL desechable y que se puede correr en local (`npm run test:integration`). Cada archivo crea su propia empresa de prueba y la borra al terminar, así que es segura contra una base de desarrollo. Lo que cubre, automáticamente:
+
+- **Webhook firmado → cola → worker → mensaje guardado**: sin firma responde 401; con firma encola y el worker procesa, resuelve la empresa por el número, crea el contacto (con teléfono cifrado y encontrable por índice ciego), abre el hilo, suma el no leído y no duplica nada cuando Meta reintenta el mismo `wamid`.
+- **Baja automática**: un mensaje `STOP` da de baja al contacto y lo registra en la bitácora; una frase que solo menciona la palabra no da de baja a nadie.
+- **Cifrado en reposo**: teléfono, notas, cuerpo del mensaje, payload de Meta, monto y variables se escriben cifrados (se comprueba en la columna cruda) y se leen en claro por la aplicación; filtrar por un campo cifrado falla con explicación; los datos anteriores al cifrado se siguen leyendo.
+- **Campañas**: resuelven `{nombre}`, cifran teléfono y variables del destinatario, excluyen a quien pidió la baja, rechazan una campaña sin destinatarios válidos y se pueden poner en cola y pausar sin perder pendientes.
+- **Resultados de gestión**: la promesa vencida se deduce con los días de atraso correctos, marcar pagado la cierra y sale de la lista de trabajo, el cumplimiento la cuenta como pagada tarde, los intentos se cuentan solos y se reinician al responder, el marcado en bloque deja historial con autor.
+- **Sesiones y contraseñas**: tope de dispositivos, cierre de sesiones al restablecer la contraseña y al desactivar a alguien, cambio obligatorio, y la regla que impide quedarse sin administrador activo.
+- **Respaldos**: se crean cifrados, se vuelven a leer, contienen las tablas y su poda respeta el tope; un archivo ajeno se rechaza.
+- **Verificación en dos pasos**: con la cuenta protegida, la contraseña correcta **no** abre sesión (devuelve un desafío y no crea ninguna); un código incorrecto no crea sesión y suma un intento fallido; el código correcto abre exactamente una y limpia los intentos; el secreto queda cifrado en la columna cruda; desactivarla exige un código vigente; y un administrador puede apagarla si alguien pierde el teléfono. Se comprobó también que una activación a medias (con la clave generada pero sin confirmar) no bloquea el acceso y se puede descartar.
+
+Los flujos que además se verificaron a mano contra una base real, antes de tener suite:
 
 - Webhook firmado → encolado → procesado por el worker → mensaje guardado → llega en vivo al navegador.
 - Rechazo de firma inválida, de origen ajeno y de payload sin firma.
@@ -238,8 +251,9 @@ Además de las pruebas unitarias, los flujos críticos se verificaron de punta a
 | Una sola instancia | Si el servicio se reinicia, la bandeja se reconecta sola | Railway reinicia el servicio automáticamente |
 | Pérdida de `ENCRYPTION_KEY` | Los campos cifrados (teléfonos, mensajes, notas, bitácora) y los tokens de Meta quedan ilegibles | Guardarla en un lugar seguro además de las variables, y respaldarla junto con la base |
 | Búsqueda por teléfono parcial | Escribir parte del número ya no encuentra contactos | La pantalla de Contactos lo recuerda: se busca por el número completo o por nombre |
+| Se pierde el teléfono con la verificación en dos pasos | Esa persona no puede entrar con su contraseña | Un administrador la desactiva desde Equipo y vuelve a entrar con su contraseña; el rescate queda en la bitácora. Conviene activarla también en el teléfono de respaldo |
 | Un solo administrador | Si esa persona falta, la instalación queda sin quien la administre | Crear un segundo administrador desde Equipo; la regla impide quedarse en cero, pero no obliga a tener dos. La recuperación desde el servidor existe (`npm run admin:reset-password`) |
-| Falta de respaldos automáticos | Un borrado accidental o una corrupción se vuelve pérdida definitiva | Descarga manual desde el panel; conviene activar los respaldos del proveedor y probar una restauración |
+| Respaldos en el mismo servidor | Si se pierde el Volume (o el proyecto completo), se van la base y sus copias | Hay copia automática cada 24 h, verificada y con retención de 7; conviene descargar una a un lugar externo de vez en cuando y activar también los respaldos del proveedor |
 | Adjuntos sin Volume | Los archivos enviados se pierden en cada deploy | Configurar `MEDIA_STORAGE_DIR` apuntando a un Volume y verificarlo en el checklist de alta |
 | Cupo de peticiones compartido | Varios agentes en la misma oficina pueden recibir 429 | Subir el tope o limitar por usuario cuando haya equipo; hoy el acuerdo es operativo |
 
@@ -251,26 +265,25 @@ El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 
 **Antes de vender o crecer.**
 
-1. **Respaldos automáticos y una restauración probada.** Es lo único que evita que un incidente se vuelva pérdida definitiva; hoy la descarga es manual y nadie la ejecuta sola.
-2. **Suite de integración automatizada** con una base de datos en CI, para que la verificación de los flujos críticos deje de depender de scripts manuales.
-3. **Decidir si los ajustes inertes del workspace** (horarios, modo de asignación, máximo de conversaciones) se implementan o se quitan de la base.
+1. **Sacar el respaldo del servidor**: hay copia automática verificada, pero vive en el mismo Volume que la base. Nadie la mueve a un lugar externo sola.
 
 **Proteger la operación.**
 
-4. **Cifrar los nombres de contacto y los correos**, que hoy quedan en claro porque la búsqueda por texto y el inicio de sesión dependen de ellos. Al cifrarlos, la búsqueda pasa a coincidencia exacta con índice ciego.
-5. **Registro formal del opt-in**: quién lo dio, cuándo y por qué canal, en lugar de una sola fecha.
-6. **Autenticación de dos factores** para el admin.
+2. **Cifrar los nombres de contacto y los correos**, que hoy quedan en claro porque la búsqueda por texto y el inicio de sesión dependen de ellos. Al cifrarlos, la búsqueda pasa a coincidencia exacta con índice ciego.
+3. **Registro formal del opt-in**: quién lo dio, cuándo y por qué canal, en lugar de una sola fecha.
 
 **Mejorar el día a día de la bandeja.**
 
-7. **Botones y listas**: enviarlos e interpretar la respuesta del cliente.
-8. **Programar campañas** por fecha y hora.
-9. **Variables en encabezado y botones** de la plantilla.
+4. **Botones y listas**: enviarlos e interpretar la respuesta del cliente.
+5. **Programar campañas** por fecha y hora.
+6. **Variables en encabezado y botones** de la plantilla.
 
 **Cuando el equipo crezca.**
 
-10. **Asignar números a agentes** y **repartir campañas entre números** (ver [`multinumero.md`](multinumero.md)).
-11. **No leídos por persona**, si el equipo crece y molesta que el aviso sea por conversación.
+7. **Asignar números a agentes** y **repartir campañas entre números** (ver [`multinumero.md`](multinumero.md)).
+8. **No leídos por persona**, si el equipo crece y molesta que el aviso sea por conversación.
+
+> La verificación en dos pasos salió de esta lista el 2026-10-15: ya está en el producto.
 
 ---
 
@@ -291,6 +304,7 @@ npm run db:encrypt-data
 En el panel:
 
 - **Admin → Sistema**: checklist de configuración y tarjetas de seguridad (cifrado en reposo, firma, cola, alertas, retención). La tarjeta de cifrado dice cuántos registros quedaron en claro de antes del cifrado, si los hay.
+- **Mi cuenta → Seguridad**: activar o desactivar la verificación en dos pasos de la propia cuenta (la tarjeta de Sistema dice cuántas cuentas y cuántos administradores la tienen puesta).
 - **Admin → WhatsApp**: credenciales de la cuenta, números con su calidad, y cifrado.
 - **Admin → Agentes**: permiso de envío manual, tope diario y cuántos mensajes manuales lleva cada agente hoy.
 - **Admin → Contactos**: consentimiento y bajas (filtro "Solo bajas").

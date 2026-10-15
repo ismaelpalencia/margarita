@@ -353,6 +353,8 @@ Si todavía no la tienes, la app funciona y guarda todo en texto plano; el panel
 | `npm run db:migrate` | Crea y aplica una migración de desarrollo |
 | `npm run db:migrate-deploy` | Aplica las migraciones resolviendo solo el estado de la base (idempotente) |
 | `npm test` | Corre los tests unitarios con el runner de Node |
+| `npm run test:integration` | Levanta la app y corre las pruebas de integración contra una base real (crea y borra su propia empresa de prueba) |
+| `npm run typecheck:all` | Verifica tipos incluyendo las pruebas de integración |
 | `npm run db:encrypt-secrets` | Cifra las credenciales de Meta que siguen en texto plano |
 | `npm run db:generate` | Regenera el cliente de Prisma |
 | `npm run db:seed` | Carga datos iniciales |
@@ -368,11 +370,25 @@ Si todavía no la tienes, la app funciona y guarda todo en texto plano; el panel
 
 ### Integración continua
 
-`.github/workflows/ci.yml` corre en cada push a `main` y en cada pull request: valida el esquema de Prisma, genera el cliente, verifica tipos, corre los tests y hace el build completo.
+`.github/workflows/ci.yml` corre en cada push a `main` y en cada pull request, en dos trabajos:
+
+| Trabajo | Qué hace |
+| --- | --- |
+| **Tipos, tests y build** | Valida el esquema de Prisma, genera el cliente, verifica tipos, corre las pruebas unitarias y hace el build completo. No necesita base de datos. |
+| **Integración** | Levanta un **PostgreSQL 16** como servicio, aplica las migraciones, verifica tipos (incluidas las pruebas), compila y corre la suite de integración contra esa base desechable. |
+
+La suite de integración es la red que faltaba: prueba contra una base de verdad el webhook firmado de punta a punta (firma → cola → worker → mensaje guardado), el cifrado en reposo (escribe por la aplicación, mira la columna cruda), las campañas con variables y exclusiones, los resultados de gestión, las sesiones y los respaldos. Cada archivo crea su propia empresa de prueba y la borra al terminar, así que también se puede correr en local contra una base de desarrollo sin tocar los datos reales:
+
+```bash
+npm run build                 # el runner levanta dist/server.js
+npm run test:integration      # con DATABASE_URL disponible
+```
+
+Dos pruebas necesitan una base **vacía** (el alta desde cero y la restauración de un respaldo) y solo corren con `INTEGRATION_DESTRUCTIVE=1`, que es lo que hace CI. En local se saltan a propósito.
 
 No hace falta configurar ningún secreto en GitHub: los pasos que usan Prisma (`validate` y `generate`) no se conectan a una base de datos, y `prisma.config.ts` usa un `DATABASE_URL` de relleno cuando la variable no existe. Eso mismo es lo que permite que el build de Railway funcione antes de tener la base configurada.
 
-Si algún día agregas tests que sí necesiten base de datos, el workflow tendría que levantar un servicio de PostgreSQL con `services:` y apuntar `DATABASE_URL` a él.
+El trabajo de integración sí necesita la base: se declara con `services:` y su `DATABASE_URL` apunta al contenedor de PostgreSQL.
 
 ---
 
@@ -466,7 +482,7 @@ Definición completa en [`prisma/schema.prisma`](prisma/schema.prisma) y explica
 | Entidad | Propósito |
 | --- | --- |
 | `Workspace` | La empresa dueña de la instalación (una por despliegue en V1) |
-| `WorkspaceSettings` | Zona horaria, horario, modo de asignación, límites y mensaje fuera de horario |
+| `WorkspaceSettings` | Zona horaria y tope diario de mensajes manuales (lo único que la app aplica; ver `base-datos.md`) |
 | `User` | Admin y agentes, con rol, estado operativo y límites de mensajes |
 | `UserSession` | Sesiones revocables asociadas a cada JWT |
 | `WhatsAppAccount` | Credenciales y estado de la cuenta de WhatsApp Cloud API |
@@ -529,6 +545,7 @@ El cliente vive en `src/public/js/live.js` y se activa con atributos en `<body>`
 ## 12. Seguridad
 
 - **Autenticación**: JWT en cookie `httpOnly`, con registro en `UserSession` para poder revocar sesiones. La cookie usa `secure` en producción y `sameSite=lax`.
+- **Verificación en dos pasos (TOTP)**: opcional por cuenta y se activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación. Está implementada con `node:crypto` (RFC 6238), sin dependencias nuevas. El secreto se guarda cifrado y la activación no se completa hasta confirmar un código. La contraseña correcta ya no abre sesión por sí sola: devuelve un desafío firmado de 5 minutos y los códigos fallidos cuentan como intentos fallidos (bloquean la cuenta igual que una contraseña mal escrita). Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo, con constancia en la bitácora.
 - **Autorización**: `authMiddleware` en todas las rutas privadas y `requireRole` separando `ADMIN` de `AGENT`. Un agente solo puede ver y responder sus conversaciones asignadas; esa restricción se aplica también en la consulta a base de datos.
 - **Contraseñas**: hash con bcrypt (12 rondas). Política mínima de 10 caracteres con letras y números, y lista negra de contraseñas obvias al crear o editar agentes.
 - **Bloqueo por fuerza bruta**: el login tiene su propio límite (10 peticiones por 15 minutos por IP) y, a nivel de cuenta, se bloquea `LOGIN_LOCK_MINUTES` minutos tras `LOGIN_MAX_ATTEMPTS` intentos fallidos. Cada intento fallido, cada bloqueo y cada acceso correcto quedan en la bitácora.
@@ -582,7 +599,7 @@ El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 193 pruebas unitarias en verde y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas, **restauración de un respaldo probada borrando datos a propósito** y **alta de una instalación vacía recorriendo el asistente como un cliente nuevo**.
+Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay **201 pruebas unitarias** y **39 de integración** contra PostgreSQL (estas últimas corren en CI con una base desechable), y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, verificación en dos pasos (desafío sin sesión, código válido y rescate por administrador), cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas, **restauración de un respaldo probada borrando datos a propósito** y **alta de una instalación vacía recorriendo el asistente como un cliente nuevo**.
 
 Lo que se cerró en el sprint de endurecimiento:
 
@@ -597,6 +614,7 @@ Lo que se cerró en el sprint de endurecimiento:
 - Respuestas rápidas, contador de no leídos y filtros y búsqueda en la bandeja.
 - Resultados de gestión (promesas, pagos, incumplidas, sin contestación) con historial, marcado en bloque y reportes exportables.
 - Bloqueo de cuenta por intentos fallidos y límite propio en el login.
+- Verificación en dos pasos (TOTP) opcional por cuenta, con el secreto cifrado y desactivación auditada desde el panel de Equipo.
 - Protección CSRF por origen y política mínima de contraseñas.
 - Retención automática de bitácora y eventos, con redacción de credenciales.
 - `/health` con estado real de base, cola y worker, y alertas externas opcionales.

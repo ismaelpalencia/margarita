@@ -33,6 +33,36 @@ export function verifyAuthToken(token: string): JwtPayloadData {
     };
 }
 
+/**
+ * Token temporal del segundo paso del acceso.
+ *
+ * Cuando la cuenta tiene verificación en dos pasos, la contraseña correcta
+ * **no** abre sesión: se entrega este token (5 minutos) y la sesión se crea
+ * solo cuando el código es válido. Va firmado con el mismo secreto y lleva su
+ * propio propósito, así que no sirve como cookie de sesión.
+ */
+export function signTwoFactorChallenge(userId: string): string {
+    return jwt.sign(
+        { sub: userId, purpose: "2fa" },
+        appConfig.jwtSecret,
+        { expiresIn: "5m" }
+    );
+}
+
+export function verifyTwoFactorChallenge(token: string): string {
+    const decoded = jwt.verify(token, appConfig.jwtSecret);
+
+    if (
+        typeof decoded === "string" ||
+        decoded.purpose !== "2fa" ||
+        !decoded.sub
+    ) {
+        throw new Error("El desafío de verificación no es válido.");
+    }
+
+    return String(decoded.sub);
+}
+
 export function userToAuthUser(user: {
     id: string;
     workspaceId: string;

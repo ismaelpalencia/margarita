@@ -251,6 +251,30 @@
                     </p>
                 </div>
 
+                <%
+                    const twoFactor = status.hardening.twoFactor;
+                    const adminsCovered =
+                        twoFactor.admins > 0 && twoFactor.adminsEnabled === twoFactor.admins;
+                %>
+                <div class="rounded-xl p-4 ring-1 <%= twoFactor.enabled > 0 ? 'bg-emerald-50 ring-emerald-200' : 'bg-amber-50 ring-amber-200' %>">
+                    <p class="text-sm font-bold <%= twoFactor.enabled > 0 ? 'text-emerald-800' : 'text-amber-800' %>">
+                        Verificación en dos pasos
+                    </p>
+                    <p class="mt-1 text-xs <%= twoFactor.enabled > 0 ? 'text-emerald-700' : 'text-amber-700' %>">
+                        <% if (twoFactor.enabled === 0) { %>
+                            Ninguna cuenta la usa todavía. Se activa desde
+                            <a href="/account/security" class="font-semibold underline">Mi cuenta → Seguridad</a>.
+                        <% } else if (adminsCovered) { %>
+                            <%= twoFactor.enabled %> cuenta(s) la usan y
+                            todos los administradores están cubiertos.
+                        <% } else { %>
+                            <%= twoFactor.enabled %> cuenta(s) la usan, pero solo
+                            <%= twoFactor.adminsEnabled %> de <%= twoFactor.admins %>
+                            administrador(es) la tienen activada.
+                        <% } %>
+                    </p>
+                </div>
+
                 <div class="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
                     <p class="text-sm font-bold text-slate-700">
                         Retención de datos

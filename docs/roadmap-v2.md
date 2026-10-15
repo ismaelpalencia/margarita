@@ -333,6 +333,72 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ---
 
+## Sprint 48 — Suite de integración automatizada
+
+**Estado: completado.** Era la deuda técnica de mayor impacto: la verificación de los flujos críticos dependía de scripts que yo escribía, corría y borraba.
+
+| Área | Qué se hizo |
+| --- | --- |
+| Suite propia | `npm run test:integration`: un runner levanta la aplicación compilada en un puerto aparte (varias pruebas hablan por HTTP: la firma del webhook solo se verifica de punta a punta con el endpoint arriba), corre los archivos `tests/integration/*.test.ts` y apaga la app al terminar. |
+| Aislamiento | Cada archivo crea **su propia empresa de prueba** y la borra al final. Como todo el modelo cuelga del workspace, el borrado se lleva contactos, conversaciones, mensajes, campañas y usuarios. Con un candado extra: la limpieza verifica el prefijo del workspace antes de borrar, así un error de programación no puede tocar una instalación real. |
+| Pruebas destructivas | El alta desde cero y la restauración de un respaldo necesitan una base vacía: se saltan solas en local y solo corren con `INTEGRATION_DESTRUCTIVE=1`, que es lo que usa CI. |
+| CI | Trabajo nuevo `Integración` con PostgreSQL 16 como servicio: aplica las migraciones, verifica tipos (incluidas las pruebas, vía `tsconfig.test.json`), compila y corre la suite. El trabajo original sigue sin base de datos y rápido. |
+| Cobertura | 30 pruebas: webhook firmado → cola → worker → mensaje guardado (incluida idempotencia por `wamid` y rechazo sin firma), baja automática por `STOP`, cifrado en reposo comprobado en la columna cruda, campañas con variables y exclusiones, resultados de gestión con promesa vencida y pagos, intentos, sesiones, contraseñas, reglas del último administrador y respaldos. |
+| Refactor mínimo | El worker de webhooks exporta `runWebhookWorkerOnce()` para poder procesar la cola de forma determinista en las pruebas, sin esperar a un intervalo. |
+
+### Verificación
+
+- En local contra la base de desarrollo: **28 pruebas en verde y 2 saltadas correctamente** (las destructivas), sin tocar los datos reales (la empresa de prueba se creó y se borró).
+- `npm run typecheck:all` cubre también los archivos de prueba.
+- En esa primera corrida la suite encontró un fallo mío real (una prueba de poda que asumía el tope por defecto) y sirvió para ajustar el aviso de configuración de los procesos de prueba.
+
+---
+
+## Sprint 49 — Verificación en dos pasos y limpieza de ajustes inertes
+
+**Estado: completado.**
+
+Objetivo doble: quitar de la base lo que prometía funciones que no existían, y cerrar el pendiente de seguridad más grande que quedaba en el alcance de producción (era el punto 3 del «qué sigue»).
+
+### Limpieza: ajustes inertes
+
+`WorkspaceSettings` guardaba ocho columnas que **ningún código leía**: `autoAssign`, `assignmentMode` (dos enums completos), `businessHoursStart/End`, `outOfHoursMessage`, `maxActiveConversations`, `reopenedConversationMode` y `language`. Un administrador podía cambiarlas y no pasaba nada: la peor forma de mentir en un panel.
+
+Se verificó campo por campo que nadie las usaba y se quitaron del esquema y de la base (migración `20261015020000_quitar_ajustes_inertes`). Quedaron solo `timezone` (fechas, topes diarios, reportes) y `maxManualMessages`. En su lugar, el panel documenta la verdad: no hay horarios de atención, la asignación automática es siempre al agente disponible con menos carga y la interfaz es solo en español.
+
+### Verificación en dos pasos (TOTP)
+
+| Área | Qué se hizo |
+| --- | --- |
+| Implementación | TOTP (RFC 6238) hecho a mano con `node:crypto`: ~40 líneas que evitan sumar una dependencia al despliegue. Se respeta el estándar, así que funciona con Google Authenticator, Authy o Microsoft Authenticator. Verificado contra los vectores del RFC en 8 pruebas unitarias. |
+| Secreto cifrado | `User.twoFactorSecret` se guarda con AES-256-GCM por la extensión de cifrado en reposo: un volcado de la base no entrega la clave de nadie. Con índice ciego no hacía falta: nunca se busca por el secreto. |
+| Activación en dos pasos | Primero se genera la clave y se muestra; la verificación **no** queda activa hasta confirmar un código. Así nadie se queda fuera por escanear mal, cerrar la pantalla o perder la señal. Una activación a medias se puede descartar. |
+| Acceso | La contraseña correcta ya no abre sesión: devuelve un desafío firmado (JWT con `purpose: "2fa"`, 5 minutos) y la sesión se crea solo con el código válido. Los códigos fallidos **cuentan igual que una contraseña fallida**: bloquean la cuenta tras el mismo número de intentos. Sin eso, seis dígitos serían adivinables con paciencia. |
+| Ventana | Se acepta un paso de 30 s antes y uno después, por relojes desfasados. |
+| Recuperación | Si alguien pierde el teléfono, un administrador la desactiva desde Equipo; el rescate queda en la bitácora con quién lo hizo, así que no es una forma silenciosa de entrar a una cuenta. Desactivarla la propia exige un código vigente: con una sesión ajena no basta. |
+| Panel | **Mi cuenta → Seguridad** es la pantalla de la persona (activar, confirmar, desactivar). En **Sistema** hay una tarjeta que dice cuántas cuentas la usan y cuántos administradores están cubiertos. |
+| Rutas | `GET /account/security`, `POST /account/security/two-factor/{start,confirm,disable,cancel}`, `POST /auth/login/2fa` (con el mismo límite de intentos del login) y `POST /admin/users/:id/two-factor/disable`. |
+
+### Pruebas
+
+Nueve pruebas de integración nuevas contra PostgreSQL, además de las ocho unitarias del cálculo TOTP:
+
+- Con la cuenta protegida, la contraseña correcta devuelve el desafío y **no** crea ninguna sesión.
+- Un código incorrecto no crea sesión y suma un intento fallido.
+- El código correcto abre exactamente una sesión y limpia intentos y bloqueo.
+- El secreto queda cifrado en la columna cruda (se comprueba con un cliente sin cifrado).
+- Desactivarla exige un código vigente; con uno inválido no se apaga.
+- Un administrador puede apagarla si alguien pierde el teléfono.
+- Una activación a medias no bloquea el acceso y se puede descartar.
+- Por HTTP, la pantalla de seguridad exige sesión (redirige al login) y el recorrido completo funciona: activar, mostrar la clave, rechazar un código incorrecto con su motivo y aceptar el correcto.
+- Por HTTP, con la cuenta protegida la contraseña correcta devuelve el formulario del código y **no** deja cookie de sesión.
+
+### Documentación
+
+Se actualizó `docs/alcance-produccion.md`: la verificación en dos pasos entró en «lo que puede hacer hoy», en los controles de seguridad y en «qué sigue» ya no aparece como pendiente. El punto que decía «no hay autenticación de dos factores» se reescribió con la verdad de hoy: **es opcional por cuenta** y nadie puede obligarla desde el panel.
+
+---
+
 ## Backlog del Sprint 35 (interactivos)
 
 | Función | Detalle |

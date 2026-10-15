@@ -32,6 +32,32 @@ router.get("/como-empezar", HomeController.howToStart);
  */
 router.get("/account/password", authMiddleware, AccountController.show);
 router.post("/account/password", authMiddleware, AccountController.change);
+/**
+ * Verificación en dos pasos: la misma pantalla para administradores y
+ * agentes. La activación lleva dos pasos (generar la clave y confirmar un
+ * código) para que nadie se quede fuera por escanear mal.
+ */
+router.get("/account/security", authMiddleware, AccountController.showSecurity);
+router.post(
+    "/account/security/two-factor/start",
+    authMiddleware,
+    AccountController.startTwoFactor
+);
+router.post(
+    "/account/security/two-factor/confirm",
+    authMiddleware,
+    AccountController.confirmTwoFactor
+);
+router.post(
+    "/account/security/two-factor/disable",
+    authMiddleware,
+    AccountController.disableTwoFactor
+);
+router.post(
+    "/account/security/two-factor/cancel",
+    authMiddleware,
+    AccountController.cancelTwoFactor
+);
 router.get("/aviso-de-privacidad", HomeController.privacy);
 router.get("/setup", SetupController.show);
 router.post("/setup", SetupController.submit);

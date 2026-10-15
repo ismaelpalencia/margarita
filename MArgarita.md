@@ -6,7 +6,7 @@
 
 ## Estado
 
-**Alcance congelado para MVP**
+**V1 construida.** Este documento es el origen del producto: describe el alcance con el que se diseñó y usa el tiempo futuro porque así se escribió. **Lo que la herramienta hace hoy, con sus límites reales, está en [`docs/alcance-produccion.md`](docs/alcance-produccion.md)**, que es el documento que se actualiza en cada sprint.
 
 ---
 
@@ -92,11 +92,10 @@ Margarita V1 permitirá:
 * Recibir webhooks de mensajes y estados.
 * Actualizar estados de mensajes: enviado, entregado, leído o fallido.
 * Crear conversaciones a partir de mensajes entrantes.
-* Asignar conversaciones de forma manual o inteligente.
+* Asignar conversaciones automáticamente al agente disponible con menos carga, con reasignación manual del Admin.
 * Mostrar conversaciones asignadas a agentes.
 * Permitir que el administrador vea todas las conversaciones.
 * Permitir que el administrador tome o reasigne conversaciones.
-* Enviar respuesta automática cuando no haya agentes disponibles.
 * Mostrar monitoreo básico de mensajes, campañas, errores y eventos de Meta.
 * Usar Socket.IO para eventos en tiempo real.
 * Desplegar una instalación independiente por cliente en Railway.
@@ -309,19 +308,19 @@ Esta decisión mantiene el sistema ordenado y prepara el camino para una posible
 
 # 10. Configuración operativa
 
-Cada Workspace tendrá configuración propia.
+Cada Workspace tiene configuración propia, pero **solo de lo que la
+herramienta aplica de verdad**:
 
-La configuración incluirá:
-
-* Zona horaria.
-* Idioma.
-* Asignación automática activada o desactivada.
-* Modo de asignación.
-* Horario laboral.
-* Mensaje automático cuando no haya agentes disponibles.
+* Zona horaria (fechas de la bitácora, topes diarios y reportes).
 * Límite global de mensajes manuales por agente.
-* Máximo de conversaciones activas por agente.
-* Comportamiento cuando un cliente vuelve después de cerrar conversación.
+
+> **Actualización 2026-10-15.** Esta sección prometía además idioma,
+> activación y modo de asignación, horario laboral, mensaje fuera de horario,
+> máximo de conversaciones activas y comportamiento al reabrir. Ningún código
+> los leía y no había pantalla para editarlos, así que se quitaron de la base
+> (`20261015020000_quitar_ajustes_inertes`). La asignación automática es
+> siempre al agente disponible con menos carga y la interfaz está solo en
+> español.
 
 La zona horaria por defecto será:
 
@@ -694,34 +693,19 @@ En V1 no se asigna automáticamente al último agente.
 
 # 18. Asignación de conversaciones
 
-Margarita V1 tendrá dos modos principales:
+**Así quedó implementado:** Margarita asigna siempre por carga, al agente disponible con menos conversaciones activas. No hay modos configurables: los ajustes `assignmentMode`, `autoAssign` y `reopenedConversationMode` existieron en la base sin que ningún código los leyera y se quitaron el 2026-10-15, para que la base no prometa lo que la herramienta no hace.
 
 ```text
-MANUAL
 LEAST_BUSY
 ```
 
-`ROUND_ROBIN` puede quedar preparado para futuro, pero no será obligatorio en el primer MVP.
+`MANUAL` y `ROUND_ROBIN` no existen: el reparto manual es el Admin tomando la conversación y asignándola, y eso ya está cubierto por la reasignación.
 
 ---
 
-## 18.1 Asignación manual
+## 18.1 Asignación automática (por carga)
 
-En modo manual, Margarita no asigna conversaciones automáticamente.
-
-Las conversaciones nuevas quedan como:
-
-```text
-UNASSIGNED
-```
-
-El Admin las revisa y asigna a un agente.
-
----
-
-## 18.2 Asignación inteligente
-
-En modo `LEAST_BUSY`, Margarita busca agentes:
+Cuando entra un mensaje, Margarita busca agentes:
 
 ```text
 role = AGENT
@@ -729,25 +713,23 @@ isActive = true
 status = AVAILABLE
 ```
 
-Después cuenta las conversaciones activas de cada agente y asigna la nueva conversación al agente con menor carga.
+Cuenta las conversaciones activas de cada uno y asigna la nueva al de menor carga.
 
 ---
 
-## 18.3 Sin agentes disponibles
+## 18.2 Sin agentes disponibles
 
 Si no hay agentes disponibles:
 
 * Se guarda el mensaje.
 * La conversación queda sin asignar.
-* Se envía respuesta automática.
-* Se notifica al Admin.
 * Se guarda log.
 
-El texto de respuesta automática viene de `WorkspaceSettings`.
+Margarita **no responde sola**: la conversación sin asignar aparece en el panel del Admin, que la reparte. No hay respuesta automática ni texto fuera de horario (ese ajuste nunca se implementó y se quitó de la base).
 
 ---
 
-## 18.4 Reasignación
+## 18.3 Reasignación
 
 El Admin puede reasignar una conversación de un agente a otro.
 

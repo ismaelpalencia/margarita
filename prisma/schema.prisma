@@ -11,18 +11,6 @@ enum WorkspaceStatus {
   SUSPENDED
 }
 
-enum AssignmentMode {
-  MANUAL
-  LEAST_BUSY
-  ROUND_ROBIN
-}
-
-enum ReopenedConversationMode {
-  ADMIN_INBOX
-  LAST_AGENT
-  AUTO_ASSIGN
-}
-
 enum UserRole {
   ADMIN
   AGENT
@@ -185,21 +173,25 @@ model WorkspaceSettings {
   workspaceId String   @unique
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  timezone     String @default("America/Mexico_City")
-  language     String @default("es_MX")
-  autoAssign   Boolean @default(true)
+  /**
+   * Solo lo que la aplicación realmente usa.
+   *
+   * Antes esta tabla prometía horarios de atención, mensaje fuera de horario,
+   * modo de asignación, idioma y límites de conversaciones activas: ningún
+   * código los leía y no había pantalla para editarlos. Se quitaron para que
+   * la base no prometa lo que la herramienta no hace.
+   *
+   * - `timezone`: fechas de la bitácora, topes diarios y reportes.
+   * - `maxManualMessages`: tope diario de mensajes manuales por agente,
+   *   cuando el agente no tiene uno propio.
+   *
+   * La asignación automática es siempre por carga (`LEAST_BUSY`): es la única
+   * implementada, así que no hay nada que configurar.
+   */
+  timezone String @default("America/Mexico_City")
 
-  assignmentMode AssignmentMode @default(LEAST_BUSY)
-
-  businessHoursStart String @default("08:00")
-  businessHoursEnd   String @default("18:00")
-
-  outOfHoursMessage String @default("Por el momento no hay agentes disponibles. Te contactaremos en cuanto sea posible.")
-
-  maxManualMessages      Int @default(100)
-  maxActiveConversations Int @default(20)
-
-  reopenedConversationMode ReopenedConversationMode @default(ADMIN_INBOX)
+  /** Tope diario de mensajes manuales por agente (ver arriba). */
+  maxManualMessages Int @default(100)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -225,6 +217,15 @@ model User {
    * sistema solo deja cambiar la contraseña.
    */
   mustChangePassword Boolean @default(false)
+
+  /**
+   * Verificación en dos pasos (TOTP). El secreto se guarda **cifrado**,
+   * como cualquier credencial; `twoFactorEnabledAt` queda vacío mientras
+   * nadie haya confirmado un código, así que un secreto a medias no bloquea
+   * el acceso.
+   */
+  twoFactorSecret    String?
+  twoFactorEnabledAt DateTime?
 
   canSendManualMessages Boolean @default(false)
   manualMessageLimit    Int?

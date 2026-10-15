@@ -381,6 +381,17 @@ async function tick() {
     }
 }
 
+/**
+ * Procesa la cola una sola vez, como lo haría un ciclo del worker.
+ *
+ * Sirve para las pruebas de integración: permiten verificar el camino
+ * completo (endpoint → cola → worker → mensaje guardado) sin depender de
+ * esperar a que corra un intervalo.
+ */
+export async function runWebhookWorkerOnce(): Promise<void> {
+    await tick();
+}
+
 export function startWebhookWorker() {
     if (!appConfig.webhookQueueEnabled) {
         logger.warn(

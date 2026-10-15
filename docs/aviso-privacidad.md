@@ -66,7 +66,9 @@ Tus datos **no se venden ni se ceden** a terceros con fines propios. Se comparte
 | Proveedor de avisos técnicos (opcional) | Mensajes de error del sistema, que pueden incluir un fragmento de datos | Avisar a nuestro equipo cuando algo falla |
 
 Las conversaciones se revisan únicamente por el personal de la empresa encargado
-de atenderte, y el acceso está restringido por usuario y contraseña.
+de atenderte, y el acceso está restringido por usuario y contraseña. Ese personal
+puede añadir además un segundo factor de seguridad: un código temporal que genera
+su teléfono al iniciar sesión.
 
 ## 5. Cuánto tiempo conservamos los datos
 
@@ -83,7 +85,9 @@ Cuando ya no sean necesarios, los datos se eliminan o se anonimizan.
 ## 6. Cómo protegemos tus datos
 
 - El acceso está restringido: cada persona de nuestro equipo entra con su propio
-  usuario y contraseña, y solo ve las conversaciones que le corresponden.
+  usuario y contraseña, y solo ve las conversaciones que le corresponden. La
+  verificación en dos pasos (un código temporal del teléfono) es opcional y se
+  puede activar por cuenta.
 - Los datos de la conversación se guardan cifrados en la base de datos: el
   número de teléfono, el contenido de los mensajes, los nombres de archivo, las
   notas internas y la bitácora de operación. El cifrado es AES-256-GCM y la

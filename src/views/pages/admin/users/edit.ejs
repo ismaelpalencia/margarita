@@ -29,6 +29,13 @@
             </div>
         <% } %>
 
+        <% if (success === "two-factor") { %>
+            <div class="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                Se desactivó la verificación en dos pasos. Quedó registrado en la
+                bitácora.
+            </div>
+        <% } %>
+
         <% if (error) { %>
             <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
                 <%= error %>
@@ -114,6 +121,48 @@
                     Guardar cambios
                 </button>
             </form>
+        </section>
+
+        <section class="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <h2 class="text-lg font-bold text-slate-900">
+                    Verificación en dos pasos
+                </h2>
+
+                <span class="rounded-full px-3 py-1 text-xs font-bold <%= member.twoFactorEnabledAt ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600' %>">
+                    <%= member.twoFactorEnabledAt ? "Activada" : "No activada" %>
+                </span>
+            </div>
+
+            <% if (member.twoFactorEnabledAt) { %>
+                <p class="mt-2 text-sm text-slate-600">
+                    Esta cuenta pide un código de su teléfono al entrar. Desactívala solo
+                    si perdió el teléfono o cambió de dispositivo: hasta que vuelva a
+                    configurarla, entrará solo con su contraseña.
+                </p>
+
+                <form
+                    action="/admin/users/<%= member.id %>/two-factor/disable"
+                    method="POST"
+                    class="mt-4"
+                    onsubmit="return confirm('¿Desactivar la verificación en dos pasos de <%= member.name %>? Quedará protegida solo por su contraseña.');"
+                >
+                    <button class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800 hover:bg-amber-100">
+                        Desactivar por pérdida del teléfono
+                    </button>
+                </form>
+
+                <p class="mt-2 text-xs text-slate-500">
+                    Queda en la bitácora con tu nombre: no es una forma silenciosa de
+                    entrar a una cuenta.
+                </p>
+            <% } else { %>
+                <p class="mt-2 text-sm text-slate-600">
+                    Todavía no la activa. Lo hace desde su propia sesión, en
+                    <strong>Mi cuenta → Verificación en dos pasos</strong>: el secreto
+                    tiene que quedar en su teléfono, no en manos de terceros.
+                </p>
+            <% } %>
         </section>
 
         <section class="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">

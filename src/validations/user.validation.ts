@@ -61,6 +61,23 @@ export const resetPasswordSchema = z.object({
     password: passwordSchema
 });
 
+/**
+ * Código de la verificación en dos pasos. Son seis dígitos: se limpian los
+ * espacios (las apps los muestran como "123 456") y se exige que queden
+ * exactamente seis números.
+ */
+export const twoFactorCodeSchema = z.object({
+    code: z
+        .string()
+        .trim()
+        .transform((value) => value.replace(/\s/g, ""))
+        .refine((value) => /^\d{6}$/.test(value), {
+            message: "El código son 6 dígitos."
+        })
+});
+
+export type TwoFactorCodeInput = z.infer<typeof twoFactorCodeSchema>;
+
 export const changePasswordSchema = z
     .object({
         currentPassword: z

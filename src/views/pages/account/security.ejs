@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seguridad de mi cuenta | Margarita</title>
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <%- include("../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <header class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+            <a href="/" class="inline-block">
+                <img src="/brand/img/margarita-wordmark-256.png" alt="Margarita" class="h-7 w-auto" />
+            </a>
+
+            <form action="/auth/logout" method="POST">
+                <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
+                    Cerrar sesión
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-3xl px-4 py-8">
+        <section class="mb-6">
+            <h1 class="text-2xl font-bold text-slate-900">Seguridad de mi cuenta</h1>
+
+            <p class="mt-1 text-slate-500">
+                <%= authUser.name %> · <%= authUser.email %>
+            </p>
+        </section>
+
+        <% if (success === "enabled") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 ring-1 ring-emerald-100">
+                <strong>Verificación en dos pasos activada.</strong>
+                A partir de tu próximo inicio de sesión te pedirá el código de tu teléfono.
+            </div>
+        <% } else if (success === "disabled") { %>
+            <div class="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-100">
+                Se desactivó la verificación en dos pasos. Tu cuenta vuelve a entrar solo con contraseña.
+            </div>
+        <% } else if (success === "cancelled") { %>
+            <div class="mb-5 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700 ring-1 ring-slate-200">
+                Se descartó la activación que había quedado a medias.
+            </div>
+        <% } %>
+
+        <% if (error) { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                <%= error %>
+            </div>
+        <% } %>
+
+        <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">
+                        Verificación en dos pasos
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Además de tu contraseña, un código de 6 dígitos que genera tu
+                        teléfono. Es la diferencia entre «me filtraron la contraseña» y
+                        «me entraron a la cuenta».
+                    </p>
+                </div>
+
+                <span class="rounded-full px-3 py-1 text-xs font-bold <%= state.enabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600' %>">
+                    <%= state.enabled ? "Activada" : "No activada" %>
+                </span>
+            </div>
+
+            <% if (state.enabled) { %>
+                <div class="mt-5 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <p class="text-sm text-slate-600">
+                        Se pide un código cada vez que alguien entra con tu correo y
+                        contraseña. Si pierdes el teléfono, un administrador puede
+                        desactivarla desde <strong>Equipo</strong> y vuelves a entrar con
+                        tu contraseña.
+                    </p>
+                </div>
+
+                <form
+                    action="/account/security/two-factor/disable"
+                    method="POST"
+                    class="mt-5 space-y-3"
+                    onsubmit="return confirm('¿Desactivar la verificación en dos pasos? Tu cuenta quedará protegida solo por la contraseña.');"
+                >
+                    <label class="block text-sm font-medium text-slate-700">
+                        Escribe un código vigente para desactivarla
+                    </label>
+
+                    <div class="flex flex-wrap gap-3">
+                        <input
+                            name="code"
+                            inputmode="numeric"
+                            autocomplete="one-time-code"
+                            maxlength="7"
+                            required
+                            placeholder="123 456"
+                            class="w-40 rounded-xl border border-slate-300 px-4 py-3 text-center font-mono text-lg tracking-widest outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        />
+
+                        <button class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-red-100">
+                            Desactivar
+                        </button>
+                    </div>
+
+                    <p class="text-xs text-slate-500">
+                        Pedimos el código a propósito: con una sesión abierta ajena no
+                        basta para apagar la protección.
+                    </p>
+                </form>
+            <% } else if (state.pendingSecret) { %>
+                <div class="mt-5 space-y-5">
+                    <div class="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-100">
+                        Falta confirmar. Abre tu app de autenticación
+                        (Google Authenticator, Authy, Microsoft Authenticator) y agrega
+                        esta cuenta; después escribe aquí el código que te muestre.
+                    </div>
+
+                    <div>
+                        <p class="text-sm font-medium text-slate-700">
+                            Clave de configuración
+                        </p>
+
+                        <p class="mt-2 select-all break-all rounded-xl bg-slate-900 px-4 py-3 font-mono text-sm text-emerald-200">
+                            <%= formattedSecret %>
+                        </p>
+
+                        <p class="mt-2 text-xs text-slate-500">
+                            En la app elige «Ingresar clave de configuración» y pega esta
+                            clave. No lleva espacios al escribirla; los grupos son solo
+                            para leerla.
+                        </p>
+                    </div>
+
+                    <details class="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                        <summary class="cursor-pointer text-sm font-medium text-slate-700">
+                            Enlace para pegar a mano (si tu app lo acepta)
+                        </summary>
+
+                        <p class="mt-3 select-all break-all font-mono text-xs text-slate-600">
+                            <%= state.otpauthUrl %>
+                        </p>
+                    </details>
+
+                    <form action="/account/security/two-factor/confirm" method="POST" class="space-y-3">
+                        <label class="block text-sm font-medium text-slate-700">
+                            Código de 6 dígitos que muestra la app
+                        </label>
+
+                        <div class="flex flex-wrap gap-3">
+                            <input
+                                name="code"
+                                inputmode="numeric"
+                                autocomplete="one-time-code"
+                                maxlength="7"
+                                required
+                                autofocus
+                                placeholder="123 456"
+                                class="w-40 rounded-xl border border-slate-300 px-4 py-3 text-center font-mono text-lg tracking-widest outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                            />
+
+                            <button class="rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700">
+                                Confirmar y activar
+                            </button>
+                        </div>
+                    </form>
+
+                    <form action="/account/security/two-factor/cancel" method="POST">
+                        <button class="text-xs font-semibold text-slate-500 hover:underline">
+                            Descartar esta activación
+                        </button>
+                    </form>
+                </div>
+            <% } else { %>
+                <div class="mt-5 space-y-4">
+                    <ol class="list-decimal space-y-1 pl-5 text-sm text-slate-600">
+                        <li>Instala una app de autenticación en tu teléfono.</li>
+                        <li>Te mostraremos una clave para agregarla a la app.</li>
+                        <li>Escribes un código aquí y queda activada.</li>
+                    </ol>
+
+                    <form action="/account/security/two-factor/start" method="POST">
+                        <button class="rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700">
+                            Activar la verificación en dos pasos
+                        </button>
+                    </form>
+
+                    <p class="text-xs text-slate-500">
+                        Guarda bien el teléfono: si lo pierdes, un administrador de tu
+                        empresa puede desactivarla y volverás a entrar con tu contraseña.
+                    </p>
+                </div>
+            <% } %>
+        </section>
+
+        <p class="mt-4 text-xs text-slate-500">
+            ¿Quieres cambiar tu contraseña? Está en
+            <a href="/account/password" class="font-semibold text-emerald-700 hover:underline">Mi cuenta</a>.
+        </p>
+    </main>
+</body>
+</html>

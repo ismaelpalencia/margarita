@@ -38,3 +38,60 @@ jobs:
 
       - name: Build completo
         run: npm run build
+
+  integracion:
+    name: Integración (PostgreSQL real)
+    runs-on: ubuntu-latest
+
+    # Base de datos de verdad, desechable. Es lo que permite probar el camino
+    # completo: webhook firmado -> cola -> worker -> mensaje guardado, cifrado
+    # en reposo, campañas, resultados de gestión y sesiones.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: margarita
+          POSTGRES_PASSWORD: margarita
+          POSTGRES_DB: margarita
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://margarita:margarita@localhost:5432/margarita
+      ENCRYPTION_KEY: clave-de-integracion-para-ci-1234567890
+      JWT_SECRET: secreto-de-integracion-para-ci
+      META_APP_SECRET: 0123456789abcdef0123456789abcdef
+      NODE_ENV: production
+      # Las pruebas destructivas (alta desde cero y restauración de respaldo)
+      # necesitan una base vacía; en CI lo es.
+      INTEGRATION_DESTRUCTIVE: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm install --include=dev --no-audit --no-fund
+
+      - name: Aplicar migraciones en la base de pruebas
+        run: npx prisma migrate deploy
+
+      - name: Verificar tipos (incluidas las pruebas)
+        run: npm run typecheck:all
+
+      - name: Build
+        run: npm run build
+
+      - name: Pruebas de integración
+        run: npm run test:integration

@@ -135,6 +135,7 @@ const ENCRYPTED_FIELDS: Record<string, string[]> = {
     WebhookEvent: ["payload"],
     QuickReply: ["body"],
     ContactOutcome: ["note", "amount"],
+    User: ["twoFactorSecret"],
     WhatsAppNumber: ["phoneNumber"],
     WhatsAppAccount: ["accessToken", "verifyToken"]
 };
@@ -267,6 +268,14 @@ const WRITE_RULES: Record<string, WriteRule> = {
      */
     ContactOutcome(data) {
         encryptTextFields(data, ["note", "amount"]);
+    },
+
+    /**
+     * El secreto de la verificación en dos pasos es una credencial: con él se
+     * generan los códigos de esa persona. Se cifra como los tokens de Meta.
+     */
+    User(data) {
+        encryptTextFields(data, ["twoFactorSecret"]);
     },
 
     /**

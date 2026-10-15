@@ -7,8 +7,10 @@ import {
     changePasswordSchema,
     createUserSchema,
     resetPasswordSchema,
+    twoFactorCodeSchema,
     updateUserSchema
 } from "../validations/user.validation";
+import { formatSecretForHumans } from "../utils/totp";
 
 const EMPTY_FORM = {
     name: "",
@@ -206,6 +208,33 @@ export class AdminUsersController {
 
         return res.redirect(`/admin/users/${id}/edit?success=password`);
     }
+
+    /**
+     * Recuperación: apagar la verificación en dos pasos de alguien que
+     * perdió el teléfono. Queda en la bitácora con quién lo hizo, para que
+     * no sea una forma silenciosa de entrar a una cuenta.
+     */
+    static async disableTwoFactor(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+
+        try {
+            await UserService.disableTwoFactorAsAdmin(
+                req.user!.workspaceId,
+                id,
+                req.user!.id
+            );
+        } catch (error) {
+            return res.redirect(
+                `/admin/users/${id}/edit?error=${encodeURIComponent(
+                    error instanceof Error
+                        ? error.message
+                        : "No se pudo desactivar la verificación en dos pasos."
+                )}`
+            );
+        }
+
+        return res.redirect(`/admin/users/${id}/edit?success=two-factor`);
+    }
 }
 
 /**
@@ -221,6 +250,97 @@ export class AccountController {
             error: req.query.error || null,
             changed: req.query.changed === "1"
         });
+    }
+
+    /** Pantalla de seguridad: contraseña + verificación en dos pasos. */
+    static async showSecurity(req: Request, res: Response) {
+        const state = await UserService.twoFactorState(req.user!.id);
+
+        return res.render("pages/account/security", {
+            authUser: req.user!,
+            state,
+            formattedSecret: state.pendingSecret
+                ? formatSecretForHumans(state.pendingSecret)
+                : null,
+            error: req.query.error || null,
+            success: req.query.success || null
+        });
+    }
+
+    /** Genera la clave y muestra la pantalla para confirmarla. */
+    static async startTwoFactor(req: Request, res: Response) {
+        try {
+            await UserService.startTwoFactor(req.user!.id);
+        } catch (error) {
+            return res.redirect(
+                `/account/security?error=${encodeURIComponent(
+                    error instanceof Error
+                        ? error.message
+                        : "No se pudo iniciar la activación."
+                )}`
+            );
+        }
+
+        return res.redirect("/account/security");
+    }
+
+    static async confirmTwoFactor(req: Request, res: Response) {
+        const parsed = twoFactorCodeSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.redirect(
+                `/account/security?error=${encodeURIComponent(
+                    parsed.error.issues[0]?.message || "Código inválido."
+                )}`
+            );
+        }
+
+        try {
+            await UserService.confirmTwoFactor(req.user!.id, parsed.data.code);
+        } catch (error) {
+            return res.redirect(
+                `/account/security?error=${encodeURIComponent(
+                    error instanceof Error
+                        ? error.message
+                        : "No se pudo confirmar el código."
+                )}`
+            );
+        }
+
+        return res.redirect("/account/security?success=enabled");
+    }
+
+    static async disableTwoFactor(req: Request, res: Response) {
+        const parsed = twoFactorCodeSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.redirect(
+                `/account/security?error=${encodeURIComponent(
+                    parsed.error.issues[0]?.message || "Código inválido."
+                )}`
+            );
+        }
+
+        try {
+            await UserService.disableTwoFactor(req.user!.id, parsed.data.code);
+        } catch (error) {
+            return res.redirect(
+                `/account/security?error=${encodeURIComponent(
+                    error instanceof Error
+                        ? error.message
+                        : "No se pudo desactivar."
+                )}`
+            );
+        }
+
+        return res.redirect("/account/security?success=disabled");
+    }
+
+    /** Descartar una activación que nunca se confirmó. */
+    static async cancelTwoFactor(req: Request, res: Response) {
+        await UserService.cancelTwoFactor(req.user!.id);
+
+        return res.redirect("/account/security?success=cancelled");
     }
 
     static async change(req: Request, res: Response) {

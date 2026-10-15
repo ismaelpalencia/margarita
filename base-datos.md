@@ -165,70 +165,34 @@ Se separa de `Workspace` para evitar que la tabla principal crezca demasiado y p
 id
 workspaceId
 timezone
-language
-autoAssign
-assignmentMode
-businessHoursStart
-businessHoursEnd
-outOfHoursMessage
 maxManualMessages
-maxActiveConversations
-reopenedConversationMode
 createdAt
 updatedAt
 ```
 
 ## Campos detallados
 
-| Campo                      | Tipo lógico | Descripción                                             |
-| -------------------------- | ----------- | ------------------------------------------------------- |
-| `id`                       | String      | Identificador único                                     |
-| `workspaceId`              | String      | Relación con Workspace                                  |
-| `timezone`                 | String      | Zona horaria de la empresa                              |
-| `language`                 | String      | Idioma de la interfaz                                   |
-| `autoAssign`               | Boolean     | Activa o desactiva asignación automática                |
-| `assignmentMode`           | Enum        | Modo de asignación                                      |
-| `businessHoursStart`       | String      | Hora de inicio laboral                                  |
-| `businessHoursEnd`         | String      | Hora de fin laboral                                     |
-| `outOfHoursMessage`        | String      | Respuesta automática si no hay agentes                  |
-| `maxManualMessages`        | Int         | Límite global de mensajes manuales por agente           |
-| `maxActiveConversations`   | Int         | Máximo recomendado de conversaciones activas por agente |
-| `reopenedConversationMode` | Enum        | Qué hacer cuando un cliente vuelve                      |
-| `createdAt`                | DateTime    | Fecha de creación                                       |
-| `updatedAt`                | DateTime    | Fecha de actualización                                  |
+| Campo               | Tipo lógico | Descripción                                              |
+| ------------------- | ----------- | -------------------------------------------------------- |
+| `id`                | String      | Identificador único                                      |
+| `workspaceId`       | String      | Relación con Workspace                                   |
+| `timezone`          | String      | Zona horaria de la empresa (fechas, topes y reportes)    |
+| `maxManualMessages` | Int         | Tope diario de mensajes manuales por agente              |
+| `createdAt`         | DateTime    | Fecha de creación                                        |
+| `updatedAt`         | DateTime    | Fecha de actualización                                   |
 
-## assignmentMode
+### Nota sobre ajustes que se quitaron
 
-```text
-MANUAL
-LEAST_BUSY
-ROUND_ROBIN
-```
+Esta tabla llegó a tener `language`, `autoAssign`, `assignmentMode`,
+`businessHoursStart`, `businessHoursEnd`, `outOfHoursMessage`,
+`maxActiveConversations` y `reopenedConversationMode`. **Ningún código los
+leía** y no había pantalla para editarlos: la base prometía horarios de
+atención y modos de asignación que la herramienta no aplicaba. Se eliminaron
+en la migración `20261015020000_quitar_ajustes_inertes`.
 
-En V1 funcional se implementarán principalmente:
-
-```text
-MANUAL
-LEAST_BUSY
-```
-
-`ROUND_ROBIN` puede quedar preparado para futuro.
-
-## reopenedConversationMode
-
-```text
-ADMIN_INBOX
-LAST_AGENT
-AUTO_ASSIGN
-```
-
-En V1 se usará por defecto:
-
-```text
-ADMIN_INBOX
-```
-
-Esto significa que si un cliente vuelve después de cerrar la conversación, la conversación llega primero al Admin.
+La asignación automática es siempre por carga (`LEAST_BUSY`), que es la única
+implementada; la interfaz está solo en español; y los horarios de atención no
+existen como función.
 
 ---
 
@@ -259,6 +223,8 @@ isActive
 canSendManualMessages
 manualMessageLimit
 manualMessagesUsed
+twoFactorSecret
+twoFactorEnabledAt
 lastLoginAt
 createdAt
 updatedAt
@@ -279,7 +245,13 @@ updatedAt
 | `canSendManualMessages` | Boolean         | Permiso simple para envío manual          |
 | `manualMessageLimit`    | Int / Null      | Límite personalizado de mensajes manuales |
 | `manualMessagesUsed`    | Int             | Mensajes manuales usados                  |
+| `twoFactorSecret`       | String / Null   | Secreto TOTP, **cifrado** (AES-256-GCM)   |
+| `twoFactorEnabledAt`    | DateTime / Null | Cuándo se confirmó la verificación en dos pasos. Vacío = no está activa |
 | `lastLoginAt`           | DateTime / Null | Último inicio de sesión                   |
+
+### Nota sobre la verificación en dos pasos
+
+`twoFactorSecret` se guarda cifrado por la misma extensión de Prisma que cifra los tokens de Meta: un volcado de la base no entrega la llave de nadie. La activación tiene dos pasos a propósito: al generar la clave se guarda el secreto **sin** marcar `twoFactorEnabledAt`, así que la protección solo entra en vigor cuando la persona confirma un código válido y nadie se queda fuera por escanear mal o cerrar la pantalla a medias. Una activación sin confirmar se puede descartar.
 | `createdAt`             | DateTime        | Fecha de creación                         |
 | `updatedAt`             | DateTime        | Fecha de actualización                    |
 

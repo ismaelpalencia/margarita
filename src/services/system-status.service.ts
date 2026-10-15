@@ -5,6 +5,7 @@ import { appConfig } from "../config/app.config";
 import { isEncrypted } from "../utils/crypto";
 import { LEGACY_PHONE_HASH_PREFIX } from "../jobs/phone-hash.job";
 import { BackupFileService } from "./backup-file.service";
+import { UserService } from "./user.service";
 
 export class SystemStatusService {
     /**
@@ -187,6 +188,7 @@ export class SystemStatusService {
 
         const encryption = await this.inspectEncryption(workspaceId);
         const backups = await BackupFileService.status().catch(() => null);
+        const twoFactor = await UserService.twoFactorSummary(workspaceId);
 
         return {
             workspace,
@@ -225,6 +227,11 @@ export class SystemStatusService {
                           keep: backups.keep
                       }
                     : null,
+                /**
+                 * Verificación en dos pasos: es opcional por cuenta, pero el
+                 * panel conviene que muestre si los administradores la usan.
+                 */
+                twoFactor,
                 webhookSignatureConfigured: Boolean(appConfig.metaAppSecret),
                 webhookQueueEnabled: appConfig.webhookQueueEnabled,
                 webhookWorkerIntervalMs: appConfig.webhookWorkerIntervalMs,
