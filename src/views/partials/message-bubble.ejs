@@ -40,13 +40,13 @@
             : message.status === "FAILED"
               ? "text-red-200"
               : isOut
-                ? "text-emerald-100"
+                ? "text-margarita-100"
                 : "text-slate-400";
 
     const tone = isNote
         ? "rounded-tr-sm bg-amber-100 text-amber-900 ring-1 ring-amber-200"
         : isOut
-          ? "rounded-tr-sm bg-emerald-600 text-white"
+          ? "rounded-tr-sm bg-margarita-600 text-white"
           : "rounded-tl-sm bg-white text-slate-800 ring-1 ring-slate-200";
 
     /**
@@ -115,7 +115,7 @@
             </p>
         <% } %>
 
-        <div class="mt-1 flex items-center justify-end gap-1.5 text-[10px] <%= isNote ? 'text-amber-600' : isOut ? 'text-emerald-100' : 'text-slate-400' %>">
+        <div class="mt-1 flex items-center justify-end gap-1.5 text-[10px] <%= isNote ? 'text-amber-600' : isOut ? 'text-margarita-100' : 'text-slate-400' %>">
             <span><%= message.createdAt.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }) %></span>
 
             <% if (isNote) { %>

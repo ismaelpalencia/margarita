@@ -155,7 +155,25 @@ export const appConfig = {
     supportEmail: process.env.SUPPORT_EMAIL?.trim() || "",
     setupServicePrice:
         process.env.SETUP_SERVICE_PRICE?.trim() ||
-        "se cotiza según tu caso",
+        "$1,500.00 MXN",
+
+    /**
+     * La oferta comercial de la instalación, tal como aparece en la página
+     * pública. Se escribe ya formateada ("$3,000.00 MXN") porque es un texto
+     * que lee el cliente: el formato es decisión comercial, no del navegador.
+     *
+     * Los valores por omisión son la promoción de lanzamiento de noviembre
+     * (instalación a $3,000 en lugar de $5,000) con seis meses de servicio.
+     */
+    installPrice: process.env.INSTALL_PRICE?.trim() || "$5,000.00 MXN",
+    installPricePromo:
+        process.env.INSTALL_PRICE_PROMO?.trim() || "$3,000.00 MXN",
+    installPromoLabel:
+        process.env.INSTALL_PROMO_LABEL?.trim() ||
+        "Promoción de lanzamiento: todo noviembre",
+    installRenewalPrice:
+        process.env.INSTALL_RENEWAL_PRICE?.trim() || "$2,500.00 MXN",
+    installTermMonths: Number(process.env.INSTALL_TERM_MONTHS) || 6,
 
 
     logRetentionDays: Number(process.env.LOG_RETENTION_DAYS) || 90,

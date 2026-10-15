@@ -64,8 +64,8 @@ Margarita es un panel para **cobrar por WhatsApp con orden**: registra en qué q
 
 | Servicio | Qué incluye |
 | --- | --- |
-| **Conexión con Meta** ([PRECIO]) | Alta en Meta Business, app, cuenta de WhatsApp Business, número dedicado, token permanente, webhook firmado, primera plantilla y prueba de punta a punta. Ver [`guia-meta.md`](guia-meta.md). |
-| **Puesta en marcha de la instalación** (incluida) | Proyecto propio, base de datos propia, dominio, usuario administrador, cifrado de datos y respaldos configurados. |
+| **Conexión con Meta** (+$1,500.00 MXN, opcional) | Alta en Meta Business, app, cuenta de WhatsApp Business, número dedicado, token permanente, webhook firmado, primera plantilla y prueba de punta a punta. Ver [`guia-meta.md`](guia-meta.md). |
+| **Puesta en marcha de la instalación** (incluida en el precio de instalación) | Proyecto propio, base de datos propia, dominio, usuario administrador, cifrado de datos, respaldos configurados y una sesión de capacitación de 60 minutos. |
 | **Migración de cartera** ([PRECIO O INCLUIDA]) | Carga de contactos desde Excel con etiquetas y depuración de números inválidos. |
 | **Capacitación** (incluida) | Una sesión de 60 minutos para el equipo (cobranza y administración) y manual de uso. |
 
@@ -82,17 +82,48 @@ Decirlo aquí evita discusiones después:
 
 ## 7. Inversión
 
-| Concepto | Importe | Periodicidad |
+**El paquete es uno solo**: instalación completa + 6 meses de servicio. No hay
+mensualidad ni cobro por usuario.
+
+| Concepto | Importe | Cuándo |
 | --- | --- | --- |
-| Servicio de conexión con Meta | [PRECIO] | Una vez |
-| Migración de cartera | [PRECIO] | Una vez |
-| **Suscripción Margarita** | [PRECIO] | Mensual |
-| Usuarios adicionales o módulos extra | [PRECIO] | Mensual |
-| Soporte extendido (fuera de horario) | [PRECIO] | Opcional |
+| **Instalación Margarita (promoción de lanzamiento, todo noviembre)** | **$3,000.00 MXN** (en lugar de $5,000.00 MXN) | Pago único, al firmar |
+| Instalación Margarita a precio de lista (fuera de la promoción) | $5,000.00 MXN | Pago único, al firmar |
+| Conexión con Meta (opcional) | +$1,500.00 MXN | Pago único, junto con la instalación |
+| Renovación por otros 6 meses (a partir del séptimo mes) | $2,500.00 MXN | Al renovar |
+| Migración de cartera | [PRECIO O INCLUIDA] | Pago único |
 
-Notas de cobro: [mensual adelantado, comprobante fiscal, días de gracia, qué pasa si no se renueva].
+**Qué incluyen los 6 meses** (esto es lo que se está comprando):
 
-**Cómo calcular la suscripción:** costo de infraestructura (Railway y base de datos) + [N] horas mensuales de soporte a [TARIFA] + margen. El costo de Meta va aparte y lo paga el cliente.
+1. La instalación funcionando en producción: proyecto, base de datos, dominio,
+   respaldos automáticos y datos cifrados.
+2. **Usuarios ilimitados**: no se cobra por agente, ni por número de WhatsApp.
+3. Actualizaciones y correcciones durante la vigencia, incluidas las funciones
+   nuevas que salgan en ese periodo.
+4. Soporte por WhatsApp y correo en horario hábil ([HORARIO]).
+5. Sesión de capacitación para el equipo y manual de uso.
+6. Aviso de privacidad y plantilla de contrato de tratamiento de datos.
+
+**Lo que no incluye, y conviene decir en voz alta:**
+
+- **El consumo de WhatsApp lo paga el cliente a Meta**, directo y con su propio
+  método de pago (conversaciones y plantillas). Nuestra factura es solo por la
+  herramienta y los servicios: **no cobramos por mensaje**.
+- El número telefónico dedicado y el equipo de cómputo.
+- El alojamiento, si se acuerda que va en la cuenta del cliente (Railway:
+  aproximadamente $5–10 USD al mes, pagados al proveedor). Si lo absorbemos
+  nosotros, el precio de instalación sube [AJUSTE].
+- Cambios a la medida que no estén en el producto (se cotizan aparte).
+
+Notas de cobro: [anticipo / pago completo al inicio, comprobante fiscal, días de
+gracia, qué pasa si no se renueva].
+
+**Cómo se calculó:** el precio de instalación cubre el alta (2–3 horas de
+trabajo entre despliegue, conexión y capacitación), el soporte de los 6 meses
+(~1 hora al mes de base, más incidencias), la infraestructura si la absorbemos, y
+el margen para sostener y seguir mejorando el producto. La promoción de
+lanzamiento baja el precio para los primeros clientes a cambio de
+retroalimentación y de un caso de éxito que se pueda mostrar.
 
 ## 8. Requisitos del cliente
 

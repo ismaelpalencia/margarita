@@ -21,7 +21,7 @@
 
             <% if (availableNumbers.length === 1) { %>
                 <span
-                    class="ml-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100"
+                    class="ml-1 rounded-full bg-margarita-50 px-3 py-1 text-xs font-semibold text-margarita-700 ring-1 ring-margarita-100"
                     title="Número activo"
                 >
                     <%= availableNumbers[0].displayName || availableNumbers[0].phoneNumber %>
@@ -50,31 +50,31 @@
         </div>
 
         <nav class="flex flex-wrap items-center gap-2 text-sm">
-            <a href="/agent/dashboard" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/agent/dashboard" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Dashboard
             </a>
 
             <a
                 href="/agent/conversations"
-                class="inline-flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
+                class="inline-flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700"
             >
                 Mis conversaciones
 
                 <span
                     data-unread-badge
                     data-count="<%= unreadTotal || 0 %>"
-                    class="rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-bold text-white <%= (unreadTotal || 0) > 0 ? '' : 'hidden' %>"
+                    class="rounded-full bg-margarita-600 px-2 py-0.5 text-[11px] font-bold text-white <%= (unreadTotal || 0) > 0 ? '' : 'hidden' %>"
                     title="Mensajes sin leer"
                 >
                     <%= unreadTotal || 0 %>
                 </span>
             </a>
 
-            <a href="/agent/sessions" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/agent/sessions" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Mis sesiones
             </a>
 
-            <a href="/account/password" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/account/password" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Mi cuenta
             </a>
         </nav>

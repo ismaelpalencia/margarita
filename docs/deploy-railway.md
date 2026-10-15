@@ -96,7 +96,12 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `SESSION_MAX_ACTIVE` | `3` | Dispositivos con sesión abierta por usuario |
 | `SUPPORT_WHATSAPP` | — | Número comercial que aparece en la página pública (`https://wa.me/…`) |
 | `SUPPORT_EMAIL` | — | Correo comercial de contacto |
-| `SETUP_SERVICE_PRICE` | — | Precio del servicio de conexión con Meta que se muestra en la página pública |
+| `SETUP_SERVICE_PRICE` | `$1,500.00 MXN` | Precio del servicio de conexión con Meta que se muestra en la página pública |
+| `INSTALL_PRICE` | `$5,000.00 MXN` | Precio de lista de la instalación |
+| `INSTALL_PRICE_PROMO` | `$3,000.00 MXN` | Precio de la promoción de lanzamiento |
+| `INSTALL_PROMO_LABEL` | `Promoción de lanzamiento: todo noviembre` | Texto que acompaña la promoción |
+| `INSTALL_RENEWAL_PRICE` | `$2,500.00 MXN` | Precio de la renovación por otros seis meses |
+| `INSTALL_TERM_MONTHS` | `6` | Meses de servicio incluidos en la instalación |
 | `BACKUP_ENABLED` | `true` | Respaldo automático de la base encendido o apagado |
 | `BACKUP_INTERVAL_HOURS` | `24` | Cada cuánto se guarda una copia completa |
 | `BACKUP_KEEP` | `7` | Cuántas copias se conservan (las más recientes) |

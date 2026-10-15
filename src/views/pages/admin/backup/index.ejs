@@ -5,7 +5,7 @@
 
     <main class="mx-auto max-w-5xl px-4 py-8">
         <div class="mb-8">
-            <p class="text-sm font-semibold uppercase tracking-wide text-emerald-600">
+            <p class="text-sm font-semibold uppercase tracking-wide text-margarita-600">
                 Operación
             </p>
 
@@ -50,11 +50,11 @@
         <% } %>
 
         <% if (success === "snapshot") { %>
-            <p class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+            <p class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm font-semibold text-margarita-700">
                 Respaldo creado y verificado. Ya aparece en la lista de abajo.
             </p>
         <% } else if (success === "verified") { %>
-            <p class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+            <p class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm font-semibold text-margarita-700">
                 El respaldo se pudo leer y descifrar correctamente<%= req.query.rows ? ` (${req.query.rows} filas)` : "" %>.
             </p>
         <% } %>
@@ -75,16 +75,16 @@
             %>
 
             <div class="mt-4 grid gap-3 sm:grid-cols-3">
-                <div class="rounded-xl p-4 ring-1 <%= backup.stale ? 'bg-amber-50 ring-amber-200' : 'bg-emerald-50 ring-emerald-200' %>">
-                    <p class="text-xs font-bold uppercase tracking-wide <%= backup.stale ? 'text-amber-700' : 'text-emerald-700' %>">
+                <div class="rounded-xl p-4 ring-1 <%= backup.stale ? 'bg-amber-50 ring-amber-200' : 'bg-margarita-50 ring-margarita-200' %>">
+                    <p class="text-xs font-bold uppercase tracking-wide <%= backup.stale ? 'text-amber-700' : 'text-margarita-700' %>">
                         Respaldo automático
                     </p>
 
-                    <p class="mt-1 text-sm font-bold <%= backup.stale ? 'text-amber-900' : 'text-emerald-900' %>">
+                    <p class="mt-1 text-sm font-bold <%= backup.stale ? 'text-amber-900' : 'text-margarita-900' %>">
                         <%= backup.enabled ? (backup.stale ? "Atrasado" : "Al día") : "Apagado" %>
                     </p>
 
-                    <p class="mt-1 text-xs <%= backup.stale ? 'text-amber-800' : 'text-emerald-800' %>">
+                    <p class="mt-1 text-xs <%= backup.stale ? 'text-amber-800' : 'text-margarita-800' %>">
                         Último: <%= ageLabel %>. Cada <%= backup.intervalHours %> h, se conservan <%= backup.keep %>.
                     </p>
                 </div>
@@ -113,7 +113,7 @@
                     </p>
 
                     <form action="/admin/backup/snapshot" method="POST" class="mt-2">
-                        <button class="w-full rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                        <button class="w-full rounded-xl bg-margarita-600 px-4 py-2 text-sm font-semibold text-white hover:bg-margarita-700">
                             Crear respaldo
                         </button>
                     </form>
@@ -150,7 +150,7 @@
 
             <a
                 href="/admin/backup/download?format=json"
-                class="mt-5 inline-block rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+                class="mt-5 inline-block rounded-xl bg-margarita-600 px-5 py-3 text-sm font-semibold text-white hover:bg-margarita-700"
             >
                 Descargar respaldo completo
             </a>
@@ -247,7 +247,7 @@
                 ].forEach((entity) => { %>
                     <a
                         href="/admin/backup/download?format=csv&entity=<%= entity.id %>"
-                        class="rounded-xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-emerald-50 hover:text-emerald-700"
+                        class="rounded-xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-margarita-50 hover:text-margarita-700"
                     >
                         <%= entity.label %>
                     </a>

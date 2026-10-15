@@ -40,7 +40,7 @@
                     WhatsApp
                 </a>
 
-                <a href="/admin/templates" class="text-sm font-medium text-emerald-700">
+                <a href="/admin/templates" class="text-sm font-medium text-margarita-700">
                     Plantillas
                 </a>
 
@@ -70,14 +70,14 @@
             </div>
 
             <form action="/admin/templates/sync" method="POST">
-                <button class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                <button class="rounded-xl bg-margarita-600 px-4 py-3 text-sm font-semibold text-white hover:bg-margarita-700">
                     Sincronizar desde Meta
                 </button>
             </form>
         </section>
 
         <% if (success === "sync") { %>
-            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
                 Plantillas sincronizadas correctamente.
             </div>
         <% } %>
@@ -144,7 +144,7 @@
 
                             <td class="px-5 py-4">
                                 <% if (template.status === "APPROVED") { %>
-                                    <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                    <span class="rounded-full bg-margarita-100 px-3 py-1 text-xs font-semibold text-margarita-700">
                                         Aprobada
                                     </span>
                                 <% } else if (template.status === "REJECTED") { %>

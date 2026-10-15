@@ -30,7 +30,7 @@
                 <a href="/admin/tags" class="text-sm font-medium text-slate-700">Etiquetas</a>
                 <a href="/admin/whatsapp" class="text-sm font-medium text-slate-700">WhatsApp</a>
                 <a href="/admin/templates" class="text-sm font-medium text-slate-700">Plantillas</a>
-                <a href="/admin/conversations" class="text-sm font-medium text-emerald-700">Conversaciones</a>
+                <a href="/admin/conversations" class="text-sm font-medium text-margarita-700">Conversaciones</a>
 
                 <form action="/auth/logout" method="POST">
                     <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
@@ -60,12 +60,12 @@
                 name="search"
                 value="<%= search %>"
                 placeholder="Buscar por nombre o teléfono"
-                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
             />
 
             <select
                 name="status"
-                class="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                class="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
             >
                 <option value="">Todos los estados</option>
                 <option value="OPEN" <% if (status === "OPEN") { %> selected <% } %>>Abiertas</option>
@@ -75,7 +75,7 @@
 
             <select
                 name="assigned"
-                class="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                class="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
             >
                 <option value="">Todas las asignaciones</option>
                 <option value="mine" <% if (assigned === "mine") { %> selected <% } %>>Asignadas a mí</option>
@@ -106,7 +106,7 @@
         </form>
 
         <% if (success) { %>
-            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
                 Acción realizada correctamente.
             </div>
         <% } %>
@@ -144,7 +144,7 @@
                                     </span>
 
                                     <% if (conversation.unreadCount > 0) { %>
-                                        <span class="rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-bold text-white">
+                                        <span class="rounded-full bg-margarita-600 px-2 py-0.5 text-[11px] font-bold text-white">
                                             <%= conversation.unreadCount %>
                                         </span>
                                     <% } %>

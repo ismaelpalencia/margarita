@@ -2,6 +2,47 @@
 
 @source "../../views/**/*.ejs";
 @source "../../**/*.ts";
+/**
+ * `dist` guarda copias de las vistas del último build. Si se colara, el CSS
+ * arrastraría clases viejas que ya no existen en el código.
+ */
+@source not "../../../dist";
+
+/**
+ * Paleta de Margarita.
+ *
+ * `margarita` es el verde de la marca: el de los botones, los enlaces y los
+ * acentos de estado. `sol` es el amarillo del centro de la flor, que se usa
+ * solo para destacar (promociones, el símbolo, avisos de dinero).
+ *
+ * Las escalas están elegidas para que el blanco sobre el 600 siga siendo
+ * legible: el verde anterior (el de Tailwind) se quedaba en 3.7:1 y este
+ * llega a 4.6:1, que es el mínimo que pide la norma para texto normal.
+ */
+@theme {
+    --color-margarita-50: #eefbf3;
+    --color-margarita-100: #d6f5e2;
+    --color-margarita-200: #b0eac9;
+    --color-margarita-300: #7cd9a8;
+    --color-margarita-400: #45c085;
+    --color-margarita-500: #1fa06a;
+    --color-margarita-600: #17865a;
+    --color-margarita-700: #0f6f4a;
+    --color-margarita-800: #10573c;
+    --color-margarita-900: #0f4632;
+    --color-margarita-950: #062a1e;
+
+    --color-sol-50: #fffaeb;
+    --color-sol-100: #fff1c6;
+    --color-sol-200: #ffe28a;
+    --color-sol-300: #fdd04d;
+    --color-sol-400: #fbbe1f;
+    --color-sol-500: #edac00;
+    --color-sol-600: #cc8c00;
+    --color-sol-700: #a36b04;
+    --color-sol-800: #85540b;
+    --color-sol-900: #71460f;
+}
 
 @layer components {
     .margarita-card {
@@ -9,7 +50,7 @@
     }
 
     .margarita-button-primary {
-        @apply rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700;
+        @apply rounded-xl bg-margarita-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-margarita-700;
     }
 
     .margarita-button-dark {
@@ -17,6 +58,6 @@
     }
 
     .margarita-input {
-        @apply w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100;
+        @apply w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100;
     }
 }

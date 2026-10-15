@@ -24,7 +24,7 @@ export class AdminTagsController {
             error: null,
             old: {
                 name: "",
-                color: "#10b981"
+                color: "#1fa06a"
             }
         });
     }
@@ -38,7 +38,7 @@ export class AdminTagsController {
                 error: parsed.error.issues[0]?.message || "Datos inválidos.",
                 old: {
                     name: req.body.name || "",
-                    color: req.body.color || "#10b981"
+                    color: req.body.color || "#1fa06a"
                 }
             });
         }
@@ -58,7 +58,7 @@ export class AdminTagsController {
                 error: message,
                 old: {
                     name: req.body.name || "",
-                    color: req.body.color || "#10b981"
+                    color: req.body.color || "#1fa06a"
                 }
             });
         }

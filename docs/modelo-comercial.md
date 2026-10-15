@@ -12,14 +12,22 @@ La estrategia cambió: en lugar de competir como "panel general de WhatsApp"
 cumplimiento, intentos sin respuesta y reportes que el jefe de cobranza lleva a
 la junta.
 
-Lo que se vende son **dos cosas**:
+Lo que se vende es **un paquete y un extra**:
 
-1. **La herramienta** (suscripción mensual): el panel operativo con el módulo de
-   cobranza.
-2. **El servicio de conexión con Meta** (pago único): el trámite que todo el
-   mundo subestima y que casi nadie quiere hacer. Detalle en
-   [`guia-meta.md`](guia-meta.md); la oferta aparece en la página pública
-   (`/` y `/como-empezar`) con el precio de `SETUP_SERVICE_PRICE`.
+1. **La instalación con seis meses de servicio** (pago único): el panel
+   operativo con el módulo de cobranza, funcionando en producción, con
+   usuarios ilimitados. Al terminar el periodo se renueva o se cierra. La
+   página pública (`/`) muestra el precio de la promoción
+   (`INSTALL_PRICE_PROMO`), el de lista (`INSTALL_PRICE`), el de renovación
+   (`INSTALL_RENEWAL_PRICE`) y la vigencia (`INSTALL_PROMO_LABEL`).
+2. **El servicio de conexión con Meta** (pago único, opcional): el trámite que
+   todo el mundo subestima y que casi nadie quiere hacer. Detalle en
+   [`guia-meta.md`](guia-meta.md); su precio es `SETUP_SERVICE_PRICE`
+   ($1,500.00 MXN por omisión).
+
+**Lo que paga el cliente a Meta, no a nosotros:** el consumo de WhatsApp
+(conversaciones y plantillas). Se dice en la página pública, en la propuesta y
+en el contrato: nuestra factura es solo por la herramienta y los servicios.
 
 **Para mandar propuestas** ya está: la página pública explica qué hace la
 herramienta, la guía de Meta explica el trámite (y ofrece hacerlo nosotros) y

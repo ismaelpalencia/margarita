@@ -15,6 +15,11 @@ function supportContext() {
             : "",
         supportEmail: appConfig.supportEmail,
         setupServicePrice: appConfig.setupServicePrice,
+        installPrice: appConfig.installPrice,
+        installPricePromo: appConfig.installPricePromo,
+        installPromoLabel: appConfig.installPromoLabel,
+        installRenewalPrice: appConfig.installRenewalPrice,
+        installTermMonths: appConfig.installTermMonths,
         appName: appConfig.name
     };
 }

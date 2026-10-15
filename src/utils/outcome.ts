@@ -56,7 +56,7 @@ export const OUTCOME_SHORT_LABELS: Record<ContactOutcomeType, string> = {
 
 export const OUTCOME_BADGE_CLASSES: Record<ContactOutcomeType, string> = {
     PROMISE: "bg-sky-50 text-sky-700",
-    PAID: "bg-emerald-50 text-emerald-700",
+    PAID: "bg-margarita-50 text-margarita-700",
     CONVENIO: "bg-indigo-50 text-indigo-700",
     PROMISE_BROKEN: "bg-red-50 text-red-700",
     NO_ANSWER: "bg-amber-50 text-amber-700",

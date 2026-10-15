@@ -21,7 +21,7 @@
 
             <% if (availableNumbers.length === 1) { %>
                 <span
-                    class="ml-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100"
+                    class="ml-1 rounded-full bg-margarita-50 px-3 py-1 text-xs font-semibold text-margarita-700 ring-1 ring-margarita-100"
                     title="Número activo"
                 >
                     <%= availableNumbers[0].displayName || availableNumbers[0].phoneNumber %>
@@ -50,79 +50,79 @@
         </div>
 
         <nav class="flex flex-wrap items-center gap-2 text-sm">
-            <a href="/admin/dashboard" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/dashboard" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Dashboard
             </a>
 
             <a
                 href="/admin/conversations"
-                class="inline-flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
+                class="inline-flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700"
             >
                 Conversaciones
 
                 <span
                     data-unread-badge
                     data-count="<%= unreadTotal || 0 %>"
-                    class="rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-bold text-white <%= (unreadTotal || 0) > 0 ? '' : 'hidden' %>"
+                    class="rounded-full bg-margarita-600 px-2 py-0.5 text-[11px] font-bold text-white <%= (unreadTotal || 0) > 0 ? '' : 'hidden' %>"
                     title="Mensajes sin leer"
                 >
                     <%= unreadTotal || 0 %>
                 </span>
             </a>
 
-            <a href="/admin/campaigns" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/campaigns" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Campañas
             </a>
 
-            <a href="/admin/contacts" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/contacts" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Contactos
             </a>
 
-            <a href="/admin/tags" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/tags" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Etiquetas
             </a>
 
-            <a href="/admin/reports" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/reports" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Reportes
             </a>
 
-            <a href="/admin/quick-replies" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/quick-replies" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Respuestas
             </a>
 
-            <a href="/admin/users" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/users" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Equipo
             </a>
 
-            <a href="/admin/templates" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/templates" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Plantillas
             </a>
 
-            <a href="/admin/system" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/system" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Sistema
             </a>
 
-            <a href="/admin/roadmap" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/roadmap" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Roadmap
             </a>
 
-            <a href="/admin/whatsapp" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/whatsapp" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 WhatsApp
             </a>
 
-            <a href="/admin/logs" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/logs" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Logs
             </a>
 
-            <a href="/admin/backup" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/backup" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Respaldos
             </a>
 
-            <a href="/admin/sessions" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/admin/sessions" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Sesiones
             </a>
 
-            <a href="/account/password" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
+            <a href="/account/password" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
                 Mi cuenta
             </a>
         </nav>

@@ -39,9 +39,9 @@
                 <p class="mt-2 text-3xl font-bold text-sky-700"><%= summary.promisesSoon %></p>
             </div>
 
-            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-emerald-200">
-                <p class="text-sm text-emerald-700">Cobrado este mes</p>
-                <p class="mt-2 text-3xl font-bold text-emerald-700"><%= summary.paidAmountLabel %></p>
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-margarita-200">
+                <p class="text-sm text-margarita-700">Cobrado este mes</p>
+                <p class="mt-2 text-3xl font-bold text-margarita-700"><%= summary.paidAmountLabel %></p>
                 <p class="mt-1 text-xs text-slate-500">
                     <%= summary.paidThisMonth %> pago(s) registrados
                 </p>
@@ -139,7 +139,7 @@
         <div class="mb-4 flex flex-wrap items-center gap-3">
             <a
                 href="/admin/reports/export?vista=<%= view %>&from=<%= filters.from %>&to=<%= filters.to %>&userId=<%= filters.userId %>&campaignId=<%= filters.campaignId %>&tagId=<%= filters.tagId %>"
-                class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                class="rounded-xl bg-margarita-600 px-4 py-2 text-sm font-semibold text-white hover:bg-margarita-700"
             >
                 Descargar CSV
             </a>
@@ -229,7 +229,7 @@
 
                 <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                     <p class="text-sm text-slate-500">Del periodo: pagadas a tiempo</p>
-                    <p class="mt-2 text-3xl font-bold text-emerald-700"><%= compliance.summary.onTime %></p>
+                    <p class="mt-2 text-3xl font-bold text-margarita-700"><%= compliance.summary.onTime %></p>
                     <p class="mt-1 text-xs text-slate-500">
                         Tarde: <%= compliance.summary.late %> ·
                         Sin pago: <%= compliance.summary.unpaid %>
@@ -274,7 +274,7 @@
                                 <td class="px-5 py-4">
                                     <a
                                         href="/admin/contacts/<%= item.contactId %>/edit"
-                                        class="font-medium text-emerald-700 hover:underline"
+                                        class="font-medium text-margarita-700 hover:underline"
                                     >
                                         <%= item.contactName %>
                                     </a>
@@ -342,7 +342,7 @@
                                 <td class="px-5 py-4">
                                     <a
                                         href="/admin/contacts/<%= item.contactId %>/edit"
-                                        class="font-medium text-emerald-700 hover:underline"
+                                        class="font-medium text-margarita-700 hover:underline"
                                     >
                                         <%= item.name %>
                                     </a>
@@ -537,7 +537,7 @@
                                 <td class="px-5 py-3 text-slate-600"><%= week.promesas %></td>
                                 <td class="px-5 py-3 text-slate-700"><%= formatAmount(week.prometido) %></td>
                                 <td class="px-5 py-3 text-slate-600"><%= week.pagos %></td>
-                                <td class="px-5 py-3 font-semibold text-emerald-700"><%= formatAmount(week.cobrado) %></td>
+                                <td class="px-5 py-3 font-semibold text-margarita-700"><%= formatAmount(week.cobrado) %></td>
                             </tr>
                         <% }) %>
                     </tbody>
@@ -573,7 +573,7 @@
                         <% trends.byUser.forEach((item) => { %>
                             <tr>
                                 <td class="px-5 py-3 font-medium text-slate-800"><%= item.name %></td>
-                                <td class="px-5 py-3 font-semibold text-emerald-700"><%= item.onTime %></td>
+                                <td class="px-5 py-3 font-semibold text-margarita-700"><%= item.onTime %></td>
                                 <td class="px-5 py-3 text-amber-700"><%= item.late %></td>
                                 <td class="px-5 py-3 text-slate-600"><%= item.unpaid %></td>
                                 <td class="px-5 py-3 text-slate-700"><%= formatAmount(item.promisedAmount) %></td>
@@ -616,7 +616,7 @@
                                 <td class="px-5 py-4">
                                     <a
                                         href="/admin/contacts/<%= row.contactId %>/edit"
-                                        class="font-medium text-emerald-700 hover:underline"
+                                        class="font-medium text-margarita-700 hover:underline"
                                     >
                                         <%= row.contactName %>
                                     </a>

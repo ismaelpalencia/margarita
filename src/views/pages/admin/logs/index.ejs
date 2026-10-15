@@ -6,7 +6,7 @@
     <main class="mx-auto max-w-7xl px-4 py-8">
         <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-wide text-emerald-600">
+                <p class="text-sm font-semibold uppercase tracking-wide text-margarita-600">
                     Operación
                 </p>
 
@@ -30,7 +30,7 @@
                     Nivel
                 </label>
 
-                <select name="level" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
+                <select name="level" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100">
                     <option value="">Todos</option>
                     <option value="INFO" <%= filters.level === "INFO" ? "selected" : "" %>>INFO</option>
                     <option value="WARN" <%= filters.level === "WARN" ? "selected" : "" %>>WARN</option>
@@ -43,7 +43,7 @@
                     Módulo
                 </label>
 
-                <select name="module" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100">
+                <select name="module" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100">
                     <option value="">Todos</option>
                     <option value="AUTH" <%= filters.module === "AUTH" ? "selected" : "" %>>AUTH</option>
                     <option value="META" <%= filters.module === "META" ? "selected" : "" %>>META</option>
@@ -56,7 +56,7 @@
             </div>
 
             <div class="flex items-end gap-2">
-                <button class="w-full rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                <button class="w-full rounded-xl bg-margarita-600 px-5 py-3 text-sm font-semibold text-white hover:bg-margarita-700">
                     Filtrar
                 </button>
 
@@ -85,7 +85,7 @@
                                 <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                                     <div>
                                         <div class="flex flex-wrap items-center gap-2">
-                                            <span class="rounded-full px-3 py-1 text-xs font-bold <%= log.level === 'ERROR' ? 'bg-red-50 text-red-700' : log.level === 'WARN' ? 'bg-yellow-50 text-yellow-700' : 'bg-emerald-50 text-emerald-700' %>">
+                                            <span class="rounded-full px-3 py-1 text-xs font-bold <%= log.level === 'ERROR' ? 'bg-red-50 text-red-700' : log.level === 'WARN' ? 'bg-yellow-50 text-yellow-700' : 'bg-margarita-50 text-margarita-700' %>">
                                                 <%= log.level %>
                                             </span>
 

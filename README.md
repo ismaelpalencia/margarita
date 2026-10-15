@@ -279,6 +279,11 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `SUPPORT_WHATSAPP` | Comercial | Número de contacto (dígitos con lada país) que aparece en la página pública |
 | `SUPPORT_EMAIL` | Comercial | Correo de contacto alterno |
 | `SETUP_SERVICE_PRICE` | Comercial | Precio del servicio de conexión con Meta que se muestra en la página pública |
+| `INSTALL_PRICE` | Comercial | Precio de lista de la instalación (por omisión `$5,000.00 MXN`) |
+| `INSTALL_PRICE_PROMO` | Comercial | Precio de la promoción de lanzamiento (`$3,000.00 MXN`) |
+| `INSTALL_PROMO_LABEL` | Comercial | Texto de la promoción (`Promoción de lanzamiento: todo noviembre`) |
+| `INSTALL_RENEWAL_PRICE` | Comercial | Precio de la renovación por otros seis meses (`$2,500.00 MXN`) |
+| `INSTALL_TERM_MONTHS` | Comercial | Meses de servicio que incluye la instalación (6) |
 | `BACKUP_ENABLED` | No | Respaldo automático de la base. Default `true` |
 | `BACKUP_INTERVAL_HOURS` | No | Cada cuánto se guarda una copia completa. Default `24` |
 | `BACKUP_KEEP` | No | Copias que se conservan. Default `7` |
@@ -648,6 +653,8 @@ Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArg
 | [`docs/deploy-railway.md`](docs/deploy-railway.md) | Guía de despliegue en Railway |
 | [`docs/plantilla-railway.md`](docs/plantilla-railway.md) | Publicar la plantilla para dar de alta clientes en minutos |
 | [`docs/roadmap-v2.md`](docs/roadmap-v2.md) | Plan detallado de los siguientes sprints: multimedia, interactivos y campañas |
+| [`docs/marca.md`](docs/marca.md) | El símbolo, la paleta y el tono: cómo se ve Margarita y cómo se regenera |
+| [`docs/propuesta-comercial.md`](docs/propuesta-comercial.md) | Plantilla de propuesta: alcance, precios, qué no incluye y tiempos |
 | [`docs/alcance-produccion.md`](docs/alcance-produccion.md) | Alcance actual, límites, seguridad y responsabilidades para uso en producción |
 | [`docs/multinumero.md`](docs/multinumero.md) | Diseño del multinúmero: modelo, migración, uso y pendientes |
 | [`docs/aviso-privacidad.md`](docs/aviso-privacidad.md) | Aviso de privacidad para revisar y publicar (la versión pública vive en `/aviso-de-privacidad`) |
@@ -694,11 +701,15 @@ Todas las vistas cargan los íconos desde `src/views/partials/brand-head.ejs`, q
 | `src/public/apple-touch-icon.png`, `android-chrome-*.png` | App instalada (PWA) |
 | `src/public/site.webmanifest` | Metadatos de la app instalada |
 
-Los originales (`margarita-wordmark.png` y `margarita-icon.png`) son de ~700 KB y tienen fondo claro, así que no se usan directamente en la interfaz. Si cambias el logo, reemplaza esos originales y regenera todo:
+El símbolo (una margarita con carita feliz) y los precios de la oferta se
+explican en [`docs/marca.md`](docs/marca.md). No hay originales que "optimizar":
+**todo se dibuja con código**, así que no existen versiones sueltas que se
+queden atrás. Si cambias el dibujo, se cambia en el script y se regenera:
 
 ```bash
 python3 -m pip install Pillow     # solo la primera vez
-python3 scripts/optimize-brand-assets.py
+python3 scripts/generate-brand.py
 ```
 
-El script recorta el margen sobrante del ícono, vuelve transparente el fondo y deja cada archivo en pocos kilobytes.
+El script dibuja a 4x y reduce, así que los bordes quedan suaves, y deja cada
+archivo en pocos kilobytes.

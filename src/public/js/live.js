@@ -109,7 +109,7 @@
             var link = document.createElement("a");
             link.href = options.href;
             link.className =
-                "mt-2 inline-block text-xs font-semibold text-emerald-300 hover:text-emerald-200";
+                "mt-2 inline-block text-xs font-semibold text-margarita-300 hover:text-margarita-200";
             link.textContent = "Abrir conversación";
             toast.appendChild(link);
         }
@@ -139,7 +139,7 @@
             (isNote
                 ? "bg-amber-100 text-amber-900 ring-1 ring-amber-200"
                 : isOut
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-margarita-600 text-white"
                   : "bg-white text-slate-800");
 
         if (isNote) {
@@ -169,7 +169,7 @@
         var meta = document.createElement("p");
         meta.className =
             "mt-2 text-right text-[11px] " +
-            (isNote ? "text-amber-600" : isOut ? "text-emerald-100" : "text-slate-400");
+            (isNote ? "text-amber-600" : isOut ? "text-margarita-100" : "text-slate-400");
         meta.textContent = formatTime(message.createdAt) + " ";
 
         if (isNote) {
@@ -179,7 +179,7 @@
         } else {
             var status = document.createElement("span");
             status.dataset.messageStatus = "";
-            status.className = isOut ? "text-emerald-100 font-semibold" : "text-slate-400 font-semibold";
+            status.className = isOut ? "text-margarita-100 font-semibold" : "text-slate-400 font-semibold";
             applyStatus(status, message.status);
 
             meta.appendChild(status);

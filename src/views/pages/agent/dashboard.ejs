@@ -5,7 +5,7 @@
 
     <main class="mx-auto max-w-7xl px-4 py-8">
         <div class="mb-8">
-            <p class="text-sm font-semibold uppercase tracking-wide text-emerald-600">
+            <p class="text-sm font-semibold uppercase tracking-wide text-margarita-600">
                 Panel de agente
             </p>
 
@@ -19,7 +19,7 @@
         </div>
 
         <% if (success === "status") { %>
-            <div class="mb-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <div class="mb-6 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
                 Estado actualizado correctamente.
             </div>
         <% } %>
@@ -44,7 +44,7 @@
                 </p>
 
                 <form action="/agent/status" method="POST" class="mt-5 grid gap-3">
-                    <button name="status" value="AVAILABLE" class="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                    <button name="status" value="AVAILABLE" class="rounded-xl bg-margarita-600 px-4 py-3 text-sm font-semibold text-white hover:bg-margarita-700">
                         Disponible
                     </button>
 
@@ -73,12 +73,12 @@
                     </p>
                 </div>
 
-                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-emerald-200">
-                    <p class="text-sm font-medium text-emerald-600">
+                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-margarita-200">
+                    <p class="text-sm font-medium text-margarita-600">
                         En progreso
                     </p>
 
-                    <p class="mt-3 text-4xl font-bold text-emerald-700">
+                    <p class="mt-3 text-4xl font-bold text-margarita-700">
                         <%= dashboard.stats.inProgressConversations %>
                     </p>
                 </div>
@@ -109,7 +109,7 @@
                         Tus conversaciones recientes
                     </h2>
 
-                    <a href="/agent/conversations" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700">
+                    <a href="/agent/conversations" class="text-sm font-semibold text-margarita-600 hover:text-margarita-700">
                         Ver todas
                     </a>
                 </div>
@@ -164,7 +164,7 @@
                     <% dashboard.recentMessages.forEach((message) => { %>
                         <a href="/agent/conversations/<%= message.conversation.id %>" class="block px-6 py-4 hover:bg-slate-50">
                             <div class="flex items-center gap-2">
-                                <span class="rounded-full <%= message.direction === 'IN' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700' %> px-3 py-1 text-xs font-semibold">
+                                <span class="rounded-full <%= message.direction === 'IN' ? 'bg-margarita-50 text-margarita-700' : 'bg-blue-50 text-blue-700' %> px-3 py-1 text-xs font-semibold">
                                     <%= message.direction %>
                                 </span>
 

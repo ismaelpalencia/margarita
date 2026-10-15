@@ -23,7 +23,7 @@
         </section>
 
         <% if (success === "password") { %>
-            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
                 Contraseña restablecida. Sus sesiones se cerraron y tendrá que
                 cambiarla al entrar.
             </div>
@@ -51,7 +51,7 @@
                         name="name"
                         value="<%= member.name %>"
                         required
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                     />
                 </div>
 
@@ -60,7 +60,7 @@
 
                     <select
                         name="role"
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                     >
                         <option value="AGENT" <% if (member.role !== "ADMIN") { %> selected <% } %>>
                             Agente — atiende sus conversaciones
@@ -106,7 +106,7 @@
                         type="number"
                         min="0"
                         value="<%= member.manualMessageLimit ?? '' %>"
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                     />
 
                     <p class="mt-2 text-xs text-slate-500">
@@ -116,7 +116,7 @@
                 </div>
 
                 <button
-                    class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700"
+                    class="w-full rounded-xl bg-margarita-600 px-4 py-3 font-semibold text-white hover:bg-margarita-700"
                 >
                     Guardar cambios
                 </button>
@@ -129,7 +129,7 @@
                     Verificación en dos pasos
                 </h2>
 
-                <span class="rounded-full px-3 py-1 text-xs font-bold <%= member.twoFactorEnabledAt ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600' %>">
+                <span class="rounded-full px-3 py-1 text-xs font-bold <%= member.twoFactorEnabledAt ? 'bg-margarita-100 text-margarita-800' : 'bg-slate-100 text-slate-600' %>">
                     <%= member.twoFactorEnabledAt ? "Activada" : "No activada" %>
                 </span>
             </div>
@@ -186,7 +186,7 @@
                         name="password"
                         required
                         value="<%= suggestedPassword %>"
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 font-mono text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 font-mono text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                     />
 
                     <p class="mt-2 text-xs text-slate-500">
@@ -207,7 +207,7 @@
 
         <p class="mt-4 text-xs text-slate-500">
             La propia persona también puede cambiar su contraseña en
-            <a href="/account/password" class="font-semibold text-emerald-700 hover:underline">Mi cuenta</a>.
+            <a href="/account/password" class="font-semibold text-margarita-700 hover:underline">Mi cuenta</a>.
         </p>
     </main>
 </body>

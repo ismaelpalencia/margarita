@@ -138,7 +138,9 @@ Meta.
 trámites legales, aviso de privacidad del cliente, migración de un CRM ajeno,
 ni teléfonos o equipos.
 
-**Precio:** `SETUP_SERVICE_PRICE` (se captura en las variables de entorno y se
-muestra en la página pública).
+**Precio:** `SETUP_SERVICE_PRICE`, `$1,500.00 MXN` por omisión (se captura en
+las variables de entorno y se muestra en la página pública). Es un **extra
+opcional** al precio de la instalación: sirve para quien no quiere hacer el
+trámite, y la guía sigue disponible para quien lo haga por su cuenta.
 
 **Contacto:** `SUPPORT_WHATSAPP` y `SUPPORT_EMAIL`.

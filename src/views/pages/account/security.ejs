@@ -34,7 +34,7 @@
         </section>
 
         <% if (success === "enabled") { %>
-            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 ring-1 ring-emerald-100">
+            <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700 ring-1 ring-margarita-100">
                 <strong>Verificación en dos pasos activada.</strong>
                 A partir de tu próximo inicio de sesión te pedirá el código de tu teléfono.
             </div>
@@ -68,7 +68,7 @@
                     </p>
                 </div>
 
-                <span class="rounded-full px-3 py-1 text-xs font-bold <%= state.enabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600' %>">
+                <span class="rounded-full px-3 py-1 text-xs font-bold <%= state.enabled ? 'bg-margarita-100 text-margarita-800' : 'bg-slate-100 text-slate-600' %>">
                     <%= state.enabled ? "Activada" : "No activada" %>
                 </span>
             </div>
@@ -101,7 +101,7 @@
                             maxlength="7"
                             required
                             placeholder="123 456"
-                            class="w-40 rounded-xl border border-slate-300 px-4 py-3 text-center font-mono text-lg tracking-widest outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                            class="w-40 rounded-xl border border-slate-300 px-4 py-3 text-center font-mono text-lg tracking-widest outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                         />
 
                         <button class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-red-100">
@@ -128,7 +128,7 @@
                             Clave de configuración
                         </p>
 
-                        <p class="mt-2 select-all break-all rounded-xl bg-slate-900 px-4 py-3 font-mono text-sm text-emerald-200">
+                        <p class="mt-2 select-all break-all rounded-xl bg-slate-900 px-4 py-3 font-mono text-sm text-margarita-200">
                             <%= formattedSecret %>
                         </p>
 
@@ -186,10 +186,10 @@
                                 required
                                 autofocus
                                 placeholder="123 456"
-                                class="w-40 rounded-xl border border-slate-300 px-4 py-3 text-center font-mono text-lg tracking-widest outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                                class="w-40 rounded-xl border border-slate-300 px-4 py-3 text-center font-mono text-lg tracking-widest outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                             />
 
-                            <button class="rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700">
+                            <button class="rounded-xl bg-margarita-600 px-4 py-3 font-semibold text-white hover:bg-margarita-700">
                                 Confirmar y activar
                             </button>
                         </div>
@@ -210,7 +210,7 @@
                     </ol>
 
                     <form action="/account/security/two-factor/start" method="POST">
-                        <button class="rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700">
+                        <button class="rounded-xl bg-margarita-600 px-4 py-3 font-semibold text-white hover:bg-margarita-700">
                             Activar la verificación en dos pasos
                         </button>
                     </form>
@@ -225,7 +225,7 @@
 
         <p class="mt-4 text-xs text-slate-500">
             ¿Quieres cambiar tu contraseña? Está en
-            <a href="/account/password" class="font-semibold text-emerald-700 hover:underline">Mi cuenta</a>.
+            <a href="/account/password" class="font-semibold text-margarita-700 hover:underline">Mi cuenta</a>.
         </p>
     </main>
 </body>

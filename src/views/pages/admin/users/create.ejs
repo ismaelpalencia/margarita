@@ -37,7 +37,7 @@
                         name="name"
                         value="<%= old.name %>"
                         required
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                     />
                 </div>
 
@@ -49,7 +49,7 @@
                         type="email"
                         value="<%= old.email %>"
                         required
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                     />
                 </div>
 
@@ -58,7 +58,7 @@
 
                     <select
                         name="role"
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                     >
                         <option value="AGENT" <% if (old.role !== "ADMIN") { %> selected <% } %>>
                             Agente — atiende sus conversaciones
@@ -83,7 +83,7 @@
                         name="password"
                         required
                         value="<%= suggestedPassword %>"
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 font-mono text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 font-mono text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                     />
 
                     <p class="mt-2 text-xs text-slate-500">
@@ -121,7 +121,7 @@
                         min="0"
                         value="<%= old.manualMessageLimit %>"
                         placeholder="Ej. 100"
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                     />
 
                     <p class="mt-2 text-xs text-slate-500">
@@ -131,7 +131,7 @@
                 </div>
 
                 <button
-                    class="w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700"
+                    class="w-full rounded-xl bg-margarita-600 px-4 py-3 font-semibold text-white hover:bg-margarita-700"
                 >
                     Crear usuario
                 </button>

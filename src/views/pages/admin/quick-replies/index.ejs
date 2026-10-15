@@ -27,7 +27,7 @@
         </section>
 
         <% if (success) { %>
-            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
                 Acción realizada correctamente.
             </div>
         <% } %>
@@ -54,7 +54,7 @@
                         required
                         maxlength="60"
                         placeholder="Por ejemplo: Saludo inicial"
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                     />
                 </div>
 
@@ -69,11 +69,11 @@
                         required
                         maxlength="2000"
                         placeholder="Hola {nombre}, con gusto te ayudamos."
-                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                     ></textarea>
                 </div>
 
-                <button class="justify-self-start rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                <button class="justify-self-start rounded-xl bg-margarita-600 px-5 py-3 text-sm font-semibold text-white hover:bg-margarita-700">
                     Guardar respuesta
                 </button>
             </form>
@@ -112,7 +112,7 @@
                             </td>
 
                             <td class="px-5 py-4">
-                                <span class="rounded-full px-3 py-1 text-xs font-semibold <%= quickReply.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500' %>">
+                                <span class="rounded-full px-3 py-1 text-xs font-semibold <%= quickReply.isActive ? 'bg-margarita-50 text-margarita-700' : 'bg-slate-100 text-slate-500' %>">
                                     <%= quickReply.isActive ? "Activa" : "Inactiva" %>
                                 </span>
                             </td>

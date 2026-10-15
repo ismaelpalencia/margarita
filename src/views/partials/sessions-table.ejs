@@ -27,7 +27,7 @@
             <% } %>
 
             <% sessions.forEach((session) => { %>
-                <tr class="<%= session.isCurrent ? 'bg-emerald-50/40' : '' %>">
+                <tr class="<%= session.isCurrent ? 'bg-margarita-50/40' : '' %>">
                     <% if (showUser) { %>
                         <td class="px-5 py-4">
                             <div class="font-medium text-slate-800"><%= session.userName %></div>
@@ -39,7 +39,7 @@
                         <%= session.device %>
 
                         <% if (session.isCurrent) { %>
-                            <span class="ml-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
+                            <span class="ml-1 rounded-full bg-margarita-50 px-2 py-0.5 text-[11px] font-bold text-margarita-700">
                                 Esta sesión
                             </span>
                         <% } %>
