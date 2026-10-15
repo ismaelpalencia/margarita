@@ -89,6 +89,11 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `SUPPORT_WHATSAPP` | — | Número comercial que aparece en la página pública (`https://wa.me/…`) |
 | `SUPPORT_EMAIL` | — | Correo comercial de contacto |
 | `SETUP_SERVICE_PRICE` | — | Precio del servicio de conexión con Meta que se muestra en la página pública |
+| `BACKUP_ENABLED` | `true` | Respaldo automático de la base encendido o apagado |
+| `BACKUP_INTERVAL_HOURS` | `24` | Cada cuánto se guarda una copia completa |
+| `BACKUP_KEEP` | `7` | Cuántas copias se conservan (las más recientes) |
+| `BACKUP_DIR` | `<MEDIA_STORAGE_DIR>/../backups` | Carpeta de las copias (**debe apuntar a un Volume**) |
+| `BACKUP_MAX_AGE_HOURS` | `36` | A partir de esta edad, `/health` marca el respaldo como viejo |
 | `LOGIN_MAX_ATTEMPTS` | `5` | Intentos fallidos antes de bloquear |
 | `LOGIN_LOCK_MINUTES` | `15` | Duración del bloqueo |
 | `LOG_RETENTION_DAYS` | `90` | Días que se conserva la bitácora |
@@ -269,6 +274,33 @@ npm run db:encrypt-data:dist
 ```
 
 Los adjuntos (fotos, audios, documentos) no se cifran: viven en el Volume. Si el cliente exige cifrado en disco, hay que cifrar el volumen o mover los archivos a un almacenamiento con cifrado del proveedor.
+
+### Respaldos automáticos y cómo restaurar
+
+Cada 24 horas (configurable) el servicio guarda una copia completa de la base en un archivo comprimido y cifrado con `ENCRYPTION_KEY`. Se conservan las últimas 7 y cada copia se verifica al crearse (se vuelve a leer y descifrar: si eso falla, queda como error en la bitácora y dispara las alertas).
+
+**La carpeta tiene que estar en un Volume**, o las copias se pierden en cada deploy. Lo más simple: apuntar `BACKUP_DIR=/data/backups`, donde `/data` es el mismo Volume de los archivos.
+
+Se ven (y se descargan) en **Admin → Respaldos**. `/health` reporta la edad del último y marca `checks.backupsFresh`.
+
+Para restaurar, desde tu máquina y con la URL pública de la base:
+
+```bash
+# Descarga el archivo desde Admin → Respaldos, y luego:
+DATABASE_URL="<URL_PUBLICA>" npm run db:restore -- --file=/ruta/margarita-2026-10-15-0300.mgb --dry-run
+
+# Si la simulación dice que el archivo se pudo leer, restaura de verdad:
+DATABASE_URL="<URL_PUBLICA>" npm run db:restore -- --file=/ruta/margarita-2026-10-15-0300.mgb --yes
+```
+
+Avisos importantes:
+
+- La restauración **borra** los datos actuales y los reemplaza por los del respaldo. Por eso pide `--yes`.
+- Si se interrumpe a la mitad, vuelve a correr el mismo comando con el mismo archivo: el proceso borra y recarga, así que es repetible.
+- El archivo **no se puede leer sin `ENCRYPTION_KEY`**. Guarda la llave junto con los respaldos, en otro lugar.
+- El respaldo cubre **la base**, no los adjuntos (fotos, audios, documentos): esos viven en el Volume.
+- Dentro del respaldo, los campos sensibles siguen cifrados: aunque alguien robe el archivo, no puede leer teléfonos ni mensajes sin la llave.
+- Nadie saca la copia del servidor sola. Descarga una de vez en cuando a un lugar externo: si el Volume se pierde, se pierden la base y sus copias.
 
 ### Volume para los archivos de los clientes
 

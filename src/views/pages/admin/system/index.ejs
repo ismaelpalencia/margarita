@@ -175,6 +175,31 @@
                     </p>
                 </div>
 
+                <%
+                    const backup = status.hardening.backups;
+                    const backupOk = Boolean(
+                        backup && backup.enabled && !backup.stale
+                    );
+                %>
+                <div class="rounded-xl p-4 ring-1 <%= backupOk ? 'bg-emerald-50 ring-emerald-200' : 'bg-amber-50 ring-amber-200' %>">
+                    <p class="text-sm font-bold <%= backupOk ? 'text-emerald-800' : 'text-amber-800' %>">
+                        Respaldos automáticos
+                    </p>
+                    <p class="mt-1 text-xs <%= backupOk ? 'text-emerald-700' : 'text-amber-700' %>">
+                        <% if (!backup) { %>
+                            No se pudo revisar el estado de los respaldos.
+                        <% } else if (!backup.enabled) { %>
+                            Están apagados (BACKUP_ENABLED=false).
+                        <% } else if (backup.count === 0) { %>
+                            Todavía no hay ninguna copia. Se creará sola en las próximas horas.
+                        <% } else if (backup.stale) { %>
+                            La última copia tiene <%= Math.round(backup.ageHours || 0) %> h (el límite es <%= backup.maxAgeHours %> h). Revisa la bitácora: el respaldo está fallando.
+                        <% } else { %>
+                            <%= backup.count %> copia(s), la última hace <%= Math.round(backup.ageHours || 0) %> h. Se conservan <%= backup.keep %>.
+                        <% } %>
+                    </p>
+                </div>
+
                 <div class="rounded-xl p-4 ring-1 <%= status.hardening.webhookSignatureConfigured ? 'bg-emerald-50 ring-emerald-200' : 'bg-amber-50 ring-amber-200' %>">
                     <p class="text-sm font-bold <%= status.hardening.webhookSignatureConfigured ? 'text-emerald-800' : 'text-amber-800' %>">
                         Firma del webhook

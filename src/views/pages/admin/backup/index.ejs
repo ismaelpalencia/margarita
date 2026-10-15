@@ -14,14 +14,29 @@
             </h1>
 
             <p class="mt-2 max-w-3xl text-slate-600">
-                Descarga una copia de tus datos para guardarla o revisarla en Excel.
-                Los archivos se generan al momento y no se almacenan en el servidor.
+                Cada <%= backup.intervalHours %> horas se guarda sola una copia de la
+                base en el servidor (cifrada con tu llave), y desde aquí puedes crear
+                una cuando quieras, descargarla o exportar por entidad para Excel.
             </p>
         </div>
 
         <% if (error === "entity") { %>
             <p class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
                 Esa exportación no existe.
+            </p>
+        <% } else if (error === "snapshot") { %>
+            <p class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                No se pudo crear el respaldo. Revisa la carpeta de respaldos y sus
+                permisos; el detalle quedó en la bitácora.
+            </p>
+        <% } else if (error === "snapshot-name") { %>
+            <p class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                Ese respaldo no existe.
+            </p>
+        <% } else if (error === "snapshot-verify") { %>
+            <p class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                El respaldo no se pudo leer: puede estar incompleto o haberse creado
+                con otra ENCRYPTION_KEY.
             </p>
         <% } else if (error) { %>
             <p class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
@@ -34,10 +49,86 @@
             </p>
         <% } %>
 
+        <% if (success === "snapshot") { %>
+            <p class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                Respaldo creado y verificado. Ya aparece en la lista de abajo.
+            </p>
+        <% } else if (success === "verified") { %>
+            <p class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                El respaldo se pudo leer y descifrar correctamente<%= req.query.rows ? ` (${req.query.rows} filas)` : "" %>.
+            </p>
+        <% } %>
+
         <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <h2 class="text-xl font-bold text-slate-900">
                 Respaldo completo
             </h2>
+
+            <%
+                /** Resumen del respaldo automático: edad, carpeta y cuántos hay. */
+                const ageLabel =
+                    backup.ageHours === null
+                        ? "nunca"
+                        : backup.ageHours < 1
+                          ? "hace menos de una hora"
+                          : `hace ${Math.round(backup.ageHours)} hora(s)`;
+            %>
+
+            <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                <div class="rounded-xl p-4 ring-1 <%= backup.stale ? 'bg-amber-50 ring-amber-200' : 'bg-emerald-50 ring-emerald-200' %>">
+                    <p class="text-xs font-bold uppercase tracking-wide <%= backup.stale ? 'text-amber-700' : 'text-emerald-700' %>">
+                        Respaldo automático
+                    </p>
+
+                    <p class="mt-1 text-sm font-bold <%= backup.stale ? 'text-amber-900' : 'text-emerald-900' %>">
+                        <%= backup.enabled ? (backup.stale ? "Atrasado" : "Al día") : "Apagado" %>
+                    </p>
+
+                    <p class="mt-1 text-xs <%= backup.stale ? 'text-amber-800' : 'text-emerald-800' %>">
+                        Último: <%= ageLabel %>. Cada <%= backup.intervalHours %> h, se conservan <%= backup.keep %>.
+                    </p>
+                </div>
+
+                <div class="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">
+                        Copias guardadas
+                    </p>
+
+                    <p class="mt-1 text-sm font-bold text-slate-800">
+                        <%= backup.count %> · <%= backup.totalSizeLabel %>
+                    </p>
+
+                    <p class="mt-1 break-all text-[11px] text-slate-500">
+                        <%= backup.dir %>
+                    </p>
+                </div>
+
+                <div class="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">
+                        Crear ahora
+                    </p>
+
+                    <p class="mt-1 text-xs text-slate-600">
+                        Úsalo antes de una migración o de un cambio delicado.
+                    </p>
+
+                    <form action="/admin/backup/snapshot" method="POST" class="mt-2">
+                        <button class="w-full rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                            Crear respaldo
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <% if (backup.enabled && !backup.dir.includes("data")) { %>
+                <p class="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-900">
+                    En Railway, la carpeta de respaldos debe estar dentro de un
+                    <strong>Volume</strong>; si no, se pierden en cada deploy. Apunta
+                    <span class="font-mono">BACKUP_DIR</span> al Volume (por ejemplo
+                    <span class="font-mono">/data/backups</span>) o deja
+                    <span class="font-mono">MEDIA_STORAGE_DIR=/data/media</span>.
+                </p>
+            <% } %>
 
             <p class="mt-2 text-sm text-slate-600">
                 Un solo archivo JSON con contactos, conversaciones, mensajes, campañas,
@@ -63,6 +154,76 @@
             >
                 Descargar respaldo completo
             </a>
+        </section>
+
+        <section class="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h2 class="text-xl font-bold text-slate-900">
+                Copias automáticas en el servidor
+            </h2>
+
+            <p class="mt-2 max-w-3xl text-sm text-slate-600">
+                Cada <%= backup.intervalHours %> horas se guarda una copia de la base
+                (comprimida y cifrada con tu llave) y se conservan las últimas
+                <%= backup.keep %>. Para restaurar una, descarga el archivo y usa
+                <span class="font-mono text-xs">npm run db:restore -- --file=…</span>.
+            </p>
+
+            <div class="mt-4 overflow-hidden rounded-xl ring-1 ring-slate-200">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500">
+                        <tr>
+                            <th class="px-4 py-3">Archivo</th>
+                            <th class="px-4 py-3">Fecha</th>
+                            <th class="px-4 py-3">Tamaño</th>
+                            <th class="px-4 py-3 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-slate-100">
+                        <% if (snapshots.length === 0) { %>
+                            <tr>
+                                <td colspan="4" class="px-4 py-6 text-center text-slate-500">
+                                    Todavía no hay copias. Se creará una sola en las
+                                    próximas horas, o créala ahora con el botón de arriba.
+                                </td>
+                            </tr>
+                        <% } %>
+
+                        <% snapshots.forEach((snapshot) => { %>
+                            <tr>
+                                <td class="px-4 py-3 font-mono text-xs text-slate-700">
+                                    <%= snapshot.file %>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600">
+                                    <%= formatDateTimeMX(snapshot.createdAt) %>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600">
+                                    <%= snapshot.sizeLabel %>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex justify-end gap-2">
+                                        <a
+                                            href="/admin/backup/snapshot/<%= snapshot.file %>"
+                                            class="rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-200"
+                                        >
+                                            Descargar
+                                        </a>
+
+                                        <form
+                                            action="/admin/backup/snapshot/<%= snapshot.file %>/verify"
+                                            method="POST"
+                                        >
+                                            <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white">
+                                                Verificar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         <section class="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">

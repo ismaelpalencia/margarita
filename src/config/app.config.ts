@@ -189,5 +189,34 @@ export const appConfig = {
         Number(process.env.CAMPAIGN_WORKER_INTERVAL_MS) || 5000,
     campaignBatchSize: Number(process.env.CAMPAIGN_BATCH_SIZE) || 10,
     campaignSendIntervalMs:
-        Number(process.env.CAMPAIGN_SEND_INTERVAL_MS) || 700
+        Number(process.env.CAMPAIGN_SEND_INTERVAL_MS) || 700,
+
+    /**
+     * Respaldos automáticos de la base.
+     *
+     * Se guardan en un archivo (comprimido y cifrado con `ENCRYPTION_KEY`)
+     * dentro de `BACKUP_DIR`. Para que sobrevivan a un deploy en Railway, esa
+     * carpeta tiene que ser un Volume.
+     */
+    backupEnabled: process.env.BACKUP_ENABLED !== "false",
+    backupIntervalHours: Number(process.env.BACKUP_INTERVAL_HOURS) || 24,
+    backupKeep: Number(process.env.BACKUP_KEEP) || 7,
+    /** A partir de esta edad, el panel avisa que el respaldo está viejo. */
+    backupMaxAgeHours: Number(process.env.BACKUP_MAX_AGE_HOURS) || 36,
+    /**
+     * Tope de filas por tabla. Si se rebasa, el respaldo **falla** en lugar de
+     * guardar una copia incompleta: un respaldo a medias es peor que no
+     * tenerlo, porque nadie se entera hasta que hace falta.
+     */
+    backupMaxRowsPerTable:
+        Number(process.env.BACKUP_MAX_ROWS_PER_TABLE) || 500000,
+    backupDir:
+        process.env.BACKUP_DIR?.trim() ||
+        path.join(
+            process.env.MEDIA_STORAGE_DIR?.trim() ||
+                path.join(process.cwd(), "uploads", "media"),
+            "..",
+            "backups"
+        )
 };
+

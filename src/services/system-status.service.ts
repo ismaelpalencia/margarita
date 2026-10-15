@@ -4,6 +4,7 @@ import { prisma } from "../config/prisma";
 import { appConfig } from "../config/app.config";
 import { isEncrypted } from "../utils/crypto";
 import { LEGACY_PHONE_HASH_PREFIX } from "../jobs/phone-hash.job";
+import { BackupFileService } from "./backup-file.service";
 
 export class SystemStatusService {
     /**
@@ -185,6 +186,7 @@ export class SystemStatusService {
         const webhookUrl = `${appConfig.appUrl}/webhooks/meta/whatsapp`;
 
         const encryption = await this.inspectEncryption(workspaceId);
+        const backups = await BackupFileService.status().catch(() => null);
 
         return {
             workspace,
@@ -210,6 +212,19 @@ export class SystemStatusService {
                 plaintextContacts: encryption.plaintextContacts,
                 plaintextMessages: encryption.plaintextMessages,
                 pendingPhoneHashes: encryption.pendingPhoneHashes,
+                /** Estado del respaldo automático. */
+                backups: backups
+                    ? {
+                          enabled: backups.enabled,
+                          count: backups.count,
+                          lastAt: backups.lastAt,
+                          ageHours: backups.ageHours,
+                          stale: backups.stale,
+                          maxAgeHours: backups.maxAgeHours,
+                          dir: backups.dir,
+                          keep: backups.keep
+                      }
+                    : null,
                 webhookSignatureConfigured: Boolean(appConfig.metaAppSecret),
                 webhookQueueEnabled: appConfig.webhookQueueEnabled,
                 webhookWorkerIntervalMs: appConfig.webhookWorkerIntervalMs,

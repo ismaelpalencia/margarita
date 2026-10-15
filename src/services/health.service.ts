@@ -5,6 +5,7 @@ import { prisma } from "../config/prisma";
 import { retentionState } from "../jobs/retention.job";
 import { webhookWorkerState } from "../jobs/webhook-worker";
 import { webhookTelemetry } from "./webhook-telemetry.service";
+import { BackupFileService } from "./backup-file.service";
 
 /**
  * Superficie mínima del cliente de base de datos que usa el healthcheck.
@@ -123,6 +124,14 @@ export class HealthService {
             Date.now() - webhookWorkerState.lastRunAt.getTime() >
                 appConfig.webhookWorkerIntervalMs * 10;
 
+        /**
+         * Respaldos: si el último tiene más de `BACKUP_MAX_AGE_HOURS`, se
+         * reporta como viejo. No tumba el healthcheck (el servicio está
+         * funcionando), pero queda a la vista y el job ya lo registra como
+         * error, que es lo que dispara las alertas.
+         */
+        const backups = await BackupFileService.status().catch(() => null);
+
         const checks = {
             database: database === "up",
             webhookQueueReadable: queue.readable,
@@ -146,7 +155,8 @@ export class HealthService {
             webhookWorkerStale: workerStale,
             alertsConfigured: Boolean(appConfig.alertWebhookUrl),
             /** Aviso cuando hay eventos que agotaron sus reintentos. */
-            webhookQueueHasFailures: queue.failed > 0
+            webhookQueueHasFailures: queue.failed > 0,
+            backupsFresh: Boolean(backups && backups.enabled && !backups.stale)
         };
 
         const degraded =
@@ -201,6 +211,21 @@ export class HealthService {
                 lastRunAt: retentionState.lastRunAt,
                 lastResult: retentionState.lastResult
             },
+            /** Respaldos automáticos: edad del último y si está viejo. */
+            backups: backups
+                ? {
+                      enabled: backups.enabled,
+                      count: backups.count,
+                      lastAt: backups.lastAt,
+                      ageHours:
+                          backups.ageHours === null
+                              ? null
+                              : Math.round(backups.ageHours * 10) / 10,
+                      maxAgeHours: backups.maxAgeHours,
+                      stale: backups.stale,
+                      dir: backups.dir
+                  }
+                : null,
             checks,
             timestamp: new Date().toISOString()
         };

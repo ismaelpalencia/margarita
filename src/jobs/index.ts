@@ -3,6 +3,7 @@ import { backfillPhoneHashes } from "./phone-hash.job";
 import { startRetentionJob } from "./retention.job";
 import { startWebhookWorker } from "./webhook-worker";
 import { startCampaignWorker } from "./campaign-worker";
+import { startBackupJob } from "./backup.job";
 
 /**
  * Arranca los procesos de fondo de la aplicación: el worker que
@@ -26,10 +27,12 @@ export async function startBackgroundJobs() {
     const webhookWorker = startWebhookWorker();
     const campaignWorker = startCampaignWorker();
     const retentionJob = startRetentionJob();
+    const backupJob = startBackupJob();
 
     return {
         webhookWorker,
         campaignWorker,
-        retentionJob
+        retentionJob,
+        backupJob
     };
 }

@@ -20,6 +20,10 @@
     "db:encrypt-secrets": "tsx scripts/encrypt-secrets.ts",
     "db:encrypt-data": "tsx src/tools/encrypt-data.ts",
     "db:encrypt-data:dist": "node dist/tools/encrypt-data.js",
+    "db:restore": "tsx src/tools/restore-backup.ts",
+    "db:restore:dist": "node dist/tools/restore-backup.js",
+    "db:backup": "tsx src/tools/backup-now.ts",
+    "db:backup:dist": "node dist/tools/backup-now.js",
     "db:migrate-deploy": "tsx src/tools/deploy-migrations.ts",
     "db:studio": "prisma studio"
   },

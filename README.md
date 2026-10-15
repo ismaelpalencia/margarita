@@ -45,6 +45,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Bajas automáticas: si el cliente escribe `STOP`, el contacto queda dado de baja y deja de recibir mensajes y campañas; reactivarlo es una decisión explícita y queda auditada.
 - Resultado de la gestión (cobranza): marca en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota, desde el hilo, la ficha del contacto o en bloque desde la lista. Cada marcado deja historial con quién y cuándo.
 - Reportes: gestiones del periodo por resultado, persona y día; promesas con lo vencido arriba, cumplimiento y prometido contra pagado; clientes sin contestación tras X intentos; y detalle exportable a CSV.
+- Respaldos automáticos: cada 24 horas se guarda una copia completa de la base comprimida y cifrada, verificada al crearse, con 7 copias de retención; se puede crear una a mano, descargarla desde el panel y restaurarla con `npm run db:restore`.
 - Borrado de mensajes: ocultar un mensaje sin destruirlo (restaurable desde el panel del admin) y, como admin, borrar todo el hilo escribiendo `BORRAR` para confirmar.
 - Respaldos: descarga completa en JSON o exportación por entidad en CSV (contactos, conversaciones, mensajes, campañas, plantillas, usuarios y bitácora).
 - Alta autoservicio: en una instalación nueva, `/setup` crea la empresa y el usuario administrador desde el navegador, y Admin → WhatsApp permite capturar las credenciales de Meta y el primer número sin usar la consola. El asistente se cierra solo al quedar configurada la instalación.
@@ -278,6 +279,11 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `SUPPORT_WHATSAPP` | Comercial | Número de contacto (dígitos con lada país) que aparece en la página pública |
 | `SUPPORT_EMAIL` | Comercial | Correo de contacto alterno |
 | `SETUP_SERVICE_PRICE` | Comercial | Precio del servicio de conexión con Meta que se muestra en la página pública |
+| `BACKUP_ENABLED` | No | Respaldo automático de la base. Default `true` |
+| `BACKUP_INTERVAL_HOURS` | No | Cada cuánto se guarda una copia completa. Default `24` |
+| `BACKUP_KEEP` | No | Copias que se conservan. Default `7` |
+| `BACKUP_DIR` | Producción | Carpeta de las copias; debe estar en un Volume. Default `<MEDIA_STORAGE_DIR>/../backups` |
+| `BACKUP_MAX_AGE_HOURS` | No | Edad a partir de la cual `/health` marca el respaldo como viejo. Default `36` |
 | `CAMPAIGN_WORKER_INTERVAL_MS` | No | Cada cuánto revisa el worker de campañas. Default `5000` |
 | `CAMPAIGN_BATCH_SIZE` | No | Destinatarios por vuelta del worker. Default `10` |
 | `CAMPAIGN_SEND_INTERVAL_MS` | No | Pausa entre envíos, para no chocar con los límites de Meta. Default `700` |
@@ -355,6 +361,8 @@ Si todavía no la tienes, la app funciona y guarda todo en texto plano; el panel
 | `npm run db:encrypt-data` | Cifra los datos que quedaron en claro antes del cifrado en reposo (idempotente) |
 | `npm run db:encrypt-data:dist` | Lo mismo, con el código compilado: sirve dentro del contenedor, sin devDependencies |
 | `npm run db:encrypt-secrets` | Cifra únicamente los tokens de Meta que quedaron en claro |
+| `npm run db:backup` | Crea un respaldo de la base ahora mismo (útil antes de un cambio delicado) |
+| `npm run db:restore` | Restaura un respaldo: `--file=<archivo.mgb>`, con `--dry-run` para validar y `--yes` para aplicarlo |
 | `npm run db:studio` | Abre Prisma Studio |
 
 ### Integración continua
@@ -427,6 +435,9 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | GET | `/admin/logs` | Auditoría |
 | GET | `/admin/backup` | Respaldos y exportaciones |
 | GET | `/admin/backup/download` | Descarga respaldo (`?format=json` o `?format=csv&entity=messages`) |
+| POST | `/admin/backup/snapshot` | Crea una copia de la base ahora mismo |
+| GET | `/admin/backup/snapshot/:archivo` | Descarga una copia (archivo cifrado) |
+| POST | `/admin/backup/snapshot/:archivo/verify` | Verifica que la copia se puede leer y descifrar |
 | POST | `/admin/backup/purge` | Elimina todos los datos de la instalación (requiere el identificador) |
 | GET | `/admin/system` | Checklist de configuración |
 | GET | `/admin/roadmap` | Alcance V1 vs V2 |
@@ -566,7 +577,7 @@ El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 167 pruebas unitarias en verde y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, y resultados de gestión con reportes de cobranza.
+Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 180 pruebas unitarias en verde y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones y **restauración de un respaldo probada borrando datos a propósito**.
 
 Lo que se cerró en el sprint de endurecimiento:
 
@@ -595,7 +606,8 @@ Pendientes conocidos, en orden de impacto:
 5. **Registro formal del opt-in**: hoy se guarda la fecha del consentimiento, no quién lo dio ni por qué canal.
 6. **Programación de campañas**: se pueden pausar y cancelar, pero no agendar por fecha y hora.
 7. **No leídos por persona**: el contador es del hilo, no de cada usuario.
-8. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
+8. **Respaldos fuera del servidor**: la copia automática vive en el mismo lugar que la base; nadie la saca de ahí sola. Conviene descargarla periódicamente (o activar también los respaldos del proveedor) y probar una restauración.
+9. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
 
 Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArgarita.md`](MArgarita.md) y visibles en `/admin/roadmap`.
 

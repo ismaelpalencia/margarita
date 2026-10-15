@@ -266,6 +266,29 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ---
 
+## Sprint 45 — Respaldos automáticos con restauración probada
+
+**Estado: completado.** Cierra el único punto que podía convertir un incidente en pérdida definitiva.
+
+| Área | Qué se hizo |
+| --- | --- |
+| Copia automática | Cada `BACKUP_INTERVAL_HOURS` (24 h por defecto) se guarda una copia completa de la base en `BACKUP_DIR`, comprimida con gzip y cifrada con `ENCRYPTION_KEY`. El job revisa cada 15 minutos **si el último respaldo ya cumplió el intervalo**, así que un reinicio no salta el turno. |
+| Verificación al crearse | Cada copia se relee y descifra al terminar de escribirla. Si no se puede leer, el respaldo no se da por bueno y queda como error (con alerta externa si está configurada). |
+| Contenido | Se lee con un cliente **sin** la extensión de cifrado: el archivo guarda los valores tal cual están en la base, así que los campos sensibles siguen cifrados dentro y la restauración es una copia fiel. Quedan fuera `WebhookEvent` (cola transitoria) y `UserSession` (no se resucitan accesos). |
+| Retención | Se conservan las últimas `BACKUP_KEEP` (7) copias; las viejas se podan por fecha. |
+| Panel | Admin → Respaldos muestra el estado (al día / atrasado / apagado), la carpeta, el tamaño total y la lista de copias con **Descargar** y **Verificar**, más un botón para crear una a mano. Aviso explícito de que la carpeta debe estar en un Volume. |
+| Restauración | `npm run db:restore -- --file=<archivo> [--dry-run|--yes]`: valida el archivo, muestra el resumen por tabla, y con `--yes` borra y recarga en orden de dependencias. Repetible si se interrumpe. |
+| Observabilidad | `/health` reporta la edad del último respaldo y marca `checks.backupsFresh`; el fallo del job queda en la bitácora como error. |
+| Tope de seguridad | Si una tabla supera `BACKUP_MAX_ROWS_PER_TABLE`, el respaldo **falla** en lugar de guardar una copia incompleta: un respaldo a medias es peor que no tenerlo. |
+
+### Verificación
+
+- 7 pruebas unitarias del formato (cifrado, llave distinta, archivo corrupto, nombre, tamaño).
+- **Restauración real**: se creó una copia, se borraron **todos** los mensajes y se corrompieron las notas de los contactos; la restauración devolvió los 41 mensajes y las notas originales idénticas (`diff` sin diferencias) y la aplicación siguió leyendo los datos descifrados. En esa prueba saltó un error de orden de inserción (`Message` referencia a `Campaign`) que quedó corregido.
+- Retención podando con `BACKUP_KEEP=2`, simulación sin tocar la base, botón de respaldo manual y `/health` con el bloque de respaldos.
+
+---
+
 ## Backlog del Sprint 35 (interactivos)
 
 | Función | Detalle |
