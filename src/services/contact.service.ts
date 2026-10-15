@@ -1,6 +1,10 @@
 import { prisma } from "../config/prisma";
-import { LogLevel, LogModule } from "@prisma/client";
+import { ContactOutcomeType, LogLevel, LogModule } from "@prisma/client";
 import { contactSearchOr } from "../utils/contact-search";
+import { startOfTodayIn } from "../utils/date";
+import { OPEN_PROMISE_TYPES } from "../utils/outcome";
+import { ContactOutcomeService } from "./contact-outcome.service";
+import { SendPolicyService } from "./send-policy.service";
 import { LogService } from "./log.service";
 import {
     CreateContactInput,
@@ -14,17 +18,76 @@ type ListContactsParams = {
     tagId?: string;
     /** Solo los contactos que pidieron la baja. */
     onlyOptedOut?: boolean;
+    /** Filtra por un resultado de gestión concreto. */
+    outcomeType?: string;
+    /** Promesas y convenios con fecha compromiso ya vencida. */
+    overdueOnly?: boolean;
+    /** Contactos a los que todavía no se les pone resultado. */
+    withoutOutcomeOnly?: boolean;
+    /** Contactos con al menos N intentos sin respuesta. */
+    minAttempts?: number;
+    /** Solo los que nunca han respondido. */
+    neverAnsweredOnly?: boolean;
 };
 
 export class ContactService {
     static async listContacts(params: ListContactsParams) {
         const search = params.search?.trim();
 
+        const timezone = await SendPolicyService.timezoneFor(params.workspaceId);
+
+        /**
+         * Los intentos se calculan con los mensajes, no se guardan: cuando
+         * se pide un mínimo, primero salen los contactos que lo cumplen y
+         * después se filtra la lista por esos ids.
+         */
+        let attemptsFilterIds: string[] | null = null;
+
+        if (params.minAttempts || params.neverAnsweredOnly) {
+            const attempts = await ContactOutcomeService.attemptsFor(
+                params.workspaceId
+            );
+
+            const minimum = params.minAttempts ?? 1;
+
+            attemptsFilterIds = [...attempts.entries()]
+                .filter(([, summary]) => {
+                    if (summary.attempts < minimum) {
+                        return false;
+                    }
+
+                    return params.neverAnsweredOnly ? !summary.hasInbound : true;
+                })
+                .map(([contactId]) => contactId);
+        }
+
         return prisma.contact.findMany({
             where: {
                 workspaceId: params.workspaceId,
                 isActive: true,
                 ...(search ? { OR: contactSearchOr(search) } : {}),
+                ...(attemptsFilterIds ? { id: { in: attemptsFilterIds } } : {}),
+                ...(params.outcomeType
+                    ? {
+                          outcomeType:
+                              params.outcomeType as ContactOutcomeType
+                      }
+                    : {}),
+                ...(params.overdueOnly
+                    ? {
+                          outcomeType: {
+                              in: OPEN_PROMISE_TYPES
+                          },
+                          outcomeDueAt: {
+                              lt: startOfTodayIn(timezone)
+                          }
+                      }
+                    : {}),
+                ...(params.withoutOutcomeOnly
+                    ? {
+                          outcomeType: null
+                      }
+                    : {}),
                 ...(params.onlyOptedOut
                     ? {
                           optOutAt: {

@@ -43,6 +43,8 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo), búsqueda por nombre o teléfono, filtros por estado, asignación y no leídos, y contador de pendientes por hilo y en el encabezado.
 - Respuestas rápidas: textos guardados que se insertan con un clic (con `{nombre}` y `{telefono}` del contacto), editables en Admin → Respuestas.
 - Bajas automáticas: si el cliente escribe `STOP`, el contacto queda dado de baja y deja de recibir mensajes y campañas; reactivarlo es una decisión explícita y queda auditada.
+- Resultado de la gestión (cobranza): marca en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota, desde el hilo, la ficha del contacto o en bloque desde la lista. Cada marcado deja historial con quién y cuándo.
+- Reportes: gestiones del periodo por resultado, persona y día; promesas con lo vencido arriba, cumplimiento y prometido contra pagado; clientes sin contestación tras X intentos; y detalle exportable a CSV.
 - Borrado de mensajes: ocultar un mensaje sin destruirlo (restaurable desde el panel del admin) y, como admin, borrar todo el hilo escribiendo `BORRAR` para confirmar.
 - Respaldos: descarga completa en JSON o exportación por entidad en CSV (contactos, conversaciones, mensajes, campañas, plantillas, usuarios y bitácora).
 - Alta autoservicio: en una instalación nueva, `/setup` crea la empresa y el usuario administrador desde el navegador, y Admin → WhatsApp permite capturar las credenciales de Meta y el primer número sin usar la consola. El asistente se cierra solo al quedar configurada la instalación.
@@ -270,6 +272,7 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `MEDIA_MAX_BYTES` | No | Tamaño máximo que se descarga de Meta. Default `26214400` (25 MB) |
 | `GRAPH_BASE_URL` | Solo pruebas | Base de la Graph API; vacío usa `https://graph.facebook.com` |
 | `OPT_OUT_KEYWORDS` | No | Palabras que dan de baja a un contacto al escribirlas (separadas por coma). Default `STOP` |
+| `OUTCOME_NO_ANSWER_ATTEMPTS` | No | Intentos sin respuesta con los que un cliente entra a "sin contestación" en los reportes. Default `3` |
 | `CAMPAIGN_WORKER_INTERVAL_MS` | No | Cada cuánto revisa el worker de campañas. Default `5000` |
 | `CAMPAIGN_BATCH_SIZE` | No | Destinatarios por vuelta del worker. Default `10` |
 | `CAMPAIGN_SEND_INTERVAL_MS` | No | Pausa entre envíos, para no chocar con los límites de Meta. Default `700` |
@@ -384,6 +387,9 @@ Si algún día agregas tests que sí necesiten base de datos, el workflow tendr�
 | GET/POST | `/admin/users`, `/admin/users/new`, `/admin/users/:id/edit`, `/admin/users/:id/toggle-status` | Gestión de agentes |
 | GET/POST | `/admin/contacts`, `/admin/contacts/new`, `/admin/contacts/:id/edit`, `/admin/contacts/:id/deactivate` | Gestión de contactos |
 | POST | `/admin/contacts/:id/opt-out`, `/admin/contacts/:id/opt-in` | Marca la baja o reactiva el consentimiento de un contacto |
+| POST | `/admin/contacts/:id/outcome`, `/admin/contacts/outcomes/bulk` | Registra el resultado de la gestión (individual o en bloque) |
+| GET | `/admin/reports` | Reportes de gestión (gestiones, promesas, sin contestación y detalle) |
+| GET | `/admin/reports/export` | Descarga el reporte actual en CSV |
 | GET/POST | `/admin/quick-replies`, `/admin/quick-replies/:id/edit`, `/admin/quick-replies/:id/active` | Respuestas rápidas |
 | GET/POST | `/admin/tags`, `/admin/tags/new`, `/admin/tags/:id/edit`, `/admin/tags/:id/deactivate` | Gestión de etiquetas |
 | GET | `/admin/whatsapp` | Detalle de la cuenta conectada |
@@ -554,7 +560,7 @@ El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 157 pruebas unitarias en verde y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos y exclusión de contactos dados de baja en campañas.
+Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay 167 pruebas unitarias en verde y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, y resultados de gestión con reportes de cobranza.
 
 Lo que se cerró en el sprint de endurecimiento:
 
@@ -567,6 +573,7 @@ Lo que se cerró en el sprint de endurecimiento:
 - Baja automática por palabra clave (`OPT_OUT_KEYWORDS`, por defecto `STOP`), con bloqueo de envíos y reactivación auditada.
 - Límite diario de mensajes manuales aplicado, calculado sobre los envíos reales (las notas internas no cuentan).
 - Respuestas rápidas, contador de no leídos y filtros y búsqueda en la bandeja.
+- Resultados de gestión (promesas, pagos, incumplidas, sin contestación) con historial, marcado en bloque y reportes exportables.
 - Bloqueo de cuenta por intentos fallidos y límite propio en el login.
 - Protección CSRF por origen y política mínima de contraseñas.
 - Retención automática de bitácora y eventos, con redacción de credenciales.

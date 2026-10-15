@@ -148,6 +148,72 @@ test("los datos anteriores al cifrado se siguen leyendo tal cual", () => {
     assert.deepEqual(result.variables, ["Ana"]);
 });
 
+test("cifra el monto de la gestión y la nota, y deja el tipo en claro", () => {
+    process.env.ENCRYPTION_KEY = TEST_KEY;
+
+    const args = encryptWriteArgs("ContactOutcome", "create", {
+        data: {
+            workspaceId: "ws",
+            contactId: "c1",
+            type: "PROMISE",
+            amount: "1250.5",
+            note: "Quedó de depositar el viernes",
+            dueAt: new Date("2026-10-16T06:00:00.000Z"),
+            source: "PANEL"
+        }
+    });
+
+    const data = args.data as Record<string, unknown>;
+
+    assert.ok(isEncrypted(data.amount as string), "el monto debe quedar cifrado");
+    assert.ok(isEncrypted(data.note as string));
+    assert.equal(
+        (data.amount as string).includes("1250"),
+        false,
+        "el monto no debe poder leerse en la base"
+    );
+
+    /** El tipo y las fechas quedan en claro: los reportes filtran por ellos. */
+    assert.equal(data.type, "PROMISE");
+    assert.equal(data.source, "PANEL");
+    assert.ok(data.dueAt instanceof Date);
+
+    const leido = decryptQueryResult(args.data) as Record<string, unknown>;
+
+    assert.equal(leido.amount, "1250.5");
+    assert.equal(leido.note, "Quedó de depositar el viernes");
+});
+
+test("no deja filtrar por el monto ni por la nota de la gestión", () => {
+    process.env.ENCRYPTION_KEY = TEST_KEY;
+
+    assert.throws(
+        () =>
+            encryptWriteArgs("ContactOutcome", "findMany", {
+                where: { amount: { equals: "1250.5" } }
+            }),
+        /ContactOutcome\.amount/
+    );
+
+    assert.throws(
+        () =>
+            encryptWriteArgs("ContactOutcome", "findMany", {
+                where: { note: { contains: "viernes" } }
+            }),
+        /ContactOutcome\.note/
+    );
+
+    assert.doesNotThrow(() =>
+        encryptWriteArgs("ContactOutcome", "findMany", {
+            where: {
+                type: "PROMISE",
+                dueAt: { lt: new Date() },
+                amount: { not: null }
+            }
+        })
+    );
+});
+
 test("cifra el evento crudo del webhook y la bitácora", () => {
     process.env.ENCRYPTION_KEY = TEST_KEY;
 

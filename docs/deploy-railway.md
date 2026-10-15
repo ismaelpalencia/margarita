@@ -83,6 +83,7 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `META_PHONE_NUMBER` | número con lada, sin signo + | |
 | `ENCRYPTION_KEY` | generador del repo (`npm run secrets:generate`) | Llave del cifrado en reposo: teléfonos, mensajes, notas, bitácora y tokens de Meta |
 | `OPT_OUT_KEYWORDS` | `STOP` | Palabras que dan de baja a un contacto al escribirlas (separadas por coma) |
+| `OUTCOME_NO_ANSWER_ATTEMPTS` | `3` | Intentos sin respuesta que llevan a un cliente a "sin contestación" en los reportes |
 | `LOGIN_MAX_ATTEMPTS` | `5` | Intentos fallidos antes de bloquear |
 | `LOGIN_LOCK_MINUTES` | `15` | Duración del bloqueo |
 | `LOG_RETENTION_DAYS` | `90` | Días que se conserva la bitácora |

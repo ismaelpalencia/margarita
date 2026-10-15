@@ -9,12 +9,19 @@ import helmet from "helmet";
 
 import { appConfig } from "./config/app.config";
 import { logger } from "./config/logger";
+import { installAsyncErrorHandling } from "./config/async-errors";
 import { csrfProtection } from "./middlewares/csrf.middleware";
 import indexRoutes from "./routes/index.routes";
 import healthRoutes from "./routes/health.routes";
 
 
 const app = express();
+
+/**
+ * Antes que nada: sin esto, un controlador `async` que lanza deja la
+ * petición colgada en lugar de responder 500.
+ */
+installAsyncErrorHandling();
 
 app.set("trust proxy", 1);
 

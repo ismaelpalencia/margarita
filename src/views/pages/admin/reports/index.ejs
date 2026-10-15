@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reportes | Margarita</title>
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <%- include("../../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-7xl px-4 py-8">
+        <section class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">Reportes</h2>
+
+            <p class="mt-1 max-w-3xl text-slate-500">
+                Resultado de las gestiones, promesas de pago y clientes que no
+                responden. Todo se puede bajar en CSV para Excel.
+            </p>
+        </section>
+
+        <section class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <p class="text-sm text-slate-500">Gestiones de hoy</p>
+                <p class="mt-2 text-3xl font-bold text-slate-900"><%= summary.markedToday %></p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-red-200">
+                <p class="text-sm text-red-700">Promesas vencidas</p>
+                <p class="mt-2 text-3xl font-bold text-red-700"><%= summary.overduePromises %></p>
+                <p class="mt-1 text-xs text-slate-500">Sin pago registrado</p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-sky-200">
+                <p class="text-sm text-sky-700">Compromisos esta semana</p>
+                <p class="mt-2 text-3xl font-bold text-sky-700"><%= summary.promisesSoon %></p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-emerald-200">
+                <p class="text-sm text-emerald-700">Cobrado este mes</p>
+                <p class="mt-2 text-3xl font-bold text-emerald-700"><%= summary.paidAmountLabel %></p>
+                <p class="mt-1 text-xs text-slate-500">
+                    <%= summary.paidThisMonth %> pago(s) registrados
+                </p>
+            </div>
+        </section>
+
+        <nav class="mb-4 flex flex-wrap gap-2">
+            <% [
+                ["gestiones", "Gestiones"],
+                ["promesas", "Promesas"],
+                ["intentos", "Sin contestación"],
+                ["detalle", "Detalle"]
+            ].forEach(([key, label]) => { %>
+                <a
+                    href="/admin/reports?vista=<%= key %>&from=<%= filters.from %>&to=<%= filters.to %>"
+                    class="rounded-xl px-4 py-2 text-sm font-semibold <%= view === key ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50' %>"
+                >
+                    <%= label %>
+                </a>
+            <% }) %>
+        </nav>
+
+        <form
+            action="/admin/reports"
+            method="GET"
+            class="mb-6 grid gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:grid-cols-3 lg:grid-cols-6"
+        >
+            <input type="hidden" name="vista" value="<%= view %>" />
+
+            <label class="block">
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Desde</span>
+                <input
+                    type="date"
+                    name="from"
+                    value="<%= filters.from %>"
+                    class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+            </label>
+
+            <label class="block">
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Hasta</span>
+                <input
+                    type="date"
+                    name="to"
+                    value="<%= filters.to %>"
+                    class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+            </label>
+
+            <label class="block">
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Persona</span>
+                <select name="userId" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                    <option value="">Todas</option>
+                    <% agents.forEach((agent) => { %>
+                        <option value="<%= agent.id %>" <% if (filters.userId === agent.id) { %> selected <% } %>>
+                            <%= agent.name %>
+                        </option>
+                    <% }) %>
+                </select>
+            </label>
+
+            <label class="block">
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Campaña</span>
+                <select name="campaignId" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                    <option value="">Todas</option>
+                    <% campaigns.forEach((campaign) => { %>
+                        <option value="<%= campaign.id %>" <% if (filters.campaignId === campaign.id) { %> selected <% } %>>
+                            <%= campaign.name %>
+                        </option>
+                    <% }) %>
+                </select>
+            </label>
+
+            <label class="block">
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Etiqueta</span>
+                <select name="tagId" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                    <option value="">Todas</option>
+                    <% tags.forEach((tag) => { %>
+                        <option value="<%= tag.id %>" <% if (filters.tagId === tag.id) { %> selected <% } %>>
+                            <%= tag.name %>
+                        </option>
+                    <% }) %>
+                </select>
+            </label>
+
+            <div class="flex items-end gap-2">
+                <button class="flex-1 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+                    Aplicar
+                </button>
+            </div>
+        </form>
+
+        <div class="mb-4 flex flex-wrap items-center gap-3">
+            <a
+                href="/admin/reports/export?vista=<%= view %>&from=<%= filters.from %>&to=<%= filters.to %>&userId=<%= filters.userId %>&campaignId=<%= filters.campaignId %>&tagId=<%= filters.tagId %>"
+                class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+                Descargar CSV
+            </a>
+
+            <p class="text-xs text-slate-500">
+                Periodo: <%= filters.from %> a <%= filters.to %>.
+                Los montos son de las promesas y pagos registrados, no una
+                conciliación contable.
+            </p>
+        </div>
+
+        <% if (view === "gestiones" && gestiones) { %>
+            <section class="mb-6 grid gap-4 lg:grid-cols-3">
+                <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                    <h3 class="font-bold text-slate-800">Por resultado</h3>
+                    <p class="mt-1 text-xs text-slate-500">Total: <%= gestiones.total %> gestiones</p>
+
+                    <div class="mt-4 space-y-2">
+                        <% if (gestiones.byType.length === 0) { %>
+                            <p class="text-sm text-slate-400">Sin gestiones en el periodo.</p>
+                        <% } %>
+
+                        <% gestiones.byType.forEach((item) => { %>
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                                <span class="font-medium text-slate-700"><%= outcomeLabels[item.type] %></span>
+                                <span class="text-slate-500">
+                                    <%= item.count %>
+                                    <% if (item.amount > 0) { %>
+                                        · <%= formatAmount(item.amount) %>
+                                    <% } %>
+                                </span>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                    <h3 class="font-bold text-slate-800">Por persona</h3>
+
+                    <div class="mt-4 space-y-2">
+                        <% if (gestiones.byUser.length === 0) { %>
+                            <p class="text-sm text-slate-400">Sin gestiones en el periodo.</p>
+                        <% } %>
+
+                        <% gestiones.byUser.forEach((item) => { %>
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                                <span class="font-medium text-slate-700"><%= item.name %></span>
+                                <span class="text-slate-500"><%= item.count %></span>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                    <h3 class="font-bold text-slate-800">Por día</h3>
+
+                    <div class="mt-4 space-y-2">
+                        <% if (gestiones.byDay.length === 0) { %>
+                            <p class="text-sm text-slate-400">Sin gestiones en el periodo.</p>
+                        <% } %>
+
+                        <% gestiones.byDay.forEach((item) => { %>
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                                <span class="font-medium text-slate-700"><%= item.day %></span>
+                                <span class="text-slate-500"><%= item.count %></span>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            </section>
+        <% } %>
+
+        <% if (view === "promesas" && promises && compliance) { %>
+            <section class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                    <p class="text-sm text-slate-500">Promesas vigentes</p>
+                    <p class="mt-2 text-3xl font-bold text-slate-900"><%= promises.items.length %></p>
+                    <p class="mt-1 text-xs text-slate-500">
+                        <%= formatAmount(promises.totalAmount) %> comprometidos
+                    </p>
+                </div>
+
+                <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-red-200">
+                    <p class="text-sm text-red-700">Vencidas sin pago</p>
+                    <p class="mt-2 text-3xl font-bold text-red-700"><%= promises.overdue %></p>
+                </div>
+
+                <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                    <p class="text-sm text-slate-500">Del periodo: pagadas a tiempo</p>
+                    <p class="mt-2 text-3xl font-bold text-emerald-700"><%= compliance.summary.onTime %></p>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Tarde: <%= compliance.summary.late %> ·
+                        Sin pago: <%= compliance.summary.unpaid %>
+                    </p>
+                </div>
+
+                <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                    <p class="text-sm text-slate-500">Prometido vs. pagado (periodo)</p>
+                    <p class="mt-2 text-xl font-bold text-slate-900">
+                        <%= formatAmount(compliance.summary.promisedAmount) %>
+                        <span class="text-slate-400">→</span>
+                        <%= formatAmount(compliance.summary.paidAmount) %>
+                    </p>
+                </div>
+            </section>
+
+            <section class="overflow-hidden rounded-2xl bg-white shadow">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500">
+                        <tr>
+                            <th class="px-5 py-4">Contacto</th>
+                            <th class="px-5 py-4">Teléfono</th>
+                            <th class="px-5 py-4">Resultado</th>
+                            <th class="px-5 py-4">Monto</th>
+                            <th class="px-5 py-4">Compromiso</th>
+                            <th class="px-5 py-4">Atraso</th>
+                            <th class="px-5 py-4">Registró</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-slate-100">
+                        <% if (promises.items.length === 0) { %>
+                            <tr>
+                                <td colspan="7" class="px-5 py-8 text-center text-slate-500">
+                                    No hay promesas ni convenios vigentes.
+                                </td>
+                            </tr>
+                        <% } %>
+
+                        <% promises.items.forEach((item) => { %>
+                            <tr class="<%= item.daysLate > 0 ? 'bg-red-50/50' : '' %>">
+                                <td class="px-5 py-4">
+                                    <a
+                                        href="/admin/contacts/<%= item.contactId %>/edit"
+                                        class="font-medium text-emerald-700 hover:underline"
+                                    >
+                                        <%= item.contactName %>
+                                    </a>
+                                </td>
+                                <td class="px-5 py-4 text-slate-600"><%= item.contactPhone %></td>
+                                <td class="px-5 py-4 text-slate-600"><%= outcomeLabels[item.type] %></td>
+                                <td class="px-5 py-4 font-semibold text-slate-800">
+                                    <%= item.amount === null ? "—" : formatAmount(item.amount) %>
+                                </td>
+                                <td class="px-5 py-4 text-slate-600">
+                                    <%= item.dueAt.toLocaleDateString("es-MX") %>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <% if (item.daysLate > 0) { %>
+                                        <span class="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">
+                                            <%= item.daysLate %> días
+                                        </span>
+                                    <% } else { %>
+                                        <span class="text-slate-400">Al día</span>
+                                    <% } %>
+                                </td>
+                                <td class="px-5 py-4 text-slate-500">
+                                    <%= item.userName || "—" %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </section>
+        <% } %>
+
+        <% if (view === "intentos" && noAnswer) { %>
+            <section class="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                Clientes con <strong><%= threshold %> o más intentos</strong> sin respuesta
+                y sin un resultado que cierre el caso. Los intentos son mensajes
+                salientes después del último mensaje del cliente.
+                <a href="/admin/contacts?intentos=<%= threshold %>&sinResultado=1" class="font-semibold underline">
+                    Abrir en Contactos para marcarlos en bloque
+                </a>.
+            </section>
+
+            <section class="overflow-hidden rounded-2xl bg-white shadow">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500">
+                        <tr>
+                            <th class="px-5 py-4">Contacto</th>
+                            <th class="px-5 py-4">Teléfono</th>
+                            <th class="px-5 py-4">Intentos</th>
+                            <th class="px-5 py-4">¿Ha respondido?</th>
+                            <th class="px-5 py-4">Resultado actual</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-slate-100">
+                        <% if (noAnswer.length === 0) { %>
+                            <tr>
+                                <td colspan="5" class="px-5 py-8 text-center text-slate-500">
+                                    Nadie acumula <%= threshold %> intentos sin respuesta.
+                                </td>
+                            </tr>
+                        <% } %>
+
+                        <% noAnswer.forEach((item) => { %>
+                            <tr>
+                                <td class="px-5 py-4">
+                                    <a
+                                        href="/admin/contacts/<%= item.contactId %>/edit"
+                                        class="font-medium text-emerald-700 hover:underline"
+                                    >
+                                        <%= item.name %>
+                                    </a>
+                                </td>
+                                <td class="px-5 py-4 text-slate-600"><%= item.phone %></td>
+                                <td class="px-5 py-4 font-bold text-amber-700"><%= item.attempts %></td>
+                                <td class="px-5 py-4 text-slate-600">
+                                    <%= item.hasInbound ? "Sí" : "Nunca" %>
+                                </td>
+                                <td class="px-5 py-4 text-slate-600">
+                                    <%= item.outcomeType ? outcomeLabels[item.outcomeType] : "Sin resultado" %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </section>
+        <% } %>
+
+        <% if (view === "detalle" && gestiones) { %>
+            <section class="overflow-hidden rounded-2xl bg-white shadow">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500">
+                        <tr>
+                            <th class="px-5 py-4">Fecha</th>
+                            <th class="px-5 py-4">Contacto</th>
+                            <th class="px-5 py-4">Teléfono</th>
+                            <th class="px-5 py-4">Resultado</th>
+                            <th class="px-5 py-4">Monto</th>
+                            <th class="px-5 py-4">Compromiso</th>
+                            <th class="px-5 py-4">Nota</th>
+                            <th class="px-5 py-4">Usuario</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-slate-100">
+                        <% if (gestiones.rows.length === 0) { %>
+                            <tr>
+                                <td colspan="8" class="px-5 py-8 text-center text-slate-500">
+                                    Sin gestiones en el periodo.
+                                </td>
+                            </tr>
+                        <% } %>
+
+                        <% gestiones.rows.forEach((row) => { %>
+                            <tr>
+                                <td class="px-5 py-4 text-slate-600"><%= formatDateTimeMX(row.createdAt) %></td>
+                                <td class="px-5 py-4">
+                                    <a
+                                        href="/admin/contacts/<%= row.contactId %>/edit"
+                                        class="font-medium text-emerald-700 hover:underline"
+                                    >
+                                        <%= row.contactName %>
+                                    </a>
+                                </td>
+                                <td class="px-5 py-4 text-slate-600"><%= row.contactPhone %></td>
+                                <td class="px-5 py-4 text-slate-600">
+                                    <%= outcomeLabels[row.type] %>
+                                    <%= row.source === "BULK" ? " (bloque)" : "" %>
+                                </td>
+                                <td class="px-5 py-4 text-slate-700">
+                                    <%= row.amount === null ? "—" : formatAmount(row.amount) %>
+                                </td>
+                                <td class="px-5 py-4 text-slate-600">
+                                    <%= row.dueAt ? row.dueAt.toLocaleDateString("es-MX") : "—" %>
+                                </td>
+                                <td class="px-5 py-4 text-slate-500"><%= row.note || "—" %></td>
+                                <td class="px-5 py-4 text-slate-500"><%= row.userName || "—" %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </section>
+        <% } %>
+    </main>
+</body>
+</html>

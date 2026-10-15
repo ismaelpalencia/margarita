@@ -136,6 +136,26 @@ enum WebhookEventStatus {
   FAILED
 }
 
+/**
+ * En qué quedó la gestión con un cliente.
+ *
+ * `PROMISE_BROKEN` es la incumplida **confirmada** (alguien la marcó). La
+ * promesa que venció y nadie revisó no se guarda: se deduce de `dueAt`, así
+ * que si el cliente paga después, marcar `PAID` la deja en paz sin tener que
+ * deshacer nada.
+ */
+enum ContactOutcomeType {
+  PROMISE
+  PROMISE_BROKEN
+  PAID
+  CONVENIO
+  NO_ANSWER
+  WRONG_NUMBER
+  NOT_INTERESTED
+  CALLBACK
+  OTHER
+}
+
 model Workspace {
   id        String          @id @default(cuid())
   name      String
@@ -154,6 +174,7 @@ model Workspace {
   logs            Log[]
   webhookEvents   WebhookEvent[]
   quickReplies    QuickReply[]
+  outcomes        ContactOutcome[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -211,6 +232,7 @@ model User {
   sentMessages Message[] @relation("MessageSentByUser")
   campaigns    Campaign[] @relation("CampaignCreatedBy")
   quickReplies QuickReply[] @relation("QuickReplyCreatedBy")
+  outcomes     ContactOutcome[] @relation("ContactOutcomeCreatedBy")
 
   assignedConversations Conversation[] @relation("ConversationAssignedUser")
 
@@ -314,11 +336,29 @@ model Contact {
   optOutAt     DateTime?
   optOutSource String?
 
+  /**
+   * Resultado vigente de la gestión, denormalizado desde `ContactOutcome`
+   * para poder filtrar y listar sin recorrer el historial.
+   *
+   * `outcomeType` va en claro a propósito: es lo que se agrupa en los
+   * reportes. El monto va cifrado (`outcomeAmount`), porque dice cuánto debe
+   * una persona.
+   */
+  outcomeType   ContactOutcomeType?
+  outcomeAt     DateTime?
+  outcomeById   String?
+  outcomeAmount String?
+  /** Fecha compromiso de la promesa o del convenio. */
+  outcomeDueAt  DateTime?
+  /** Fecha en que el cliente pagó, según quien lo registró. */
+  outcomePaidAt DateTime?
+
   lastSeenAt DateTime?
 
   tags               ContactTag[]
   conversations      Conversation[]
   campaignRecipients CampaignRecipient[]
+  outcomes           ContactOutcome[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -327,6 +367,8 @@ model Contact {
   @@index([workspaceId])
   @@index([phoneHash])
   @@index([optOutAt])
+  @@index([outcomeType])
+  @@index([outcomeDueAt])
   @@index([isActive])
 }
 
@@ -414,6 +456,7 @@ model Conversation {
 
   messages    Message[]
   assignments AssignmentHistory[]
+  outcomes    ContactOutcome[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -609,6 +652,48 @@ model QuickReply {
   @@unique([workspaceId, title])
   @@index([workspaceId])
   @@index([isActive])
+}
+
+/**
+ * Historial de gestiones: un renglón por cada marcado, nunca se borra.
+ *
+ * El estado vigente vive en `Contact`, pero sin este historial no se puede
+ * responder "cuántas promesas se cumplieron", "cuántas gestiones hizo X esta
+ * semana" ni "quién cambió esto".
+ */
+model ContactOutcome {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  contactId    String
+  contact      Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  conversationId String?
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  createdBy   User?   @relation("ContactOutcomeCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  type ContactOutcomeType
+
+  /** Nota de la gestión (cifrada). */
+  note String?
+  /** Monto prometido o pagado: texto cifrado que la app interpreta como número. */
+  amount String?
+  /** Fecha compromiso (en claro: se filtra y ordena por ella). */
+  dueAt  DateTime?
+  /** Fecha en que pagó, según quien registra (puede ser anterior a hoy). */
+  paidAt DateTime?
+
+  /** `PANEL` (desde el hilo) o `BULK` (marcado en bloque desde Contactos). */
+  source String @default("PANEL")
+
+  createdAt DateTime @default(now())
+
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, type])
+  @@index([workspaceId, dueAt])
+  @@index([contactId, createdAt])
 }
 
 model Log {

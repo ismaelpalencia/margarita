@@ -128,12 +128,13 @@ type WriteRule = (data: JsonObject) => void;
  * `{ not: null }` sí se permite: pregunta si hay valor, no cuál es.
  */
 const ENCRYPTED_FIELDS: Record<string, string[]> = {
-    Contact: ["notes"],
+    Contact: ["notes", "outcomeAmount"],
     Message: ["body", "mediaFilename", "metaPayload", "metaResponse"],
     CampaignRecipient: ["phone", "variables"],
     Log: ["payload"],
     WebhookEvent: ["payload"],
     QuickReply: ["body"],
+    ContactOutcome: ["note", "amount"],
     WhatsAppNumber: ["phoneNumber"],
     WhatsAppAccount: ["accessToken", "verifyToken"]
 };
@@ -218,7 +219,7 @@ const WRITE_RULES: Record<string, WriteRule> = {
             data.phoneHash = blindIndex(phone);
         }
 
-        encryptTextFields(data, ["notes"]);
+        encryptTextFields(data, ["notes", "outcomeAmount"]);
     },
 
     Message(data) {
@@ -257,6 +258,15 @@ const WRITE_RULES: Record<string, WriteRule> = {
 
     QuickReply(data) {
         encryptTextFields(data, ["body"]);
+    },
+
+    /**
+     * El resultado de la gestión: la nota y el monto dicen cuánto debe una
+     * persona, así que se cifran. El tipo y las fechas quedan en claro
+     * porque los reportes agrupan, filtran y ordenan por ellos.
+     */
+    ContactOutcome(data) {
+        encryptTextFields(data, ["note", "amount"]);
     },
 
     /**

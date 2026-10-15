@@ -9,6 +9,7 @@ import {
 
 import { prisma } from "../config/prisma";
 import { SendPolicyService } from "./send-policy.service";
+import { ReportService } from "./report.service";
 
 export class DashboardService {
     static async getAdminDashboard(workspaceId: string) {
@@ -135,6 +136,9 @@ export class DashboardService {
             statusMap[item.status] = item._count.status;
         });
 
+        /** Números de cobranza del día, para no tener que abrir Reportes. */
+        const outcomes = await ReportService.outcomeSummary(workspaceId);
+
         return {
             stats: {
                 openConversations,
@@ -142,6 +146,7 @@ export class DashboardService {
                 assignedConversations,
                 inProgressConversations
             },
+            outcomes,
             agents: {
                 available: statusMap[UserStatus.AVAILABLE],
                 busy: statusMap[UserStatus.BUSY],

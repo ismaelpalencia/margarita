@@ -151,6 +151,14 @@ export const appConfig = {
     optOutKeywords: parseOptOutKeywords(process.env.OPT_OUT_KEYWORDS),
 
     /**
+     * Cuántos intentos sin respuesta hacen que un cliente entre a "sin
+     * contestación" en los reportes. No marca nada solo: es el umbral con el
+     * que se arma la lista de trabajo.
+     */
+    outcomeNoAnswerAttempts:
+        Number(process.env.OUTCOME_NO_ANSWER_ATTEMPTS) || 3,
+
+    /**
      * Cola de campañas: cada cuánto revisa el worker, cuántos
      * destinatarios procesa por vuelta y cuánto espera entre envíos.
      */

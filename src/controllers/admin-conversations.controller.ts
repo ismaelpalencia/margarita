@@ -5,6 +5,18 @@ import { MessageService } from "../services/message.service";
 import { TemplateService } from "../services/template.service";
 import { UserService } from "../services/user.service";
 import { QuickReplyService } from "../services/quick-reply.service";
+import { ContactOutcomeService } from "../services/contact-outcome.service";
+import { SendPolicyService } from "../services/send-policy.service";
+import { startOfTodayIn } from "../utils/date";
+import {
+    OUTCOME_BADGE_CLASSES,
+    OUTCOME_LABELS,
+    OUTCOME_SHORT_LABELS,
+    OUTCOME_TYPES,
+    daysOverdue,
+    formatAmount,
+    isOpenPromise
+} from "../utils/outcome";
 import { getRequiredParam } from "../utils/request";
 import { sendFreeTextMessageSchema } from "../validations/free-text-message.validation";
 import { sendLocalMessageSchema } from "../validations/message.validation";
@@ -74,12 +86,35 @@ export class AdminConversationsController {
             conversation.id
         );
 
+        const timezone = await SendPolicyService.timezoneFor(
+            req.user!.workspaceId
+        );
+        const attempts = await ContactOutcomeService.attemptsFor(
+            req.user!.workspaceId,
+            [conversation.contactId]
+        );
+
         return res.render("pages/admin/conversations/show", {
             user: req.user,
             conversation,
             agents,
             templates,
             quickReplies,
+            outcomeAttempts: attempts.get(conversation.contactId) ?? {
+                attempts: 0,
+                hasInbound: false,
+                lastInboundAt: null
+            },
+            outcomeLabels: OUTCOME_LABELS,
+            outcomeBadgeClasses: OUTCOME_BADGE_CLASSES,
+            outcomeTypes: OUTCOME_TYPES,
+            shortLabels: OUTCOME_SHORT_LABELS,
+            isOpenPromise,
+            formatAmount,
+            daysLate: daysOverdue(
+                conversation.contact.outcomeDueAt,
+                startOfTodayIn(timezone)
+            ),
             showDeleted: includeDeleted,
             formatDateTimeMX,
             formatDayLabelMX,

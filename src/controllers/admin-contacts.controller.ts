@@ -1,6 +1,19 @@
 import { Request, Response } from "express";
 
 import { ContactService } from "../services/contact.service";
+import { ContactOutcomeService } from "../services/contact-outcome.service";
+import { SendPolicyService } from "../services/send-policy.service";
+import { formatDateTimeMX, startOfTodayIn } from "../utils/date";
+import {
+    OUTCOME_BADGE_CLASSES,
+    OUTCOME_LABELS,
+    OUTCOME_SHORT_LABELS,
+    OUTCOME_TYPES,
+    daysOverdue,
+    formatAmount,
+    isOpenPromise,
+    parseAmount
+} from "../utils/outcome";
 import { TagService } from "../services/tag.service";
 import { getRequiredParam } from "../utils/request";
 import {
@@ -17,16 +30,46 @@ export class AdminContactsController {
             typeof req.query.tagId === "string" ? req.query.tagId : "";
 
         const onlyOptedOut = req.query.bajas === "1";
+        const outcomeType =
+            typeof req.query.resultado === "string" &&
+            req.query.resultado !== ""
+                ? req.query.resultado
+                : undefined;
+        const overdueOnly = req.query.vencidas === "1";
+        const withoutOutcomeOnly = req.query.sinResultado === "1";
+        const neverAnsweredOnly = req.query.nuncaRespondio === "1";
+        const minAttempts = Number(req.query.intentos) > 0
+            ? Number(req.query.intentos)
+            : undefined;
 
         const [contacts, tags] = await Promise.all([
             ContactService.listContacts({
                 workspaceId: req.user!.workspaceId,
                 search,
                 tagId: tagId || undefined,
-                onlyOptedOut
+                onlyOptedOut,
+                outcomeType,
+                overdueOnly,
+                withoutOutcomeOnly,
+                minAttempts,
+                neverAnsweredOnly
             }),
             TagService.listTags(req.user!.workspaceId)
         ]);
+
+        /**
+         * Intentos y atraso se calculan al vuelo: los intentos con los
+         * mensajes, el atraso con la fecha compromiso. Nada de esto se
+         * guarda, así que no puede quedar desactualizado.
+         */
+        const timezone = await SendPolicyService.timezoneFor(
+            req.user!.workspaceId
+        );
+        const todayStart = startOfTodayIn(timezone);
+        const attempts = await ContactOutcomeService.attemptsFor(
+            req.user!.workspaceId,
+            contacts.map((contact) => contact.id)
+        );
 
         return res.render("pages/admin/contacts/index", {
             user: req.user,
@@ -35,7 +78,20 @@ export class AdminContactsController {
             search,
             tagId,
             onlyOptedOut,
-            success: req.query.success || null
+            outcomeType: outcomeType || "",
+            overdueOnly,
+            withoutOutcomeOnly,
+            neverAnsweredOnly,
+            minAttempts: minAttempts || "",
+            attempts,
+            outcomeLabels: OUTCOME_LABELS,
+            outcomeBadgeClasses: OUTCOME_BADGE_CLASSES,
+            outcomeTypes: OUTCOME_TYPES,
+            formatAmount,
+            daysLate: (contact: { outcomeDueAt: Date | null }) =>
+                daysOverdue(contact.outcomeDueAt, todayStart),
+            success: req.query.success || null,
+            error: req.query.error || null
         });
     }
 
@@ -120,11 +176,38 @@ export class AdminContactsController {
                 TagService.listTags(req.user!.workspaceId)
             ]);
 
+            const [history, attemptsMap] = await Promise.all([
+                ContactOutcomeService.historyFor(req.user!.workspaceId, id),
+                ContactOutcomeService.attemptsFor(req.user!.workspaceId, [id])
+            ]);
+
+            const timezone = await SendPolicyService.timezoneFor(
+                req.user!.workspaceId
+            );
+
             return res.render("pages/admin/contacts/edit", {
                 user: req.user,
                 contact,
                 tags,
-                error: null
+                history,
+                attempts: attemptsMap.get(id) ?? {
+                    attempts: 0,
+                    hasInbound: false,
+                    lastInboundAt: null
+                },
+                outcomeLabels: OUTCOME_LABELS,
+                outcomeBadgeClasses: OUTCOME_BADGE_CLASSES,
+                outcomeTypes: OUTCOME_TYPES,
+                shortLabels: OUTCOME_SHORT_LABELS,
+                isOpenPromise,
+                daysLate: daysOverdue(
+                    contact.outcomeDueAt,
+                    startOfTodayIn(timezone)
+                ),
+                formatAmount,
+                formatDateTimeMX,
+                error: req.query.error || null,
+                success: req.query.success || null
             });
         } catch {
             return res.redirect("/admin/contacts");

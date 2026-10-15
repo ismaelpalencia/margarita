@@ -110,7 +110,11 @@
                 </div>
             </div>
 
-            <% if (success === "assigned" || success === "closed" || success === "reopened" || success === "deleted" || success === "restored" || success === "purged" || success === "free_text" || success === "template" || success === "message" || success === "media") { %>
+            <% if (success === "outcome") { %>
+                <p class="border-b border-emerald-100 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700">
+                    Resultado de la gestión guardado.
+                </p>
+            <% } else if (success === "assigned" || success === "closed" || success === "reopened" || success === "deleted" || success === "restored" || success === "purged" || success === "free_text" || success === "template" || success === "message" || success === "media") { %>
                 <p class="border-b border-emerald-100 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700">
                     Acción realizada correctamente.
                 </p>
@@ -119,6 +123,10 @@
             <% if (error === "confirm") { %>
                 <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
                     Para borrar todo el chat hay que escribir BORRAR en la confirmación.
+                </p>
+            <% } else if (error === "outcome") { %>
+                <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+                    No se guardó el resultado. Una promesa o un convenio necesitan fecha compromiso, y el monto debe ser un número.
                 </p>
             <% } else if (error === "media") { %>
                 <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
@@ -253,6 +261,19 @@
         </section>
 
         <aside class="space-y-4 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+            <%- include("../../../partials/outcome-panel", {
+                contact: conversation.contact,
+                actionUrl: `/admin/contacts/${conversation.contactId}/outcome`,
+                outcomeLabels,
+                outcomeBadgeClasses,
+                outcomeTypes,
+                shortLabels,
+                isOpenPromise,
+                attempts: outcomeAttempts,
+                daysLate,
+                formatAmount
+            }) %>
+
             <%- include("../../../partials/conversation-tools", {
                 conversation,
                 templates,

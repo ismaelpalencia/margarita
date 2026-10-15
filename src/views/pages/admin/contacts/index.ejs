@@ -73,7 +73,7 @@
             </a>
         </section>
 
-        <form action="/admin/contacts" method="GET" class="mb-6 grid gap-3 md:grid-cols-[1fr_260px_auto_auto]">
+        <form action="/admin/contacts" method="GET" class="mb-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
                 <input
                     name="search"
@@ -100,23 +100,83 @@
                 <% }) %>
             </select>
 
-            <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">
+            <select
+                name="resultado"
+                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            >
+                <option value="">Todos los resultados</option>
+
+                <% outcomeTypes.forEach((type) => { %>
+                    <option value="<%= type %>" <% if (outcomeType === type) { %> selected <% } %>>
+                        <%= outcomeLabels[type] %>
+                    </option>
+                <% }) %>
+            </select>
+
+            <input
+                type="number"
+                name="intentos"
+                min="1"
+                value="<%= minAttempts %>"
+                placeholder="Intentos sin respuesta ≥"
+                class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            />
+
+            <button class="h-fit rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white self-start">
                 Buscar
             </button>
 
-            <label class="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-700">
-                <input
-                    type="checkbox"
-                    name="bajas"
-                    value="1"
-                    class="h-4 w-4 rounded border-slate-300"
-                    <% if (onlyOptedOut) { %> checked <% } %>
-                />
+            <div class="flex flex-wrap items-center gap-3 md:col-span-2 lg:col-span-2">
+                <label class="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-700">
+                    <input
+                        type="checkbox"
+                        name="bajas"
+                        value="1"
+                        class="h-4 w-4 rounded border-slate-300"
+                        <% if (onlyOptedOut) { %> checked <% } %>
+                    />
 
-                Solo bajas
-            </label>
+                    Solo bajas
+                </label>
 
-            <% if (search || tagId || onlyOptedOut) { %>
+                <label class="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-700">
+                    <input
+                        type="checkbox"
+                        name="vencidas"
+                        value="1"
+                        class="h-4 w-4 rounded border-slate-300"
+                        <% if (overdueOnly) { %> checked <% } %>
+                    />
+
+                    Promesas vencidas
+                </label>
+
+                <label class="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-700">
+                    <input
+                        type="checkbox"
+                        name="sinResultado"
+                        value="1"
+                        class="h-4 w-4 rounded border-slate-300"
+                        <% if (withoutOutcomeOnly) { %> checked <% } %>
+                    />
+
+                    Sin resultado
+                </label>
+
+                <label class="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-700">
+                    <input
+                        type="checkbox"
+                        name="nuncaRespondio"
+                        value="1"
+                        class="h-4 w-4 rounded border-slate-300"
+                        <% if (neverAnsweredOnly) { %> checked <% } %>
+                    />
+
+                    Nunca respondió
+                </label>
+            </div>
+
+            <% if (search || tagId || onlyOptedOut || outcomeType || overdueOnly || withoutOutcomeOnly || neverAnsweredOnly || minAttempts) { %>
                 <a href="/admin/contacts" class="rounded-xl bg-slate-100 px-5 py-3 text-center text-sm font-semibold text-slate-700">
                     Limpiar
                 </a>
@@ -129,12 +189,92 @@
             </div>
         <% } %>
 
+        <%
+            /**
+             * El marcado en bloque se manda como un formulario aparte: los
+             * checkboxes de la tabla lo referencian con `form=`, porque
+             * meter la tabla dentro de un form anidaría los formularios que
+             * ya tiene cada fila (abrir conversación, desactivar…).
+             */
+        %>
+        <form
+            id="bulk-outcomes"
+            action="/admin/contacts/outcomes/bulk"
+            method="POST"
+            class="mb-4 flex flex-wrap items-end gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200"
+        >
+            <input type="hidden" name="redirectTo" value="<%= currentPath %>" />
+
+            <label class="block">
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    Marcar seleccionados como
+                </span>
+
+                <select
+                    name="type"
+                    required
+                    class="mt-1 rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                >
+                    <option value="">Resultado…</option>
+
+                    <% outcomeTypes.forEach((type) => { %>
+                        <option value="<%= type %>"><%= outcomeLabels[type] %></option>
+                    <% }) %>
+                </select>
+            </label>
+
+            <label class="block">
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    Monto (opcional)
+                </span>
+
+                <input
+                    name="amount"
+                    inputmode="decimal"
+                    placeholder="1250.00"
+                    class="mt-1 w-32 rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+            </label>
+
+            <label class="block">
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    Fecha compromiso (promesa/convenio)
+                </span>
+
+                <input
+                    type="date"
+                    name="dueDate"
+                    class="mt-1 rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+            </label>
+
+            <label class="block flex-1">
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    Nota (opcional)
+                </span>
+
+                <input
+                    name="note"
+                    class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+            </label>
+
+            <button class="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                Aplicar a los seleccionados
+            </button>
+        </form>
+
         <section class="overflow-hidden rounded-2xl bg-white shadow">
             <table class="w-full text-left text-sm">
                 <thead class="bg-slate-50 text-slate-500">
                     <tr>
+                        <th class="px-5 py-4">
+                            <span class="sr-only">Seleccionar</span>
+                        </th>
                         <th class="px-5 py-4">Nombre</th>
                         <th class="px-5 py-4">Teléfono</th>
+                        <th class="px-5 py-4">Resultado</th>
+                        <th class="px-5 py-4">Intentos</th>
                         <th class="px-5 py-4">Etiquetas</th>
                         <th class="px-5 py-4">Notas</th>
                         <th class="px-5 py-4 text-right">Acciones</th>
@@ -144,14 +284,31 @@
                 <tbody class="divide-y divide-slate-100">
                     <% if (contacts.length === 0) { %>
                         <tr>
-                            <td colspan="5" class="px-5 py-8 text-center text-slate-500">
+                            <td colspan="8" class="px-5 py-8 text-center text-slate-500">
                                 No hay contactos para mostrar.
                             </td>
                         </tr>
                     <% } %>
 
                     <% contacts.forEach((contact) => { %>
+                        <%
+                            const contactAttempts = attempts.get(contact.id) || {
+                                attempts: 0,
+                                hasInbound: false
+                            };
+                            const late = daysLate(contact);
+                        %>
                         <tr>
+                            <td class="px-5 py-4">
+                                <input
+                                    type="checkbox"
+                                    name="contactIds"
+                                    value="<%= contact.id %>"
+                                    form="bulk-outcomes"
+                                    class="h-4 w-4 rounded border-slate-300"
+                                />
+                            </td>
+
                             <td class="px-5 py-4">
                                 <div class="flex items-center gap-2">
                                     <span class="font-medium text-slate-800">
@@ -178,6 +335,40 @@
 
                             <td class="px-5 py-4 text-slate-600">
                                 <%= contact.phone %>
+                            </td>
+
+                            <td class="px-5 py-4">
+                                <% if (contact.outcomeType) { %>
+                                    <span class="rounded-full px-2 py-0.5 text-[11px] font-bold <%= outcomeBadgeClasses[contact.outcomeType] %>">
+                                        <%= outcomeLabels[contact.outcomeType] %>
+                                    </span>
+
+                                    <% if (late > 0) { %>
+                                        <span class="ml-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">
+                                            <%= late %> d
+                                        </span>
+                                    <% } %>
+
+                                    <% if (contact.outcomeAmount) { %>
+                                        <div class="mt-1 text-xs text-slate-500">
+                                            <%= formatAmount(Number(contact.outcomeAmount)) %>
+                                        </div>
+                                    <% } %>
+                                <% } else { %>
+                                    <span class="text-slate-400">—</span>
+                                <% } %>
+                            </td>
+
+                            <td class="px-5 py-4 text-slate-600">
+                                <span class="<%= contactAttempts.attempts >= 3 ? 'font-bold text-amber-700' : '' %>">
+                                    <%= contactAttempts.attempts %>
+                                </span>
+
+                                <% if (!contactAttempts.hasInbound && contactAttempts.attempts > 0) { %>
+                                    <div class="text-[11px] text-amber-700">
+                                        nunca respondió
+                                    </div>
+                                <% } %>
                             </td>
 
                             <td class="px-5 py-4">

@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { AgentConversationsController } from "../controllers/agent-conversations.controller";
+import { OutcomeController } from "../controllers/outcome.controller";
 import { mediaUploadSingle } from "../middlewares/upload.middleware";
 
 const router = Router();
@@ -15,6 +16,13 @@ router.post(
     AgentConversationsController.sendMediaMessage
 );
 router.post("/:id/messages/free-text", AgentConversationsController.sendFreeTextMessage);
+router.post(
+    "/:id/outcome",
+    OutcomeController.markFromConversation({
+        basePath: "/agent/conversations",
+        forAgent: true
+    })
+);
 router.post("/:id/close", AgentConversationsController.close);
 router.post("/:id/messages/:messageId/delete", AgentConversationsController.deleteMessage);
 

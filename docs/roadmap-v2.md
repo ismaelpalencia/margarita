@@ -218,6 +218,29 @@ Campos nuevos en `Message`: `mediaPath` (ruta en la caché), `mediaSize`, `media
 
 ---
 
+## Sprint 43 — Reportes de gestión y cobranza
+
+**Estado: completado.** El diseño está en [`reportes-cobranza.md`](reportes-cobranza.md).
+
+| Área | Qué se hizo |
+| --- | --- |
+| Resultado de gestión | Modelo `ContactOutcome` (historial, de solo agregar) más el estado vigente denormalizado en `Contact`: tipo, monto, fecha compromiso, fecha de pago y quién lo marcó. |
+| Catálogo | `PROMISE`, `PAID`, `CONVENIO`, `PROMISE_BROKEN`, `NO_ANSWER`, `WRONG_NUMBER`, `NOT_INTERESTED`, `CALLBACK`, `OTHER`. |
+| Promesa incumplida | **No se guarda sola.** Una promesa o convenio con fecha pasada se muestra como vencida (con los días de atraso) porque se deduce de `outcomeDueAt`; `PROMISE_BROKEN` es la confirmación de una persona. Si el cliente paga después, marcar pagado la resuelve sin deshacer nada. |
+| Intentos | Calculados con los mensajes: salientes que no fallaron y no son notas internas, posteriores al último mensaje del cliente. Una respuesta reinicia el contador. Umbral en `OUTCOME_NO_ANSWER_ATTEMPTS` (3 por defecto). |
+| Marcado | Desde el hilo (admin y agente), desde la ficha del contacto y **en bloque** desde la lista, con monto, fecha compromiso, fecha de pago y nota. Todo auditado. |
+| Filtros en Contactos | Resultado, promesas vencidas, sin resultado, intentos mínimos y "nunca respondió", además de los que ya existían. |
+| Reportes | Cuatro vistas en Admin → Reportes (gestiones, promesas, sin contestación y detalle), con filtros por fecha, persona, campaña y etiqueta, tarjetas del periodo y exportación CSV. |
+| Cifrado | El monto y la nota van cifrados (también en el historial); el tipo y las fechas quedan en claro porque los reportes agrupan y filtran por ellos. Las sumas se hacen en la aplicación, no en SQL. |
+| Robustez | Al probar los reportes apareció un problema de fondo: un controlador `async` que lanza dejaba la **petición colgada** (Express 4 no atiende promesas rechazadas). Se parcheó el despacho de Express para que el rechazo llegue al manejador de errores: ahora responde 500, queda en la bitácora y dispara alertas. |
+
+### Verificación
+
+- 10 pruebas unitarias nuevas: atraso en días completos, vencida derivada, montos escritos a mano, fecha compromiso a medianoche local, clasificación de promesas (a tiempo, tarde, sin pago), y que un pago no cumpla dos promesas ni cuente si fue anterior.
+- 36 comprobaciones contra una base real (servicio y pantallas) más capturas de las tres pantallas nuevas.
+
+---
+
 ## Backlog del Sprint 35 (interactivos)
 
 | Función | Detalle |
