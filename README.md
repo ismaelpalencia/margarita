@@ -556,14 +556,14 @@ La guía completa paso a paso está en [`docs/deploy-railway.md`](docs/deploy-ra
 
 | Concepto | Valor |
 | --- | --- |
-| Build command | `npm ci --include=dev && npm run build` |
+| Build command | **Déjalo vacío** en el panel: viene en `nixpacks.toml` (`npm install --include=dev` + `npm run build`). Si pones otro `npm ci` ahí, corre dos veces y falla con `EBUSY` al borrar `node_modules` |
 | Start command | `npm start` |
 | Healthcheck | `/health` |
 | Puerto | `3000` |
 | Node | 22 (Prisma 7 no instala en Node 18) |
 | Variables clave | `DATABASE_URL` (referencia al plugin de Postgres), `APP_URL` con el dominio público HTTPS, `NODE_ENV=production`, `JWT_SECRET` y las `META_*` |
 
-Los cinco tropiezos más comunes: que el build use **Node 18** y Prisma 7 se niegue a instalar (se resuelve con `NIXPACKS_NODE_VERSION=22.12.0` en el servicio; el repo ya declara `engines`, `.nvmrc` y `nixpacks.toml`), dejar `APP_URL` apuntando a localhost (rompe CORS y el socket), no incluir las devDependencies en el build cuando `NODE_ENV=production`, olvidar `META_APP_SECRET` (el webhook responde 401 en producción) y olvidar `ENCRYPTION_KEY` (nada se cifra en la base).
+Los cinco tropiezos más comunes: que el build use **Node 18** y Prisma 7 se niegue a instalar (se resuelve con `NIXPACKS_NODE_VERSION=22.12.0` en el servicio; el repo ya declara `engines`, `.nvmrc` y `nixpacks.toml`), dejar un **Build Command** en el servicio que duplique la instalación (`EBUSY` al borrar `node_modules`), dejar `APP_URL` apuntando a localhost (rompe CORS y el socket), olvidar `META_APP_SECRET` (el webhook responde 401 en producción) y olvidar `ENCRYPTION_KEY` (nada se cifra en la base).
 
 El proyecto usa migraciones versionadas. Lo más simple es dejar que Railway las aplique dentro del contenedor, sin exponer la base ni copiar credenciales: configura el Pre-deploy Command con `node dist/tools/deploy-migrations.js`. Ese script detecta el estado de la base y resuelve los tres casos (base nueva, base existente sin historial y base ya baselinada) de forma idempotente.
 

@@ -13,7 +13,7 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 | Pieza | Qué hace |
 | --- | --- |
 | `package.json` → `engines` | Declara Node **20.19+/22.12+**: Prisma 7 se niega a instalar en Node 18. Es lo que Nixpacks lee para elegir la versión, junto con `.nvmrc`. |
-| `nixpacks.toml` | Instala con `npm ci --include=dev` (el instalador por defecto no trae TypeScript ni Tailwind con `NODE_ENV=production`) y compila con `npm run build`. |
+| `nixpacks.toml` | Instala con `npm install --include=dev` (ver abajo por qué no `npm ci`) y compila con `npm run build`. |
 | `preDeployCommand` | `node dist/tools/deploy-migrations.js` — aplica las migraciones antes de levantar la app, resolviendo el caso de una base nueva, una con tablas y una ya versionada. |
 | `startCommand` | `npm start` |
 | `healthcheckPath` | `/health` — el despliegue se marca sano cuando la base y el worker responden. |
@@ -72,11 +72,18 @@ Pasado eso ya opera. Lo que **no** se puede automatizar y hay que decirle: la cu
 | Respaldos funcionando | *Admin → Respaldos*: "Al día" y la carpeta `/data/backups`. |
 | El webhook responde | En Meta, la verificación del webhook acepta la URL `https://<dominio>/webhooks/meta/whatsapp`. |
 
+### Dos reglas sobre el Build Command del servicio
+
+En Railway, **Settings → Build → Build Command** debe quedar **vacío** (o, si prefieres verlo explícito, `npm run build`). La instalación de dependencias ya está declarada en `nixpacks.toml`, y si ahí se escribe otro `npm ci`, el build lo ejecuta dos veces: el segundo borra `node_modules` mientras el builder lo tiene montado y falla con `EBUSY: resource busy or locked, rmdir '/app/node_modules/.cache'`.
+
+Por la misma razón, la instalación del repositorio usa `npm install` y no `npm ci`: `npm ci` borra la carpeta completa antes de reinstalar, y eso es justo lo que choca con el caché del builder. `npm install` reconcilia sin borrar y sigue respetando el lockfile.
+
 ## Errores que vimos en el camino
 
 | Síntoma | Causa | Solución |
 | --- | --- | --- |
 | **`Prisma only supports Node.js versions 20.19+, 22.12+, 24.0+`** | El build arrancó con Node 18 (el instalador de Nixpacks corre antes que cualquier comando de build) | Agrega la variable de servicio `NIXPACKS_NODE_VERSION=22.12.0` y vuelve a desplegar. El repo ya declara `engines` y `.nvmrc`; la variable es el cinturón. |
+| **`EBUSY: resource busy or locked, rmdir '/app/node_modules/.cache'`** | El Build Command del servicio ejecuta un `npm ci` **además** de la instalación de `nixpacks.toml`: corre dos veces y el segundo borra lo que el primero instaló | Vacía el Build Command del servicio (Settings → Build) y vuelve a desplegar. La instalación ya la hace `nixpacks.toml` con `npm install`. |
 | El build falla por TypeScript | Se instaló sin devDependencies (`NODE_ENV=production`) | `nixpacks.toml` ya lo resuelve; si lo tocas, mantén `--include=dev`. |
 | El log del build muestra un `npm ci` pelón y nada más | El servicio tiene un **Build Command** propio en el panel que ignora lo del repo | Bórralo (Settings → Build) o ponlo idéntico: `npm ci --include=dev && npm run build`. |
 | La app arranca y muere en bucle | Falta `DATABASE_URL` o la referencia al plugin | Revisa las variables del servicio; el error del log ahora lo dice explícitamente. |

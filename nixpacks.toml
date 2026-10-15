@@ -1,16 +1,30 @@
 # Configuración del build en Railway (Nixpacks).
 #
-# El instalador por defecto (`npm ci`) corre con `NODE_ENV=production`, así
-# que **no** instala TypeScript, Tailwind ni el CLI de Prisma: el build no
-# podría compilar. Aquí se piden explícitamente las devDependencies.
+# Tres decisiones que costaron despliegues fallidos, documentadas para que no
+# se deshagan sin querer:
+#
+# 1. **`npm install`, no `npm ci`.** `npm ci` borra `node_modules` completo
+#    antes de reinstalar, y en el builder de Railway eso choca con el caché
+#    montado en `node_modules/.cache`: `EBUSY: resource busy or locked,
+#    rmdir '/app/node_modules/.cache'`. `npm install` reconcilia sin borrar,
+#    así que es inmune a ese error y sigue respetando el lockfile.
+#
+# 2. **`--include=dev`.** Con `NODE_ENV=production`, ni `npm ci` ni
+#    `npm install` traen TypeScript, Tailwind ni el CLI de Prisma, y el build
+#    no podría compilar.
+#
+# 3. **Una sola instalación.** Esto es la fase de instalación; el Build
+#    Command del servicio en Railway debe quedar **vacío** (o, si se quiere
+#    explícito, solo `npm run build`). Si ahí se pone otro `npm ci`, corre
+#    dos veces y el segundo borra lo que el primero acaba de instalar.
 #
 # La versión de Node no se fija aquí a propósito: se declara en
 # `package.json` (`engines`) y en `.nvmrc`, que es lo que Nixpacks lee. Si un
-# despliegue siguiera arrancando con Node 18, la variable de servicio
+# despliegue arrancara con Node 18, la variable de servicio
 # `NIXPACKS_NODE_VERSION=22.12.0` lo resuelve sin tocar el repositorio.
 
 [phases.install]
-cmds = ["npm ci --include=dev"]
+cmds = ["npm install --include=dev --no-audit --no-fund"]
 
 [phases.build]
 cmds = ["npm run build"]

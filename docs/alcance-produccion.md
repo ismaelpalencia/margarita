@@ -198,7 +198,7 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 | Verificación de tipos | `npx tsc --noEmit` limpio |
 | Migraciones | Versionadas en `prisma/migrations`, con diez aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
-| Entorno de build | Node 22 declarado en `package.json` (`engines`) y `.nvmrc`; `nixpacks.toml` instala con las devDependencies. Prisma 7 no funciona en Node 18: el deploy falla al instalar si el proveedor elige una versión vieja. |
+| Entorno de build | Node 22 declarado en `package.json` (`engines`) y `.nvmrc`. `nixpacks.toml` instala con `npm install --include=dev` (no `npm ci`: borra `node_modules` y choca con el caché del builder) y compila con `npm run build`. El Build Command del servicio debe quedar vacío para que la instalación no se ejecute dos veces. |
 | Verificación de integración | **Manual.** Los flujos de la lista de abajo se comprueban con scripts contra una base real, pero esos scripts no viven en el repo ni corren en CI: una regresión en el camino de datos puede pasar el pipeline sin que nadie la note. |
 | Pruebas de interfaz | **Ninguna automatizada.** Los cambios de layout se verifican a mano (capturas en escritorio y móvil); no hay pruebas de navegador. |
 | Estilo de código | Sin linter ni formateador automático: la consistencia se mantiene a mano. |

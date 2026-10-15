@@ -22,7 +22,7 @@ Ya vienen configurados en [`railway.json`](../railway.json), así que en una ins
 | Concepto | Valor |
 | --- | --- |
 | Node | **22** (`engines` en `package.json` y `.nvmrc`). Prisma 7 no instala en Node 18 |
-| Build command | `npm ci --include=dev && npm run build` (ya en [`nixpacks.toml`](../nixpacks.toml)) |
+| Build command | **Déjalo vacío** en el panel: la instalación y el build van en [`nixpacks.toml`](../nixpacks.toml) (`npm install --include=dev` + `npm run build`). Si escribes aquí otro `npm ci`, corre dos veces y falla con `EBUSY` al borrar `node_modules`. |
 | Start command | `npm start` (ejecuta `node dist/server.js`) |
 | Healthcheck | `/health` |
 | Puerto | `3000` (defínelo con la variable `PORT`) |
@@ -47,7 +47,9 @@ DATABASE_URL=${{Postgres.DATABASE_URL}}
 
 Al escribir `${{` Railway te autocompleta el nombre del servicio de Postgres. Esa URL interna solo funciona dentro de Railway, que es justo donde corre la app.
 
-Nota: no hace falta `Dockerfile`; Railway detecta Node con Nixpacks. La versión ya viene fijada en `package.json` (`engines`) y en `.nvmrc`, y las devDependencies se instalan desde `nixpacks.toml`. Si un despliegue arrancara con Node 18 (el error dice `Prisma only supports Node.js versions 20.19+, 22.12+, 24.0+`), agrega la variable de servicio `NIXPACKS_NODE_VERSION=22.12.0`: es el cinturón que no depende del repositorio.
+Nota: no hace falta `Dockerfile`; Railway detecta Node con Nixpacks. La versión ya viene fijada en `package.json` (`engines`) y en `.nvmrc`, y la instalación con devDependencies desde `nixpacks.toml`. Si un despliegue arrancara con Node 18 (el error dice `Prisma only supports Node.js versions 20.19+, 22.12+, 24.0+`), agrega la variable de servicio `NIXPACKS_NODE_VERSION=22.12.0`: es el cinturón que no depende del repositorio.
+
+Si el log del build muestra `EBUSY: resource busy or locked, rmdir '/app/node_modules/.cache'`, es que hay un Build Command propio en el servicio que ejecuta un `npm ci` **además** de la instalación del repositorio. Vacíalo (Settings → Build) y vuelve a desplegar.
 
 ---
 
