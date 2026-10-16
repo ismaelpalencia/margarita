@@ -11,10 +11,9 @@
 
 ## 1. Quién es el responsable
 
-**[NOMBRE O RAZÓN SOCIAL DE LA EMPRESA]**, con domicilio en **[DOMICILIO
-COMPLETO]** y RFC **[RFC]**, es el responsable del tratamiento de los datos
+**Eduardo Ismael Fernández Palencia**, con domicilio en [DOMICILIO FISCAL] y RFC **[RFC]**, es el responsable del tratamiento de los datos
 personales que se describen aquí. Puedes contactarnos en **contacto@margaritaapp.org**
-o al teléfono **[TELÉFONO]**.
+o al teléfono 55 3878 3682.
 
 Margarita es la herramienta con la que operamos nuestro canal de WhatsApp. La
 empresa que aparece arriba es la responsable de tus datos; la herramienta es

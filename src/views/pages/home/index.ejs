@@ -103,9 +103,11 @@
                             </p>
 
                             <p class="mt-1 text-xs leading-5 text-slate-600">
-                                <% if (hasPromo) { %><%= installPromoLabel %>. <% } %>Incluye
-                                <strong><%= installTermMonths %> meses de servicio</strong>
-                                y los usuarios que necesites.
+                                <% if (hasPromo) { %><%= installPromoLabel %>. <% } %>
+                                La instalación <strong>incluye el primer mes</strong>;
+                                después son
+                                <strong><%= installMonthlyPrice %></strong> al mes, sin
+                                contrato forzoso y con los usuarios que necesites.
                                 <a href="#precios" class="font-semibold text-margarita-700 underline">
                                     Ver qué incluye
                                 </a>
@@ -296,13 +298,14 @@
                 </p>
 
                 <h2 class="mt-2 text-3xl font-black text-slate-950">
-                    Un pago por la instalación. Seis meses para probarlo.
+                    Se paga la instalación. Después, mes con mes.
                 </h2>
 
                 <p class="mt-3 max-w-3xl text-slate-600">
-                    No hay mensualidad escondida ni cobro por usuario: se paga la
-                    instalación, se usa seis meses y al final decides si continúas.
-                    El consumo de WhatsApp lo pagas tú directo a Meta.
+                    Sin contrato forzoso y sin cobro por usuario: se paga la
+                    instalación, que <strong>incluye el primer mes</strong>, y de ahí
+                    en adelante la mensualidad, mes con mes. El consumo de WhatsApp
+                    lo pagas tú directo a Meta.
                 </p>
             </div>
 
@@ -323,12 +326,13 @@
                             <% if (hasPromo) { %>
                                 <span class="line-through"><%= installPrice %></span>
                             <% } %>
-                            · pago único
+                            · una vez
                         </p>
                     </div>
 
                     <p class="mt-2 text-sm font-semibold text-margarita-800">
-                        Instalación completa + <%= installTermMonths %> meses de servicio
+                        Instalación completa + el primer mes · después
+                        <%= installMonthlyPrice %> al mes
                     </p>
 
                     <ul class="mt-5 grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
@@ -349,13 +353,17 @@
                             verificación en dos pasos disponible.
                         </li>
                         <li class="rounded-xl bg-slate-50 px-4 py-3">
-                            Actualizaciones y correcciones durante los
-                            <%= installTermMonths %> meses (las funciones nuevas que
-                            salgan, incluidas).
+                            <strong>Primer mes incluido</strong> en la instalación.
+                            Después, mes con mes: si un mes decides no seguir, se
+                            acaba ahí.
                         </li>
                         <li class="rounded-xl bg-slate-50 px-4 py-3">
-                            Soporte por WhatsApp y correo en horario hábil, y aviso de
-                            privacidad con plantilla de contrato de datos.
+                            Actualizaciones, correcciones y soporte por WhatsApp y
+                            correo en horario hábil, mientras la mensualidad esté
+                            activa.
+                        </li>
+                        <li class="rounded-xl bg-slate-50 px-4 py-3">
+                            Aviso de privacidad y plantilla de contrato de datos.
                         </li>
                     </ul>
 
@@ -378,6 +386,10 @@
                     <p class="mt-3 text-2xl font-black">
                         Acompañamiento en Meta
                         <span class="block text-3xl">+<%= setupServicePrice %></span>
+                    </p>
+
+                    <p class="mt-3 rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-sol-200">
+                        Instalación + Meta: <span class="whitespace-nowrap"><%= setupBundlePrice %></span>
                     </p>
 
                     <p class="mt-3 text-sm leading-6 text-slate-300">
@@ -426,16 +438,13 @@
 
                 <div class="rounded-2xl bg-slate-50 px-5 py-4 ring-1 ring-slate-200">
                     <p class="text-sm font-black text-slate-950">
-                        A los <%= installTermMonths %> meses, tú decides
+                        Mes con mes, tú decides
                     </p>
 
                     <p class="mt-1 text-sm leading-6 text-slate-600">
-                        Si sigues, la renovación cuesta
-                        <strong><%= installRenewalPrice %></strong> por otros
-                        <%= installTermMonths %> meses, o
-                        <strong><%= installMonthlyPrice %></strong> al mes. Si no,
-                        lo dejas ahí: te llevas tu respaldo completo y se borra
-                        todo a petición.
+                        Son <strong><%= installMonthlyPrice %></strong> al mes, sin
+                        plazos forzosos. Si un mes dejas de pagar, se acabó: te
+                        llevas tu respaldo completo y se borra todo a petición.
                     </p>
                 </div>
             </div>
@@ -509,8 +518,8 @@
             <% if (supportEmail) { %>
                 <p class="mt-4 text-center text-sm text-slate-600">
                     <%= supportEmail %>
-                    <% if (supportWhatsappNumber) { %>
-                        · WhatsApp <%= supportWhatsappNumber %>
+                    <% if (supportWhatsappDisplay || supportWhatsappNumber) { %>
+                        · WhatsApp <%= supportWhatsappDisplay || supportWhatsappNumber %>
                     <% } %>
                 </p>
             <% } %>

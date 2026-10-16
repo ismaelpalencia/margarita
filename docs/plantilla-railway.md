@@ -44,10 +44,10 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 | `SUPPORT_WHATSAPP` | tu número con lada | Aparece en la página pública del cliente. |
 | `SUPPORT_EMAIL` | tu correo | Contacto comercial. |
 | `SETUP_SERVICE_PRICE` | `$1,500.00 MXN` | Lo que cobras por la conexión con Meta. |
-| `INSTALL_PRICE` / `INSTALL_PRICE_PROMO` | `$5,000.00 MXN` / `$3,000.00 MXN` | Precio de lista y de promoción de la instalación, como aparecen en la página pública. |
+| `INSTALL_PRICE` / `INSTALL_PRICE_PROMO` | `$2,500.00 MXN` / `$1,500.00 MXN` | Precio de lista y de promoción de la instalación (incluye el primer mes). |
 | `INSTALL_PROMO_LABEL` | `Promoción de lanzamiento: todo noviembre` | Texto de la promoción, para poder apagarla sin tocar código. |
-| `INSTALL_RENEWAL_PRICE` | `$4,200.00 MXN` | Lo que cuesta renovar otros seis meses. |
-| `INSTALL_MONTHLY_PRICE` | `$800.00 MXN` | Lo que cuesta el mes suelto. |
+| `INSTALL_MONTHLY_PRICE` | `$800.00 MXN` | La mensualidad, del segundo mes en adelante. |
+| `SETUP_BUNDLE_PRICE` | `$2,500.00 MXN` | Instalación + conexión con Meta, si van juntas. |
 
    Marca como **requeridas** solo `DATABASE_URL`, `JWT_SECRET` y `ENCRYPTION_KEY`; el resto ya trae valor por defecto en el código.
 

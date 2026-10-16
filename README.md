@@ -279,12 +279,12 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `SUPPORT_WHATSAPP` | Comercial | Número de contacto (dígitos con lada país) que aparece en la página pública |
 | `SUPPORT_EMAIL` | Comercial | Correo de contacto alterno |
 | `SETUP_SERVICE_PRICE` | Comercial | Precio del servicio de conexión con Meta que se muestra en la página pública |
-| `INSTALL_PRICE` | Comercial | Precio de lista de la instalación (por omisión `$5,000.00 MXN`) |
-| `INSTALL_PRICE_PROMO` | Comercial | Precio de la promoción de lanzamiento (`$3,000.00 MXN`) |
+| `INSTALL_PRICE` | Comercial | Precio de lista de la instalación, con el primer mes incluido (`$2,500.00 MXN`) |
+| `INSTALL_PRICE_PROMO` | Comercial | Precio de la promoción de lanzamiento (`$1,500.00 MXN`) |
 | `INSTALL_PROMO_LABEL` | Comercial | Texto de la promoción (`Promoción de lanzamiento: todo noviembre`) |
-| `INSTALL_RENEWAL_PRICE` | Comercial | Precio de la renovación por otros seis meses (`$4,200.00 MXN`) |
-| `INSTALL_MONTHLY_PRICE` | Comercial | Precio del mes suelto (`$800.00 MXN`) |
-| `INSTALL_TERM_MONTHS` | Comercial | Meses de servicio que incluye la instalación (6) |
+| `INSTALL_MONTHLY_PRICE` | Comercial | Mensualidad, del segundo mes en adelante (`$800.00 MXN`) |
+| `SETUP_BUNDLE_PRICE` | Comercial | Instalación + conexión con Meta si se contratan juntas (`$2,500.00 MXN`) |
+| `SUPPORT_WHATSAPP_DISPLAY` | Comercial | El número como se muestra en la página (`55 3878 3682`) |
 | `BACKUP_ENABLED` | No | Respaldo automático de la base. Default `true` |
 | `BACKUP_INTERVAL_HOURS` | No | Cada cuánto se guarda una copia completa. Default `24` |
 | `BACKUP_KEEP` | No | Copias que se conservan. Default `7` |

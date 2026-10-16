@@ -151,7 +151,12 @@ export const appConfig = {
      * en dígitos con lada país (para wa.me) y el precio del servicio de
      * conexión se escribe tal cual se quiere mostrar.
      */
-    supportWhatsapp: process.env.SUPPORT_WHATSAPP?.replace(/\D/g, "") || "",
+    /**
+     * Contacto comercial de la página pública: el número en dígitos (con lada
+     * país, que es lo que necesita wa.me) y el mismo número como se muestra.
+     */
+    supportWhatsapp:
+        process.env.SUPPORT_WHATSAPP?.replace(/\D/g, "") || "525538783682",
     /**
      * Contacto comercial y de privacidad de la página pública. Por omisión es
      * el del producto; cada instalación puede poner el suyo con
@@ -160,29 +165,32 @@ export const appConfig = {
      */
     supportEmail:
         process.env.SUPPORT_EMAIL?.trim() || "contacto@margaritaapp.org",
+    supportWhatsappDisplay:
+        process.env.SUPPORT_WHATSAPP_DISPLAY?.trim() || "55 3878 3682",
     setupServicePrice:
         process.env.SETUP_SERVICE_PRICE?.trim() ||
         "$1,500.00 MXN",
 
     /**
-     * La oferta comercial de la instalación, tal como aparece en la página
-     * pública. Se escribe ya formateada ("$3,000.00 MXN") porque es un texto
-     * que lee el cliente: el formato es decisión comercial, no del navegador.
+     * La oferta comercial, tal como aparece en la página pública. Se escribe
+     * ya formateada ("$1,500.00 MXN") porque es un texto que lee el cliente:
+     * el formato es decisión comercial, no del navegador.
      *
-     * Los valores por omisión son la promoción de lanzamiento de noviembre
-     * (instalación a $3,000 en lugar de $5,000) con seis meses de servicio.
+     * El modelo es **mes con mes**: la instalación (que incluye el primer mes)
+     * y, del segundo mes en adelante, la mensualidad. En noviembre la
+     * instalación va en promoción.
      */
-    installPrice: process.env.INSTALL_PRICE?.trim() || "$5,000.00 MXN",
+    installPrice: process.env.INSTALL_PRICE?.trim() || "$2,500.00 MXN",
     installPricePromo:
-        process.env.INSTALL_PRICE_PROMO?.trim() || "$3,000.00 MXN",
+        process.env.INSTALL_PRICE_PROMO?.trim() || "$1,500.00 MXN",
     installPromoLabel:
         process.env.INSTALL_PROMO_LABEL?.trim() ||
         "Promoción de lanzamiento: todo noviembre",
-    installRenewalPrice:
-        process.env.INSTALL_RENEWAL_PRICE?.trim() || "$4,200.00 MXN",
     installMonthlyPrice:
         process.env.INSTALL_MONTHLY_PRICE?.trim() || "$800.00 MXN",
-    installTermMonths: Number(process.env.INSTALL_TERM_MONTHS) || 6,
+    /** Lo que cuestan la instalación y la conexión con Meta si van juntas. */
+    setupBundlePrice:
+        process.env.SETUP_BUNDLE_PRICE?.trim() || "$2,500.00 MXN",
 
 
     logRetentionDays: Number(process.env.LOG_RETENTION_DAYS) || 90,

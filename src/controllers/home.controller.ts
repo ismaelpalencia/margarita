@@ -14,13 +14,13 @@ function supportContext() {
             ? `https://wa.me/${appConfig.supportWhatsapp}`
             : "",
         supportEmail: appConfig.supportEmail,
+        supportWhatsappDisplay: appConfig.supportWhatsappDisplay,
         setupServicePrice: appConfig.setupServicePrice,
+        setupBundlePrice: appConfig.setupBundlePrice,
         installPrice: appConfig.installPrice,
         installPricePromo: appConfig.installPricePromo,
         installPromoLabel: appConfig.installPromoLabel,
-        installRenewalPrice: appConfig.installRenewalPrice,
         installMonthlyPrice: appConfig.installMonthlyPrice,
-        installTermMonths: appConfig.installTermMonths,
         appName: appConfig.name
     };
 }

@@ -11,15 +11,28 @@
 
 <body class="min-h-screen bg-slate-100">
     <header class="border-b bg-white">
-        <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div>
-                <a href="/admin/dashboard" class="inline-block">
-                    <img src="/brand/img/margarita-wordmark-256.png" alt="Margarita" class="h-8 w-auto" />
+                <a href="/admin/dashboard" class="flex items-center gap-3">
+                    <img
+                        src="/brand/img/margarita-icon-64.png"
+                        alt="Margarita"
+                        class="h-9 w-9"
+                    />
+
+                    <span class="min-w-0">
+                        <span class="block text-base font-black leading-tight text-slate-900">
+                            Margarita
+                        </span>
+
+                        <span class="block text-xs font-medium text-slate-500">
+                            Plantillas
+                        </span>
+                    </span>
                 </a>
-                <p class="text-sm text-slate-500">Plantillas</p>
             </div>
 
-            <nav class="flex items-center gap-3">
+            <nav class="no-scrollbar -mx-4 flex items-center gap-3 overflow-x-auto whitespace-nowrap px-4 sm:mx-0 sm:flex-wrap sm:overflow-x-visible sm:px-0">
                 <a href="/admin/dashboard" class="text-sm font-medium text-slate-700">
                     Dashboard
                 </a>

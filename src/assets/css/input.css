@@ -45,6 +45,19 @@
 }
 
 @layer components {
+    /**
+     * Renglón que se desliza sin barra visible: se usa en los menús del
+     * panel, que en el celular van en una sola línea.
+     */
+    .no-scrollbar {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
     .margarita-card {
         @apply rounded-2xl bg-white shadow-sm ring-1 ring-slate-200;
     }

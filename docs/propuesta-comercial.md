@@ -65,7 +65,7 @@ Margarita es un panel para **cobrar por WhatsApp con orden**: registra en qué q
 | Servicio | Qué incluye |
 | --- | --- |
 | **Conexión con Meta** (+$1,500.00 MXN, opcional) | Alta en Meta Business, app, cuenta de WhatsApp Business, número dedicado, token permanente, webhook firmado, primera plantilla y prueba de punta a punta. Ver [`guia-meta.md`](guia-meta.md). |
-| **Puesta en marcha de la instalación** (incluida en el precio de instalación) | Proyecto propio, base de datos propia, dominio, usuario administrador, cifrado de datos, respaldos configurados y una sesión de capacitación de 60 minutos. |
+| **Puesta en marcha de la instalación** (incluida en el precio de instalación) | Proyecto propio, base de datos propia, dominio, usuario administrador, cifrado de datos, respaldos configurados, **el primer mes de servicio** y una sesión de capacitación de 60 minutos. |
 | **Migración de cartera** ([PRECIO O INCLUIDA]) | Carga de contactos desde Excel con etiquetas y depuración de números inválidos. |
 | **Capacitación** (incluida) | Una sesión de 60 minutos para el equipo (cobranza y administración) y manual de uso. |
 
@@ -82,26 +82,27 @@ Decirlo aquí evita discusiones después:
 
 ## 7. Inversión
 
-**El paquete es uno solo**: instalación completa + 6 meses de servicio. No hay
-mensualidad ni cobro por usuario.
+La cobranza es del día a día, así que el cobro también: **instalación una vez y
+después mes con mes**. Sin plazos forzosos.
 
 | Concepto | Importe | Cuándo |
 | --- | --- | --- |
-| **Instalación Margarita (promoción de lanzamiento, todo noviembre)** | **$3,000.00 MXN** (en lugar de $5,000.00 MXN) | Pago único, al firmar |
-| Instalación Margarita a precio de lista (fuera de la promoción) | $5,000.00 MXN | Pago único, al firmar |
-| Conexión con Meta (opcional) | +$1,500.00 MXN | Pago único, junto con la instalación |
-| Renovación por otros 6 meses (a partir del séptimo mes) | $4,200.00 MXN (o $800.00 MXN al mes) | Al renovar |
-| Migración de cartera | [PRECIO O INCLUIDA] | Pago único |
+| **Instalación (promoción de lanzamiento, todo noviembre)** | **$1,500.00 MXN** | Una vez, al firmar; **incluye el primer mes** |
+| Instalación a precio de lista (fuera de la promoción) | $2,500.00 MXN | Una vez, al firmar; incluye el primer mes |
+| **Mensualidad** | **$800.00 MXN al mes** | Del segundo mes en adelante |
+| Conexión con Meta (opcional) | +$1,500.00 MXN | Una vez, junto con la instalación |
+| **Instalación + conexión con Meta** (contratadas juntas) | **$2,500.00 MXN** | Una vez; ahorra $500 |
+| Migración de cartera | [PRECIO O INCLUIDA] | Una vez |
 
-**Qué incluyen los 6 meses** (esto es lo que se está comprando):
+**Qué incluye la mensualidad** (esto es lo que se está pagando cada mes):
 
 1. La instalación funcionando en producción: proyecto, base de datos, dominio,
    respaldos automáticos y datos cifrados.
-2. **Usuarios ilimitados**: no se cobra por agente, ni por número de WhatsApp.
-3. Actualizaciones y correcciones durante la vigencia, incluidas las funciones
-   nuevas que salgan en ese periodo.
+2. **Usuarios ilimitados**: no se cobra por agente ni por número de WhatsApp.
+3. Actualizaciones, correcciones y las funciones nuevas que salgan mientras la
+   mensualidad esté activa.
 4. Soporte por WhatsApp y correo en horario hábil ([HORARIO]).
-5. Sesión de capacitación para el equipo y manual de uso.
+5. Sesión de capacitación inicial para el equipo y manual de uso.
 6. Aviso de privacidad y plantilla de contrato de tratamiento de datos.
 
 **Lo que no incluye, y conviene decir en voz alta:**
@@ -110,30 +111,27 @@ mensualidad ni cobro por usuario.
   método de pago (conversaciones y plantillas). Nuestra factura es solo por la
   herramienta y los servicios: **no cobramos por mensaje**.
 - El número telefónico dedicado y el equipo de cómputo.
-- El alojamiento, si se acuerda que va en la cuenta del cliente (Railway:
-  aproximadamente $5–10 USD al mes, pagados al proveedor). Si lo absorbemos
-  nosotros, el precio de instalación sube [AJUSTE].
+- El alojamiento, si se acuerda que va en la cuenta del cliente (Railway: unos
+  $5–10 USD al mes, pagados al proveedor). Si lo absorbe el proveedor, la
+  mensualidad debería ser $950.
 - Cambios a la medida que no estén en el producto (se cotizan aparte).
 
-Notas de cobro: [anticipo / pago completo al inicio, comprobante fiscal, días de
-gracia, qué pasa si no se renueva].
+Notas de cobro: mensual adelantado, comprobante fiscal, [días de gracia] y qué
+pasa si no se renueva. **Recomendado**: pedir un mínimo de tres meses de
+servicio en el contrato; la instalación cubre el primer mes y eso ya protege el
+trabajo de alta, pero un cliente que se va al segundo mes deja el alta sin pagar.
 
-**Cómo se calculó:** el precio de instalación cubre el alta (2–3 horas de
-trabajo entre despliegue, conexión y capacitación), el soporte de los 6 meses
-(~1 hora al mes de base, más incidencias), la infraestructura si la absorbemos, y
-el margen para sostener y seguir mejorando el producto. La promoción de
-lanzamiento baja el precio para los primeros clientes a cambio de
-retroalimentación y de un caso de éxito que se pueda mostrar.
+**Cómo se calculó:** la instalación cubre el alta (2–3 horas entre despliegue,
+conexión y capacitación) y el primer mes; de ahí en adelante, $800 al mes por un
+equipo completo sin tope de usuarios. Del lado del costo, el mes incluye el canal
+de soporte (~1 hora), las mejoras del periodo, el monitoreo y, si el alojamiento
+va por nuestra cuenta, unos $150 más. La promoción de lanzamiento baja el precio
+de entrada a cambio de retroalimentación y de un caso de éxito que se pueda
+mostrar.
 
-**Por qué la renovación cuesta $4,200 y no menos:** son $700 al mes por un
-equipo completo, sin tope de usuarios y sin costo por mensaje. Una herramienta
-de cobranza por suscripción cobra eso o más **por usuario**, y aquí los usuarios
-son ilimitados. Del lado del costo, el mes incluye el canal de soporte
-(~1 hora), las mejoras que salgan en el periodo y el monitoreo; si además el
-alojamiento va por nuestra cuenta, hay que sumar unos $150 al mes. Con $2,500
-por semestre ($417 al mes) el margen se quedaba en nada: era un precio de
-"amigo", no de negocio. Quien prefiera no pagar seis meses por adelantado tiene
-el mes suelto a $800, y quien renueva por semestre ahorra un mes.
+**Opcional para cerrar antes:** quien pague **doce meses por adelantado** recibe
+dos meses de regalo ($8,000 en lugar de $9,600). Sirve para dos cosas: entra
+dinero por adelantado y baja la rotación.
 
 ## 8. Requisitos del cliente
 

@@ -14,16 +14,19 @@ la junta.
 
 Lo que se vende es **un paquete y un extra**:
 
-1. **La instalación con seis meses de servicio** (pago único): el panel
+1. **La instalación** (pago único, **incluye el primer mes**): el panel
    operativo con el módulo de cobranza, funcionando en producción, con
-   usuarios ilimitados. Al terminar el periodo se renueva o se cierra. La
-   página pública (`/`) muestra el precio de la promoción
-   (`INSTALL_PRICE_PROMO`), el de lista (`INSTALL_PRICE`), el de renovación
-   (`INSTALL_RENEWAL_PRICE`) y la vigencia (`INSTALL_PROMO_LABEL`).
-2. **El servicio de conexión con Meta** (pago único, opcional): el trámite que
+   usuarios ilimitados. La página pública (`/`) muestra el precio de la
+   promoción (`INSTALL_PRICE_PROMO`), el de lista (`INSTALL_PRICE`) y la
+   vigencia (`INSTALL_PROMO_LABEL`).
+2. **La mensualidad** (`INSTALL_MONTHLY_PRICE`), del segundo mes en adelante:
+   mes con mes, sin plazos forzosos. Si el cliente deja de pagar, se acaba:
+   se lleva su respaldo y se borra todo a petición.
+3. **El servicio de conexión con Meta** (pago único, opcional): el trámite que
    todo el mundo subestima y que casi nadie quiere hacer. Detalle en
    [`guia-meta.md`](guia-meta.md); su precio es `SETUP_SERVICE_PRICE`
-   ($1,500.00 MXN por omisión).
+   ($1,500.00 MXN por omisión) y, si se contrata junto con la instalación, el
+   paquete completo cuesta `SETUP_BUNDLE_PRICE` ($2,500.00 MXN).
 
 **Lo que paga el cliente a Meta, no a nosotros:** el consumo de WhatsApp
 (conversaciones y plantillas). Se dice en la página pública, en la propuesta y

@@ -1,8 +1,8 @@
 <header class="border-b border-slate-200 bg-white/90 backdrop-blur">
-    <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-4 lg:flex-nowrap lg:justify-between">
         <div class="flex items-center gap-3">
-            <a href="/admin/dashboard" class="flex h-11 w-11 items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm">
-                <img src="/brand/img/margarita-icon-64.png" alt="Margarita" class="h-7 w-7" />
+            <a href="/admin/dashboard" class="shrink-0">
+                <img src="/brand/img/margarita-icon-128.png" alt="Margarita" class="h-10 w-10" />
             </a>
 
             <div>
@@ -49,85 +49,85 @@
             <% } %>
         </div>
 
-        <nav class="flex flex-wrap items-center gap-2 text-sm">
-            <a href="/admin/dashboard" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Dashboard
-            </a>
+        <%
+            /**
+             * Los enlaces del panel se declaran una sola vez y se pintan dos:
+             * en fila para pantallas grandes y dentro de un menú plegable en el
+             * celular. Antes eran diecisiete enlaces que se envolvían y
+             * empujaban el contenido media pantalla hacia abajo.
+             */
+            const navLinks = [
+                { href: "/admin/dashboard", label: "Dashboard" },
+                { href: "/admin/conversations", label: "Conversaciones", badge: unreadTotal || 0 },
+                { href: "/admin/campaigns", label: "Campañas" },
+                { href: "/admin/contacts", label: "Contactos" },
+                { href: "/admin/tags", label: "Etiquetas" },
+                { href: "/admin/reports", label: "Reportes" },
+                { href: "/admin/quick-replies", label: "Respuestas" },
+                { href: "/admin/users", label: "Equipo" },
+                { href: "/admin/templates", label: "Plantillas" },
+                { href: "/admin/system", label: "Sistema" },
+                { href: "/admin/roadmap", label: "Roadmap" },
+                { href: "/admin/whatsapp", label: "WhatsApp" },
+                { href: "/admin/logs", label: "Logs" },
+                { href: "/admin/backup", label: "Respaldos" },
+                { href: "/admin/sessions", label: "Sesiones" },
+                { href: "/account/password", label: "Mi cuenta" }
+            ];
+        %>
 
-            <a
-                href="/admin/conversations"
-                class="inline-flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700"
-            >
-                Conversaciones
-
-                <span
-                    data-unread-badge
-                    data-count="<%= unreadTotal || 0 %>"
-                    class="rounded-full bg-margarita-600 px-2 py-0.5 text-[11px] font-bold text-white <%= (unreadTotal || 0) > 0 ? '' : 'hidden' %>"
-                    title="Mensajes sin leer"
+        <nav class="hidden items-center gap-2 text-sm lg:flex lg:flex-wrap">
+            <% navLinks.forEach((link) => { %>
+                <a
+                    href="<%= link.href %>"
+                    class="inline-flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700"
                 >
-                    <%= unreadTotal || 0 %>
-                </span>
-            </a>
+                    <%= link.label %>
 
-            <a href="/admin/campaigns" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Campañas
-            </a>
-
-            <a href="/admin/contacts" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Contactos
-            </a>
-
-            <a href="/admin/tags" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Etiquetas
-            </a>
-
-            <a href="/admin/reports" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Reportes
-            </a>
-
-            <a href="/admin/quick-replies" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Respuestas
-            </a>
-
-            <a href="/admin/users" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Equipo
-            </a>
-
-            <a href="/admin/templates" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Plantillas
-            </a>
-
-            <a href="/admin/system" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Sistema
-            </a>
-
-            <a href="/admin/roadmap" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Roadmap
-            </a>
-
-            <a href="/admin/whatsapp" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                WhatsApp
-            </a>
-
-            <a href="/admin/logs" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Logs
-            </a>
-
-            <a href="/admin/backup" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Respaldos
-            </a>
-
-            <a href="/admin/sessions" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Sesiones
-            </a>
-
-            <a href="/account/password" class="rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700">
-                Mi cuenta
-            </a>
+                    <% if (typeof link.badge === "number") { %>
+                        <span
+                            data-unread-badge
+                            data-count="<%= link.badge %>"
+                            class="rounded-full bg-margarita-600 px-2 py-0.5 text-[11px] font-bold text-white <%= link.badge > 0 ? '' : 'hidden' %>"
+                            title="Mensajes sin leer"
+                        >
+                            <%= link.badge %>
+                        </span>
+                    <% } %>
+                </a>
+            <% }) %>
         </nav>
 
-        <div class="flex items-center gap-3">
+        <details class="order-last w-full lg:order-none lg:hidden">
+            <summary
+                class="flex cursor-pointer items-center justify-between rounded-xl bg-margarita-50 px-4 py-3 text-sm font-black text-margarita-800 ring-1 ring-margarita-100"
+            >
+                Menú del panel
+
+                <span class="text-xs font-semibold text-margarita-700">
+                    <%= navLinks.length %> secciones
+                </span>
+            </summary>
+
+            <nav class="mt-2 grid grid-cols-2 gap-1 text-sm">
+                <% navLinks.forEach((link) => { %>
+                    <a
+                        href="<%= link.href %>"
+                        class="inline-flex items-center justify-between gap-2 rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700"
+                    >
+                        <%= link.label %>
+
+                        <% if (typeof link.badge === "number" && link.badge > 0) { %>
+                            <span class="rounded-full bg-margarita-600 px-2 py-0.5 text-[11px] font-bold text-white">
+                                <%= link.badge %>
+                            </span>
+                        <% } %>
+                    </a>
+                <% }) %>
+            </nav>
+        </details>
+
+        <div class="ml-auto flex items-center gap-3">
             <div class="hidden text-right md:block">
                 <p class="text-sm font-bold text-slate-800">
                     <%= user?.name || "Admin" %>
