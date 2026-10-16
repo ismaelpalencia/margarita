@@ -19,6 +19,7 @@ function supportContext() {
         installPricePromo: appConfig.installPricePromo,
         installPromoLabel: appConfig.installPromoLabel,
         installRenewalPrice: appConfig.installRenewalPrice,
+        installMonthlyPrice: appConfig.installMonthlyPrice,
         installTermMonths: appConfig.installTermMonths,
         appName: appConfig.name
     };

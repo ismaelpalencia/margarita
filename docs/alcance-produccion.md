@@ -54,7 +54,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Lista de trabajo del día**: una pantalla que junta lo vencido, lo que vence hoy, lo de esta semana y los clientes sin contestar, en orden de urgencia, con acceso directo a la ficha.
 - **Tendencias**: gestiones, promesas, prometido, pagos y cobrado semana a semana, más el cumplimiento de promesas por persona.
 - **Sesiones**: cada quien ve desde qué dispositivo y qué IP entró, cierra sesiones individuales y puede cerrar todas las demás. El admin ve las de toda la empresa.
-- **Verificación en dos pasos (2FA)**: cada persona la activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación —Google Authenticator, Authy, Microsoft Authenticator, 1Password, Bitwarden o la app **Contraseñas** de Apple— usando un código TOTP de 6 dígitos (el estándar RFC 6238, SHA-1, 30 segundos). Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo y queda en la bitácora con quién lo hizo. El panel de Sistema muestra cuántas cuentas y cuántos administradores la tienen.
+- **Verificación en dos pasos (2FA)**: cada persona la activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación —Google Authenticator, Authy, Microsoft Authenticator, 1Password, Bitwarden o la app **Contraseñas** de Apple— usando un código TOTP de 6 dígitos (el estándar RFC 6238, SHA-1, 30 segundos). La pantalla muestra un **código QR** para escanear y, debajo, la clave de configuración para capturarla a mano (o el enlace `otpauth://` completo) por si no se puede escanear. Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo y queda en la bitácora con quién lo hizo. El panel de Sistema muestra cuántas cuentas y cuántos administradores la tienen.
 - **Etiquetas**: crear, editar, desactivar y asignar a contactos.
 - **Cuenta de WhatsApp**: administrar los números de la WABA (agregar, editar, activar o desactivar, ver calidad y estado de cada uno y probar su conexión); actualizar las credenciales de la cuenta (tokens, business account, versión de API) y cifrarlas.
 - **Plantillas**: sincronizar las plantillas de Meta con su estado real (`APPROVED`, `PENDING`, `REJECTED`).
@@ -211,7 +211,7 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 201 pruebas unitarias en 30 archivos + **41 pruebas de integración** contra PostgreSQL |
+| Pruebas automatizadas | 208 pruebas unitarias en 31 archivos + **41 pruebas de integración** contra PostgreSQL |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
 | Migraciones | Versionadas en `prisma/migrations`, con trece aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |

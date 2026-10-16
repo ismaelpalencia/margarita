@@ -7,18 +7,42 @@ verde, un amarillo y unas cuantas reglas.
 
 ## 1. El símbolo
 
-Una **margarita con carita feliz** dentro de un cuadrado redondeado verde.
+Una **margarita de un solo color**: ocho pétalos redondos, centro sólido y una
+carita tallada en hueco. Plana, sin sombras ni degradados, como los símbolos de
+Ollama o GitHub.
 
-- Ocho pétalos blancos y centro amarillo con dos ojos y una sonrisa.
-- El verde dice "WhatsApp corporativo"; el amarillo, que es una herramienta
-  amable y no un sistema de cobranza que da miedo.
-- El símbolo es **siempre el mismo**: en el menú, en la pestaña del navegador,
-  en el ícono del celular y en la pantalla de acceso. Antes había una "M" en un
-  lado y otro dibujo en otro, y de ahí venía la sensación de que los logos no
-  coincidían.
-- A 16 px (la pestaña) lo que se reconoce es el cuadro verde con la flor; la
-  carita se aprecia a partir de unos 32 px y es lo que le da personalidad al
-  panel.
+- El color es el verde de la marca (`#17865a`), en la flor y en el círculo. Nada
+  de amarillo en el símbolo: el amarillo queda para destacar precios y
+  promociones.
+- La carita va recortada de verdad (transparente), no pintada de blanco, así que
+  el símbolo funciona igual sobre fondo claro y oscuro.
+- A 16 px (la pestaña) lo que se reconoce es la silueta de la flor; la carita se
+  aprecia a partir de unos 32 px.
+
+### Las variantes
+
+| Variante | Cómo se ve | Dónde se usa |
+| --- | --- | --- |
+| `sello-hojas` | Círculo verde con la flor en blanco y **dos hojas** en la base | **Es la de la aplicación** (ícono, favicon, acceso, encabezado) |
+| `sello` | Igual, sin las hojas: todo verde y blanco | La versión más limpia, si algún día se necesita |
+| `sello-sol` | Sello con el centro de la flor en amarillo | Alternativa con el acento de color |
+| `sello-anillo` | Sello con un aro fino por dentro del borde | Alternativa corporativa |
+| `flor` | La flor sola, sin caja | El símbolo suelto: encabezados, volantes, presentaciones |
+| `hueco` | La flor con el centro vacío (aro) | La más sobria; pierde la carita |
+
+El detalle que se eligió fueron las **dos hojas en la base**, con la nervadura
+tallada: dan a entender que es una margarita cortada y no una flor genérica, y
+a tamaño de pestaña se funden con la flor (no ensucian). Las hojas se dibujan
+después de los pétalos —como son del mismo color, el traslape no se nota— para
+que la nervadura no quede tapada.
+
+La hoja para elegir (o confirmar) está en `marketing/logo-opciones.png` y se
+regenera con `python3 scripts/generate-logo-options.py`. Cambiar de variante es
+una línea:
+
+```bash
+python3 scripts/generate-brand.py --variant=flor
+```
 
 ### Cómo se genera
 
@@ -28,11 +52,16 @@ Todo sale del mismo código, así que el SVG y los PNG no se pueden separar:
 python3 scripts/generate-brand.py
 ```
 
+El dibujo en sí vive en `scripts/brand_lib.py` (medidas, paleta y tipografía),
+así que la imagen de promoción y los archivos de la aplicación comparten la
+misma margarita.
+
 Produce:
 
 | Archivo | Para qué |
 | --- | --- |
-| `src/public/brand/img/margarita-icon.svg` | El vectorial, por si hace falta a otro tamaño (lonas, presentaciones) |
+| `src/public/brand/img/margarita-icon.svg` | El símbolo de la aplicación, vectorial |
+| `src/public/brand/img/margarita-mark.svg` y `margarita-mark-*.png` | La flor sola, en un color, para fondos claros u oscuros |
 | `src/public/brand/img/margarita-icon-{64,128,256,512}.png` | Encabezados del panel, pantalla de acceso, setup |
 | `src/public/brand/img/margarita-wordmark-{256,512}.png` | Símbolo + nombre, para los encabezados |
 | `src/public/favicon-{16x16,32x32}.png` y `favicon.ico` | Pestaña del navegador |
@@ -43,6 +72,19 @@ no hay originales que "optimizar" ni versiones sueltas que se queden atrás.
 
 El nombre va en tipografía del sistema (una negrita geométrica) y no en un
 logotipo dibujado: en pantalla se lee mejor y no envejece.
+
+### La imagen para mandar por WhatsApp
+
+```bash
+python3 scripts/generate-promo.py --whatsapp=5215512345678 --email=hola@ejemplo.mx
+```
+
+Deja en `marketing/` dos versiones listas para enviar: la cuadrada
+(1080×1080, para el chat) y la vertical (1080×1920, para estados). El precio y
+la etiqueta de la promoción se pasan por argumento y por omisión son los mismos
+que muestra la página pública, para que la imagen y la web no se contradigan.
+Si no se le da contacto, la imagen lo dice en voz alta en lugar de salir sin
+forma de contestar.
 
 ---
 

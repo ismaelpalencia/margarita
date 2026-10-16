@@ -100,7 +100,8 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `INSTALL_PRICE` | `$5,000.00 MXN` | Precio de lista de la instalación |
 | `INSTALL_PRICE_PROMO` | `$3,000.00 MXN` | Precio de la promoción de lanzamiento |
 | `INSTALL_PROMO_LABEL` | `Promoción de lanzamiento: todo noviembre` | Texto que acompaña la promoción |
-| `INSTALL_RENEWAL_PRICE` | `$2,500.00 MXN` | Precio de la renovación por otros seis meses |
+| `INSTALL_RENEWAL_PRICE` | `$4,200.00 MXN` | Precio de la renovación por otros seis meses |
+| `INSTALL_MONTHLY_PRICE` | `$800.00 MXN` | Precio del mes suelto, para quien prefiera no pagar seis por adelantado |
 | `INSTALL_TERM_MONTHS` | `6` | Meses de servicio incluidos en la instalación |
 | `BACKUP_ENABLED` | `true` | Respaldo automático de la base encendido o apagado |
 | `BACKUP_INTERVAL_HOURS` | `24` | Cada cuánto se guarda una copia completa |

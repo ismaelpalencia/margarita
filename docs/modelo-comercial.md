@@ -34,6 +34,11 @@ herramienta, la guía de Meta explica el trámite (y ofrece hacerlo nosotros) y
 [`propuesta-comercial.md`](propuesta-comercial.md) es la plantilla lista para
 llenar. Ver "Cómo mandar una propuesta" más abajo.
 
+Para acompañarla por WhatsApp, la imagen del volante se genera con
+`python3 scripts/generate-promo.py --whatsapp=… --email=…` y queda en
+`marketing/` (cuadrada para el chat y vertical para estados). Toma los mismos
+precios que la página pública, así que no se pueden contradecir.
+
 ## El modelo
 
 **Una instalación por cliente**: su proyecto en Railway, su base de datos, su dominio, su cuenta de WhatsApp. El proveedor (tú) despliega; el cliente opera y es dueño de su número, de su método de pago en Meta y de sus datos.

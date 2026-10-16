@@ -397,6 +397,17 @@ Nueve pruebas de integración nuevas contra PostgreSQL, además de las ocho unit
 
 Se actualizó `docs/alcance-produccion.md`: la verificación en dos pasos entró en «lo que puede hacer hoy», en los controles de seguridad y en «qué sigue» ya no aparece como pendiente. El punto que decía «no hay autenticación de dos factores» se reescribió con la verdad de hoy: **es opcional por cuenta** y nadie puede obligarla desde el panel.
 
+### Ampliación — código QR para activarla
+
+Pedirle al cliente que teclee 32 caracteres de clave es donde se pierde la gente. La pantalla de activación muestra ahora un **código QR** y, debajo, la clave como respaldo.
+
+El generador de QR (`src/utils/qr.ts`) se escribió a mano, con el mismo criterio que el TOTP: son ~300 líneas y una tabla, y evita sumar otra dependencia al despliegue. Lo que no se improvisó fue la verificación:
+
+- Se comparó **bit a bit** contra la implementación de referencia de Python (`qrcode`) forzando versión, nivel de corrección y máscara: **160 de 160 matrices idénticas**, con textos de 0 a 400 bytes, versiones 1 a 18, niveles `L` y `M` y las ocho máscaras, incluidos acentos y emoji (UTF-8).
+- Esa comparación encontró tres errores reales que a ojo no se ven: el módulo de sincronía de la fila 6, el de la columna 6 y el módulo oscuro fijo estaban siendo pisados por las tiras de información de formato. Un QR así se ve correcto y no lo lee un escáner.
+- Además se comprobó que el SVG dibuja la matriz exacta (se rasterizó y se leyeron los 2 809 módulos del PNG: cero diferencias) y que la información de formato se puede decodificar de vuelta al nivel y la máscara que se generaron.
+- Lo que queda como prueba permanente: siete pruebas unitarias con las huellas de la referencia, los patrones obligatorios, la elección de versión y la del SVG. La elección automática de la **máscara** puede diferir de la de Python en algunos textos, porque el estándar (y zxing, el lector de Android) penaliza el patrón 1:1:3:1:1 en los dos sentidos y Python solo en uno; la matriz sigue siendo válida y verificada con máscara forzada.
+
 ---
 
 ## Sprint 50 — Cifrado de los correos de acceso

@@ -90,7 +90,7 @@ mensualidad ni cobro por usuario.
 | **Instalación Margarita (promoción de lanzamiento, todo noviembre)** | **$3,000.00 MXN** (en lugar de $5,000.00 MXN) | Pago único, al firmar |
 | Instalación Margarita a precio de lista (fuera de la promoción) | $5,000.00 MXN | Pago único, al firmar |
 | Conexión con Meta (opcional) | +$1,500.00 MXN | Pago único, junto con la instalación |
-| Renovación por otros 6 meses (a partir del séptimo mes) | $2,500.00 MXN | Al renovar |
+| Renovación por otros 6 meses (a partir del séptimo mes) | $4,200.00 MXN (o $800.00 MXN al mes) | Al renovar |
 | Migración de cartera | [PRECIO O INCLUIDA] | Pago único |
 
 **Qué incluyen los 6 meses** (esto es lo que se está comprando):
@@ -124,6 +124,16 @@ trabajo entre despliegue, conexión y capacitación), el soporte de los 6 meses
 el margen para sostener y seguir mejorando el producto. La promoción de
 lanzamiento baja el precio para los primeros clientes a cambio de
 retroalimentación y de un caso de éxito que se pueda mostrar.
+
+**Por qué la renovación cuesta $4,200 y no menos:** son $700 al mes por un
+equipo completo, sin tope de usuarios y sin costo por mensaje. Una herramienta
+de cobranza por suscripción cobra eso o más **por usuario**, y aquí los usuarios
+son ilimitados. Del lado del costo, el mes incluye el canal de soporte
+(~1 hora), las mejoras que salgan en el periodo y el monitoreo; si además el
+alojamiento va por nuestra cuenta, hay que sumar unos $150 al mes. Con $2,500
+por semestre ($417 al mes) el margen se quedaba en nada: era un precio de
+"amigo", no de negocio. Quien prefiera no pagar seis meses por adelantado tiene
+el mes suelto a $800, y quien renueva por semestre ahorra un mes.
 
 ## 8. Requisitos del cliente
 

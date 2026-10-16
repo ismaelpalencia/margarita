@@ -12,7 +12,22 @@
             <a href="/aviso-de-privacidad" class="font-semibold text-slate-600 hover:text-margarita-700">
                 Aviso de privacidad
             </a>
+
+            <% if (typeof supportEmail !== "undefined" && supportEmail) { %>
+                <a href="mailto:<%= supportEmail %>" class="hover:text-margarita-700">
+                    <%= supportEmail %>
+                </a>
+            <% } %>
         </nav>
+
+        <% if (typeof supportEmail !== "undefined" && supportEmail) { %>
+            <p class="text-[11px] text-slate-400">
+                Dudas, sugerencias y valoraciones:
+                <a href="mailto:<%= supportEmail %>?subject=Valoraci%C3%B3n%20de%20Margarita" class="font-semibold hover:underline">
+                    escríbenos
+                </a>
+            </p>
+        <% } %>
     </div>
 </footer>
 

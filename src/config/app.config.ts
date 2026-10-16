@@ -152,7 +152,14 @@ export const appConfig = {
      * conexión se escribe tal cual se quiere mostrar.
      */
     supportWhatsapp: process.env.SUPPORT_WHATSAPP?.replace(/\D/g, "") || "",
-    supportEmail: process.env.SUPPORT_EMAIL?.trim() || "",
+    /**
+     * Contacto comercial y de privacidad de la página pública. Por omisión es
+     * el del producto; cada instalación puede poner el suyo con
+     * `SUPPORT_EMAIL` (y es el correo al que se mandan las solicitudes de
+     * datos del aviso de privacidad y las valoraciones de los clientes).
+     */
+    supportEmail:
+        process.env.SUPPORT_EMAIL?.trim() || "contacto@margaritaapp.org",
     setupServicePrice:
         process.env.SETUP_SERVICE_PRICE?.trim() ||
         "$1,500.00 MXN",
@@ -172,7 +179,9 @@ export const appConfig = {
         process.env.INSTALL_PROMO_LABEL?.trim() ||
         "Promoción de lanzamiento: todo noviembre",
     installRenewalPrice:
-        process.env.INSTALL_RENEWAL_PRICE?.trim() || "$2,500.00 MXN",
+        process.env.INSTALL_RENEWAL_PRICE?.trim() || "$4,200.00 MXN",
+    installMonthlyPrice:
+        process.env.INSTALL_MONTHLY_PRICE?.trim() || "$800.00 MXN",
     installTermMonths: Number(process.env.INSTALL_TERM_MONTHS) || 6,
 
 

@@ -13,7 +13,7 @@
 
 **[NOMBRE O RAZÓN SOCIAL DE LA EMPRESA]**, con domicilio en **[DOMICILIO
 COMPLETO]** y RFC **[RFC]**, es el responsable del tratamiento de los datos
-personales que se describen aquí. Puedes contactarnos en **[CORREO DE PRIVACIDAD]**
+personales que se describen aquí. Puedes contactarnos en **contacto@margaritaapp.org**
 o al teléfono **[TELÉFONO]**.
 
 Margarita es la herramienta con la que operamos nuestro canal de WhatsApp. La
@@ -52,7 +52,7 @@ conversación a una persona de nuestro equipo y una bitácora de operación.
 2. Realizar encuestas de satisfacción.
 
 Si no quieres que tus datos se usen para las finalidades secundarias, escríbenos
-a **[CORREO DE PRIVACIDAD]**. Negarte no afecta la atención que te damos.
+a **contacto@margaritaapp.org**. Negarte no afecta la atención que te damos.
 
 ## 4. Con quién se comparten
 
@@ -119,7 +119,7 @@ Puedes solicitar en cualquier momento:
 - **Cancelación**: pedir que se eliminen.
 - **Oposición**: oponerte al uso que les damos.
 
-Para ejercerlos, envía tu solicitud a **[CORREO DE PRIVACIDAD]**, indicando tu
+Para ejercerlos, envía tu solicitud a **contacto@margaritaapp.org**, indicando tu
 nombre, un medio para responderte y qué derecho quieres ejercer. Responderemos en
 un plazo máximo de **20 días hábiles**.
 
@@ -130,7 +130,7 @@ Datos Personales (INAI).
 ## 9. Revocar tu consentimiento
 
 Puedes revocar el consentimiento que nos diste enviando un correo a
-**[CORREO DE PRIVACIDAD]** o respondiendo **BAJA** por WhatsApp. Si la revocación
+**contacto@margaritaapp.org** o respondiendo **BAJA** por WhatsApp. Si la revocación
 implica que ya no podemos prestarte el servicio, te lo haremos saber.
 
 ## 10. Dejar de recibir mensajes

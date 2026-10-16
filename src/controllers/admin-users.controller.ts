@@ -11,6 +11,7 @@ import {
     updateUserSchema
 } from "../validations/user.validation";
 import { formatSecretForHumans } from "../utils/totp";
+import { qrSvg } from "../utils/qr";
 
 const EMPTY_FORM = {
     name: "",
@@ -255,10 +256,26 @@ export class AccountController {
     /** Pantalla de seguridad: contraseña + verificación en dos pasos. */
     static async showSecurity(req: Request, res: Response) {
         const state = await UserService.twoFactorState(req.user!.id);
+        let qr: string | null = null;
+
+        /**
+         * El código QR se dibuja solo si hay una activación en curso. Si el
+         * enlace saliera demasiado largo (nombre de empresa y correo
+         * enormes), se muestra la pantalla sin QR en lugar de fallar: la
+         * clave de configuración sigue estando para capturarla a mano.
+         */
+        if (state.otpauthUrl) {
+            try {
+                qr = qrSvg(state.otpauthUrl, { size: 216 });
+            } catch {
+                qr = null;
+            }
+        }
 
         return res.render("pages/account/security", {
             authUser: req.user!,
             state,
+            qr,
             formattedSecret: state.pendingSecret
                 ? formatSecretForHumans(state.pendingSecret)
                 : null,

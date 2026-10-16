@@ -282,7 +282,8 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `INSTALL_PRICE` | Comercial | Precio de lista de la instalación (por omisión `$5,000.00 MXN`) |
 | `INSTALL_PRICE_PROMO` | Comercial | Precio de la promoción de lanzamiento (`$3,000.00 MXN`) |
 | `INSTALL_PROMO_LABEL` | Comercial | Texto de la promoción (`Promoción de lanzamiento: todo noviembre`) |
-| `INSTALL_RENEWAL_PRICE` | Comercial | Precio de la renovación por otros seis meses (`$2,500.00 MXN`) |
+| `INSTALL_RENEWAL_PRICE` | Comercial | Precio de la renovación por otros seis meses (`$4,200.00 MXN`) |
+| `INSTALL_MONTHLY_PRICE` | Comercial | Precio del mes suelto (`$800.00 MXN`) |
 | `INSTALL_TERM_MONTHS` | Comercial | Meses de servicio que incluye la instalación (6) |
 | `BACKUP_ENABLED` | No | Respaldo automático de la base. Default `true` |
 | `BACKUP_INTERVAL_HOURS` | No | Cada cuánto se guarda una copia completa. Default `24` |
@@ -552,7 +553,7 @@ El cliente vive en `src/public/js/live.js` y se activa con atributos en `<body>`
 ## 12. Seguridad
 
 - **Autenticación**: JWT en cookie `httpOnly`, con registro en `UserSession` para poder revocar sesiones. La cookie usa `secure` en producción y `sameSite=lax`.
-- **Verificación en dos pasos (TOTP)**: opcional por cuenta y se activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación (Google Authenticator, Authy, Microsoft Authenticator, 1Password, Bitwarden o la app **Contraseñas** de Apple): es el estándar, así que funciona igual en todas. Está implementada con `node:crypto` (RFC 6238), sin dependencias nuevas. El secreto se guarda cifrado y la activación no se completa hasta confirmar un código. La contraseña correcta ya no abre sesión por sí sola: devuelve un desafío firmado de 5 minutos y los códigos fallidos cuentan como intentos fallidos (bloquean la cuenta igual que una contraseña mal escrita). Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo, con constancia en la bitácora.
+- **Verificación en dos pasos (TOTP)**: opcional por cuenta y se activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación (Google Authenticator, Authy, Microsoft Authenticator, 1Password, Bitwarden o la app **Contraseñas** de Apple): es el estándar, así que funciona igual en todas. La pantalla de activación muestra un código QR para escanear y la clave a mano como respaldo. Está implementada con `node:crypto` (RFC 6238), sin dependencias nuevas. El secreto se guarda cifrado y la activación no se completa hasta confirmar un código. La contraseña correcta ya no abre sesión por sí sola: devuelve un desafío firmado de 5 minutos y los códigos fallidos cuentan como intentos fallidos (bloquean la cuenta igual que una contraseña mal escrita). Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo, con constancia en la bitácora.
 - **Autorización**: `authMiddleware` en todas las rutas privadas y `requireRole` separando `ADMIN` de `AGENT`. Un agente solo puede ver y responder sus conversaciones asignadas; esa restricción se aplica también en la consulta a base de datos.
 - **Contraseñas**: hash con bcrypt (12 rondas). Política mínima de 10 caracteres con letras y números, y lista negra de contraseñas obvias al crear o editar agentes.
 - **Bloqueo por fuerza bruta**: el login tiene su propio límite (10 peticiones por 15 minutos por IP) y, a nivel de cuenta, se bloquea `LOGIN_LOCK_MINUTES` minutos tras `LOGIN_MAX_ATTEMPTS` intentos fallidos. Cada intento fallido, cada bloqueo y cada acceso correcto quedan en la bitácora.
@@ -606,7 +607,7 @@ El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay **201 pruebas unitarias** y **39 de integración** contra PostgreSQL (estas últimas corren en CI con una base desechable), y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, verificación en dos pasos (desafío sin sesión, código válido y rescate por administrador), cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas, **restauración de un respaldo probada borrando datos a propósito** y **alta de una instalación vacía recorriendo el asistente como un cliente nuevo**.
+Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay **208 pruebas unitarias** y **41 de integración** contra PostgreSQL (estas últimas corren en CI con una base desechable), y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, verificación en dos pasos (desafío sin sesión, código válido y rescate por administrador), cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas, **restauración de un respaldo probada borrando datos a propósito** y **alta de una instalación vacía recorriendo el asistente como un cliente nuevo**.
 
 Lo que se cerró en el sprint de endurecimiento:
 
@@ -693,16 +694,21 @@ Todas las vistas cargan los íconos desde `src/views/partials/brand-head.ejs`, q
 
 | Archivo | Uso |
 | --- | --- |
-| `src/public/brand/img/margarita-wordmark-512.png` | Nombre de la marca en encabezados y landing |
-| `src/public/brand/img/margarita-icon-64.png` | Ícono pequeño en las barras de navegación |
+| `src/public/brand/img/margarita-wordmark-512.png` | Símbolo + nombre, en encabezados y landing |
+| `src/public/brand/img/margarita-icon-64.png` | Sello (círculo con la flor) en las barras de navegación |
 | `src/public/brand/img/margarita-icon-128.png` | Ícono en el login y en bloques destacados |
 | `src/public/brand/img/margarita-icon-256.png` | Versión grande para fondos oscuros |
+| `src/public/brand/img/margarita-mark-*.png` y `.svg` | La flor sola, en un color, para fondos claros u oscuros |
 | `src/public/favicon.ico` y `favicon-*.png` | Pestaña del navegador |
 | `src/public/apple-touch-icon.png`, `android-chrome-*.png` | App instalada (PWA) |
 | `src/public/site.webmanifest` | Metadatos de la app instalada |
 
-El símbolo (una margarita con carita feliz) y los precios de la oferta se
-explican en [`docs/marca.md`](docs/marca.md). No hay originales que "optimizar":
+El símbolo (una margarita plana, de un solo color, con la carita tallada) tiene
+seis variantes —la de la aplicación es `sello-hojas` (círculo verde, flor blanca y dos hojas en la base)— y se eligen con
+`python3 scripts/generate-brand.py --variant=flor`. Todo está explicado en
+[`docs/marca.md`](docs/marca.md), con la hoja comparativa en
+`marketing/logo-opciones.png` (`scripts/generate-logo-options.py`).
+No hay originales que "optimizar":
 **todo se dibuja con código**, así que no existen versiones sueltas que se
 queden atrás. Si cambias el dibujo, se cambia en el script y se regenera:
 
@@ -713,3 +719,12 @@ python3 scripts/generate-brand.py
 
 El script dibuja a 4x y reduce, así que los bordes quedan suaves, y deja cada
 archivo en pocos kilobytes.
+
+Para mandar la promoción por WhatsApp hay un segundo script, que usa el mismo
+dibujo y los mismos precios de la página pública:
+
+```bash
+python3 scripts/generate-promo.py --whatsapp=5215512345678 --email=hola@ejemplo.mx
+```
+
+Deja la imagen cuadrada y la vertical en `marketing/`.

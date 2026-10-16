@@ -15,3 +15,5 @@ utils_app.md
 desarrollo.md
 
 uploads/
+# Caché de Python (scripts de marca)
+__pycache__/

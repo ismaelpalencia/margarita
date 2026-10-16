@@ -6,6 +6,23 @@
         supportWhatsappUrl ||
         (supportEmail ? `mailto:${supportEmail}` : "/como-empezar");
 
+    /** Los dos caminos para pedir informes, con el asunto ya escrito. */
+    const asunto = encodeURIComponent("Quiero saber más de Margarita");
+    const asuntoPago = encodeURIComponent("Ya pagué: quiero mis informes");
+    const correoInformes = supportEmail
+        ? `mailto:${supportEmail}?subject=${asunto}`
+        : "";
+    const correoPago = supportEmail
+        ? `mailto:${supportEmail}?subject=${asuntoPago}`
+        : "";
+
+    /** Con el mensaje ya escrito, para que solo le den enviar. */
+    const whatsappInformes = supportWhatsappUrl
+        ? `${supportWhatsappUrl}?text=${encodeURIComponent(
+              "Hola, quiero saber más de Margarita"
+          )}`
+        : "";
+
     /**
      * Si el precio de promoción es igual al de lista, la oferta no está
      * activa: se deja de anunciar la promoción sin dejar textos a medias.
@@ -97,12 +114,12 @@
                     </div>
 
                     <div class="mt-10 flex flex-col gap-3 sm:flex-row">
-                        <a href="/como-empezar" class="rounded-xl bg-margarita-600 px-6 py-4 text-center text-sm font-black text-white shadow-sm hover:bg-margarita-700">
-                            Ver cómo empezar
+                        <a href="#contacto" class="rounded-xl bg-margarita-600 px-6 py-4 text-center text-sm font-black text-white shadow-sm hover:bg-margarita-700">
+                            ¡Quiero saber más!
                         </a>
 
-                        <a href="<%= contactUrl %>" class="rounded-xl bg-white px-6 py-4 text-center text-sm font-black text-margarita-700 ring-1 ring-margarita-200 hover:bg-margarita-50">
-                            Pedir una demostración
+                        <a href="/como-empezar" class="rounded-xl bg-white px-6 py-4 text-center text-sm font-black text-margarita-700 ring-1 ring-margarita-200 hover:bg-margarita-50">
+                            Ver cómo empezar
                         </a>
                     </div>
 
@@ -343,8 +360,8 @@
                     </ul>
 
                     <div class="mt-6 flex flex-wrap items-center gap-3">
-                        <a href="<%= contactUrl %>" class="rounded-xl bg-margarita-600 px-6 py-4 text-sm font-black text-white hover:bg-margarita-700">
-                            <%= hasPromo ? "Apartar la promoción" : "Agendar una demostración" %>
+                        <a href="#contacto" class="rounded-xl bg-margarita-600 px-6 py-4 text-sm font-black text-white hover:bg-margarita-700">
+                            ¡Quiero saber más!
                         </a>
 
                         <a href="/como-empezar" class="text-sm font-black text-margarita-700 hover:text-margarita-800">
@@ -415,8 +432,10 @@
                     <p class="mt-1 text-sm leading-6 text-slate-600">
                         Si sigues, la renovación cuesta
                         <strong><%= installRenewalPrice %></strong> por otros
-                        <%= installTermMonths %> meses. Si no, lo dejas ahí: te
-                        llevas tu respaldo completo y se borra todo a petición.
+                        <%= installTermMonths %> meses, o
+                        <strong><%= installMonthlyPrice %></strong> al mes. Si no,
+                        lo dejas ahí: te llevas tu respaldo completo y se borra
+                        todo a petición.
                     </p>
                 </div>
             </div>
@@ -453,22 +472,85 @@
                 </li>
             </ul>
 
-            <div class="mt-8 rounded-2xl bg-margarita-50 px-6 py-5 ring-1 ring-margarita-100">
-                <p class="text-sm font-black text-margarita-900">
-                    ¿Quieres verlo con tus datos?
+        </div>
+    </section>
+
+    <section id="contacto" class="scroll-mt-8 border-t border-slate-200 bg-margarita-50">
+        <div class="mx-auto max-w-5xl px-6 py-16">
+            <div class="text-center">
+                <p class="text-sm font-black uppercase tracking-wide text-margarita-700">
+                    Contacto
                 </p>
 
-                <p class="mt-1 text-sm text-margarita-800">
-                    Te mostramos la herramienta funcionando con un caso de cobranza real
-                    antes de que decidas nada.
+                <h2 class="mt-2 text-3xl font-black text-slate-950">
+                    ¡Quiero saber más!
+                </h2>
+
+                <p class="mt-3 text-slate-600">
+                    Escríbenos y te contestamos en horario hábil. Te mostramos la
+                    herramienta con un caso de cobranza real antes de que decidas nada.
+                </p>
+            </div>
+
+            <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                <% if (whatsappInformes) { %>
+                    <a href="<%= whatsappInformes %>" class="rounded-xl bg-margarita-600 px-6 py-4 text-center text-sm font-black text-white shadow-sm hover:bg-margarita-700">
+                        Escribir por WhatsApp
+                    </a>
+                <% } %>
+
+                <% if (correoInformes) { %>
+                    <a href="<%= correoInformes %>" class="rounded-xl bg-white px-6 py-4 text-center text-sm font-black text-margarita-700 ring-1 ring-margarita-200 hover:bg-margarita-100">
+                        Mandar correo
+                    </a>
+                <% } %>
+            </div>
+
+            <% if (supportEmail) { %>
+                <p class="mt-4 text-center text-sm text-slate-600">
+                    <%= supportEmail %>
+                    <% if (supportWhatsappNumber) { %>
+                        · WhatsApp <%= supportWhatsappNumber %>
+                    <% } %>
+                </p>
+            <% } %>
+
+            <div class="mx-auto mt-10 max-w-2xl rounded-2xl bg-white p-6 text-center ring-1 ring-margarita-200">
+                <p class="text-lg font-black text-slate-950">
+                    ¿Ya apartaste tu lugar?
                 </p>
 
-                <a href="<%= contactUrl %>" class="mt-4 inline-flex rounded-xl bg-margarita-600 px-5 py-3 text-sm font-black text-white hover:bg-margarita-700">
-                    Agendar demostración
-                </a>
+                <p class="mt-2 text-sm leading-6 text-slate-600">
+                    Si ya pagaste la instalación y necesitas tus informes (alta,
+                    día de la conexión con Meta, capacitación o la factura),
+                    escríbenos por el mismo medio con el asunto ya puesto:
+                </p>
+
+                <% if (correoPago) { %>
+                    <a href="<%= correoPago %>" class="mt-4 inline-flex rounded-xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800">
+                        Pedir mis informes
+                    </a>
+                <% } %>
             </div>
         </div>
     </section>
 </main>
+
+<% if (contactUrl) { %>
+    <%#
+        Botón flotante: en el celular estorba (tapa los botones de abajo), así
+        que solo aparece en pantallas grandes, donde el contenido no llega al
+        borde.
+    %>
+    <div class="pointer-events-none fixed inset-x-0 bottom-0 z-40 hidden justify-end p-4 sm:flex">
+        <a
+            href="<%= whatsappInformes || correoInformes || contactUrl %>"
+            class="pointer-events-auto flex items-center gap-2 rounded-full bg-margarita-600 py-3 pl-3 pr-5 text-sm font-black text-white shadow-lg shadow-margarita-900/20 hover:bg-margarita-700"
+        >
+            <img src="/brand/img/margarita-icon-64.png" alt="" class="h-7 w-7" />
+            ¡Quiero saber más!
+        </a>
+    </div>
+<% } %>
 
 <%- include("../../partials/footer") %>

@@ -404,8 +404,13 @@ test("por HTTP: activar, fallar con un código malo y confirmar con el bueno", a
 
     assert.match(
         pendingHtml,
-        /Clave de configuración/,
-        "debe mostrar la clave para la app"
+        /captura la clave a mano|Clave de configuración/,
+        "debe mostrar la clave para capturarla a mano"
+    );
+    assert.match(
+        pendingHtml,
+        /<svg[^>]*aria-label="Código QR/,
+        "debe mostrar el código QR para escanearlo con la app"
     );
     assert.match(
         pendingHtml,
