@@ -146,14 +146,26 @@ export class SendPolicyService {
         return usage;
     }
 
-    /** Un contacto dado de baja no recibe nada, por ningún canal. */
+    /**
+     * Un contacto dado de baja no recibe nada, y uno en pausa tampoco: la pausa
+     * es reversible (se quita desde su ficha), pero mientras esté puesta nadie
+     * le escribe.
+     */
     static assertContactReachable(contact: {
         optOutAt: Date | null;
+        pausedAt?: Date | null;
     }): void {
         if (contact.optOutAt) {
             throw new Error(
                 "Este contacto pidió la baja (STOP): no se le pueden enviar mensajes. " +
                     "Si te autorizó de nuevo, reactívalo desde su ficha."
+            );
+        }
+
+        if (contact.pausedAt) {
+            throw new Error(
+                "Este contacto está en pausa (normalmente porque no reconoce la deuda): " +
+                    "revisa el caso y quita la pausa desde su ficha antes de escribirle."
             );
         }
     }
@@ -169,7 +181,7 @@ export class SendPolicyService {
     static async assertCanSendManually(params: {
         userId: string;
         role: string;
-        contact: { optOutAt: Date | null };
+        contact: { optOutAt: Date | null; pausedAt?: Date | null };
     }): Promise<void> {
         this.assertContactReachable(params.contact);
 

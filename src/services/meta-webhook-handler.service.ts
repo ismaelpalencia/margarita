@@ -31,6 +31,7 @@ import { LogService } from "./log.service";
 import { prefetchMedia } from "./media.service";
 import { WhatsAppNumberService } from "./whatsapp-number.service";
 import { AccountHealthService } from "./account-health.service";
+import { InteractiveReplyService } from "./interactive-reply.service";
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
@@ -278,6 +279,20 @@ export class MetaWebhookHandlerService {
                     replyTitle: parsed.replyTitle,
                     interactiveType: parsed.interactiveType
                 }
+            });
+
+            /**
+             * Y si hay una regla para esa respuesta, se aplica sola: registra
+             * el resultado de gestión y, cuando corresponde, pausa la cuenta o
+             * da de baja al contacto.
+             */
+            await InteractiveReplyService.apply({
+                workspaceId,
+                contactId: contact.id,
+                conversationId: conversation.id,
+                messageId: savedMessage.id,
+                replyId: parsed.replyId,
+                replyTitle: parsed.replyTitle
             });
         }
 

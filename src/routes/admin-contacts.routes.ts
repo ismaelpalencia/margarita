@@ -15,6 +15,8 @@ router.post("/:id", AdminContactsController.update);
 router.post("/:id/deactivate", AdminContactsController.deactivate);
 router.post("/:id/opt-out", AdminContactsController.optOut);
 router.post("/:id/opt-in", AdminContactsController.optIn);
+router.post("/:id/pause", AdminContactsController.pause);
+router.post("/:id/resume", AdminContactsController.resume);
 router.post("/:id/outcome", OutcomeController.markFromContact);
 
 export default router;

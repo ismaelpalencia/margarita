@@ -185,7 +185,8 @@ export class CampaignService {
                 phone: true,
                 customName: true,
                 profileName: true,
-                optOutAt: true
+                optOutAt: true,
+                pausedAt: true
             }
         });
 
@@ -198,7 +199,9 @@ export class CampaignService {
          * crear, para que el conteo de la campaña sea el real y nadie
          * tenga que acordarse de revisarlo antes de enviar.
          */
-        const reachable = contacts.filter((contact) => !contact.optOutAt);
+        const reachable = contacts.filter(
+            (contact) => !contact.optOutAt && !contact.pausedAt
+        );
         const skippedRecipients = contacts.length - reachable.length;
 
         if (reachable.length === 0) {
@@ -673,6 +676,35 @@ export class CampaignService {
              * un STOP después de crear la campaña, y en ese caso el
              * destinatario se marca como omitido en lugar de fallido.
              */
+            if (recipient.contact?.pausedAt) {
+                await prisma.campaignRecipient.update({
+                    where: { id: recipient.id },
+                    data: {
+                        status: CampaignRecipientStatus.SKIPPED,
+                        errorCode: "PAUSED",
+                        errorMessage:
+                            "El contacto está en pausa (no reconoce la deuda o alguien la detuvo)."
+                    }
+                });
+
+                skippedCount += 1;
+
+                await LogService.create({
+                    workspaceId,
+                    level: LogLevel.WARN,
+                    module: LogModule.CAMPAIGN,
+                    action: "CAMPAIGN_RECIPIENT_SKIPPED",
+                    message: "No se envió: el contacto está en pausa.",
+                    payload: {
+                        campaignId: campaign.id,
+                        recipientId: recipient.id,
+                        contactId: recipient.contactId
+                    }
+                });
+
+                continue;
+            }
+
             if (recipient.contact?.optOutAt) {
                 await prisma.campaignRecipient.update({
                     where: {

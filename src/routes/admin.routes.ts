@@ -7,6 +7,7 @@ import { requireRole } from "../middlewares/role.middleware";
 import adminUsersRoutes from "./admin-users.routes";
 import adminContactsRoutes from "./admin-contacts.routes";
 import adminQuickRepliesRoutes from "./admin-quick-replies.routes";
+import adminRepliesRoutes from "./admin-replies.routes";
 import adminReportsRoutes from "./admin-reports.routes";
 import adminSessionsRoutes from "./admin-sessions.routes";
 import adminTagsRoutes from "./admin-tags.routes";
@@ -33,6 +34,8 @@ router.post("/number/switch", ActiveNumberController.switch);
 router.use("/users", adminUsersRoutes);
 router.use("/contacts", adminContactsRoutes);
 router.use("/quick-replies", adminQuickRepliesRoutes);
+/** Respuestas de botón: qué significa cada toque del deudor. */
+router.use("/replies", adminRepliesRoutes);
 router.use("/reports", adminReportsRoutes);
 router.use("/sessions", adminSessionsRoutes);
 router.use("/tags", adminTagsRoutes);

@@ -15,9 +15,14 @@ hilo **y en campañas** (las tres variables resueltas por destinatario, con
 `{nombre}`, `{telefono}` y columnas del Excel) · aviso **y bloqueo** de plantillas
 reclasificadas a marketing.
 
-**Sigue el sprint B:** fase 3 (puente respuesta → resultado de gestión) y fase 4
-(el botón que agenda una llamada), que no dependen de Meta para construirse: sólo
-la verificación real necesita la plantilla aprobada y un teléfono.
+**Fase 3 entregada** (el puente respuesta → resultado de gestión, con la pausa y
+la baja automáticas y el mapeo por identificador o por texto).
+
+**Sigue la fase 4** (el botón «quiero que me llame un asesor» como tarea en la
+lista de trabajo, con la hora del deudor y sin mandar ningún mensaje automático).
+El resultado ya se registra desde la fase 3; falta convertirlo en tarea visible.
+Ninguna de las dos depende de Meta para construirse: solo la verificación real
+necesita la plantilla aprobada y un teléfono.
 
 | Sprint | Fases | Entregable | Criterio de cierre |
 | --- | --- | --- | --- |
@@ -125,7 +130,7 @@ Para que se pueda revisar antes de empezar:
 1. **Se recorta verificación, no trabajo.** Con dos sprints se construye lo
    mismo que el roadmap reparte en seis, pero con menos tiempo de prueba manual
    contra Meta. La red que lo sostiene es la misma de siempre: la suite (208
-   unitarias, 45 de integración) más el recorrido de pantallas que se agregó
+   unitarias, 55 de integración) más el recorrido de pantallas que se agregó
    después del 500 de las plantillas.
 2. **Migraciones aditivas, sin excepción.** Con varios clientes conectados a
    `release`, una migración destructiva no se puede deshacer.

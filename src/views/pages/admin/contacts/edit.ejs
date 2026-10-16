@@ -39,7 +39,9 @@
                     <p class="mt-1 text-xs">
                         <%= contact.optOutSource === "keyword"
                             ? "Lo pidió por WhatsApp, escribiendo la palabra clave."
-                            : "Se marcó desde el panel." %>
+                            : contact.optOutSource === "button"
+                              ? "Lo pidió tocando el botón de baja en un mensaje."
+                              : "Se marcó desde el panel." %>
                         No recibe mensajes ni campañas.
                     </p>
                 </div>
@@ -73,6 +75,63 @@
                         onclick="return confirm('¿Marcar la baja? Dejará de recibir mensajes y campañas.');"
                     >
                         Marcar la baja
+                    </button>
+                </form>
+            <% } %>
+        </section>
+
+        <section class="mb-6 rounded-2xl bg-white p-6 shadow">
+            <h2 class="text-lg font-bold text-slate-800">
+                Pausa
+            </h2>
+
+            <% if (contact.pausedAt) { %>
+                <div class="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-100">
+                    <p class="font-bold">
+                        Este contacto está en pausa: no se le escribe.
+                    </p>
+
+                    <p class="mt-1 text-xs">
+                        <%= contact.pausedReason || "Pausada sin motivo registrado." %>
+                        Se puso el <%= formatDateTimeMX(contact.pausedAt) %>.
+                    </p>
+                </div>
+
+                <form action="/admin/contacts/<%= contact.id %>/resume" method="POST" class="mt-3">
+                    <input type="hidden" name="redirectTo" value="/admin/contacts/<%= contact.id %>/edit" />
+
+                    <button
+                        class="rounded-xl bg-margarita-600 px-4 py-3 text-sm font-semibold text-white hover:bg-margarita-700"
+                        onclick="return confirm('¿Quitar la pausa? Volverá a recibir mensajes y campañas.');"
+                    >
+                        Quitar la pausa
+                    </button>
+                </form>
+            <% } else { %>
+                <p class="mt-3 text-sm text-slate-600">
+                    Sirve para detener a un cliente mientras se aclara algo —por
+                    ejemplo, cuando dice que no reconoce la deuda—. Mientras esté
+                    pausado no recibe mensajes ni campañas, y se puede quitar en
+                    cualquier momento.
+                </p>
+
+                <form action="/admin/contacts/<%= contact.id %>/pause" method="POST" class="mt-3 flex flex-wrap items-end gap-3">
+                    <input type="hidden" name="redirectTo" value="/admin/contacts/<%= contact.id %>/edit" />
+
+                    <div class="min-w-[240px] flex-1">
+                        <label class="mb-1 block text-xs font-semibold uppercase text-slate-500">
+                            Motivo (queda en el historial)
+                        </label>
+
+                        <input
+                            name="reason"
+                            placeholder="Ej. Dice que no reconoce la deuda"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+                    </div>
+
+                    <button class="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                        Pausar
                     </button>
                 </form>
             <% } %>

@@ -320,4 +320,58 @@ export class AdminContactsController {
             )
         );
     }
+
+    /**
+     * Pausa la cuenta del contacto: se deja de escribirle hasta que alguien la
+     * quite. Es lo que dispara sola la regla de «no reconozco la deuda», y a
+     * mano sirve para casos a medio revisar.
+     */
+    static async pause(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+
+        const reason =
+            typeof req.body?.reason === "string" && req.body.reason.trim() !== ""
+                ? req.body.reason.trim()
+                : "Pausada a mano desde la ficha del contacto.";
+
+        try {
+            await ContactService.setPause(req.user!.workspaceId, id, reason);
+        } catch {
+            return res.redirect(
+                AdminContactsController.safeRedirect(
+                    req,
+                    "/admin/contacts?error=pause"
+                )
+            );
+        }
+
+        return res.redirect(
+            AdminContactsController.safeRedirect(
+                req,
+                "/admin/contacts?success=paused"
+            )
+        );
+    }
+
+    static async resume(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+
+        try {
+            await ContactService.clearPause(req.user!.workspaceId, id);
+        } catch {
+            return res.redirect(
+                AdminContactsController.safeRedirect(
+                    req,
+                    "/admin/contacts?error=resume"
+                )
+            );
+        }
+
+        return res.redirect(
+            AdminContactsController.safeRedirect(
+                req,
+                "/admin/contacts?success=resumed"
+            )
+        );
+    }
 }

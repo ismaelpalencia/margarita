@@ -335,6 +335,21 @@
                                         >
                                             BAJA
                                         </span>
+                                    <% } else if (contact.pausedAt) { %>
+                                        <span
+                                            class="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-800"
+                                            title="<%= contact.pausedReason || 'En pausa: no se le escribe' %>"
+                                        >
+                                            pausa
+                                        </span>
+                                        <% if (!contact.optInAt) { %>
+                                            <span
+                                                class="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700"
+                                                title="No hay consentimiento registrado"
+                                            >
+                                                sin opt-in
+                                            </span>
+                                        <% } %>
                                     <% } else if (!contact.optInAt) { %>
                                         <span
                                             class="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700"

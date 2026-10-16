@@ -130,20 +130,40 @@ test("la firma del webhook decide: sin firma no entra, con firma sí y queda en 
         `el evento quedó en un estado inesperado: ${event!.status}`
     );
 
-    /** El worker lo procesa y el mensaje aparece. */
-    for (let attempt = 0; attempt < 5; attempt += 1) {
-        if (
-            (
-                await prisma.webhookEvent.findUnique({
-                    where: { id: event!.id },
-                    select: { status: true }
-                })
-            )?.status === WebhookEventStatus.PROCESSED
-        ) {
+    /**
+     * El worker lo procesa y el mensaje aparece.
+     *
+     * El worker de fondo corre cada dos segundos y puede tomar el evento justo
+     * antes de que la prueba vacíe la cola: por eso se espera con una fecha
+     * límite en lugar de asumir que una pasada alcanza. Si el evento termina
+     * fallido, el mensaje del fallo trae el error del evento, que es lo que
+     * hace falta para diagnosticarlo.
+     */
+    const deadline = Date.now() + 5000;
+
+    for (;;) {
+        const current = await prisma.webhookEvent.findUnique({
+            where: { id: event!.id },
+            select: { status: true, lastError: true }
+        });
+
+        if (current?.status === WebhookEventStatus.PROCESSED) {
             break;
         }
 
+        assert.notEqual(
+            current?.status,
+            WebhookEventStatus.FAILED,
+            `el evento quedó fallido: ${current?.lastError || "sin detalle"}`
+        );
+
+        assert.ok(
+            Date.now() < deadline,
+            `el evento no se procesó a tiempo: ${current?.status}`
+        );
+
         await runWebhookWorkerOnce();
+        await new Promise((resolve) => setTimeout(resolve, 250));
     }
 
     const processed = await prisma.webhookEvent.findUniqueOrThrow({

@@ -20,10 +20,17 @@ dayjs.extend(timezone);
 export const OUTCOME_TYPES: ContactOutcomeType[] = [
     ContactOutcomeType.PROMISE,
     ContactOutcomeType.PAID,
+    /**
+     * «Ya pagué» dicho por el deudor: dinero **reclamado**, no confirmado. Va
+     * en el catálogo para que se pueda conciliar, no para contarlo como
+     * recuperación.
+     */
+    ContactOutcomeType.REPORTED_PAYMENT,
     ContactOutcomeType.CONVENIO,
     ContactOutcomeType.PROMISE_BROKEN,
     ContactOutcomeType.NO_ANSWER,
     ContactOutcomeType.WRONG_NUMBER,
+    ContactOutcomeType.DISPUTED,
     ContactOutcomeType.NOT_INTERESTED,
     ContactOutcomeType.CALLBACK,
     ContactOutcomeType.OTHER
@@ -32,6 +39,8 @@ export const OUTCOME_TYPES: ContactOutcomeType[] = [
 export const OUTCOME_LABELS: Record<ContactOutcomeType, string> = {
     PROMISE: "Promesa de pago",
     PAID: "Pagado",
+    REPORTED_PAYMENT: "Pago reportado (por confirmar)",
+    DISPUTED: "Cuenta en disputa",
     CONVENIO: "Convenio",
     PROMISE_BROKEN: "Promesa incumplida",
     NO_ANSWER: "Sin contestación",
@@ -45,6 +54,8 @@ export const OUTCOME_LABELS: Record<ContactOutcomeType, string> = {
 export const OUTCOME_SHORT_LABELS: Record<ContactOutcomeType, string> = {
     PROMISE: "Prometió pagar",
     PAID: "Pagado",
+    REPORTED_PAYMENT: "Pago reportado (por confirmar)",
+    DISPUTED: "Cuenta en disputa",
     CONVENIO: "Convenio",
     PROMISE_BROKEN: "Incumplió",
     NO_ANSWER: "No contestó",
@@ -57,6 +68,8 @@ export const OUTCOME_SHORT_LABELS: Record<ContactOutcomeType, string> = {
 export const OUTCOME_BADGE_CLASSES: Record<ContactOutcomeType, string> = {
     PROMISE: "bg-sky-50 text-sky-700",
     PAID: "bg-margarita-50 text-margarita-700",
+    REPORTED_PAYMENT: "bg-sol-50 text-sol-800",
+    DISPUTED: "bg-red-50 text-red-700",
     CONVENIO: "bg-indigo-50 text-indigo-700",
     PROMISE_BROKEN: "bg-red-50 text-red-700",
     NO_ANSWER: "bg-amber-50 text-amber-700",

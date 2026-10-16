@@ -255,7 +255,11 @@ export class ContactService {
     static async setOptOut(
         workspaceId: string,
         contactId: string,
-        source: "admin" | "keyword"
+        /**
+         * `keyword`: lo pidió por WhatsApp (palabra clave). `button`: lo pidió
+         * tocando un botón de baja. `admin`: lo marcó una persona en el panel.
+         */
+        source: "admin" | "keyword" | "button"
     ) {
         await this.getContactById(workspaceId, contactId);
 
@@ -273,8 +277,14 @@ export class ContactService {
             workspaceId,
             level: LogLevel.WARN,
             module: LogModule.CONTACT,
-            action: "CONTACT_OPT_OUT_MANUAL",
-            message: "Se marcó la baja de un contacto.",
+            action:
+                source === "admin"
+                    ? "CONTACT_OPT_OUT_MANUAL"
+                    : "CONTACT_OPT_OUT",
+            message:
+                source === "admin"
+                    ? "Se marcó la baja de un contacto."
+                    : "El contacto pidió la baja.",
             payload: {
                 contactId,
                 source
@@ -282,6 +292,51 @@ export class ContactService {
         });
 
         return contact;
+    }
+
+    /**
+     * Pausa al contacto: no se le escribe hasta que alguien la quite. La usa la
+     * regla de «no reconozco la deuda» y también el operador a mano.
+     */
+    static async setPause(
+        workspaceId: string,
+        contactId: string,
+        reason: string
+    ) {
+        await this.getContactById(workspaceId, contactId);
+
+        await prisma.contact.update({
+            where: { id: contactId },
+            data: { pausedAt: new Date(), pausedReason: reason }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.WARN,
+            module: LogModule.CONTACT,
+            action: "CONTACT_PAUSED",
+            message: "Se pausó el contacto: no se le escribirá hasta quitarla.",
+            payload: { contactId, reason }
+        });
+    }
+
+    /** Quita la pausa y deja constancia de quién lo hizo. */
+    static async clearPause(workspaceId: string, contactId: string) {
+        await this.getContactById(workspaceId, contactId);
+
+        await prisma.contact.update({
+            where: { id: contactId },
+            data: { pausedAt: null, pausedReason: null }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.CONTACT,
+            action: "CONTACT_RESUMED",
+            message: "Se quitó la pausa del contacto; ya se le puede escribir.",
+            payload: { contactId }
+        });
     }
 
     /**

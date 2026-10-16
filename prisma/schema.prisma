@@ -126,7 +126,6 @@ enum WebhookEventStatus {
 
 /**
  * En qué quedó la gestión con un cliente.
- *
  * `PROMISE_BROKEN` es la incumplida **confirmada** (alguien la marcó). La
  * promesa que venció y nadie revisó no se guarda: se deduce de `dueAt`, así
  * que si el cliente paga después, marcar `PAID` la deja en paz sin tener que
@@ -136,6 +135,16 @@ enum ContactOutcomeType {
   PROMISE
   PROMISE_BROKEN
   PAID
+  /**
+   * «Ya pagué» dicho por el deudor desde un botón. **No** es un pago
+   * confirmado: es una promesa de conciliación, y los reportes lo cuentan
+   * aparte justo para que nadie lo confunda con recuperación.
+   */
+  REPORTED_PAYMENT
+  /**
+   * El deudor dice que no reconoce la deuda: pausa y revisión.
+   */
+  DISPUTED
   CONVENIO
   NO_ANSWER
   WRONG_NUMBER
@@ -144,25 +153,78 @@ enum ContactOutcomeType {
   OTHER
 }
 
-model Workspace {
-  id        String          @id @default(cuid())
-  name      String
-  slug      String          @unique
-  status    WorkspaceStatus @default(ACTIVE)
+/**
+ * Lo que hace una respuesta de botón además de registrar el resultado.
+ * Se mantiene corto a propósito: cualquier cosa más elaborada se hace con las
+ * reglas de la herramienta (resultado de gestión), no inventando efectos.
+ */
+enum ReplyEffect {
+  NONE
+  /**
+   * Deja de escribirle hasta que alguien lo revise (cuenta en disputa).
+   */
+  PAUSE_ACCOUNT
+  /**
+   * Da de baja al contacto, igual que la palabra clave.
+   */
+  OPT_OUT
+}
 
-  settings        WorkspaceSettings?
-  whatsappAccount WhatsAppAccount?
-  users           User[]
-  contacts        Contact[]
-  tags            Tag[]
-  templates       Template[]
-  conversations   Conversation[]
-  campaigns       Campaign[]
-  messages        Message[]
-  logs            Log[]
-  webhookEvents   WebhookEvent[]
-  quickReplies    QuickReply[]
-  outcomes        ContactOutcome[]
+/**
+ * Traduce lo que el deudor toca al resultado de gestión que ya existe.
+ * Es editable por el despacho porque cada operación cobra distinto: lo que no
+ * cambia es la llave, que es el `id` del botón (con el texto como respaldo,
+ * porque no siempre viene un identificador propio).
+ */
+model InteractiveReplyRule {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  /**
+   * El identificador que manda Meta cuando tocan el botón.
+   */
+  replyId    String
+  /**
+   * El texto del botón; se usa como respaldo si Meta no manda identificador.
+   */
+  replyTitle String?
+
+  outcomeType ContactOutcomeType
+  effect      ReplyEffect        @default(NONE)
+  note        String?
+  isActive    Boolean            @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, replyId])
+  @@index([workspaceId])
+}
+
+model Workspace {
+  id     String          @id @default(cuid())
+  name   String
+  slug   String          @unique
+  status WorkspaceStatus @default(ACTIVE)
+
+  settings              WorkspaceSettings?
+  whatsappAccount       WhatsAppAccount?
+  users                 User[]
+  contacts              Contact[]
+  tags                  Tag[]
+  templates             Template[]
+  conversations         Conversation[]
+  campaigns             Campaign[]
+  messages              Message[]
+  logs                  Log[]
+  webhookEvents         WebhookEvent[]
+  quickReplies          QuickReply[]
+  outcomes              ContactOutcome[]
+  /**
+   * Traducción de las respuestas de botón a resultados de gestión.
+   */
+  interactiveReplyRules InteractiveReplyRule[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -170,27 +232,26 @@ model Workspace {
 
 model WorkspaceSettings {
   id          String    @id @default(cuid())
-  workspaceId String   @unique
+  workspaceId String    @unique
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   /**
    * Solo lo que la aplicación realmente usa.
-   *
    * Antes esta tabla prometía horarios de atención, mensaje fuera de horario,
    * modo de asignación, idioma y límites de conversaciones activas: ningún
    * código los leía y no había pantalla para editarlos. Se quitaron para que
    * la base no prometa lo que la herramienta no hace.
-   *
    * - `timezone`: fechas de la bitácora, topes diarios y reportes.
    * - `maxManualMessages`: tope diario de mensajes manuales por agente,
-   *   cuando el agente no tiene uno propio.
-   *
+   * cuando el agente no tiene uno propio.
    * La asignación automática es siempre por carga (`LEAST_BUSY`): es la única
    * implementada, así que no hay nada que configurar.
    */
   timezone String @default("America/Mexico_City")
 
-  /** Tope diario de mensajes manuales por agente (ver arriba). */
+  /**
+   * Tope diario de mensajes manuales por agente (ver arriba).
+   */
   maxManualMessages Int @default(100)
 
   createdAt DateTime @default(now())
@@ -202,7 +263,7 @@ model User {
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  name     String
+  name      String
   /**
    * Correo de acceso, **cifrado** en la base (AES-256-GCM, como el resto de
    * los datos personales). `emailHash` es el índice ciego que conserva la
@@ -211,8 +272,8 @@ model User {
    * espacios).
    */
   email     String
-  emailHash String   @unique
-  password String
+  emailHash String @unique
+  password  String
 
   role   UserRole
   status UserStatus @default(OFFLINE)
@@ -245,9 +306,9 @@ model User {
 
   sessions UserSession[]
 
-  sentMessages Message[] @relation("MessageSentByUser")
-  campaigns    Campaign[] @relation("CampaignCreatedBy")
-  quickReplies QuickReply[] @relation("QuickReplyCreatedBy")
+  sentMessages Message[]        @relation("MessageSentByUser")
+  campaigns    Campaign[]       @relation("CampaignCreatedBy")
+  quickReplies QuickReply[]     @relation("QuickReplyCreatedBy")
   outcomes     ContactOutcome[] @relation("ContactOutcomeCreatedBy")
 
   assignedConversations Conversation[] @relation("ConversationAssignedUser")
@@ -277,7 +338,7 @@ model UserSession {
 
   expiresAt  DateTime
   lastSeenAt DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   @@index([userId])
   @@index([isActive])
@@ -285,7 +346,7 @@ model UserSession {
 
 model WhatsAppAccount {
   id          String    @id @default(cuid())
-  workspaceId String   @unique
+  workspaceId String    @unique
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   businessAccountId String
@@ -312,9 +373,11 @@ model WhatsAppNumber {
   displayName   String?
   phoneNumber   String
 
-  status        String?
-  qualityRating String?
-  /** Nivel de mensajería que reporta Meta, por ejemplo "1K". */
+  status         String?
+  qualityRating  String?
+  /**
+   * Nivel de mensajería que reporta Meta, por ejemplo "1K".
+   */
   messagingLimit String?
 
   isActive Boolean @default(true)
@@ -336,7 +399,9 @@ model Contact {
 
   profileName String?
   customName  String?
-  /** Teléfono cifrado; `phoneHash` es el índice ciego para búsquedas exactas. */
+  /**
+   * Teléfono cifrado; `phoneHash` es el índice ciego para búsquedas exactas.
+   */
   phone       String
   phoneHash   String
   notes       String?
@@ -353,9 +418,17 @@ model Contact {
   optOutSource String?
 
   /**
+   * Cuenta en revisión: el deudor dijo que no reconoce la deuda (o alguien la
+   * pausó a mano). Mientras tenga fecha, la herramienta **no le escribe**,
+   * igual que con una baja, pero es reversible: al aclararse se quita la fecha
+   * y sigue la gestión.
+   */
+  pausedAt     DateTime?
+  pausedReason String?
+
+  /**
    * Resultado vigente de la gestión, denormalizado desde `ContactOutcome`
    * para poder filtrar y listar sin recorrer el historial.
-   *
    * `outcomeType` va en claro a propósito: es lo que se agrupa en los
    * reportes. El monto va cifrado (`outcomeAmount`), porque dice cuánto debe
    * una persona.
@@ -364,9 +437,13 @@ model Contact {
   outcomeAt     DateTime?
   outcomeById   String?
   outcomeAmount String?
-  /** Fecha compromiso de la promesa o del convenio. */
+  /**
+   * Fecha compromiso de la promesa o del convenio.
+   */
   outcomeDueAt  DateTime?
-  /** Fecha en que el cliente pagó, según quien lo registró. */
+  /**
+   * Fecha en que el cliente pagó, según quien lo registró.
+   */
   outcomePaidAt DateTime?
 
   lastSeenAt DateTime?
@@ -454,7 +531,7 @@ model Conversation {
   whatsappNumber   WhatsAppNumber @relation(fields: [whatsappNumberId], references: [id], onDelete: Cascade)
 
   assignedUserId String?
-  assignedUser   User? @relation("ConversationAssignedUser", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  assignedUser   User?   @relation("ConversationAssignedUser", fields: [assignedUserId], references: [id], onDelete: SetNull)
 
   status            ConversationStatus            @default(OPEN)
   operationalStatus ConversationOperationalStatus @default(UNASSIGNED)
@@ -500,7 +577,7 @@ model Message {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   sentByUserId String?
-  sentByUser   User? @relation("MessageSentByUser", fields: [sentByUserId], references: [id], onDelete: SetNull)
+  sentByUser   User?   @relation("MessageSentByUser", fields: [sentByUserId], references: [id], onDelete: SetNull)
 
   campaignId String?
   campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
@@ -509,7 +586,7 @@ model Message {
 
   direction MessageDirection
   type      MessageType
-  status    MessageStatus @default(CREATED)
+  status    MessageStatus    @default(CREATED)
   source    MessageSource
 
   body     String?
@@ -518,7 +595,6 @@ model Message {
 
   /**
    * Respuesta de un botón o de una lista (mensaje interactivo entrante).
-   *
    * `replyId` va **en claro** a propósito: es la llave con la que se mapea la
    * respuesta a un resultado de gestión, así que se filtra y se compara. El
    * título es lo que la persona vio y se leyó ("Ya pagué"), y va **cifrado**
@@ -528,10 +604,10 @@ model Message {
   replyId         String?
   replyTitle      String?
 
-  mediaPath         String?
-  mediaSize         Int?
-  mediaFilename     String?
-  mediaDownloadedAt DateTime?
+  mediaPath          String?
+  mediaSize          Int?
+  mediaFilename      String?
+  mediaDownloadedAt  DateTime?
   mediaDownloadError String?
 
   /**
@@ -569,13 +645,13 @@ model AssignmentHistory {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   fromUserId String?
-  fromUser   User? @relation("AssignmentFromUser", fields: [fromUserId], references: [id], onDelete: SetNull)
+  fromUser   User?   @relation("AssignmentFromUser", fields: [fromUserId], references: [id], onDelete: SetNull)
 
   toUserId String?
-  toUser   User? @relation("AssignmentToUser", fields: [toUserId], references: [id], onDelete: SetNull)
+  toUser   User?   @relation("AssignmentToUser", fields: [toUserId], references: [id], onDelete: SetNull)
 
   assignedById String
-  assignedBy   User @relation("AssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
+  assignedBy   User   @relation("AssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
 
   reason String?
 
@@ -593,7 +669,7 @@ model Campaign {
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   createdById String
-  createdBy   User @relation("CampaignCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  createdBy   User   @relation("CampaignCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
 
   templateId String
   template   Template @relation(fields: [templateId], references: [id], onDelete: Restrict)
@@ -608,7 +684,9 @@ model Campaign {
   validRecipients     Int @default(0)
   invalidRecipients   Int @default(0)
   duplicateRecipients Int @default(0)
-  /** Contactos que no se incluyeron por haber pedido la baja. */
+  /**
+   * Contactos que no se incluyeron por haber pedido la baja.
+   */
   skippedRecipients   Int @default(0)
 
   recipients CampaignRecipient[]
@@ -666,7 +744,9 @@ model QuickReply {
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   title String
-  /** Texto de la respuesta, cifrado en la base como el resto del contenido. */
+  /**
+   * Texto de la respuesta, cifrado en la base como el resto del contenido.
+   */
   body  String
 
   isActive Boolean @default(true)
@@ -684,7 +764,6 @@ model QuickReply {
 
 /**
  * Historial de gestiones: un renglón por cada marcado, nunca se borra.
- *
  * El estado vigente vive en `Contact`, pero sin este historial no se puede
  * responder "cuántas promesas se cumplieron", "cuántas gestiones hizo X esta
  * semana" ni "quién cambió esto".
@@ -694,26 +773,36 @@ model ContactOutcome {
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  contactId    String
-  contact      Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contactId      String
+  contact        Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
   conversationId String?
-  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
 
   createdById String?
   createdBy   User?   @relation("ContactOutcomeCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
 
   type ContactOutcomeType
 
-  /** Nota de la gestión (cifrada). */
-  note String?
-  /** Monto prometido o pagado: texto cifrado que la app interpreta como número. */
+  /**
+   * Nota de la gestión (cifrada).
+   */
+  note   String?
+  /**
+   * Monto prometido o pagado: texto cifrado que la app interpreta como número.
+   */
   amount String?
-  /** Fecha compromiso (en claro: se filtra y ordena por ella). */
+  /**
+   * Fecha compromiso (en claro: se filtra y ordena por ella).
+   */
   dueAt  DateTime?
-  /** Fecha en que pagó, según quien registra (puede ser anterior a hoy). */
+  /**
+   * Fecha en que pagó, según quien registra (puede ser anterior a hoy).
+   */
   paidAt DateTime?
 
-  /** `PANEL` (desde el hilo) o `BULK` (marcado en bloque desde Contactos). */
+  /**
+   * `PANEL` (desde el hilo) o `BULK` (marcado en bloque desde Contactos).
+   */
   source String @default("PANEL")
 
   createdAt DateTime @default(now())
@@ -730,9 +819,9 @@ model Log {
   workspaceId String?
   workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 
-  level  LogLevel
-  module LogModule
-  action String
+  level   LogLevel
+  module  LogModule
+  action  String
   message String
 
   payload Json?
