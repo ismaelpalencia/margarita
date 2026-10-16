@@ -42,6 +42,43 @@ export function formatTimeMX(date: Date | string | null | undefined): string {
 }
 
 /**
+ * Cuánto lleva esperando algo, en palabras: «hace 12 minutos», «hace 3 horas»,
+ * «hace 2 días».
+ *
+ * En la lista de llamadas importa más esto que la hora exacta, porque lo que
+ * se está midiendo es cuánto se enfría la intención del cliente. La
+ * referencia se puede fijar para probarlo sin depender del reloj.
+ */
+export function formatWaitingTime(
+    date: Date | string | null | undefined,
+    reference: Date = new Date()
+): string {
+    if (!date) {
+        return "";
+    }
+
+    const minutes = dayjs(reference).diff(dayjs(date), "minute");
+
+    if (minutes <= 0) {
+        return "hace unos segundos";
+    }
+
+    if (minutes < 60) {
+        return `hace ${minutes} minuto${minutes === 1 ? "" : "s"}`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+
+    if (hours < 24) {
+        return `hace ${hours} hora${hours === 1 ? "" : "s"}`;
+    }
+
+    const days = Math.floor(hours / 24);
+
+    return `hace ${days} día${days === 1 ? "" : "s"}`;
+}
+
+/**
  * Etiqueta del separador de fecha en el chat: "Hoy", "Ayer" o la fecha.
  */
 export function formatDayLabelMX(

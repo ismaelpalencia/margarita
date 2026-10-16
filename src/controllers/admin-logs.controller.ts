@@ -25,4 +25,24 @@ export class AdminLogsController {
             }
         });
     }
+
+    /**
+     * Volcado crudo de los últimos webhooks.
+     *
+     * Es la pantalla que se abre cuando hay que comprobar qué mandó Meta —el
+     * identificador de un botón, por ejemplo— o cuando hay que pegar el evento
+     * completo en un reporte.
+     */
+    static async webhooks(req: Request, res: Response) {
+        const events = await AdminLogService.listWebhookEvents({
+            workspaceId: req.user!.workspaceId
+        });
+
+        return res.render("pages/admin/logs/webhooks", {
+            user: req.user,
+            events,
+            /** Se muestra el JSON indentado, que es lo que se copia. */
+            prettyPrint: (value: unknown) => JSON.stringify(value, null, 2)
+        });
+    }
 }

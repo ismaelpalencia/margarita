@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { formatDayLabelMX, formatDateTimeMX, formatTimeMX } from "./date";
+import {
+    formatDayLabelMX,
+    formatDateTimeMX,
+    formatTimeMX,
+    formatWaitingTime
+} from "./date";
 
 test("marca el día actual como Hoy", () => {
     assert.equal(formatDayLabelMX(new Date()), "Hoy");
@@ -28,4 +33,27 @@ test("las horas y fechas respetan la zona de la aplicación", () => {
 
     assert.equal(formatTimeMX(date), "12:00");
     assert.equal(formatDateTimeMX(date), "05/03/2024 12:00");
+});
+
+test("la espera se cuenta en minutos, horas y días", () => {
+    const now = new Date("2026-10-16T18:00:00.000Z");
+    const at = (milliseconds: number) => new Date(now.getTime() - milliseconds);
+
+    assert.equal(formatWaitingTime(at(30 * 1000), now), "hace unos segundos");
+    assert.equal(formatWaitingTime(at(60 * 1000), now), "hace 1 minuto");
+    assert.equal(formatWaitingTime(at(12 * 60 * 1000), now), "hace 12 minutos");
+    assert.equal(formatWaitingTime(at(60 * 60 * 1000), now), "hace 1 hora");
+    assert.equal(formatWaitingTime(at(3 * 60 * 60 * 1000), now), "hace 3 horas");
+    assert.equal(
+        formatWaitingTime(at(30 * 60 * 60 * 1000), now),
+        "hace 1 día"
+    );
+    assert.equal(
+        formatWaitingTime(at(50 * 60 * 60 * 1000), now),
+        "hace 2 días"
+    );
+});
+
+test("sin fecha, la espera no inventa un texto", () => {
+    assert.equal(formatWaitingTime(null), "");
 });

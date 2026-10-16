@@ -3,7 +3,11 @@ import { Request, Response } from "express";
 import { ContactService } from "../services/contact.service";
 import { ContactOutcomeService } from "../services/contact-outcome.service";
 import { SendPolicyService } from "../services/send-policy.service";
-import { formatDateTimeMX, startOfTodayIn } from "../utils/date";
+import {
+    formatDateTimeMX,
+    formatWaitingTime,
+    startOfTodayIn
+} from "../utils/date";
 import {
     OUTCOME_BADGE_CLASSES,
     OUTCOME_LABELS,
@@ -206,6 +210,7 @@ export class AdminContactsController {
                 ),
                 formatAmount,
                 formatDateTimeMX,
+                formatWaitingTime,
                 error: req.query.error || null,
                 success: req.query.success || null
             });

@@ -25,7 +25,8 @@ import { sendTemplateMessageSchema } from "../validations/template-message.valid
 import {
     formatDateTimeMX,
     formatDayLabelMX,
-    formatTimeMX
+    formatTimeMX,
+    formatWaitingTime
 } from "../utils/date";
 
 export class AdminConversationsController {
@@ -120,6 +121,7 @@ export class AdminConversationsController {
             formatDateTimeMX,
             formatDayLabelMX,
             formatTimeMX,
+            formatWaitingTime,
             /** Para que el compositor muestre los campos que la plantilla pide. */
             templateVariableShape,
             error: req.query.error || null,

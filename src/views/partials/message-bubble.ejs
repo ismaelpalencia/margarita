@@ -122,6 +122,23 @@
                 <span aria-hidden="true">👆</span>
                 <%= replyLabel %>
             </span>
+
+            <%
+                /**
+                 * El identificador del botón, a un clic. Es el dato que hace
+                 * falta para crear la regla en Admin → Botones (y para
+                 * revisarlo cuando Meta manda un identificador propio raro),
+                 * así que no tiene que andar copiándolo del globito de ayuda.
+                 */
+            %>
+            <button
+                type="button"
+                data-copy-reply-id="<%= message.replyId %>"
+                class="mt-1 block rounded-lg px-2 py-1 text-[11px] font-semibold <%= isOut ? 'text-white/80 hover:bg-white/10' : 'text-slate-500 hover:bg-slate-100' %>"
+                title="Copiar el identificador del botón"
+            >
+                copiar id: <%= message.replyId %>
+            </button>
         <% } else if (showBody) { %>
             <p class="whitespace-pre-line break-words text-sm <%= hasMedia ? 'mt-2' : '' %>">
                 <%= body %>

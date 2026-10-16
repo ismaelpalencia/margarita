@@ -50,6 +50,20 @@
                     Pagó: <%= contact.outcomePaidAt.toLocaleDateString("es-MX") %>
                 </span>
             <% } %>
+
+            <%#
+                Cuando lo que quedó pendiente es una llamada, lo que importa no
+                es la hora exacta sino cuánto lleva esperando: en dos horas
+                contesta cualquiera, en tres días ya no.
+            %>
+            <% if (currentType === "CALLBACK" && contact.outcomeAt) { %>
+                <span
+                    class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800"
+                    title="Desde que pidió la llamada"
+                >
+                    Esperando llamada <%= typeof formatWaitingTime !== "undefined" ? formatWaitingTime(contact.outcomeAt) : "desde " + formatDateTimeMX(contact.outcomeAt) %>
+                </span>
+            <% } %>
         <% } else { %>
             <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
                 Sin resultado
@@ -69,6 +83,14 @@
             </span>
         <% } %>
     </div>
+
+    <% if (currentType === "CALLBACK") { %>
+        <p class="mt-3 rounded-xl bg-sky-50 px-3 py-2 text-xs text-sky-900">
+            Está en la lista de hoy (<strong>Reportes → Hoy</strong>). Llámalo
+            dentro del horario permitido —<strong>8:00 a 21:00</strong>, hora de
+            la empresa— y registra aquí en qué quedó para que salga de la lista.
+        </p>
+    <% } %>
 
     <form
         action="<%= actionUrl %>"

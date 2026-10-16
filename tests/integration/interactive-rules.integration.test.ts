@@ -7,7 +7,10 @@ import { ContactOutcomeType, ReplyEffect } from "@prisma/client";
 import { appConfig } from "../../src/config/app.config";
 import { prisma } from "../../src/config/prisma";
 import { runWebhookWorkerOnce } from "../../src/jobs/webhook-worker";
+import { ContactOutcomeService } from "../../src/services/contact-outcome.service";
 import { InteractiveReplyService } from "../../src/services/interactive-reply.service";
+import { ReportService } from "../../src/services/report.service";
+import { SendPolicyService } from "../../src/services/send-policy.service";
 import { contactPhoneFields, normalizeMexicanPhone } from "../../src/utils/phone";
 import {
     cleanupWorkspace,
@@ -408,5 +411,81 @@ test("el identificador vacío se rechaza con un mensaje claro", async () => {
             }),
         /identificador/i,
         "no se puede guardar una regla sin identificador"
+    );
+});
+
+/**
+ * Fase 4: el toque queda como tarea de llamada en la lista del día.
+ *
+ * No hay pantalla nueva: el resultado «volver a llamar» ya existía y el modelo
+ * guarda el último resultado en el propio contacto, así que la lista de trabajo
+ * solo tiene que leerlo y ponerlo arriba.
+ */
+test("quien pide que lo llamen aparece primero en la lista del día", async () => {
+    const phone = testPhone();
+
+    await tap({
+        phone,
+        replyId: "LLAMARME",
+        title: "Quiero que me llame un asesor"
+    });
+
+    const contact = await waitForContact(phone, () => true);
+
+    const timezone = await SendPolicyService.timezoneFor(fixture.workspaceId);
+    const requests = await ReportService.callRequests(
+        fixture.workspaceId,
+        timezone
+    );
+
+    const item = requests.find((row) => row.contactId === contact.id);
+
+    assert.ok(item, "el cliente entra a las llamadas pendientes");
+    assert.equal(item!.fromButton, true, "y queda dicho que lo pidió por el botón");
+    assert.ok(
+        item!.hoursWaiting <= 1,
+        "el tiempo de espera se cuenta desde el toque"
+    );
+    assert.equal(
+        typeof item!.outsideHours,
+        "boolean",
+        "y se marca si cayó fuera del horario permitido"
+    );
+});
+
+test("al registrar otro resultado, el cliente sale de las llamadas pendientes", async () => {
+    const phone = testPhone();
+
+    await tap({
+        phone,
+        replyId: "LLAMARME",
+        title: "Quiero que me llame un asesor"
+    });
+
+    const contact = await waitForContact(phone, () => true);
+    const timezone = await SendPolicyService.timezoneFor(fixture.workspaceId);
+
+    assert.ok(
+        (await ReportService.callRequests(fixture.workspaceId, timezone)).some(
+            (row) => row.contactId === contact.id
+        ),
+        "primero aparece"
+    );
+
+    /** El agente llamó y no contestó: se registra el resultado. */
+    await ContactOutcomeService.mark({
+        workspaceId: fixture.workspaceId,
+        contactIds: [contact.id],
+        userId: fixture.adminId,
+        type: ContactOutcomeType.NO_ANSWER,
+        source: "PANEL"
+    });
+
+    assert.equal(
+        (await ReportService.callRequests(fixture.workspaceId, timezone)).some(
+            (row) => row.contactId === contact.id
+        ),
+        false,
+        "y al registrar el resultado sale de la lista"
     );
 });

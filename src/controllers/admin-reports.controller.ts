@@ -7,7 +7,7 @@ import { UserService } from "../services/user.service";
 import { TagService } from "../services/tag.service";
 import { prisma } from "../config/prisma";
 import { toCsv, CsvCell } from "../utils/csv";
-import { formatDateTimeMX } from "../utils/date";
+import { formatDateTimeMX, formatWaitingTime } from "../utils/date";
 import {
     OUTCOME_LABELS,
     OUTCOME_TYPES
@@ -155,8 +155,11 @@ export class AdminReportsController {
                     typeof req.query.tagId === "string" ? req.query.tagId : ""
             },
             formatDateTimeMX,
+            formatWaitingTime,
             formatAmount: ReportService.formatAmount,
-            today: range.todayStart
+            today: range.todayStart,
+            success: req.query.success || null,
+            error: req.query.error || null
         });
     }
 
@@ -295,5 +298,51 @@ export class AdminReportsController {
         }
 
         return res.redirect("/admin/reports?vista=intentos&success=marked");
+    }
+
+    /**
+     * El atajo de la lista de llamadas: «llamé y no contestó», con un clic.
+     *
+     * Solo se aceptan los dos resultados que no piden monto ni fecha: lo demás
+     * —promesa, convenio, pago— se registra en la ficha, donde están los campos
+     * que hacen falta. Marcar un resultado equivocado aquí no rompe nada, pero
+     * ensucia el reporte, así que la lista blanca es corta a propósito.
+     */
+    static async markCallResult(req: Request, res: Response) {
+        const quickTypes = [
+            ContactOutcomeType.NO_ANSWER,
+            ContactOutcomeType.CALLBACK
+        ] as const;
+
+        const requested = req.body?.type as ContactOutcomeType | undefined;
+
+        /**
+         * Si llega un resultado que no es de los dos del atajo, no se guarda
+         * nada: escribir «sin contestación» cuando la petición decía otra cosa
+         * sería inventar el dato. El aviso manda a la ficha.
+         */
+        if (!quickTypes.includes(requested as never)) {
+            return res.redirect("/admin/reports?vista=hoy&error=mark");
+        }
+
+        const type = requested as ContactOutcomeType;
+
+        const contactId =
+            typeof req.body?.contactId === "string" ? req.body.contactId : "";
+
+        try {
+            await ContactOutcomeService.mark({
+                workspaceId: req.user!.workspaceId,
+                contactIds: [contactId],
+                userId: req.user!.id,
+                type,
+                note: "Marcado desde la lista de llamadas.",
+                source: "PANEL"
+            });
+        } catch {
+            return res.redirect("/admin/reports?vista=hoy&error=mark");
+        }
+
+        return res.redirect("/admin/reports?vista=hoy&success=marked");
     }
 }

@@ -82,6 +82,14 @@ async function main() {
             APP_URL: BASE_URL,
             META_APP_SECRET,
             NODE_ENV: "production",
+            /**
+             * Toda la suite entra desde 127.0.0.1, así que el tope de acceso
+             * de producción (10 cada 15 minutos) la tumbaba sola: al probar
+             * los archivos que inician sesión varias veces, el login acababa
+             * respondiendo 429 y la prueba fallaba por una razón que no era
+             * la suya. En producción el tope sigue igual: 10.
+             */
+            LOGIN_RATE_LIMIT_MAX: "500",
             /** El webhook se encola: así se prueba el camino completo. */
             WEBHOOK_QUEUE_ENABLED: "true"
         },

@@ -14,7 +14,11 @@ export type MarkOutcomeInput = {
     workspaceId: string;
     /** Uno o varios contactos: el marcado en bloque usa la misma ruta. */
     contactIds: string[];
-    userId: string;
+    /**
+     * Quién lo marca. Es nulo cuando lo registra el sistema: una respuesta de
+     * botón no la escribió una persona, y el historial lo dice así.
+     */
+    userId: string | null;
     type: ContactOutcomeType;
     note?: string | null;
     /** Monto tal como lo escribió la persona ("1,250.00"). */
@@ -24,7 +28,7 @@ export type MarkOutcomeInput = {
     /** Fecha en que pagó, "YYYY-MM-DD". */
     paidDate?: string | null;
     conversationId?: string | null;
-    source?: "PANEL" | "BULK";
+    source?: "PANEL" | "BULK" | "INTERACTIVE";
 };
 
 export type ContactAttempts = {

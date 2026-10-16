@@ -173,6 +173,15 @@ export const appConfig = {
     loginLockMinutes: Number(process.env.LOGIN_LOCK_MINUTES) || 15,
 
     /**
+     * Intentos de acceso permitidos por IP cada 15 minutos.
+     *
+     * Es configurable porque las pruebas de integración entran muchas veces
+     * desde la misma IP —todas salen de 127.0.0.1— y el tope de producción
+     * terminaba tumbando la propia suite con un 429.
+     */
+    loginRateLimitMax: Number(process.env.LOGIN_RATE_LIMIT_MAX) || 10,
+
+    /**
      * Minutos de inactividad tras los cuales la sesión se cierra sola, y
      * cuántos dispositivos puede tener abiertos un usuario a la vez.
      *

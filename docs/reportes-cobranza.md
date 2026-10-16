@@ -2,8 +2,9 @@
 
 Diseño del módulo que permite registrar **en qué quedó cada gestión** y sacar reportes de la operación. Pensado para el uso real: dos personas (admin y cobranza), trabajo por WhatsApp y revisión en Excel.
 
-Estado: **implementado** (2026-10-15). Las decisiones del final ya se
-tomaron y están aplicadas; lo que queda es la Fase 3.
+Estado: **implementado** (2026-10-15) y con la **fase 4 entregada el
+2026-10-16** (la llamada pedida como tarea del día). Las decisiones del final ya
+se tomaron y están aplicadas.
 
 ---
 
@@ -133,6 +134,14 @@ Por qué derivar en lugar de escribir: si el sistema marcara "incumplida" a medi
 - Reportes: gestiones del periodo (por resultado, persona y día), promesas (vigentes, vencidas, cumplimiento del periodo y prometido vs. pagado), sin contestación tras los X intentos, y detalle exportable a CSV.
 - Tarjetas del día en el dashboard y en la cabecera de reportes.
 
-### Lo que queda (Fase 3)
+### Lo que queda
 
-Tendencias por persona y por campaña, marcado automático de "sin contestación" al pasar el umbral y sugerencias de a quién escribirle según el estado.
+- **Marcar «sin contestación» al pasar el umbral** sin que nadie lo apriete: hoy
+  la lista de intentos se revisa a mano.
+- **Agenda de llamadas**: la llamada pedida ya es una tarea con su tiempo de
+  espera, pero no se programa a una hora ni recuerda sola.
+- **Contador del tramo de mensajes gratis por número** (fase 5 de
+  [`plan-interactivos.md`](plan-interactivos.md)).
+- **Prueba contra Meta real**: el circuito del botón está probado con payloads
+  sintéticos; falta el toque de un botón de verdad, y para eso está
+  [`pruebas-meta.md`](pruebas-meta.md).

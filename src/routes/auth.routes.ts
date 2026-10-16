@@ -1,6 +1,7 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 
+import { appConfig } from "../config/app.config";
 import { AuthController } from "../controllers/auth.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 
@@ -12,7 +13,7 @@ const router = Router();
  */
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
+    max: appConfig.loginRateLimitMax,
     standardHeaders: true,
     legacyHeaders: false,
     message: "Demasiados intentos de acceso. Espera unos minutos."

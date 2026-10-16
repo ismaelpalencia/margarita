@@ -18,11 +18,19 @@ reclasificadas a marketing.
 **Fase 3 entregada** (el puente respuesta → resultado de gestión, con la pausa y
 la baja automáticas y el mapeo por identificador o por texto).
 
-**Sigue la fase 4** (el botón «quiero que me llame un asesor» como tarea en la
-lista de trabajo, con la hora del deudor y sin mandar ningún mensaje automático).
-El resultado ya se registra desde la fase 3; falta convertirlo en tarea visible.
-Ninguna de las dos depende de Meta para construirse: solo la verificación real
-necesita la plantilla aprobada y un teléfono.
+**Fase 4 entregada** (2026-10-16): el toque del botón ya es una **tarea** en
+Reportes → Hoy, «Pidieron que los llamen», arriba de todo y con el tiempo que
+lleva esperando el deudor. Se despacha con un clic («No contestó») o desde la
+ficha, sale de la lista sola al registrar otro resultado, avisa si pidió la
+llamada fuera del horario permitido (8:00 a 21:00) y distingue si salió del
+**botón** o lo marcó el equipo. No manda ningún mensaje: una llamada pedida es
+una tarea, no un envío automático.
+
+**Sigue la fase 5** (el contador del tramo de mensajes de servicio gratis por
+número, con alerta al 80% y costo acumulado). Nada de esto depende de Meta para
+construirse: solo la **verificación real** necesita la plantilla aprobada y un
+teléfono, y para eso está [`pruebas-meta.md`](pruebas-meta.md), que dice qué
+copiar y de dónde.
 
 | Sprint | Fases | Entregable | Criterio de cierre |
 | --- | --- | --- | --- |
@@ -151,6 +159,8 @@ solo en el cuerpo»— y el apartado nuevo de límites vigentes.
 **Tú**:
 
 1. La plantilla de prueba con botones en Meta, en cuanto te acepten los números,
-   y el volcado del webhook al tocarla.
+   y el volcado del webhook al tocarla. El paso a paso, con los tres caminos
+   para pasármelo (el más rápido: el botón **copiar id** de la burbuja), está en
+   [`pruebas-meta.md`](pruebas-meta.md).
 2. Las decisiones de la sección 3, empezando por **los precios**.
 3. Un número de pruebas (o el que ya tienes) para la campaña de validación.

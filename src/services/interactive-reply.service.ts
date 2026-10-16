@@ -8,6 +8,7 @@ import {
 import { prisma } from "../config/prisma";
 import { LogService } from "./log.service";
 import { ContactService } from "./contact.service";
+import { ContactOutcomeService } from "./contact-outcome.service";
 
 /**
  * Fase 3: el puente entre lo que el deudor toca y lo que la herramienta
@@ -242,24 +243,27 @@ export class InteractiveReplyService {
             return null;
         }
 
-        await prisma.contactOutcome.create({
-            data: {
-                workspaceId,
-                contactId,
-                conversationId: params.conversationId ?? null,
-                /** Lo registra el sistema: no hay persona detrás. */
-                createdById: null,
-                type: rule.outcomeType,
-                note: [
-                    `Registrado por el deudor al tocar «${
-                        params.replyTitle || rule.replyTitle || rule.replyId
-                    }»`,
-                    rule.note
-                ]
-                    .filter(Boolean)
-                    .join(". "),
-                source: "INTERACTIVE"
-            }
+        /**
+         * Se registra con el mismo servicio que usa el equipo a mano: además
+         * del historial, deja al día el **estado vigente** del contacto, que es
+         * lo que leen la lista del día, los filtros de Contactos y los reportes.
+         * El autor va nulo porque no hay persona detrás: lo puso el deudor.
+         */
+        await ContactOutcomeService.mark({
+            workspaceId,
+            contactIds: [contactId],
+            userId: null,
+            type: rule.outcomeType,
+            conversationId: params.conversationId ?? null,
+            note: [
+                `Registrado por el deudor al tocar «${
+                    params.replyTitle || rule.replyTitle || rule.replyId
+                }»`,
+                rule.note
+            ]
+                .filter(Boolean)
+                .join(". "),
+            source: "INTERACTIVE"
         });
 
         if (rule.effect === ReplyEffect.OPT_OUT) {

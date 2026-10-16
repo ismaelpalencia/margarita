@@ -111,6 +111,7 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `BACKUP_MAX_AGE_HOURS` | `36` | A partir de esta edad, `/health` marca el respaldo como viejo |
 | `LOGIN_MAX_ATTEMPTS` | `5` | Intentos fallidos antes de bloquear |
 | `LOGIN_LOCK_MINUTES` | `15` | Duración del bloqueo |
+| `LOGIN_RATE_LIMIT_MAX` | `10` | Accesos permitidos por IP cada 15 minutos (el tope del panel no es configurable) |
 | `LOG_RETENTION_DAYS` | `90` | Días que se conserva la bitácora |
 | `WEBHOOK_EVENT_RETENTION_DAYS` | `30` | Días que se conservan los eventos resueltos |
 | `WEBHOOK_QUEUE_ENABLED` | `true` | Procesa los webhooks por cola |

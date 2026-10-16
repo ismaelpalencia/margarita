@@ -263,7 +263,8 @@
                 isOpenPromise,
                 attempts: outcomeAttempts,
                 daysLate,
-                formatAmount
+                formatAmount,
+                formatWaitingTime
             }) %>
 
             <%- include("../../../partials/conversation-tools", {
@@ -354,6 +355,7 @@
     </main>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/copy.js"></script>
     <script src="/js/live.js"></script>
 
     <script>

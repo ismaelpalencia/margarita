@@ -2,7 +2,7 @@
 
 Documento de referencia para decidir y sostener el uso de Margarita en producción. Describe **lo que la herramienta hace hoy**, lo que no hace, los controles de seguridad vigentes y las responsabilidades que quedan del lado de quien la opera.
 
-Última revisión: 2026-10-16 (precios vigentes, landing separada por dominio, plantillas de cobranza con dos botones y plan de interactivos).
+Última revisión: 2026-10-16 (precios vigentes, landing separada por dominio, plantillas de cobranza con dos botones, llamadas pedidas como tarea del día y volcado de webhooks para copiar).
 
 > **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
 > **Instalación $2,500.00 MXN** (una vez, en oferta de lanzamiento; precio de
@@ -25,7 +25,18 @@ Sí, como **instalación por empresa** en Railway: el alta de un cliente nuevo t
 | --- | --- |
 | Cuenta de WhatsApp y método de pago en Meta | **Del cliente, y de entrada.** Llega con su cuenta de WhatsApp Business ya configurada (verificación del negocio, nombre visible, número registrado con PIN y método de pago). Si no la tiene, acompañarlo es una **cotización aparte**; [`guia-meta.md`](guia-meta.md) sirve para hacerlo solo. |
 | Cobro y contrato | **Del operador.** Instalación **$2,500** (una vez) + mensualidad **$900**, precio de oferta hasta el **31 de diciembre de 2026**; precios de lista $4,900 y $1,490. **Más IVA**, y el primer mes se paga junto con la instalación. Recomendado: **mínimo tres meses** por contrato. |
-| Plantillas de las campañas | **Del cliente, con nuestra guía.** Al contratar se le entrega el documento de cómo crear las plantillas (categoría, textos permitidos, botones y variables); armarlas en Meta es suyo, y revisarlas con él es parte del arranque. |
+| Plantillas de las campañas | **Del cliente, con nuestra guía.** Al contratar se le entrega el documento de cómo crear las plantillas (categoría, textos permitidos, botones y variables); armarlas en Meta es suyo, y revisarlas con él es parte del arranque. **Ese documento está por escribirse**; hoy la referencia para acompañarlo es [`guia-meta.md`](guia-meta.md). |
+| Opt-in de los contactos | **Del cliente.** La herramienta lo registra y respeta las bajas, pero no verifica de dónde salió el consentimiento. |
+| Respaldos fuera del servidor | **Del cliente (u operación compartida).** Hay copia automática cada 24 h, pero vive en el mismo Volume que la base: alguien tiene que descargarla de vez en cuando. |
+| Nombres de los contactos | **Único dato personal que queda en claro**, porque la búsqueda por texto del panel depende de ellos. Está documentado como límite y es el siguiente pendiente. |
+| Verificación en dos pasos | **Disponible y opcional.** Se activa por cuenta; conviene dejarla puesta en las de administrador (el panel dice cuántas están cubiertas). |
+
+Lo que **no** está en el producto y no se debe prometer: mandar botones o listas
+*dentro* de la ventana de 24 horas (las plantillas con botones sí se envían y sus
+respuestas sí se interpretan), programar campañas por fecha y hora, **agenda de
+llamadas** (la llamada pedida ya es tarea, pero no se programa a una hora),
+contador del tramo de mensajes gratis por número, números fuera de México,
+permisos por número, multi-instancia y respaldo fuera del servidor.
 
 ### Cómo está repartido el producto entre dominios
 
@@ -47,12 +58,6 @@ avisarle a nadie. El paso a paso —variables, DNS, certificado y comprobaciones
 La variable `PRODUCT_DOMAIN` decide **quién sirve la oferta** (se admiten varios
 dominios separados por coma). Sin ella, la aplicación se comporta como antes y
 sirve la landing en su propia raíz, que es lo que hace una instalación sola.
-| Opt-in de los contactos | **Del cliente.** La herramienta lo registra y respeta las bajas, pero no verifica de dónde salió el consentimiento. |
-| Respaldos fuera del servidor | **Del cliente (u operación compartida).** Hay copia automática cada 24 h, pero vive en el mismo Volume que la base: alguien tiene que descargarla de vez en cuando. |
-| Nombres de los contactos | **Único dato personal que queda en claro**, porque la búsqueda por texto del panel depende de ellos. Está documentado como límite y es el siguiente pendiente. |
-| Verificación en dos pasos | **Disponible y opcional.** Se activa por cuenta; conviene dejarla puesta en las de administrador (el panel dice cuántas están cubiertas). |
-
-Lo que **no** está en el producto y no se debe prometer: botones o listas interactivas (ni interpretar su respuesta), programar campañas por fecha, variables de plantilla en encabezado o botones, números fuera de México, permisos por número, multi-instancia y respaldo en la nube del proveedor.
 
 ---
 
@@ -87,7 +92,8 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Contactos**: crear, editar, buscar por texto, filtrar por etiqueta y por bajas, registrar el consentimiento (opt-in), marcar la baja a mano y desactivar.
 - **Resultado de la gestión (cobranza)**: marcar en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota. Se marca desde el hilo, desde la ficha del contacto y en bloque desde la lista. Cada marcado deja historial con quién y cuándo.
 - **Reportes**: gestiones del periodo por resultado, persona y día; promesas vigentes con lo vencido arriba, cumplimiento (a tiempo, tarde, sin pago) y prometido contra pagado; lista de clientes sin contestación tras X intentos; y detalle exportable a CSV. Con filtros por fecha, persona, campaña y etiqueta.
-- **Lista de trabajo del día**: una pantalla que junta lo vencido, lo que vence hoy, lo de esta semana y los clientes sin contestar, en orden de urgencia, con acceso directo a la ficha.
+- **Lista de trabajo del día**: una pantalla que pone **arriba de todo las llamadas pedidas** —el cliente que tocó el botón— y debajo lo vencido, lo que vence hoy, lo de esta semana y los clientes sin contestar, en orden de urgencia, con acceso directo a la ficha.
+- **Llamadas pedidas, como tarea**: el toque de «quiero que me llame un asesor» ya no se queda solo en el registro: aparece en **Reportes → Hoy** con **cuánto lleva esperando** el deudor (en palabras: «hace 3 horas»), la hora en que lo pidió, si lo pidió **fuera del horario** permitido (8:00 a 21:00) y si salió del **botón** o lo marcó el equipo. Se despacha con un clic —**«No contestó»**— o abriendo la ficha para registrar promesa, convenio o pago, y **sale de la lista sola** en cuanto se registra otro resultado. En el hilo y en la ficha, el panel del resultado avisa que hay una llamada pendiente y cuánto lleva esperando, para que no se quede en el camino.
 - **Tendencias**: gestiones, promesas, prometido, pagos y cobrado semana a semana, más el cumplimiento de promesas por persona.
 - **Sesiones**: cada quien ve desde qué dispositivo y qué IP entró, cierra sesiones individuales y puede cerrar todas las demás. El admin ve las de toda la empresa.
 - **Verificación en dos pasos (2FA)**: cada persona la activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación —Google Authenticator, Authy, Microsoft Authenticator, 1Password, Bitwarden o la app **Contraseñas** de Apple— usando un código TOTP de 6 dígitos (el estándar RFC 6238, SHA-1, 30 segundos). La pantalla muestra un **código QR** para escanear y, debajo, la clave de configuración para capturarla a mano (o el enlace `otpauth://` completo) por si no se puede escanear. Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo y queda en la bitácora con quién lo hizo. El panel de Sistema muestra cuántas cuentas y cuántos administradores la tienen.
@@ -97,7 +103,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Conversaciones**: ver todas, abrir desde un contacto, responder, asignar y reasignar, cerrar y reabrir, con búsqueda por nombre o teléfono, filtros por estado, por asignación y por no leídos, y el contador de pendientes por hilo.
 - **Campañas**: crear seleccionando contactos o subiendo Excel/CSV, **con variables** (texto fijo, el nombre o el teléfono del contacto, y cualquier columna del archivo), enviar, ver el estado por destinatario y reintentar los fallidos.
 - **Campañas en cola**: el envío corre en segundo plano, por lotes y con una pausa entre mensajes para no chocar con los límites de Meta. Se puede pausar, reanudar y cancelar, y la pantalla muestra el avance en vivo.
-- **Logs**: auditoría filtrable por nivel y módulo, con el detalle de cada evento.
+- **Logs**: auditoría filtrable por nivel y módulo, con el detalle de cada evento, más **Webhooks recibidos** (Admin → Logs → Webhooks): los últimos 20 eventos **tal como los mandó Meta**, con un botón para copiarlos completos. Es la pantalla con la que se comprueba qué identificador trae un botón cuando un deudor lo toca de verdad, sin entrar a la base.
 - **Respuestas rápidas**: textos guardados que el equipo inserta con un clic, con `{nombre}` y `{telefono}` del contacto.
 - **Sistema**: checklist de configuración y estado de seguridad, cola y worker.
 - **Roadmap**: alcance incluido y lo que está postergado.
@@ -108,7 +114,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - Estado operativo: `AVAILABLE`, `BUSY`, `BREAK`, `OFFLINE`. No queda disponible automáticamente al entrar.
 - Cuatro formas de responder: **nota local** (no sale a WhatsApp), **texto libre** dentro de la ventana de 24 horas, **archivos** (imagen, video, audio o documento) dentro de la misma ventana, y **plantilla aprobada** cuando está cerrada.
 - **Respuestas rápidas**: un clic inserta el texto guardado en el compositor, ya con el nombre y el teléfono del contacto.
-- **Respuestas de botón y de lista**: cuando el cliente toca un botón o elige de una lista, se guarda **qué opción eligió** (identificador y texto), el hilo lo muestra con su etiqueta y queda en la bitácora. El identificador se guarda en claro porque es con lo que se mapea a un resultado de gestión; el texto va cifrado, como el resto del contenido.
+- **Respuestas de botón y de lista**: cuando el cliente toca un botón o elige de una lista, se guarda **qué opción eligió** (identificador y texto), el hilo lo muestra con su etiqueta y queda en la bitácora. El identificador se guarda en claro porque es con lo que se mapea a un resultado de gestión; el texto va cifrado, como el resto del contenido. El identificador se copia de la burbuja con un clic, que es lo que hace falta para crear su regla.
 - **Plantillas con botones**: se envían —desde el hilo y en **campañas**— resolviendo las **tres variables** que admite Meta: una en el encabezado, las del cuerpo y una al final de la URL de un botón. El formulario muestra solo los campos que la plantilla pide, para no mandar un componente de más (que Meta rechaza), y los valores quedan guardados **por destinatario** (con `{nombre}`, `{telefono}` y columnas del Excel).
 - **Aviso de plantilla reclasificada**: si Meta marca una plantilla como **marketing** (cuesta varias veces más por mensaje), la lista de plantillas lo advierte y una campaña **no se crea** con ella, con el motivo a la vista.
 - **Respuestas que se traducen solas**: cada botón se mapea a un resultado de gestión en **Admin → Botones** (por el identificador que manda Meta o por el texto del botón, como respaldo). Al tocar, la respuesta **registra el resultado sin intervención del agente**, con tres efectos posibles: nada, **pausar la cuenta** o **dar de baja**. Los mapeos recomendados para cobranza se crean de un clic y no pisan lo que ya se editó.
@@ -169,7 +175,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Sin interactivos libres** | Las plantillas **con botones** ya se envían (y sus respuestas se interpretan), pero todavía no se mandan botones ni listas *dentro* de la ventana de 24 horas desde el compositor: eso es la fase 6 de [`plan-interactivos.md`](plan-interactivos.md). Para cobranza, el alcance acordado es una plantilla con **dos botones**: «Quiero que me llame un asesor» (respuesta rápida) y «Aviso de privacidad» (enlace). |
 | **Plantillas reclasificadas a marketing** | Meta puede reclasificar una plantilla de cobranza como marketing si el texto suena promocional, y entonces cuesta varias veces más. La herramienta lo avisa (lista de plantillas) y lo bloquea (campañas), pero **la redacción es responsabilidad de quien la crea**: al crear plantillas, el encabezado admite **exactamente una** variable y la URL del botón **una sola, al final**. |
 | **Campañas sin agendar** | Se pueden pausar, reanudar y cancelar, pero todavía no programar por fecha y hora. |
-| **La llamada todavía no es una tarea** | Tocar «quiero que me llame un asesor» **ya registra** el resultado (volver a llamar) y deja la constancia, pero todavía no crea una tarea con la hora del deudor en la lista de trabajo: es la fase 4 de [`plan-interactivos.md`](plan-interactivos.md). |
+| **La llamada se despacha a mano** | La llamada pedida **ya es una tarea** en Reportes → Hoy, con lo que lleva esperando y el atajo para cerrarla. Lo que no hay es **agenda**: no se programan llamadas a una hora, no hay recordatorio automático y la herramienta no sabe si la llamada se hizo o si solo se marcó «no contestó» — eso lo registra una persona. |
 | **El tramo gratis no se cuenta** | Cada número tiene mensajes de servicio sin costo al mes y de ahí en adelante se cobran, pero el panel **todavía no** lleva ese contador ni avisa al acercarse al límite (fase 5). |
 | **Baja solo por palabra clave** | Se detecta la palabra al inicio del mensaje (`STOP`, `STOP por favor`). Si el cliente la pide con otras palabras ("no me escriban más"), hay que marcarlo a mano desde su ficha. |
 | **El opt-in no se verifica** | La herramienta registra el consentimiento y respeta las bajas, pero no comprueba de dónde salió: registrar el opt-in es responsabilidad del operador. Las campañas avisan cuántos destinatarios no tienen consentimiento registrado. |
@@ -179,7 +185,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Sin permisos por número** | Con varios números, **todos los agentes ven todos**. Restringir qué números atiende cada agente está diseñado y pendiente. |
 | **Recuperación de contraseña sin correo** | No hay "envié un enlace a tu correo": la herramienta no manda correos. Se resuelve con dos caminos: **un administrador restablece la contraseña** desde Equipo (y quien la recibe está obligado a cambiarla al entrar), o **desde el servidor** con `npm run admin:reset-password -- --email=…` cuando nadie puede entrar. Si el cliente pierde el acceso a la consola y a todas las cuentas de administrador, la salida es la base de datos. |
 | **Adjuntos en disco** | Fotos, audios y documentos viven en el sistema de archivos, no en la base. Sin un Volume configurado se pierden en cada deploy (y no están cifrados). |
-| **Límite de peticiones por IP** | El tope del panel (300 cada 15 minutos) es por IP, no por usuario: varios agentes en la misma oficina comparten ese cupo y pueden empezar a recibir 429 en horas cargadas. |
+| **Límite de peticiones por IP** | El tope del panel (300 cada 15 minutos) es por IP, no por usuario: varios agentes en la misma oficina comparten ese cupo y pueden empezar a recibir 429 en horas cargadas. El del acceso sí es configurable (`LOGIN_RATE_LIMIT_MAX`, 10 por defecto); el del panel, todavía no. |
 | **Una réplica** | El tiempo real y la cola funcionan en una sola instancia. Con varias haría falta el adaptador de Redis. |
 | **Búsqueda de teléfono solo exacta** | El teléfono está cifrado, así que no se puede buscar por coincidencia parcial: en Contactos hay que escribir el número completo (10 dígitos) o buscar por nombre. |
 | **Nombres de contacto en claro** | `Contact.profileName` y `Contact.customName` quedan sin cifrar porque la búsqueda por texto del panel depende de ellos; cifrarlos obliga a pasar esa búsqueda a coincidencia exacta con índice ciego. Es el único dato personal que sigue en claro: **los correos de acceso de los usuarios ya se cifran** (2026-10-15). |
@@ -260,12 +266,12 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 216 pruebas unitarias en 32 archivos + **63 pruebas de integración** contra PostgreSQL |
+| Pruebas automatizadas | 218 pruebas unitarias en 32 archivos + **67 pruebas de integración** contra PostgreSQL (más 2 destructivas, que solo corren en CI) |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
 | Migraciones | Versionadas en `prisma/migrations`, con quince aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
 | Entorno de build | Node 22 declarado en `package.json` (`engines`) y `.nvmrc`. `nixpacks.toml` instala con `npm install --include=dev` (no `npm ci`: borra `node_modules` y choca con el caché del builder) y compila con `npm run build`. El Build Command del servicio debe quedar vacío para que la instalación no se ejecute dos veces. |
-| Verificación de integración | **Automatizada**: un trabajo de CI levanta PostgreSQL, aplica las migraciones y corre la suite contra esa base (`npm run test:integration`). Cubre webhook firmado de punta a punta, cifrado en reposo, campañas, resultados de gestión, sesiones, contraseñas y respaldos. Dos pruebas destructivas (alta desde cero y restauración) solo corren en CI, donde la base es desechable, con `INTEGRATION_DESTRUCTIVE=1`. |
+| Verificación de integración | **Automatizada**: un trabajo de CI levanta PostgreSQL, aplica las migraciones y corre la suite contra esa base (`npm run test:integration`). Cubre webhook firmado de punta a punta, cifrado en reposo, campañas, resultados de gestión, respuestas interactivas, llamadas pedidas y el volcado de webhooks, sesiones, contraseñas y respaldos. Dos pruebas destructivas (alta desde cero y restauración) solo corren en CI, donde la base es desechable, con `INTEGRATION_DESTRUCTIVE=1`. |
 | Pruebas de interfaz | **Ninguna automatizada.** Los cambios de layout se verifican a mano (capturas en escritorio y móvil); no hay pruebas de navegador. |
 | Estilo de código | Sin linter ni formateador automático: la consistencia se mantiene a mano. |
 
@@ -280,6 +286,7 @@ Además de las pruebas unitarias, hay una **suite de integración** que corre en
 - **Respaldos**: se crean cifrados, se vuelven a leer, contienen las tablas y su poda respeta el tope; un archivo ajeno se rechaza.
 - **Respuestas que disparan reglas**: «ya pagué» entra como pago reportado (**no** como pagado), «no reconozco la deuda» pausa la cuenta y deja el incidente como error, «no quiero ser contactado» da de baja, una respuesta sin regla queda anotada como no mapeada, y el mapeo por **texto** del botón funciona cuando el identificador no coincide.
 - **Respuestas interactivas**: un toque de botón y una elección de lista llegan por el webhook firmado, se guardan con su identificador en claro y su texto cifrado en la columna cruda, dejan su registro en la bitácora y un interactivo sin opción reconocible no rompe nada.
+- **Llamadas pedidas (fase 4)**: quien toca el botón aparece en la lista del día con lo que lleva esperando y el origen «El botón»; el atajo **«No contestó»** guarda el resultado y lo saca de la lista; un resultado que no es del atajo —por ejemplo «pagado», que necesita monto y fecha— **se rechaza en lugar de guardarse a la brava**; y el volcado crudo del webhook se ve y se copia desde el panel.
 - **Verificación en dos pasos**: con la cuenta protegida, la contraseña correcta **no** abre sesión (devuelve un desafío y no crea ninguna); un código incorrecto no crea sesión y suma un intento fallido; el código correcto abre exactamente una y limpia los intentos; el secreto queda cifrado en la columna cruda; desactivarla exige un código vigente; y un administrador puede apagarla si alguien pierde el teléfono. Se comprobó también que una activación a medias (con la clave generada pero sin confirmar) no bloquea el acceso y se puede descartar.
 
 Los flujos que además se verificaron a mano contra una base real, antes de tener suite:
@@ -337,10 +344,14 @@ El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 [`plan-interactivos.md`](plan-interactivos.md). Ya entregado: interpretar las
 respuestas de botón y de lista, el envío de plantillas con botones (hilo y
 campañas, con las tres variables), el aviso y bloqueo de plantillas
-reclasificadas a marketing, y **el puente de la respuesta al resultado de
-gestión con sus efectos automáticos** (pausa y baja).
-Falta: el botón que agenda la llamada como tarea (fase 4), el contador del tramo
-gratis por número (fase 5) y los interactivos libres (fase 6).
+reclasificadas a marketing, **el puente de la respuesta al resultado de gestión
+con sus efectos automáticos** (pausa y baja) y **la llamada pedida como tarea de
+la lista de trabajo** (fase 4), con su tiempo de espera, su atajo y la pantalla
+para copiar el volcado de un webhook.
+Falta: el contador del tramo gratis por número (fase 5) y los interactivos
+libres (fase 6). Y queda una **verificación pendiente**: la prueba contra Meta
+real —plantilla aprobada y botón tocado— para cerrar las fases 3 y 4. Lo que hay
+que copiar y de dónde sale está en [`pruebas-meta.md`](pruebas-meta.md).
 
 **Proteger la operación.**
 
@@ -351,7 +362,7 @@ gratis por número (fase 5) y los interactivos libres (fase 6).
 
 4. **Interactivos libres**: mandar botones y listas desde el compositor dentro de la ventana de 24 horas (las plantillas con botones ya se envían y sus respuestas ya se interpretan).
 5. **Programar campañas** por fecha y hora.
-6. **Puente respuesta → resultado de gestión**: que un «ya pagué» o un «no reconozco» disparen solos la regla que corresponde.
+6. **Agenda de llamadas**: hoy la llamada pedida ya es tarea, pero no se puede programar a una hora ni recordar sola.
 
 **Cuando el equipo crezca.**
 
@@ -362,7 +373,9 @@ gratis por número (fase 5) y los interactivos libres (fase 6).
 > Y el 2026-10-16 salieron «interpretar las respuestas de botón y de lista»,
 > «enviar plantillas con botones» y «resolver las variables del encabezado y del
 > botón» —en el hilo **y en campañas**—, más el aviso y el bloqueo de plantillas
-> reclasificadas a marketing.
+> reclasificadas a marketing, el puente respuesta → resultado de gestión con sus
+> efectos automáticos, la llamada pedida como tarea del día y el volcado de
+> webhooks para copiar desde el panel.
 
 ---
 
@@ -404,3 +417,5 @@ En el panel:
 - **Admin → Agentes**: permiso de envío manual, tope diario y cuántos mensajes manuales lleva cada agente hoy.
 - **Admin → Contactos**: consentimiento y bajas (filtro "Solo bajas").
 - **Admin → Logs**: qué pasó y por qué, con el detalle de cada evento.
+- **Admin → Logs → Webhooks recibidos**: lo que Meta mandó, tal cual, con botón para copiarlo. Es donde se ve el identificador real de un botón y donde se saca el volcado para reportar un caso.
+- **Admin → Reportes → Hoy**: las llamadas pedidas, con su tiempo de espera, y el atajo para despacharlas.

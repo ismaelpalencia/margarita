@@ -22,6 +22,20 @@
             </p>
         </section>
 
+        <% if (typeof success !== "undefined" && success === "marked") { %>
+            <div class="mb-6 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
+                Resultado guardado: el cliente salió de las listas en las que
+                estaba.
+            </div>
+        <% } %>
+
+        <% if (typeof error !== "undefined" && error === "mark") { %>
+            <div class="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                No se pudo guardar el resultado. Intenta de nuevo desde la ficha
+                del cliente.
+            </div>
+        <% } %>
+
         <section class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                 <p class="text-sm text-slate-500">Gestiones de hoy</p>
@@ -363,6 +377,109 @@
         <% } %>
 
         <% if (view === "hoy" && worklist) { %>
+            <% if (worklist.callRequests.length > 0) { %>
+                <section class="mb-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-2 ring-margarita-600">
+                    <div class="border-b border-slate-100 px-5 py-4">
+                        <h3 class="font-bold text-slate-800">
+                            Pidieron que los llamen
+                            (<%= worklist.callRequests.length %>)
+                        </h3>
+
+                        <p class="mt-1 text-sm text-slate-500">
+                            Trabájalos <strong>primero</strong>: ya dieron el paso, y
+                            son la mayor intención de pago de la cartera. Llama dentro
+                            del horario permitido (<strong>8:00 a 21:00</strong>, hora
+                            de la empresa) y registra el resultado con el mismo
+                            catálogo de siempre.
+                        </p>
+                    </div>
+
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-500">
+                            <tr>
+                                <th class="px-5 py-3">Contacto</th>
+                                <th class="px-5 py-3">Teléfono</th>
+                                <th class="px-5 py-3">Lo pidió</th>
+                                <th class="px-5 py-3">Esperando</th>
+                                <%#
+                                    El origen es lo único que se puede caer en el
+                                    celular: si la llamada salió del botón o la
+                                    marcó el equipo no cambia a quién llamar hoy.
+                                %>
+                                <th class="hidden px-5 py-3 md:table-cell">Origen</th>
+                                <th class="px-5 py-3 text-right">Acción</th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="divide-y divide-slate-100">
+                            <% worklist.callRequests.forEach((item) => { %>
+                                <tr>
+                                    <td class="px-5 py-3 font-medium text-slate-800">
+                                        <%= item.contactName %>
+                                    </td>
+
+                                    <td class="px-5 py-3 text-slate-600">
+                                        <%= item.contactPhone %>
+                                    </td>
+
+                                    <td class="px-5 py-3 text-slate-600">
+                                        <%= item.requestedLocalTime %>
+
+                                        <% if (item.outsideHours) { %>
+                                            <span class="ml-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-800">
+                                                fuera de horario
+                                            </span>
+                                        <% } %>
+                                    </td>
+
+                                    <td class="px-5 py-3">
+                                        <span
+                                            class="rounded-full px-2 py-0.5 text-[11px] font-bold <%= item.hoursWaiting >= 24 ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-600' %>"
+                                            title="<%= item.hoursWaiting %> horas"
+                                        >
+                                            <%= formatWaitingTime(item.requestedAt) %>
+                                        </span>
+                                    </td>
+
+                                    <td class="hidden px-5 py-3 text-slate-600 md:table-cell">
+                                        <%= item.fromButton ? "El botón" : "El equipo" %>
+                                    </td>
+
+                                    <td class="px-5 py-3 text-right">
+                                        <div class="flex flex-wrap items-center justify-end gap-2">
+                                            <%#
+                                                El atajo real de la lista: llamé y
+                                                no contestó. Lo demás —promesa,
+                                                convenio, pago— necesita el monto
+                                                y la fecha, y eso vive en la ficha.
+                                            %>
+                                            <form action="/admin/reports/mark-call" method="POST">
+                                                <input type="hidden" name="contactId" value="<%= item.contactId %>" />
+                                                <input type="hidden" name="type" value="NO_ANSWER" />
+
+                                                <button
+                                                    class="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50"
+                                                    title="Marca «sin contestación» y sale de esta lista"
+                                                >
+                                                    No contestó
+                                                </button>
+                                            </form>
+
+                                            <a
+                                                href="/admin/contacts/<%= item.contactId %>/edit"
+                                                class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white"
+                                            >
+                                                Abrir ficha
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </section>
+            <% } %>
+
             <section class="mb-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                 <h3 class="text-lg font-bold text-slate-800">A quién escribirle hoy</h3>
 
@@ -372,7 +489,7 @@
                     <%= threshold %> o más intentos sin contestar.
                 </p>
 
-                <div class="mt-4 grid gap-3 sm:grid-cols-4">
+                <div class="mt-4 grid gap-3 sm:grid-cols-5">
                     <div class="rounded-xl bg-red-50 px-3 py-2">
                         <p class="text-xs font-semibold text-red-700">Promesas vencidas</p>
                         <p class="text-2xl font-bold text-red-700"><%= worklist.overdue.length %></p>
@@ -394,6 +511,15 @@
                     <div class="rounded-xl bg-amber-50 px-3 py-2">
                         <p class="text-xs font-semibold text-amber-700">Sin contestar</p>
                         <p class="text-2xl font-bold text-amber-700"><%= worklist.noAnswer.length %></p>
+                    </div>
+
+                    <div class="rounded-xl bg-margarita-50 px-3 py-2 ring-1 ring-margarita-200">
+                        <p class="text-xs font-semibold text-margarita-800">
+                            Pidieron llamada
+                        </p>
+                        <p class="text-2xl font-bold text-margarita-700">
+                            <%= worklist.callRequests.length %>
+                        </p>
                     </div>
                 </div>
             </section>
@@ -496,9 +622,10 @@
                 </section>
             <% } %>
 
-            <% if (worklist.overdue.length + worklist.dueToday.length + worklist.dueThisWeek.length + worklist.noAnswer.length === 0) { %>
+            <% if (worklist.overdue.length + worklist.dueToday.length + worklist.dueThisWeek.length + worklist.noAnswer.length + worklist.callRequests.length === 0) { %>
                 <div class="rounded-2xl bg-white p-8 text-center text-slate-500 shadow-sm ring-1 ring-slate-200">
-                    No hay pendientes: ni promesas por vencer, ni clientes sin contestar.
+                    No hay pendientes: ni llamadas pedidas, ni promesas por
+                    vencer, ni clientes sin contestar.
                 </div>
             <% } %>
         <% } %>

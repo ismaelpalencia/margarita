@@ -62,6 +62,29 @@ export type PromiseItem = {
     userName: string | null;
 };
 
+/**
+ * Un cliente que pidió que lo llamen.
+ *
+ * Es la mayor intención de pago de la cartera —ya dio el paso—, así que va
+ * primero en la lista de trabajo y con el tiempo que lleva esperando a la
+ * vista: llamar en dos horas convierte mucho mejor que llamar en tres días.
+ */
+export type CallRequestItem = {
+    contactId: string;
+    contactName: string;
+    contactPhone: string;
+    /** Cuándo lo pidió (el toque del botón o el marcado a mano). */
+    requestedAt: Date;
+    /** Horas que lleva esperando, para poder priorizar. */
+    hoursWaiting: number;
+    /** Hora local en que lo pidió, ya formateada para leerla. */
+    requestedLocalTime: string;
+    /** Lo pidió fuera del horario permitido (8:00 a 21:00). */
+    outsideHours: boolean;
+    /** De dónde salió: el botón, o alguien del equipo lo marcó. */
+    fromButton: boolean;
+};
+
 /** Cuántas filas como máximo se cargan para calcular un reporte. */
 const MAX_REPORT_ROWS = 5000;
 
@@ -246,6 +269,72 @@ export class ReportService {
                 .map(([day, count]) => ({ day, count }))
                 .sort((a, b) => (a.day < b.day ? 1 : -1))
         };
+    }
+
+    /**
+     * Clientes que pidieron que los llamen.
+     *
+     * El modelo guarda el **último resultado** en el propio contacto, así que
+     * no hay que adivinar: son los que hoy tienen «volver a llamar» y siguen
+     * activos, sin baja y sin pausa. En cuanto alguien registra otro resultado,
+     * el cliente sale de esta lista solo.
+     *
+     * Se ordenan por antigüedad —el que lleva más esperando, primero— y se
+     * marca el que pidió la llamada fuera del horario permitido (8:00 a 21:00
+     * hora de la empresa), porque el horario es una regla de conducta, no una
+     * sugerencia.
+     */
+    static async callRequests(
+        workspaceId: string,
+        timezone: string
+    ): Promise<CallRequestItem[]> {
+        const contacts = await prisma.contact.findMany({
+            where: {
+                workspaceId,
+                isActive: true,
+                optOutAt: null,
+                pausedAt: null,
+                outcomeType: ContactOutcomeType.CALLBACK
+            },
+            select: {
+                id: true,
+                customName: true,
+                profileName: true,
+                phone: true,
+                outcomeAt: true,
+                outcomes: {
+                    orderBy: { createdAt: "desc" },
+                    take: 1,
+                    select: { source: true }
+                }
+            },
+            orderBy: { outcomeAt: "asc" },
+            take: MAX_REPORT_ROWS
+        });
+
+        const now = Date.now();
+
+        return contacts.map((contact) => {
+            const requestedAt = contact.outcomeAt ?? new Date();
+            const local = dayjs(requestedAt).tz(timezone);
+            const hour = local.hour();
+
+            return {
+                contactId: contact.id,
+                contactName:
+                    contact.customName || contact.profileName || contact.phone,
+                contactPhone: contact.phone,
+                requestedAt,
+                hoursWaiting: Math.max(
+                    0,
+                    Math.round((now - requestedAt.getTime()) / 3600000)
+                ),
+                requestedLocalTime: local.format("DD/MM/YYYY HH:mm"),
+                /** De 8:00 a 21:00, hora de la empresa. */
+                outsideHours: hour < 8 || hour >= 21,
+                fromButton: contact.outcomes[0]?.source === "INTERACTIVE"
+            };
+        });
     }
 
     /**
@@ -564,9 +653,14 @@ export class ReportService {
         const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
         const weekEnd = new Date(todayStart.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-        const [pending, noAnswer] = await Promise.all([
+        const [pending, noAnswer, callRequests] = await Promise.all([
             this.pendingPromises(workspaceId, todayStart),
-            this.noAnswerCandidates(workspaceId, threshold)
+            this.noAnswerCandidates(workspaceId, threshold),
+            /**
+             * Los que pidieron que los llamen van primero en la pantalla: ya
+             * dieron el paso, así que se trabajan antes del barrido normal.
+             */
+            this.callRequests(workspaceId, timezone)
         ]);
 
         return {
@@ -580,6 +674,7 @@ export class ReportService {
                 (item) => item.dueAt >= tomorrowStart && item.dueAt < weekEnd
             ),
             noAnswer,
+            callRequests,
             overdueAmount: pending.items
                 .filter((item) => item.daysLate > 0)
                 .reduce((sum, item) => sum + (item.amount ?? 0), 0)
