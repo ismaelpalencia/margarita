@@ -25,7 +25,7 @@ export class AdminSystemController {
                 installList: appConfig.installPrice,
                 monthly: appConfig.installMonthlyPrice,
                 meta: appConfig.setupServicePrice,
-                bundle: appConfig.setupBundlePrice,
+                monthlyList: appConfig.installMonthlyListPrice,
                 promoLabel: appConfig.installPromoLabel,
                 email: appConfig.supportEmail,
                 whatsapp: appConfig.supportWhatsappDisplay

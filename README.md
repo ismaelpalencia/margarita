@@ -278,12 +278,13 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `SESSION_MAX_ACTIVE` | No | Dispositivos con sesión abierta por usuario. Default `3` |
 | `SUPPORT_WHATSAPP` | Comercial | Número de contacto (dígitos con lada país) que aparece en la página pública |
 | `SUPPORT_EMAIL` | Comercial | Correo de contacto alterno |
-| `SETUP_SERVICE_PRICE` | Comercial | Precio del servicio de conexión con Meta que se muestra en la página pública |
-| `INSTALL_PRICE` | Comercial | Precio de lista de la instalación, con el primer mes incluido (`$2,500.00 MXN`) |
-| `INSTALL_PRICE_PROMO` | Comercial | Precio de la promoción de lanzamiento (`$1,500.00 MXN`) |
-| `INSTALL_PROMO_LABEL` | Comercial | Texto de la promoción (`Promoción de lanzamiento: todo noviembre`) |
-| `INSTALL_MONTHLY_PRICE` | Comercial | Mensualidad, del segundo mes en adelante (`$800.00 MXN`) |
-| `SETUP_BUNDLE_PRICE` | Comercial | Instalación + conexión con Meta si se contratan juntas (`$2,500.00 MXN`) |
+| `SETUP_SERVICE_PRICE` | Comercial | Precio del acompañamiento con Meta (`se cotiza aparte` por omisión) |
+| `INSTALL_PRICE` | Comercial | Precio de lista de la instalación (`$4,900.00 MXN`) |
+| `INSTALL_PRICE_PROMO` | Comercial | Precio de la oferta de lanzamiento (`$2,500.00 MXN`) |
+| `INSTALL_PROMO_LABEL` | Comercial | Texto de la oferta (`Oferta de lanzamiento: primeros 3 clientes`) |
+| `INSTALL_MONTHLY_PRICE` | Comercial | Mensualidad (`$900.00 MXN`) |
+| `INSTALL_MONTHLY_LIST_PRICE` | Comercial | Mensualidad a precio de lista (`$1,490.00 MXN`) |
+| `INSTALL_PROMO_UNTIL` | Comercial | Hasta cuándo vale la oferta (`2026-12-31`); después, la página deja de anunciarla sola |
 | `SUPPORT_WHATSAPP_DISPLAY` | Comercial | El número como se muestra en la página (`55 3878 3682`) |
 | `BACKUP_ENABLED` | No | Respaldo automático de la base. Default `true` |
 | `BACKUP_INTERVAL_HOURS` | No | Cada cuánto se guarda una copia completa. Default `24` |

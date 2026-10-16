@@ -96,12 +96,13 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `SESSION_MAX_ACTIVE` | `3` | Dispositivos con sesión abierta por usuario |
 | `SUPPORT_WHATSAPP` | — | Número comercial que aparece en la página pública (`https://wa.me/…`) |
 | `SUPPORT_EMAIL` | — | Correo comercial de contacto |
-| `SETUP_SERVICE_PRICE` | `$1,500.00 MXN` | Precio del servicio de conexión con Meta que se muestra en la página pública |
-| `INSTALL_PRICE` | `$2,500.00 MXN` | Precio de lista de la instalación (incluye el primer mes) |
-| `INSTALL_PRICE_PROMO` | `$1,500.00 MXN` | Precio de la promoción de lanzamiento (incluye el primer mes) |
-| `INSTALL_PROMO_LABEL` | `Promoción de lanzamiento: todo noviembre` | Texto que acompaña la promoción |
-| `INSTALL_MONTHLY_PRICE` | `$800.00 MXN` | Mensualidad, del segundo mes en adelante |
-| `SETUP_BUNDLE_PRICE` | `$2,500.00 MXN` | Instalación + conexión con Meta, si se contratan juntas |
+| `SETUP_SERVICE_PRICE` | `se cotiza aparte` | Precio del acompañamiento con Meta en la página pública |
+| `INSTALL_PRICE` | `$4,900.00 MXN` | Precio de lista de la instalación |
+| `INSTALL_PRICE_PROMO` | `$2,500.00 MXN` | Precio de la oferta de lanzamiento |
+| `INSTALL_PROMO_LABEL` | `Oferta de lanzamiento: primeros 3 clientes` | Texto que acompaña la oferta |
+| `INSTALL_MONTHLY_PRICE` | `$900.00 MXN` | Mensualidad |
+| `INSTALL_MONTHLY_LIST_PRICE` | `$1,490.00 MXN` | Mensualidad a precio de lista |
+| `INSTALL_PROMO_UNTIL` | `2026-12-31` | Fecha en que la página deja de anunciar la oferta |
 | `SUPPORT_WHATSAPP_DISPLAY` | `55 3878 3682` | El WhatsApp como se muestra en la página |
 | `BACKUP_ENABLED` | `true` | Respaldo automático de la base encendido o apagado |
 | `BACKUP_INTERVAL_HOURS` | `24` | Cada cuánto se guarda una copia completa |

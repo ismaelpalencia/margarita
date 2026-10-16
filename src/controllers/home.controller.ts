@@ -16,11 +16,12 @@ function supportContext() {
         supportEmail: appConfig.supportEmail,
         supportWhatsappDisplay: appConfig.supportWhatsappDisplay,
         setupServicePrice: appConfig.setupServicePrice,
-        setupBundlePrice: appConfig.setupBundlePrice,
         installPrice: appConfig.installPrice,
         installPricePromo: appConfig.installPricePromo,
         installPromoLabel: appConfig.installPromoLabel,
+        installPromoUntil: appConfig.installPromoUntil,
         installMonthlyPrice: appConfig.installMonthlyPrice,
+        installMonthlyListPrice: appConfig.installMonthlyListPrice,
         appName: appConfig.name
     };
 }

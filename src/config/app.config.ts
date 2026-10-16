@@ -206,28 +206,34 @@ export const appConfig = {
         process.env.SUPPORT_WHATSAPP_DISPLAY?.trim() || "55 3878 3682",
     setupServicePrice:
         process.env.SETUP_SERVICE_PRICE?.trim() ||
-        "$1,500.00 MXN",
+        "se cotiza aparte",
 
     /**
      * La oferta comercial, tal como aparece en la página pública. Se escribe
      * ya formateada ("$1,500.00 MXN") porque es un texto que lee el cliente:
      * el formato es decisión comercial, no del navegador.
      *
-     * El modelo es **mes con mes**: la instalación (que incluye el primer mes)
-     * y, del segundo mes en adelante, la mensualidad. En noviembre la
-     * instalación va en promoción.
+     * El modelo es **mes con mes**: la instalación (que se paga junto con el
+     * primer mes) y, de ahí en adelante, la mensualidad. Hay una oferta de
+     * lanzamiento para los primeros clientes, con precio de lista y de oferta,
+     * y una fecha de vigencia: al pasar esa fecha la página deja de anunciarla
+     * sola, sin tocar código.
+     *
+     * Los precios van **más IVA**, como el resto de la propuesta.
      */
-    installPrice: process.env.INSTALL_PRICE?.trim() || "$2,500.00 MXN",
+    installPrice: process.env.INSTALL_PRICE?.trim() || "$4,900.00 MXN",
     installPricePromo:
-        process.env.INSTALL_PRICE_PROMO?.trim() || "$1,500.00 MXN",
+        process.env.INSTALL_PRICE_PROMO?.trim() || "$2,500.00 MXN",
     installPromoLabel:
         process.env.INSTALL_PROMO_LABEL?.trim() ||
-        "Promoción de lanzamiento: todo noviembre",
+        "Oferta de lanzamiento: primeros 3 clientes",
+    /** Hasta cuándo vale la oferta. Pasada la fecha, se deja de anunciar. */
+    installPromoUntil:
+        process.env.INSTALL_PROMO_UNTIL?.trim() || "2026-12-31",
     installMonthlyPrice:
-        process.env.INSTALL_MONTHLY_PRICE?.trim() || "$800.00 MXN",
-    /** Lo que cuestan la instalación y la conexión con Meta si van juntas. */
-    setupBundlePrice:
-        process.env.SETUP_BUNDLE_PRICE?.trim() || "$2,500.00 MXN",
+        process.env.INSTALL_MONTHLY_PRICE?.trim() || "$900.00 MXN",
+    installMonthlyListPrice:
+        process.env.INSTALL_MONTHLY_LIST_PRICE?.trim() || "$1,490.00 MXN",
 
 
     logRetentionDays: Number(process.env.LOG_RETENTION_DAYS) || 90,

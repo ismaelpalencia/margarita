@@ -12,7 +12,7 @@ Produce (en `marketing/`):
 El precio sale de los mismos valores por omisión que la página pública
 (instalación con el primer mes incluido y mensualidad mes con mes), así que la
 imagen y la página no se pueden contradecir. Cuando la promoción termine, se
-vuelve a correr con `--price="$2,500 MXN"`.
+vuelve a correr con `--price="$4,900 MXN"`.
 
 El contacto se toma de los argumentos o de `SUPPORT_WHATSAPP` y
 `SUPPORT_EMAIL`; el correo por omisión es el del producto
@@ -298,11 +298,11 @@ def render(width, height, content):
 
 def main():
     parser = argparse.ArgumentParser(description="Imagen de promoción de Margarita")
-    parser.add_argument("--price", default="$1,500 MXN")
-    parser.add_argument("--price-before", default="$2,500 MXN")
-    parser.add_argument("--monthly", default="$800 MXN")
+    parser.add_argument("--price", default="$2,500 MXN")
+    parser.add_argument("--price-before", default="$4,900 MXN")
+    parser.add_argument("--monthly", default="$900 MXN")
     parser.add_argument(
-        "--promo-label", default="Promoción de lanzamiento: todo noviembre"
+        "--promo-label", default="Oferta de lanzamiento: primeros 3 clientes"
     )
     parser.add_argument(
         "--whatsapp",
@@ -334,8 +334,8 @@ def main():
         "price": args.price,
         "price_before": args.price_before,
         "detail": (
-            f"Instalación con el primer mes incluido · después {args.monthly} "
-            "al mes · usuarios ilimitados"
+            f"Instalación + el primer mes · después {args.monthly} al mes · "
+            "usuarios ilimitados · más IVA"
         ),
         "meta_note": (
             "Los mensajes de WhatsApp los paga tu empresa directo a Meta. "

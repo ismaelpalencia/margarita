@@ -5,9 +5,13 @@ Documento de referencia para decidir y sostener el uso de Margarita en producci�
 Última revisión: 2026-10-16 (precios vigentes, landing separada por dominio, plantillas de cobranza con dos botones y plan de interactivos).
 
 > **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
-> Instalación **$2,500.00 MXN** (una vez). Mensualidad **$900.00 MXN**, precio
-> de promoción. **El cliente debe llegar con su cuenta de Meta ya configurada**;
-> si no la tiene, la conexión con Meta se cotiza aparte.
+> **Instalación $2,500.00 MXN** (una vez, en oferta de lanzamiento; precio de
+> lista $4,900.00) y **mensualidad $900.00 MXN** (precio de lista $1,490.00). El
+> primer mes se paga junto con la instalación. **Todos los precios son más IVA.**
+> **El cliente debe llegar con su cuenta de Meta ya configurada** (verificación,
+> número y método de pago); si no la tiene, la conexión se **cotiza aparte**.
+> La oferta se anuncia hasta el **31 de diciembre de 2026** y la página deja de
+> mostrarla sola al pasar esa fecha (`INSTALL_PROMO_UNTIL`).
 >
 > Los documentos [`propuesta-comercial.md`](propuesta-comercial.md) y
 > [`facturacion.md`](facturacion.md) conservan los números anteriores a

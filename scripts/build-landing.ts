@@ -63,11 +63,12 @@ function locals(title: string) {
         supportEmail: appConfig.supportEmail,
         supportWhatsappDisplay: appConfig.supportWhatsappDisplay,
         setupServicePrice: appConfig.setupServicePrice,
-        setupBundlePrice: appConfig.setupBundlePrice,
         installPrice: appConfig.installPrice,
         installPricePromo: appConfig.installPricePromo,
         installPromoLabel: appConfig.installPromoLabel,
-        installMonthlyPrice: appConfig.installMonthlyPrice
+        installPromoUntil: appConfig.installPromoUntil,
+        installMonthlyPrice: appConfig.installMonthlyPrice,
+        installMonthlyListPrice: appConfig.installMonthlyListPrice
     };
 }
 
