@@ -249,7 +249,13 @@ export class AccountController {
             required: req.query.required === "1",
             success: req.query.success || null,
             error: req.query.error || null,
-            changed: req.query.changed === "1"
+            changed: req.query.changed === "1",
+            /**
+             * Cuántas sesiones se cerraron al cambiar la contraseña. Va como
+             * local porque dentro de la plantilla `req` no existe: usarlo ahí
+             * reventaba la pantalla con un error 500.
+             */
+            closed: Number(req.query.closed) || 0
         });
     }
 

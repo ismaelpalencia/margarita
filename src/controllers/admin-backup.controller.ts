@@ -41,7 +41,9 @@ export class AdminBackupController {
             snapshots,
             formatDateTimeMX,
             error: req.query.error || null,
-            success: req.query.success || null
+            success: req.query.success || null,
+            /** Filas leídas al verificar un respaldo (llega como local, no de `req`). */
+            rows: Number(req.query.rows) || 0
         });
     }
 

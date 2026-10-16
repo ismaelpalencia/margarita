@@ -86,7 +86,13 @@
                 </p>
             </div>
 
-            <% if (error) { %>
+            <%#
+                Los avisos son opcionales: se preguntan con `typeof` porque no
+                todas las rutas que pintan esta pantalla los pasan. Una
+                referencia suelta convierte un "credenciales incorrectas" en un
+                error 500.
+            %>
+            <% if (typeof error !== "undefined" && error) { %>
                 <div class="mt-6 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                     <%= error %>
                 </div>
@@ -100,7 +106,7 @@
                 </div>
             <% } %>
 
-            <% if (success) { %>
+            <% if (typeof success !== "undefined" && success) { %>
                 <div class="mt-6 rounded-xl bg-margarita-50 px-4 py-3 text-sm font-medium text-margarita-700">
                     <%= success %>
                 </div>

@@ -55,7 +55,7 @@
             </p>
         <% } else if (success === "verified") { %>
             <p class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm font-semibold text-margarita-700">
-                El respaldo se pudo leer y descifrar correctamente<%= req.query.rows ? ` (${req.query.rows} filas)` : "" %>.
+                El respaldo se pudo leer y descifrar correctamente<%= typeof rows !== "undefined" && rows ? ` (${rows} filas)` : "" %>.
             </p>
         <% } %>
 
