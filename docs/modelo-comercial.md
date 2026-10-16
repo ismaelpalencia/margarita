@@ -32,6 +32,10 @@ Lo que se vende es **un paquete y un extra**:
 (conversaciones y plantillas). Se dice en la página pública, en la propuesta y
 en el contrato: nuestra factura es solo por la herramienta y los servicios.
 
+**Para cobrar:** [`facturacion.md`](facturacion.md) junta los precios vigentes,
+el mínimo de tres meses por contrato, las fechas de la promoción, el ciclo de
+cobro mes a mes y las frases que ya funcionan con los clientes.
+
 **Para mandar propuestas** ya está: la página pública explica qué hace la
 herramienta, la guía de Meta explica el trámite (y ofrece hacerlo nosotros) y
 [`propuesta-comercial.md`](propuesta-comercial.md) es la plantilla lista para

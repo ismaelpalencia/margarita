@@ -398,6 +398,86 @@
                 <% }) %>
             </div>
         </section>
+
+        <% if (typeof billing !== "undefined" && billing) { %>
+            <section class="mb-8 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <h2 class="text-xl font-black text-slate-900">
+                    Cobro y contrato
+                </h2>
+
+                <p class="mt-2 text-sm text-slate-500">
+                    Lo que hay que tener a la vista cuando se factura. Sale de las
+                    mismas variables que la página pública, así que no se pueden
+                    contradecir.
+                </p>
+
+                <div class="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <div class="rounded-xl bg-sol-50 p-4 ring-1 ring-sol-200">
+                        <p class="text-xs font-bold uppercase tracking-wide text-margarita-800">
+                            Instalación
+                        </p>
+
+                        <p class="mt-2 text-2xl font-black text-slate-950">
+                            <%= billing.installPromo %>
+                        </p>
+
+                        <p class="mt-1 text-xs text-slate-600">
+                            <%= billing.promoLabel %>. Incluye el primer mes.
+                            Precio de lista: <%= billing.installList %>.
+                        </p>
+                    </div>
+
+                    <div class="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-600">
+                            Mensualidad
+                        </p>
+
+                        <p class="mt-2 text-2xl font-black text-slate-950">
+                            <%= billing.monthly %>
+                        </p>
+
+                        <p class="mt-1 text-xs text-slate-600">
+                            Del segundo mes en adelante, mes adelantado.
+                        </p>
+                    </div>
+
+                    <div class="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-600">
+                            Meta (opcional)
+                        </p>
+
+                        <p class="mt-2 text-2xl font-black text-slate-950">
+                            +<%= billing.meta %>
+                        </p>
+
+                        <p class="mt-1 text-xs text-slate-600">
+                            Junto con la instalación:
+                            <strong><%= billing.bundle %></strong>.
+                        </p>
+                    </div>
+
+                    <div class="rounded-xl bg-margarita-50 p-4 ring-1 ring-margarita-200">
+                        <p class="text-xs font-bold uppercase tracking-wide text-margarita-800">
+                            Reglas de cobro
+                        </p>
+
+                        <ul class="mt-2 space-y-1 text-xs text-slate-700">
+                            <li><strong>Mínimo tres meses</strong> por contrato.</li>
+                            <li>Mensualidad <strong>adelantada</strong>.</li>
+                            <li>Meta y alojamiento van por cuenta del cliente.</li>
+                            <li>Anual: doce meses por el precio de diez.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <p class="mt-4 text-xs text-slate-500">
+                    El ciclo de cobro, las fechas de la promoción y las frases para
+                    hablar con el cliente están en
+                    <span class="font-semibold">docs/facturacion.md</span>.
+                    Contacto: <%= billing.email %> · WhatsApp <%= billing.whatsapp %>.
+                </p>
+            </section>
+        <% } %>
     </main>
 </div>
 

@@ -2,7 +2,7 @@
 
 Documento de referencia para decidir y sostener el uso de Margarita en producción. Describe **lo que la herramienta hace hoy**, lo que no hace, los controles de seguridad vigentes y las responsabilidades que quedan del lado de quien la opera.
 
-Última revisión: 2026-10-15 (verificación en dos pasos, cifrado de los correos de acceso y limpieza de ajustes inertes).
+Última revisión: 2026-10-15 (verificación en dos pasos con código QR, cifrado de los correos de acceso, identidad de marca, panel usable en celular y modelo de cobro mes con mes).
 
 ### ¿Se puede ofrecer hoy?
 
@@ -11,6 +11,7 @@ Sí, como **instalación por empresa** en Railway: el alta de un cliente nuevo t
 | Punto | Estado |
 | --- | --- |
 | Cuenta de WhatsApp y método de pago en Meta | **Del cliente.** Es el trámite que más tarda (verificación del negocio, nombre visible y registro del número con PIN). Hay [`guia-meta.md`](guia-meta.md) para acompañarlo; si se pide ayuda, se cobra aparte. |
+| Cobro y contrato | **Del operador.** El modelo es instalación (que incluye el primer mes) + mensualidad mes con mes, con un **mínimo de tres meses** por contrato. Los precios vigentes, las fechas de la promoción y las frases para cobrar están en [`facturacion.md`](facturacion.md). |
 | Opt-in de los contactos | **Del cliente.** La herramienta lo registra y respeta las bajas, pero no verifica de dónde salió el consentimiento. |
 | Respaldos fuera del servidor | **Del cliente (u operación compartida).** Hay copia automática cada 24 h, pero vive en el mismo Volume que la base: alguien tiene que descargarla de vez en cuando. |
 | Nombres de los contactos | **Único dato personal que queda en claro**, porque la búsqueda por texto del panel depende de ellos. Está documentado como límite y es el siguiente pendiente. |
@@ -204,6 +205,7 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 - **Descargar el respaldo fuera del servidor** de vez en cuando: el respaldo automático vive en el mismo lugar que la base, así que cubre un borrado accidental o una migración mal hecha, no la pérdida del disco completo. Y **probar una restauración** al menos una vez (`npm run db:restore -- --file=… --dry-run` para validar, sin `--dry-run` para restaurar).
 - **Acceso del administrador**: crear un segundo administrador desde Equipo y comprobar que puede entrar; definir quién más tiene acceso y dónde se guarda la contraseña. Con un solo admin, cualquier olvido depende del servidor.
 - **Respaldos y adjuntos**: confirmar que el volumen de archivos existe y que alguien descarga respaldos con regularidad, porque nada de eso ocurre solo.
+- **Cobro y contrato**: dejar por escrito el mínimo de tres meses, que la mensualidad es adelantada y que el consumo de Meta va por cuenta del cliente. El detalle está en [`facturacion.md`](facturacion.md).
 
 ---
 

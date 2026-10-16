@@ -120,6 +120,8 @@ Notas de cobro: mensual adelantado, comprobante fiscal, [días de gracia] y qué
 pasa si no se renueva. **Recomendado**: pedir un mínimo de tres meses de
 servicio en el contrato; la instalación cubre el primer mes y eso ya protege el
 trabajo de alta, pero un cliente que se va al segundo mes deja el alta sin pagar.
+El detalle operativo (fechas, recordatorios y frases para cobrar) está en
+[`facturacion.md`](facturacion.md).
 
 **Cómo se calculó:** la instalación cubre el alta (2–3 horas entre despliegue,
 conexión y capacitación) y el primer mes; de ahí en adelante, $800 al mes por un
