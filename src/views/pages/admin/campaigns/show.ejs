@@ -342,11 +342,30 @@
                                     <%= recipient.phone %>
                                 </p>
 
-                                <% if (Array.isArray(recipient.variables) && recipient.variables.length > 0) { %>
+                                <%
+                                    /**
+                                     * Las campañas nuevas guardan las tres partes
+                                     * (cuerpo, encabezado y botón); las viejas,
+                                     * solo el arreglo del cuerpo. El lector acepta
+                                     * las dos formas.
+                                     */
+                                    const valores = readRecipientTemplateValues(recipient.variables);
+                                    const resumenValores = [
+                                        valores.header
+                                            ? `Encabezado: ${valores.header}`
+                                            : null,
+                                        ...valores.body,
+                                        valores.button
+                                            ? `Botón: ${valores.button}`
+                                            : null
+                                    ].filter(Boolean);
+                                %>
+
+                                <% if (resumenValores.length > 0) { %>
                                     <p class="mt-1 text-xs text-slate-500">
                                         Variables:
                                         <span class="font-medium text-slate-700">
-                                            <%= recipient.variables.join(" · ") %>
+                                            <%= resumenValores.join(" · ") %>
                                         </span>
                                     </p>
                                 <% } %>

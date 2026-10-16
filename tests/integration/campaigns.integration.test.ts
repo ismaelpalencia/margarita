@@ -4,6 +4,7 @@ import test, { after, before } from "node:test";
 import { CampaignStatus } from "@prisma/client";
 
 import { prisma } from "../../src/config/prisma";
+import { readRecipientTemplateValues } from "../../src/utils/campaign-variables";
 import { CampaignService } from "../../src/services/campaign.service";
 import { contactPhoneFields } from "../../src/utils/phone";
 import {
@@ -80,7 +81,9 @@ test("una campaña resuelve variables, cifra el destinatario y excluye a quien p
             contactIds: [reachable.id, optedOut.id],
             variable1: "{nombre}",
             variable2: "",
-            variable3: ""
+            variable3: "",
+            headerVariable: "",
+            buttonVariable: ""
         },
         fixture.numberId
     );
@@ -100,8 +103,8 @@ test("una campaña resuelve variables, cifra el destinatario y excluye a quien p
 
     assert.equal(recipient.contactId, reachable.id);
     assert.deepEqual(
-        recipient.variables,
-        ["Cliente Activo"],
+        readRecipientTemplateValues(recipient.variables),
+        { body: ["Cliente Activo"], header: "", button: "" },
         "la variable {nombre} se resuelve al crear la campaña"
     );
 
@@ -129,7 +132,9 @@ test("una campaña con puros contactos dados de baja no se crea", async () => {
                     contactIds: [optedOut.id],
                     variable1: "cliente",
                     variable2: "",
-                    variable3: ""
+                    variable3: "",
+                    headerVariable: "",
+                    buttonVariable: ""
                 },
                 fixture.numberId
             ),

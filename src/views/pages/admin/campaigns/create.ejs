@@ -27,9 +27,16 @@
                 <% } else if (error === "validation") { %>
                     Completa el nombre, la plantilla y selecciona al menos un contacto.
                 <% } else if (error === "variables") { %>
-                    La plantilla necesita variables y falta completarlas, o algún contacto quedó sin el dato.
-                    Recuerda que puedes usar <code class="font-semibold">{nombre}</code> y, desde Excel,
-                    <code class="font-semibold">{columna:Nombre}</code>.
+                    A la plantilla le falta algún valor: las variables del cuerpo, la del
+                    <strong>encabezado</strong> o la del <strong>botón de enlace</strong>, o bien algún
+                    contacto quedó sin el dato. Recuerda que puedes usar
+                    <code class="font-semibold">{nombre}</code>, <code class="font-semibold">{telefono}</code>
+                    y, desde Excel, <code class="font-semibold">{columna:Nombre}</code>.
+                <% } else if (error === "marketing") { %>
+                    Meta clasificó esa plantilla como <strong>marketing</strong>: cada mensaje cuesta
+                    varias veces más que una de utilidad, así que no se puede usar en una campaña.
+                    Revisa el texto (nada de promociones, urgencias ni mayúsculas sostenidas), vuelve a
+                    aprobarla en Meta y sincroniza las plantillas.
                 <% } else if (error === "column") { %>
                     El archivo no tiene la columna que referenciaste en una variable.
                     Revisa que el nombre coincida exactamente con el encabezado del Excel.
@@ -102,7 +109,12 @@
                         <option value="">Selecciona plantilla</option>
 
                         <% templates.forEach((template) => { %>
-                            <option value="<%= template.id %>" data-variable-count="<%= template.variableCount %>">
+                            <option
+                                value="<%= template.id %>"
+                                data-variable-count="<%= template.variableCount %>"
+                                data-header-variable="<%= template.headerVariableCount %>"
+                                data-url-variable="<%= template.urlVariableCount %>"
+                            >
                                 <%= template.name %> · <%= template.language %>
                             </option>
                         <% }) %>
@@ -184,7 +196,12 @@
                         <option value="">Selecciona plantilla</option>
 
                         <% templates.forEach((template) => { %>
-                            <option value="<%= template.id %>" data-variable-count="<%= template.variableCount %>">
+                            <option
+                                value="<%= template.id %>"
+                                data-variable-count="<%= template.variableCount %>"
+                                data-header-variable="<%= template.headerVariableCount %>"
+                                data-url-variable="<%= template.urlVariableCount %>"
+                            >
                                 <%= template.name %> · <%= template.language %>
                             </option>
                         <% }) %>
@@ -278,12 +295,36 @@
         }
 
         const fields = Array.from(container.querySelectorAll("[data-variable-field]"));
+        const headerField = container.querySelector("[data-header-field]");
+        const headerInput = container.querySelector("[data-header-input]");
+        const urlField = container.querySelector("[data-url-field]");
+        const urlInput = container.querySelector("[data-url-input]");
+
+        /**
+         * Muestra u oculta un campo y, si no aplica, lo desactiva: un campo
+         * desactivado no viaja en el formulario, que es justo lo que se busca
+         * (Meta rechaza un componente que la plantilla no pide).
+         */
+        const toggle = (field, input, visible) => {
+            if (!field || !input) {
+                return;
+            }
+
+            field.classList.toggle("hidden", !visible);
+            input.disabled = !visible;
+            input.required = visible;
+        };
 
         const sync = () => {
             const option = select.selectedOptions[0];
             const count = option ? Number(option.dataset.variableCount || 0) : 0;
+            const header = option ? Number(option.dataset.headerVariable || 0) : 0;
+            const url = option ? Number(option.dataset.urlVariable || 0) : 0;
 
-            container.classList.toggle("hidden", count === 0);
+            container.classList.toggle(
+                "hidden",
+                count === 0 && header === 0 && url === 0
+            );
 
             fields.forEach((field, index) => {
                 const visible = index < count;
@@ -299,6 +340,9 @@
                     }
                 }
             });
+
+            toggle(headerField, headerInput, header > 0);
+            toggle(urlField, urlInput, url > 0);
         };
 
         select.addEventListener("change", sync);

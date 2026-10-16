@@ -29,7 +29,11 @@ export const createCampaignSchema = z.object({
         }),
     variable1: variableField,
     variable2: variableField,
-    variable3: variableField
+    variable3: variableField,
+    /** Valor de la variable del encabezado, si la plantilla la pide. */
+    headerVariable: z.string().optional(),
+    /** Valor que se pega al final de la URL del botón, si la plantilla lo pide. */
+    buttonVariable: z.string().optional()
 });
 
 export const createCampaignFromExcelSchema = z.object({
@@ -44,7 +48,9 @@ export const createCampaignFromExcelSchema = z.object({
         .min(1, "Selecciona una plantilla."),
     variable1: variableField,
     variable2: variableField,
-    variable3: variableField
+    variable3: variableField,
+    headerVariable: z.string().optional(),
+    buttonVariable: z.string().optional()
 });
 
 

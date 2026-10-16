@@ -105,7 +105,8 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - Cuatro formas de responder: **nota local** (no sale a WhatsApp), **texto libre** dentro de la ventana de 24 horas, **archivos** (imagen, video, audio o documento) dentro de la misma ventana, y **plantilla aprobada** cuando está cerrada.
 - **Respuestas rápidas**: un clic inserta el texto guardado en el compositor, ya con el nombre y el teléfono del contacto.
 - **Respuestas de botón y de lista**: cuando el cliente toca un botón o elige de una lista, se guarda **qué opción eligió** (identificador y texto), el hilo lo muestra con su etiqueta y queda en la bitácora. El identificador se guarda en claro porque es con lo que se mapea a un resultado de gestión; el texto va cifrado, como el resto del contenido.
-- **Plantillas con botones**: se envían desde el hilo resolviendo las **tres variables** que admite Meta: una en el encabezado, las del cuerpo y una al final de la URL de un botón. El compositor muestra solo los campos que la plantilla pide, para no mandar un componente de más (que Meta rechaza).
+- **Plantillas con botones**: se envían —desde el hilo y en **campañas**— resolviendo las **tres variables** que admite Meta: una en el encabezado, las del cuerpo y una al final de la URL de un botón. El formulario muestra solo los campos que la plantilla pide, para no mandar un componente de más (que Meta rechaza), y los valores quedan guardados **por destinatario** (con `{nombre}`, `{telefono}` y columnas del Excel).
+- **Aviso de plantilla reclasificada**: si Meta marca una plantilla como **marketing** (cuesta varias veces más por mensaje), la lista de plantillas lo advierte y una campaña **no se crea** con ella, con el motivo a la vista.
 - **Bandeja con filtros y no leídos**: busca por nombre o teléfono, filtra por estado y por no leídos, y ve el contador de pendientes por hilo.
 - Cierra conversaciones.
 
@@ -157,7 +158,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Solo México** | El normalizador de teléfonos asume números mexicanos y agrega el prefijo `521`. Números de otros países se rechazan. |
 | **Archivos con caducidad** | Meta conserva lo que envían los clientes alrededor de 30 días. Un archivo que nadie abrió en ese plazo ya no se puede recuperar; el hilo lo avisa en lugar de fallar. |
 | **Sin interactivos libres** | Las plantillas **con botones** ya se envían (y sus respuestas se interpretan), pero todavía no se mandan botones ni listas *dentro* de la ventana de 24 horas desde el compositor: eso es la fase 6 de [`plan-interactivos.md`](plan-interactivos.md). |
-| **Variables del encabezado y del botón, solo en el hilo** | Enviar una plantilla con encabezado o con botón de enlace ya funciona **desde el hilo de conversación**. En **campañas** todavía solo se resuelven las variables del cuerpo: es el tramo que falta del sprint de interactivos. Y al crear plantillas, recuerda que el encabezado admite **exactamente una** variable y la URL del botón **una sola, al final**. |
+| **Plantillas reclasificadas a marketing** | Meta puede reclasificar una plantilla de cobranza como marketing si el texto suena promocional, y entonces cuesta varias veces más. La herramienta lo avisa (lista de plantillas) y lo bloquea (campañas), pero **la redacción es responsabilidad de quien la crea**: al crear plantillas, el encabezado admite **exactamente una** variable y la URL del botón **una sola, al final**. |
 | **Campañas sin agendar** | Se pueden pausar, reanudar y cancelar, pero todavía no programar por fecha y hora. |
 | **Falta el puente respuesta → resultado** | Las respuestas ya se entienden y se ven en el hilo, pero todavía no **disparan** reglas: mapear `YA_PAGUE`, `NO_RECONOZCO` o `NO_CONTACTAR` a un resultado de gestión (y a la pausa o la baja) es la fase 3. El criterio acordado: `YA_PAGUE` **no** marca pagado, entra como pago reportado pendiente de confirmación. |
 | **Baja solo por palabra clave** | Se detecta la palabra al inicio del mensaje (`STOP`, `STOP por favor`). Si el cliente la pide con otras palabras ("no me escriban más"), hay que marcarlo a mano desde su ficha. |
@@ -248,7 +249,7 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 216 pruebas unitarias en 32 archivos + **49 pruebas de integración** contra PostgreSQL |
+| Pruebas automatizadas | 216 pruebas unitarias en 32 archivos + **55 pruebas de integración** contra PostgreSQL |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
 | Migraciones | Versionadas en `prisma/migrations`, con catorce aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
@@ -324,8 +325,8 @@ El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 [`plan-interactivos.md`](plan-interactivos.md). Ya entregado: interpretar las
 respuestas de botón y de lista, el envío de plantillas con botones desde el hilo
 (las tres variables) y el aviso de plantillas reclasificadas a marketing.
-Falta: la misma resolución de variables en **campañas** y el **puente** de la
-respuesta al resultado de gestión.
+Falta: el **puente** de la respuesta al resultado de gestión (fase 3) y el botón
+que agenda la llamada (fase 4).
 
 **Proteger la operación.**
 
@@ -334,9 +335,9 @@ respuesta al resultado de gestión.
 
 **Mejorar el día a día de la bandeja.**
 
-4. **Botones y listas**: enviarlos e interpretar la respuesta del cliente.
+4. **Interactivos libres**: mandar botones y listas desde el compositor dentro de la ventana de 24 horas (las plantillas con botones ya se envían y sus respuestas ya se interpretan).
 5. **Programar campañas** por fecha y hora.
-6. **Variables en encabezado y botones** de la plantilla.
+6. **Puente respuesta → resultado de gestión**: que un «ya pagué» o un «no reconozco» disparen solos la regla que corresponde.
 
 **Cuando el equipo crezca.**
 
@@ -344,6 +345,10 @@ respuesta al resultado de gestión.
 8. **No leídos por persona**, si el equipo crece y molesta que el aviso sea por conversación.
 
 > La verificación en dos pasos salió de esta lista el 2026-10-15: ya está en el producto.
+> Y el 2026-10-16 salieron «interpretar las respuestas de botón y de lista»,
+> «enviar plantillas con botones» y «resolver las variables del encabezado y del
+> botón» —en el hilo **y en campañas**—, más el aviso y el bloqueo de plantillas
+> reclasificadas a marketing.
 
 ---
 

@@ -4,6 +4,48 @@ export type VariableContext = {
     columns: Record<string, string>;
 };
 
+/**
+ * Los valores que se guardan por destinatario y que se mandan a Meta: las
+ * variables del cuerpo, la del encabezado y la del botón de enlace.
+ */
+export type RecipientTemplateValues = {
+    body: string[];
+    header: string;
+    button: string;
+};
+
+/**
+ * Lee lo guardado en `CampaignRecipient.variables`.
+ *
+ * Las campañas creadas antes de que existieran el encabezado y el botón
+ * guardaban **sólo un arreglo** con las variables del cuerpo. Las nuevas
+ * guardan un objeto con las tres partes. Aquí se aceptan las dos formas, en un
+ * solo lugar, para que el resto del código no tenga que adivinar cuál es.
+ */
+export function readRecipientTemplateValues(
+    value: unknown
+): RecipientTemplateValues {
+    if (Array.isArray(value)) {
+        return {
+            body: value.map(String),
+            header: "",
+            button: ""
+        };
+    }
+
+    if (value && typeof value === "object") {
+        const stored = value as Record<string, unknown>;
+
+        return {
+            body: Array.isArray(stored.body) ? stored.body.map(String) : [],
+            header: typeof stored.header === "string" ? stored.header : "",
+            button: typeof stored.button === "string" ? stored.button : ""
+        };
+    }
+
+    return { body: [], header: "", button: "" };
+}
+
 export type ResolvedVariables = {
     values: string[];
     /** Referencias a columnas que no existen en el archivo. */

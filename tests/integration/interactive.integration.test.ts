@@ -66,6 +66,34 @@ async function deliver(payload: unknown) {
     return processed;
 }
 
+/**
+ * Espera a que el mensaje esté guardado.
+ *
+ * El worker de fondo corre cada dos segundos y puede tomar el evento justo
+ * antes de que la prueba vacíe la cola a mano; en ese caso la primera pasada
+ * no encuentra nada y el mensaje aparece un instante después. En vez de asumir
+ * que ya está, se espera un poco: una prueba que falla de vez en cuando es peor
+ * que una que tarda 300 ms más.
+ */
+async function waitForMessage(wamid: string) {
+    const deadline = Date.now() + 5000;
+
+    for (;;) {
+        const message = await prisma.message.findUnique({ where: { wamid } });
+
+        if (message) {
+            return message;
+        }
+
+        if (Date.now() > deadline) {
+            throw new Error(`El mensaje ${wamid} no se guardó en 5 segundos.`);
+        }
+
+        await runWebhookWorkerOnce().catch(() => 0);
+        await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+}
+
 /** Payload de un mensaje interactivo entrante. */
 function interactivePayload(params: {
     from: string;
@@ -121,7 +149,7 @@ test("un botón tocado se guarda con la opción que eligió el cliente", async (
         })
     );
 
-    const message = await prisma.message.findUniqueOrThrow({ where: { wamid } });
+    const message = await waitForMessage(wamid);
 
     assert.equal(message.type, MessageType.INTERACTIVE, "es un interactivo");
     assert.equal(message.replyId, "YA_PAGUE", "el identificador queda en claro");
@@ -169,7 +197,7 @@ test("elegir de una lista se distingue de tocar un botón", async () => {
         })
     );
 
-    const message = await prisma.message.findUniqueOrThrow({ where: { wamid } });
+    const message = await waitForMessage(wamid);
 
     assert.equal(message.interactiveType, "list_reply", "es una lista");
     assert.equal(message.replyId, "PAGO_PARCIAL");
@@ -219,7 +247,7 @@ test("un mensaje interactivo sin opción reconocible no rompe nada", async () =>
         })
     );
 
-    const message = await prisma.message.findUniqueOrThrow({ where: { wamid } });
+    const message = await waitForMessage(wamid);
 
     assert.equal(message.type, MessageType.INTERACTIVE);
     assert.equal(message.replyId, null, "sin identificador");

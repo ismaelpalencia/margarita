@@ -14,7 +14,7 @@ import {
     resolveVariableSpecs
 } from "../utils/campaign-variables";
 import { CreateCampaignFromExcelInput } from "../validations/campaign.validation";
-import { countTemplateVariables } from "../utils/template";
+import { templateVariableShape } from "../utils/template";
 import { LogService } from "./log.service";
 
 type ParsedRecipient = {
@@ -175,16 +175,40 @@ export class ExcelCampaignService {
             throw new Error("Plantilla no encontrada o no aprobada.");
         }
 
-        const requiredVariables = countTemplateVariables(template.components);
+        if ((template.category || "").toUpperCase() === "MARKETING") {
+            throw new Error(
+                `Meta clasificó "${template.name}" como marketing: cada mensaje cuesta varias veces más. ` +
+                    "Usa una plantilla de utilidad para la campaña."
+            );
+        }
+
+        const shape = templateVariableShape(template.components);
+        const requiredVariables = shape.body;
         const specs = [
             params.input.variable1 || "",
             params.input.variable2 || "",
             params.input.variable3 || ""
         ].slice(0, requiredVariables);
+        const headerSpec = shape.header ? params.input.headerVariable || "" : "";
+        const buttonSpec = shape.url ? params.input.buttonVariable || "" : "";
+
+        const faltantes: string[] = [];
 
         if (requiredVariables > 0 && specs.some((spec) => spec.trim() === "")) {
+            faltantes.push(`las ${requiredVariables} variable(s) del cuerpo`);
+        }
+
+        if (shape.header && headerSpec.trim() === "") {
+            faltantes.push("el encabezado");
+        }
+
+        if (shape.url && buttonSpec.trim() === "") {
+            faltantes.push("el botón de enlace");
+        }
+
+        if (faltantes.length > 0) {
             throw new Error(
-                `Esta plantilla necesita ${requiredVariables} variable(s). Complétalas para continuar.`
+                `Falta completar ${faltantes.join(" y ")}. Esta plantilla los pide.`
             );
         }
 
@@ -193,19 +217,41 @@ export class ExcelCampaignService {
          * columna, es mejor decirlo que dejar la campaña a medias.
          */
         const resolvedRows = parsedExcel.recipients.map((recipient) => {
-            const resolved = resolveVariableSpecs(
+            const context = {
+                name: recipient.name || null,
+                phone: recipient.phone,
+                columns: recipient.columns
+            };
+
+            const resolvedBody = resolveVariableSpecs(
                 requiredVariables > 0 ? specs : [],
-                {
-                    name: recipient.name || null,
-                    phone: recipient.phone,
-                    columns: recipient.columns
-                }
+                context
             );
+            const resolvedHeader = headerSpec
+                ? resolveVariableSpecs([headerSpec], context)
+                : { values: [], missingColumns: [] };
+            const resolvedButton = buttonSpec
+                ? resolveVariableSpecs([buttonSpec], context)
+                : { values: [], missingColumns: [] };
 
             return {
                 ...recipient,
-                values: resolved.values,
-                missingColumns: resolved.missingColumns
+                values: {
+                    body: resolvedBody.values,
+                    header: resolvedHeader.values[0] || "",
+                    button: resolvedButton.values[0] || ""
+                },
+                /** Para las revisiones: lo que no puede quedar vacío. */
+                requiredValues: [
+                    ...resolvedBody.values,
+                    ...(shape.header ? [resolvedHeader.values[0] || ""] : []),
+                    ...(shape.url ? [resolvedButton.values[0] || ""] : [])
+                ],
+                missingColumns: [
+                    ...resolvedBody.missingColumns,
+                    ...resolvedHeader.missingColumns,
+                    ...resolvedButton.missingColumns
+                ]
             };
         });
 
@@ -225,7 +271,7 @@ export class ExcelCampaignService {
         }
 
         const rowsWithoutValue = resolvedRows.filter((row) =>
-            requiredVariables > 0 && row.values.some((value) => value === "")
+            row.requiredValues.some((value) => value === "")
         ).length;
 
         if (rowsWithoutValue > 0) {

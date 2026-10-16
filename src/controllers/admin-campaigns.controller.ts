@@ -4,6 +4,7 @@ import { LogLevel, LogModule } from "@prisma/client";
 import { CampaignService } from "../services/campaign.service";
 import { LogService } from "../services/log.service";
 import { getRequiredParam } from "../utils/request";
+import { readRecipientTemplateValues } from "../utils/campaign-variables";
 
 import fs from "fs";
 import { ExcelCampaignService } from "../services/excel-campaign.service";
@@ -42,8 +43,9 @@ export class AdminCampaignsController {
     private static failureCode(error: unknown): string {
         const message = AdminCampaignsController.describeFailure(error);
 
+        if (/marketing/i.test(message)) return "marketing";
         if (/columna/i.test(message)) return "column";
-        if (/variable/i.test(message)) return "variables";
+        if (/variable|encabezado|botón de enlace/i.test(message)) return "variables";
         if (/contacto/i.test(message)) return "contacts";
         if (/destinatario/i.test(message)) return "recipients";
 
@@ -143,6 +145,8 @@ export class AdminCampaignsController {
         }
 
         return res.render("pages/admin/campaigns/show", {
+            /** Para mostrar los valores guardados por destinatario. */
+            readRecipientTemplateValues,
             user: req.user,
             campaign,
             success: req.query.success || null,

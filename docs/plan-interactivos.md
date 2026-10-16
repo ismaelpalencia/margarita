@@ -9,11 +9,15 @@ mismo trabajo: es **elegir el tramo que más vale y posponer el resto**.
 
 ## 1. Qué entra, qué se pospone y por qué
 
-**Estado del sprint A:** fase 1 ✅ entregada y verificada (respuestas de botón y de
-lista interpretadas, guardadas, visibles en el hilo y en la bitácora) · fase 2a ✅
-(envío de plantillas con botones desde el hilo, con las tres variables y el aviso
-de reclasificación a marketing) · **falta la fase 2b** (campañas con encabezado y
-botón de enlace) y, con ella, el bloqueo de campañas con plantilla reclasificada.
+**Estado: sprint A cerrado.** Fase 1 ✅ (respuestas de botón y de lista
+interpretadas, guardadas, visibles en el hilo y en la bitácora) · fase 2 ✅ en el
+hilo **y en campañas** (las tres variables resueltas por destinatario, con
+`{nombre}`, `{telefono}` y columnas del Excel) · aviso **y bloqueo** de plantillas
+reclasificadas a marketing.
+
+**Sigue el sprint B:** fase 3 (puente respuesta → resultado de gestión) y fase 4
+(el botón que agenda una llamada), que no dependen de Meta para construirse: sólo
+la verificación real necesita la plantilla aprobada y un teléfono.
 
 | Sprint | Fases | Entregable | Criterio de cierre |
 | --- | --- | --- | --- |

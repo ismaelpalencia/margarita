@@ -19,11 +19,15 @@ import { appConfig } from "../config/app.config";
 import { decryptSecret } from "../utils/crypto";
 import { describeMetaError } from "../utils/meta-error";
 import {
+    readRecipientTemplateValues,
     resolveVariableSpecs
 } from "../utils/campaign-variables";
 import { emitToWorkspace } from "../sockets";
 import { CreateCampaignInput } from "../validations/campaign.validation";
-import { renderTemplatePreview, countTemplateVariables } from "../utils/template";
+import {
+    renderTemplatePreview,
+    templateVariableShape
+} from "../utils/template";
 import { buildTemplateMessagePayload } from "../utils/template";
 import { LogService } from "./log.service";
 import { WhatsAppNumberService } from "./whatsapp-number.service";
@@ -98,7 +102,15 @@ export class CampaignService {
              */
             templates: templates.map((template) => ({
                 ...template,
-                variableCount: countTemplateVariables(template.components)
+                ...(() => {
+                    const shape = templateVariableShape(template.components);
+
+                    return {
+                        variableCount: shape.body,
+                        headerVariableCount: shape.header,
+                        urlVariableCount: shape.url
+                    };
+                })()
             })),
             contacts
         };
@@ -116,6 +128,26 @@ export class CampaignService {
             0,
             requiredVariables
         );
+    }
+
+    /**
+     * ¿Se puede usar esta plantilla en una campaña?
+     *
+     * Meta reclasifica a **marketing** las plantillas que huelen a promoción, y
+     * ahí el mensaje cuesta varias veces más. Una campaña de cobranza con una
+     * plantilla de marketing se lleva el tramo de utilidad por delante sin que
+     * nadie lo note, así que se detiene aquí, con el motivo escrito.
+     */
+    private static assertTemplateUsable(template: {
+        category?: string | null;
+        name: string;
+    }) {
+        if ((template.category || "").toUpperCase() === "MARKETING") {
+            throw new Error(
+                `Meta clasificó "${template.name}" como marketing: cada mensaje cuesta varias veces más. ` +
+                    "Revisa el texto (nada de promociones ni mayúsculas sostenidas) y vuelve a aprobarla, o usa una plantilla de utilidad."
+            );
+        }
     }
 
     static async createCampaign(
@@ -175,15 +207,31 @@ export class CampaignService {
             );
         }
 
-        const requiredVariables = countTemplateVariables(template.components);
-        const specs = this.resolveSpecs(input, requiredVariables);
+        this.assertTemplateUsable(template);
 
-        if (
-            requiredVariables > 0 &&
-            specs.some((spec) => spec.trim() === "")
-        ) {
+        const shape = templateVariableShape(template.components);
+        const requiredVariables = shape.body;
+        const specs = this.resolveSpecs(input, requiredVariables);
+        const headerSpec = shape.header ? input.headerVariable || "" : "";
+        const buttonSpec = shape.url ? input.buttonVariable || "" : "";
+
+        const faltantes: string[] = [];
+
+        if (requiredVariables > 0 && specs.some((spec) => spec.trim() === "")) {
+            faltantes.push(`las ${requiredVariables} variable(s) del cuerpo`);
+        }
+
+        if (shape.header && headerSpec.trim() === "") {
+            faltantes.push("el encabezado");
+        }
+
+        if (shape.url && buttonSpec.trim() === "") {
+            faltantes.push("el botón de enlace");
+        }
+
+        if (faltantes.length > 0) {
             throw new Error(
-                `Esta plantilla necesita ${requiredVariables} variable(s). Complétalas para continuar.`
+                `Falta completar ${faltantes.join(" y ")}. Esta plantilla los pide.`
             );
         }
 
@@ -193,24 +241,53 @@ export class CampaignService {
          * envió y el envío no depende de que el contacto cambie después.
          */
         const recipients = reachable.map((contact) => {
-            const resolved = resolveVariableSpecs(
+            const context = {
+                name: contact.customName || contact.profileName,
+                phone: contact.phone,
+                columns: {}
+            };
+
+            const resolvedBody = resolveVariableSpecs(
                 requiredVariables > 0 ? specs : [],
-                {
-                    name: contact.customName || contact.profileName,
-                    phone: contact.phone,
-                    columns: {}
-                }
+                context
             );
+            const resolvedHeader = headerSpec
+                ? resolveVariableSpecs([headerSpec], context)
+                : { values: [], missingColumns: [] };
+            const resolvedButton = buttonSpec
+                ? resolveVariableSpecs([buttonSpec], context)
+                : { values: [], missingColumns: [] };
+
+            const values = {
+                body: resolvedBody.values,
+                header: resolvedHeader.values[0] || "",
+                button: resolvedButton.values[0] || ""
+            };
 
             return {
                 contactId: contact.id,
                 phone: contact.phone,
                 status: CampaignRecipientStatus.PENDING,
+                /**
+                 * Se guardan las tres partes en un solo objeto cifrado. Las
+                 * campañas anteriores guardaban solo el arreglo del cuerpo; al
+                 * leer se aceptan las dos formas (ver
+                 * `readRecipientTemplateValues`).
+                 */
                 variables:
-                    requiredVariables > 0
-                        ? (resolved.values as Prisma.InputJsonValue)
+                    requiredVariables > 0 || shape.header || shape.url
+                        ? (values as unknown as Prisma.InputJsonValue)
                         : undefined,
-                resolvedValues: resolved.values
+                /**
+                 * Solo para la revisión de abajo: los valores que **no** pueden
+                 * quedar vacíos (por ejemplo, `{nombre}` en un contacto sin
+                 * nombre registrado).
+                 */
+                resolvedValues: [
+                    ...values.body,
+                    ...(shape.header ? [values.header] : []),
+                    ...(shape.url ? [values.button] : [])
+                ]
             };
         });
 
@@ -343,30 +420,43 @@ export class CampaignService {
             throw new Error("La plantilla de la campaña no está aprobada.");
         }
 
-        const requiredVariables = countTemplateVariables(campaign.template.components);
+        this.assertTemplateUsable(campaign.template);
 
-        if (requiredVariables > 0) {
-            /**
-             * Una campaña creada antes de soportar variables podría no
-             * tenerlas. Es mejor fallar aquí, con un mensaje claro, que
-             * dejar que Meta rechace cada envío con un error técnico.
-             */
-            const withoutVariables = campaign.recipients.filter(
-                (recipient) => {
-                    const stored = Array.isArray(recipient.variables)
-                        ? recipient.variables
-                        : [];
+        const shape = templateVariableShape(campaign.template.components);
 
-                    return stored.length !== requiredVariables;
-                }
-            );
+        /**
+         * Una campaña creada antes de soportar variables podría no tenerlas, y
+         * otra creada antes del encabezado y del botón podría no traerlos. Es
+         * mejor fallar aquí, con un mensaje claro, que dejar que Meta rechace
+         * cada envío con un error técnico.
+         */
+        const withoutVariables = campaign.recipients.filter((recipient) => {
+            const stored = readRecipientTemplateValues(recipient.variables);
 
-            if (withoutVariables.length > 0) {
-                throw new Error(
-                    `${withoutVariables.length} destinatario(s) no tienen los valores de las ` +
-                        `${requiredVariables} variable(s) de la plantilla. Crea la campaña de nuevo con esos datos.`
-                );
+            if (stored.body.length !== shape.body) {
+                return true;
             }
+
+            if (shape.header > 0 && stored.header.trim() === "") {
+                return true;
+            }
+
+            return shape.url > 0 && stored.button.trim() === "";
+        });
+
+        if (withoutVariables.length > 0) {
+            const partes = [
+                shape.body > 0 ? `${shape.body} del cuerpo` : null,
+                shape.header > 0 ? "el encabezado" : null,
+                shape.url > 0 ? "el botón de enlace" : null
+            ]
+                .filter(Boolean)
+                .join(", ");
+
+            throw new Error(
+                `${withoutVariables.length} destinatario(s) no tienen completos los valores de la plantilla (${partes}). ` +
+                    "Crea la campaña de nuevo con esos datos."
+            );
         }
 
         if (campaign.recipients.length === 0) {
@@ -635,16 +725,23 @@ export class CampaignService {
                     contactId: recipient.contact.id
                 });
 
-                const previewBody = renderTemplatePreview(
-                    campaign.template.components,
-                    Array.isArray(recipient.variables)
-                        ? recipient.variables.map(String)
-                        : []
+                /**
+                 * Lo guardado al crear la campaña, que puede traer las tres
+                 * partes (cuerpo, encabezado y botón de enlace).
+                 */
+                const recipientValues = readRecipientTemplateValues(
+                    recipient.variables
                 );
 
-                const recipientVariables = Array.isArray(recipient.variables)
-                    ? recipient.variables.map(String)
-                    : [];
+                const previewBody = renderTemplatePreview(
+                    campaign.template.components,
+                    recipientValues.body
+                );
+
+                /** Lo que se ve en el hilo: el encabezado arriba y luego el cuerpo. */
+                const previewText = recipientValues.header
+                    ? `${recipientValues.header}\n\n${previewBody}`
+                    : previewBody;
 
                 const localMessage = await prisma.message.create({
                     data: {
@@ -655,7 +752,7 @@ export class CampaignService {
                         type: MessageType.TEMPLATE,
                         status: MessageStatus.SENDING,
                         source: MessageSource.CAMPAIGN,
-                        body: previewBody,
+                        body: previewText,
                         metaPayload: toPrismaJson({
                             campaignId: campaign.id,
                             campaignRecipientId: recipient.id,
@@ -671,7 +768,9 @@ export class CampaignService {
                     to: recipient.phone,
                     name: campaign.template.name,
                     language: campaign.template.language,
-                    variables: recipientVariables
+                    variables: recipientValues.body,
+                    header: recipientValues.header,
+                    button: recipientValues.button
                 });
 
                 const response = await axios.post(
