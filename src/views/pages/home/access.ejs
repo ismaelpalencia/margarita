@@ -1,0 +1,104 @@
+<%- include("../../partials/header", { title }) %>
+
+<%
+    /**
+     * Página para quien ya contrató y busca por dónde entrar. Existe porque la
+     * página de venta vive en otro dominio (`margaritaapp.org`) y el formulario
+     * de acceso vive siempre en el dominio de la operación de cada cliente:
+     * aquí no hay formulario, sólo la explicación y el contacto.
+     */
+    const contactUrl =
+        supportWhatsappUrl ||
+        (supportEmail ? `mailto:${supportEmail}` : "/");
+%>
+
+<main class="min-h-screen bg-white text-slate-950">
+    <section class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+            <a href="/" class="flex items-center gap-3">
+                <img src="/brand/img/margarita-wordmark-512.png" alt="Margarita" class="h-10 w-auto" />
+            </a>
+
+            <a href="/" class="rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100">
+                Inicio
+            </a>
+        </div>
+    </section>
+
+    <section class="bg-gradient-to-b from-margarita-50 to-white">
+        <div class="mx-auto max-w-3xl px-6 py-16">
+            <p class="text-sm font-black uppercase tracking-wide text-margarita-700">
+                Acceso
+            </p>
+
+            <h1 class="mt-2 text-4xl font-black leading-tight">
+                Ya tengo acceso
+            </h1>
+
+            <p class="mt-4 text-lg leading-8 text-slate-600">
+                El panel de cada empresa vive en <strong>su propia dirección</strong>,
+                del tipo <span class="font-mono text-base">tu-empresa.margaritaapp.org</span>.
+                No se entra desde esta página: cada operación tiene su dirección y su
+                propia base de datos.
+            </p>
+
+            <div class="mt-8 space-y-4">
+                <div class="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+                    <p class="font-black text-slate-900">
+                        1. Escribe la dirección que te entregamos
+                    </p>
+
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        Es la que anotamos en tu contrato y en la sesión de arranque.
+                        Guárdala en favoritos: ahí vive tu operación.
+                    </p>
+                </div>
+
+                <div class="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+                    <p class="font-black text-slate-900">
+                        2. Entra con tu correo y contraseña
+                    </p>
+
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        El usuario administrador es el de la persona que firmó. Los demás
+                        usuarios los crea el administrador desde <strong>Equipo</strong>, y
+                        cada uno entra con su propia cuenta.
+                    </p>
+                </div>
+
+                <div class="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+                    <p class="font-black text-slate-900">
+                        3. Si no te da acceso, escríbenos
+                    </p>
+
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        La contraseña no se recupera por correo (la herramienta no manda
+                        mensajes): la restablece un administrador de tu empresa desde
+                        <strong>Equipo</strong>, o nosotros desde el servidor si nadie
+                        puede entrar.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-10 rounded-2xl bg-slate-950 p-6 text-white">
+                <p class="font-black">
+                    ¿Perdiste la dirección o el usuario?
+                </p>
+
+                <p class="mt-2 text-sm leading-6 text-slate-300">
+                    Escríbenos y te la pasamos:
+                    <span class="font-semibold text-white"><%= supportEmail %></span>
+                    <% if (supportWhatsappDisplay) { %>
+                        · WhatsApp <span class="font-semibold text-white"><%= supportWhatsappDisplay %></span>
+                    <% } %>
+                </p>
+
+                <a href="<%= contactUrl %>" class="mt-5 inline-flex rounded-xl bg-margarita-500 px-6 py-3 text-sm font-black text-white hover:bg-margarita-400">
+                    Escribirnos
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<%- include("../../partials/footer") %>

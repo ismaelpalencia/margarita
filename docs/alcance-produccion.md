@@ -2,7 +2,16 @@
 
 Documento de referencia para decidir y sostener el uso de Margarita en producción. Describe **lo que la herramienta hace hoy**, lo que no hace, los controles de seguridad vigentes y las responsabilidades que quedan del lado de quien la opera.
 
-Última revisión: 2026-10-15 (verificación en dos pasos con código QR, cifrado de los correos de acceso, identidad de marca, panel usable en celular y modelo de cobro mes con mes).
+Última revisión: 2026-10-16 (precios vigentes, landing separada por dominio, plantillas de cobranza con dos botones y plan de interactivos).
+
+> **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
+> Instalación **$2,500.00 MXN** (una vez). Mensualidad **$900.00 MXN**, precio
+> de promoción. **El cliente debe llegar con su cuenta de Meta ya configurada**;
+> si no la tiene, la conexión con Meta se cotiza aparte.
+>
+> Los documentos [`propuesta-comercial.md`](propuesta-comercial.md) y
+> [`facturacion.md`](facturacion.md) conservan los números anteriores a
+> propósito; hay que ajustarlos antes de mandarlos a un cliente.
 
 ### ¿Se puede ofrecer hoy?
 
@@ -10,8 +19,30 @@ Sí, como **instalación por empresa** en Railway: el alta de un cliente nuevo t
 
 | Punto | Estado |
 | --- | --- |
-| Cuenta de WhatsApp y método de pago en Meta | **Del cliente.** Es el trámite que más tarda (verificación del negocio, nombre visible y registro del número con PIN). Hay [`guia-meta.md`](guia-meta.md) para acompañarlo; si se pide ayuda, se cobra aparte. |
-| Cobro y contrato | **Del operador.** El modelo es instalación (que incluye el primer mes) + mensualidad mes con mes, con un **mínimo de tres meses** por contrato. Los precios vigentes, las fechas de la promoción y las frases para cobrar están en [`facturacion.md`](facturacion.md). |
+| Cuenta de WhatsApp y método de pago en Meta | **Del cliente, y de entrada.** Llega con su cuenta de WhatsApp Business ya configurada (verificación del negocio, nombre visible, número registrado con PIN y método de pago). Si no la tiene, acompañarlo es una **cotización aparte**; [`guia-meta.md`](guia-meta.md) sirve para hacerlo solo. |
+| Cobro y contrato | **Del operador.** Instalación $2,500 (una vez) + mensualidad $900 (promoción), mes con mes. Recomendado: **mínimo tres meses** por contrato. |
+| Plantillas de las campañas | **Del cliente, con nuestra guía.** Al contratar se le entrega el documento de cómo crear las plantillas (categoría, textos permitidos, botones y variables); armarlas en Meta es suyo, y revisarlas con él es parte del arranque. |
+
+### Cómo está repartido el producto entre dominios
+
+La página de venta **ya no vive dentro de la instalación de cada cliente**:
+
+| Dirección | Qué sirve |
+| --- | --- |
+| `margaritaapp.org` | La oferta, la guía de Meta y el aviso de privacidad del producto. Es un **sitio estático** que se genera con `npm run landing:build` y se sube aparte (carpeta [`landing/`](../landing/)) |
+| `palencia.margaritaapp.org`, `cliente.margaritaapp.org` | La instalación de cada operación. Su raíz **manda al inicio de sesión**, no a la oferta |
+
+Hoy cada cliente es un servicio independiente en Railway (una instalación por
+empresa), así que cada subdominio lleva su propio registro DNS, con el proxy de
+Cloudflare apagado porque el panel usa conexiones en vivo. El comodín
+`*.margaritaapp.org` queda para cuando se pase a multi-inquilino: como la
+dirección del cliente no cambia, esa migración se puede hacer después sin
+avisarle a nadie. El detalle operativo está en
+[`landing/README.md`](../landing/README.md).
+
+La variable `PRODUCT_DOMAIN` decide **quién sirve la oferta** (se admiten varios
+dominios separados por coma). Sin ella, la aplicación se comporta como antes y
+sirve la landing en su propia raíz, que es lo que hace una instalación sola.
 | Opt-in de los contactos | **Del cliente.** La herramienta lo registra y respeta las bajas, pero no verifica de dónde salió el consentimiento. |
 | Respaldos fuera del servidor | **Del cliente (u operación compartida).** Hay copia automática cada 24 h, pero vive en el mismo Volume que la base: alguien tiene que descargarla de vez en cuando. |
 | Nombres de los contactos | **Único dato personal que queda en claro**, porque la búsqueda por texto del panel depende de ellos. Está documentado como límite y es el siguiente pendiente. |
@@ -123,10 +154,10 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | --- | --- |
 | **Solo México** | El normalizador de teléfonos asume números mexicanos y agrega el prefijo `521`. Números de otros países se rechazan. |
 | **Archivos con caducidad** | Meta conserva lo que envían los clientes alrededor de 30 días. Un archivo que nadie abrió en ese plazo ya no se puede recuperar; el hilo lo avisa en lugar de fallar. |
-| **Sin botones ni listas** | Se envían texto, plantillas y archivos, pero todavía no mensajes interactivos (botones o listas). |
-| **Variables solo en el cuerpo** | Las campañas resuelven las variables del componente `BODY` de la plantilla. Si la plantilla tiene variables en el encabezado o en un botón con URL, hoy no se llenan. |
+| **Sin botones ni listas** | Se envían texto, plantillas y archivos, pero todavía no mensajes interactivos (botones o listas). **Está en camino**: el plan de dos sprints está en [`plan-interactivos.md`](plan-interactivos.md), y para cobranza el alcance acordado es una plantilla con **dos botones**: «Quiero que me llame un asesor» (respuesta rápida) y «Aviso de privacidad» (enlace). |
+| **Variables solo en el cuerpo** | Las campañas resuelven las variables del componente `BODY` de la plantilla. Si la plantilla tiene variables en el encabezado o en un botón con URL, **hoy no se llenan** (es la fase 2 del plan de interactivos). Cuidado al crear plantillas: el encabezado admite **exactamente una** variable y la URL del botón **una sola, al final**. |
 | **Campañas sin agendar** | Se pueden pausar, reanudar y cancelar, pero todavía no programar por fecha y hora. |
-| **Respuestas de botones sin interpretar** | Si un cliente toca un botón, se guarda como mensaje interactivo genérico, sin saber qué opción eligió. |
+| **Respuestas de botones sin interpretar** | Si un cliente toca un botón, se guarda como `[Mensaje interactivo]`, sin saber qué opción eligió. Es la fase 1 del plan de interactivos y la que convierte un toque en un resultado de gestión (**sin** marcar «pagado»: entra como pago reportado, pendiente de confirmación). |
 | **Baja solo por palabra clave** | Se detecta la palabra al inicio del mensaje (`STOP`, `STOP por favor`). Si el cliente la pide con otras palabras ("no me escriban más"), hay que marcarlo a mano desde su ficha. |
 | **El opt-in no se verifica** | La herramienta registra el consentimiento y respeta las bajas, pero no comprueba de dónde salió: registrar el opt-in es responsabilidad del operador. Las campañas avisan cuántos destinatarios no tienen consentimiento registrado. |
 | **No leídos por conversación** | El contador es del hilo, no de cada persona: si alguien abre la conversación, el aviso desaparece para todos. |
@@ -205,7 +236,9 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 - **Descargar el respaldo fuera del servidor** de vez en cuando: el respaldo automático vive en el mismo lugar que la base, así que cubre un borrado accidental o una migración mal hecha, no la pérdida del disco completo. Y **probar una restauración** al menos una vez (`npm run db:restore -- --file=… --dry-run` para validar, sin `--dry-run` para restaurar).
 - **Acceso del administrador**: crear un segundo administrador desde Equipo y comprobar que puede entrar; definir quién más tiene acceso y dónde se guarda la contraseña. Con un solo admin, cualquier olvido depende del servidor.
 - **Respaldos y adjuntos**: confirmar que el volumen de archivos existe y que alguien descarga respaldos con regularidad, porque nada de eso ocurre solo.
-- **Cobro y contrato**: dejar por escrito el mínimo de tres meses, que la mensualidad es adelantada y que el consumo de Meta va por cuenta del cliente. El detalle está en [`facturacion.md`](facturacion.md).
+- **Cobro y contrato**: dejar por escrito el mínimo de tres meses, que la mensualidad es adelantada y que el consumo de Meta va por cuenta del cliente.
+- **Entregar la guía de plantillas y la sesión de arranque** al contratar: el cliente arma sus plantillas en Meta (categoría, textos permitidos, botones y variables), y esa guía es la que evita que se las rechacen o que las reclasifiquen a marketing. Revisarlas con él es parte del arranque.
+- **Repartir los números entre el equipo** si hay más de uno: hoy todos los agentes ven todos los números. La asignación por persona (tabla usuario ↔ número) está diseñada y pendiente en [`multinumero.md`](multinumero.md).
 
 ---
 
@@ -316,6 +349,22 @@ npx tsc --noEmit
 
 # Cifrar los datos que quedaron en claro antes del cifrado en reposo
 npm run db:encrypt-data
+```
+
+Para comprobar el reparto de dominios:
+
+```bash
+# La oferta vive en el dominio del producto (sitio estático aparte)
+curl -sI https://margaritaapp.org | head -1
+
+# La instalación de un cliente manda al acceso, no a la oferta
+curl -sI https://palencia.margaritaapp.org | grep -i location
+```
+
+Para regenerar el sitio de venta después de cambiar un texto o un precio:
+
+```bash
+npm run landing:build     # deja la carpeta landing/ lista para subir
 ```
 
 En el panel:

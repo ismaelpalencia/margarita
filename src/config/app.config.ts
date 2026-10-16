@@ -23,6 +23,21 @@ const resolvedAppUrl = resolveAppUrl({
 
 const appUrl = resolvedAppUrl.url;
 
+/**
+ * Dominios donde vive la **página de venta** (la landing), separados por
+ * coma. En cualquier otro dominio —los subdominios de cada operación, tipo
+ * `palencia.margaritaapp.org`— la raíz manda al inicio de sesión en lugar de
+ * mostrar la oferta.
+ *
+ * Si no se define, la aplicación se comporta como antes y sirve la landing en
+ * su propia raíz: así una instalación suelta (o las pruebas) sigue
+ * funcionando sin configurar nada.
+ */
+const productDomains = (process.env.PRODUCT_DOMAIN || "")
+    .split(",")
+    .map((domain) => domain.trim().toLowerCase())
+    .filter(Boolean);
+
 if (resolvedAppUrl.source === "RAILWAY_PUBLIC_DOMAIN") {
     console.warn(
         `[config] APP_URL no está definida: se usa el dominio público de Railway (${appUrl.url}). ` +
@@ -90,12 +105,34 @@ if (encryptionKey && encryptionKey.length < 32) {
     );
 }
 
+/**
+ * ¿Este host sirve la página de venta?
+ *
+ * Sin `PRODUCT_DOMAIN` configurado se responde que sí, que es el
+ * comportamiento de siempre: una instalación sola (o las pruebas) sirve la
+ * landing en su raíz. Con la variable puesta, sólo la sirven esos dominios; los
+ * subdominios de cada operación mandan al inicio de sesión.
+ */
+export function servesLanding(
+    host: string,
+    domains: string[] = productDomains
+): boolean {
+    if (domains.length === 0) {
+        return true;
+    }
+
+    const clean = host.split(":")[0].trim().toLowerCase();
+
+    return domains.includes(clean);
+}
+
 export const appConfig = {
     name: process.env.APP_NAME || "Margarita",
     version: process.env.APP_VERSION?.trim() || readPackageVersion(),
     /** Railway expone el commit desplegado en esta variable. */
     commit: process.env.RAILWAY_GIT_COMMIT_SHA?.trim().slice(0, 7) || "",
     appUrl: appUrl.url,
+    productDomains,
     port: Number(process.env.PORT) || 3000,
     env: process.env.NODE_ENV || "development",
     timezone: process.env.TIMEZONE || "America/Mexico_City",

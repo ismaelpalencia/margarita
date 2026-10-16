@@ -156,6 +156,8 @@
                                         <%= conversation.contact.customName || conversation.contact.profileName || conversation.contact.phone %>
                                     </span>
 
+                                    <%- include("../../../partials/number-badge", { number: conversation.whatsappNumber }) %>
+
                                     <% if (conversation.unreadCount > 0) { %>
                                         <span class="rounded-full bg-margarita-600 px-2 py-0.5 text-[11px] font-bold text-white">
                                             <%= conversation.unreadCount %>

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import { appConfig } from "../config/app.config";
+import { appConfig, servesLanding } from "../config/app.config";
 import { SetupService } from "../services/setup.service";
 
 /**
@@ -26,7 +26,7 @@ function supportContext() {
 }
 
 export class HomeController {
-    static async index(_req: Request, res: Response) {
+    static async index(req: Request, res: Response) {
         /**
          * Instalación recién creada (por ejemplo desde la plantilla de
          * Railway): en lugar de la página de venta, se manda al asistente de
@@ -41,6 +41,17 @@ export class HomeController {
             /** Si la base no responde, se muestra la landing normal. */
         }
 
+        /**
+         * Cada operación vive en su propio subdominio (por ejemplo
+         * `palencia.margaritaapp.org`) y ahí la raíz no es la página de venta:
+         * el equipo del cliente cae directo al inicio de sesión. La oferta vive
+         * en los dominios declarados en `PRODUCT_DOMAIN`, y de ahí en adelante
+         * en su propio sitio estático (`landing/`).
+         */
+        if (!servesLanding(req.hostname || "")) {
+            return res.redirect("/auth/login");
+        }
+
         return res.render("pages/home/index", {
             title: "Margarita - WhatsApp operativo",
             ...supportContext()
@@ -50,6 +61,18 @@ export class HomeController {
     static async howToStart(_req: Request, res: Response) {
         return res.render("pages/home/how-to-start", {
             title: "Cómo empezar - Margarita",
+            ...supportContext()
+        });
+    }
+
+    /**
+     * «Ya tengo acceso»: la página a la que apunta el botón de la landing
+     * estática. Explica de dónde se entra, porque cada operación tiene su
+     * propio subdominio y aquí no hay formulario que valga.
+     */
+    static async access(_req: Request, res: Response) {
+        return res.render("pages/home/access", {
+            title: "Ya tengo acceso - Margarita",
             ...supportContext()
         });
     }

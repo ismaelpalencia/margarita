@@ -1,0 +1,17 @@
+<%#
+    Etiqueta con el número de WhatsApp por el que entró el hilo.
+
+    Con varios números, dos personas pueden estar atendiendo la misma cartera y
+    es fácil confundir de dónde salió cada conversación (y, con ella, la ventana
+    de 24 horas, que es por número). La etiqueta lo dice de un vistazo; el
+    teléfono queda en el `title` para cuando haya dos números con el mismo
+    nombre visible.
+%>
+<% if (typeof number !== "undefined" && number) { %>
+    <span
+        class="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200"
+        title="<%= number.displayName || number.phoneNumber %> · <%= number.phoneNumber %>"
+    >
+        <%= number.displayName || number.phoneNumber %>
+    </span>
+<% } %>
