@@ -32,6 +32,11 @@ Lo que se vende es **un paquete y un extra**:
 (conversaciones y plantillas). Se dice en la página pública, en la propuesta y
 en el contrato: nuestra factura es solo por la herramienta y los servicios.
 
+**Para vender:** [`dolores-y-posts.md`](dolores-y-posts.md) tiene el material de
+contenido —el dolor del bloqueo, los otros siete dolores, los mitos, los posts
+listos y lo que no se debe prometer— y sirve también como guion de la primera
+conversación.
+
 **Para cobrar:** [`facturacion.md`](facturacion.md) junta los precios vigentes,
 el mínimo de tres meses por contrato, las fechas de la promoción, el ciclo de
 cobro mes a mes y las frases que ya funcionan con los clientes.

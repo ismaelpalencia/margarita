@@ -657,6 +657,7 @@ Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArg
 | [`docs/marca.md`](docs/marca.md) | El símbolo, la paleta y el tono: cómo se ve Margarita y cómo se regenera |
 | [`docs/propuesta-comercial.md`](docs/propuesta-comercial.md) | Plantilla de propuesta: alcance, precios, qué no incluye y tiempos |
 | [`docs/facturacion.md`](docs/facturacion.md) | Reglas de cobro y facturación: precios, mínimo de tres meses, fechas de la promoción y qué decirle al cliente |
+| [`docs/dolores-y-posts.md`](docs/dolores-y-posts.md) | Material para vender: el dolor del bloqueo, los otros siete dolores, mitos, posts listos y lo que no se debe prometer |
 | [`docs/alcance-produccion.md`](docs/alcance-produccion.md) | Alcance actual, límites, seguridad y responsabilidades para uso en producción |
 | [`docs/multinumero.md`](docs/multinumero.md) | Diseño del multinúmero: modelo, migración, uso y pendientes |
 | [`docs/aviso-privacidad.md`](docs/aviso-privacidad.md) | Aviso de privacidad para revisar y publicar (la versión pública vive en `/aviso-de-privacidad`) |
