@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Plantillas | Margarita</title>
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
 
     <%- include("../../../partials/brand-head") %>
 </head>
@@ -152,7 +152,41 @@
                             </td>
 
                             <td class="px-5 py-4 text-slate-600">
-                                <%= template.category || "—" %>
+                                <%
+                                    /**
+                                     * Meta reclasifica a marketing las plantillas
+                                     * que huelen a promoción, y ahí el mensaje
+                                     * cuesta varias veces más. Se avisa aquí, que
+                                     * es donde se revisan, y no cuando llega la
+                                     * factura.
+                                     */
+                                    const shape = templateVariableShape(template.components);
+                                    const tieneBotones = shape.url > 0 || shape.header > 0;
+                                    const esMarketing =
+                                        (template.category || "").toUpperCase() === "MARKETING";
+                                %>
+
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span><%= template.category || "—" %></span>
+
+                                    <% if (tieneBotones) { %>
+                                        <span
+                                            class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600"
+                                            title="Encabezado con variable y/o botón con enlace"
+                                        >
+                                            con botones
+                                        </span>
+                                    <% } %>
+
+                                    <% if (esMarketing) { %>
+                                        <span
+                                            class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800"
+                                            title="Meta la clasificó como marketing: cuesta más por mensaje. Revisa que el texto sea transaccional."
+                                        >
+                                            marketing
+                                        </span>
+                                    <% } %>
+                                </div>
                             </td>
 
                             <td class="px-5 py-4">

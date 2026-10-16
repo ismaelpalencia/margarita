@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import { TemplateService } from "../services/template.service";
+import { templateVariableShape } from "../utils/template";
 
 export class AdminTemplatesController {
     static async index(req: Request, res: Response) {
@@ -11,6 +12,8 @@ export class AdminTemplatesController {
         return res.render("pages/admin/templates/index", {
             user: req.user,
             templates,
+            /** Para marcar las que traen encabezado con variable o botón. */
+            templateVariableShape,
             success: req.query.success || null,
             error: req.query.error || null,
             count: req.query.count || null

@@ -81,6 +81,19 @@ app.use(
 
 app.use(express.static(path.join(rootDir, "src", "public")));
 
+/**
+ * Versión desplegada, disponible en todas las plantillas.
+ *
+ * Se usa para "romper" la caché del navegador en el CSS y los favicons: sin
+ * esto, un despliegue cambia los archivos pero el navegador sigue mostrando los
+ * viejos, y el síntoma clásico es el logo de la pestaña (el favicon se cachea
+ * durante días). Cambia en cada despliegue porque lleva el commit.
+ */
+app.use((_req, res, next) => {
+    res.locals.assetVersion = appConfig.commit || appConfig.version;
+    next();
+});
+
 app.set("view engine", "ejs");
 
 app.set("views", path.join(rootDir, "src", "views"));

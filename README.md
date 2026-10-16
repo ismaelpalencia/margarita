@@ -659,6 +659,7 @@ Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArg
 | [`docs/facturacion.md`](docs/facturacion.md) | Reglas de cobro y facturación: precios, mínimo de tres meses, fechas de la promoción y qué decirle al cliente |
 | [`docs/dolores-y-posts.md`](docs/dolores-y-posts.md) | Material para vender: el dolor del bloqueo, los otros siete dolores, mitos, posts listos y lo que no se debe prometer |
 | [`landing/`](landing/README.md) | La página de venta como sitio estático, para subir aparte (`npm run landing:build`) |
+| [`docs/dominios.md`](docs/dominios.md) | Cómo conectar el dominio de una operación, dónde vive la landing y qué comprobar después |
 | [`docs/plan-interactivos.md`](docs/plan-interactivos.md) | Cómo entrar en dos sprints a la evolución de botones e interacciones: alcance, bloqueante de Meta, decisiones y mapa técnico |
 | [`nuevo_roadmap.md`](nuevo_roadmap.md) | Especificación completa de botones, plantillas interactivas, contador del tramo y llamadas (documento de trabajo) |
 | [`docs/alcance-produccion.md`](docs/alcance-produccion.md) | Alcance actual, límites, seguridad y responsabilidades para uso en producción |

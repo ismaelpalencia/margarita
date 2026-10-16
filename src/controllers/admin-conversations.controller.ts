@@ -8,6 +8,7 @@ import { QuickReplyService } from "../services/quick-reply.service";
 import { ContactOutcomeService } from "../services/contact-outcome.service";
 import { SendPolicyService } from "../services/send-policy.service";
 import { startOfTodayIn } from "../utils/date";
+import { templateVariableShape } from "../utils/template";
 import {
     OUTCOME_BADGE_CLASSES,
     OUTCOME_LABELS,
@@ -119,6 +120,8 @@ export class AdminConversationsController {
             formatDateTimeMX,
             formatDayLabelMX,
             formatTimeMX,
+            /** Para que el compositor muestre los campos que la plantilla pide. */
+            templateVariableShape,
             error: req.query.error || null,
             success: req.query.success || null
         });

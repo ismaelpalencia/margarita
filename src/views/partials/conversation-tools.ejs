@@ -84,31 +84,143 @@
                     <option value="">Selecciona plantilla</option>
 
                     <% templates.forEach((template) => { %>
-                        <option value="<%= template.id %>">
+                        <%
+                            /**
+                             * Se manda a la vista la forma de cada plantilla para
+                             * mostrar solo los campos que hacen falta: el
+                             * encabezado y el botón de enlace llevan una sola
+                             * variable, y mandar un componente de más hace que
+                             * Meta rechace el envío.
+                             */
+                            const shape = templateVariableShape(template.components);
+                        %>
+                        <option
+                            value="<%= template.id %>"
+                            data-variables="<%= shape.body %>"
+                            data-header-variable="<%= shape.header %>"
+                            data-url-variable="<%= shape.url %>"
+                        >
                             <%= template.name %> · <%= template.language %>
                         </option>
                     <% }) %>
                 </select>
 
-                <div class="grid gap-2 sm:grid-cols-3">
+                <div class="grid gap-2 sm:grid-cols-3" data-body-fields>
                     <% [1, 2, 3].forEach((position) => { %>
-                        <input
-                            name="variable<%= position %>"
-                            placeholder="Variable <%= position %>"
-                            class="rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                        />
+                        <div data-body-field data-position="<%= position %>" class="hidden">
+                            <input
+                                name="variable<%= position %>"
+                                data-body-input
+                                placeholder="Variable <%= position %>"
+                                class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                            />
+                        </div>
                     <% }) %>
+                </div>
+
+                <div class="grid gap-2 sm:grid-cols-2">
+                    <label data-header-field class="hidden">
+                        <span class="mb-1 block text-xs font-semibold uppercase text-slate-500">
+                            Encabezado
+                        </span>
+
+                        <input
+                            name="headerVariable"
+                            data-header-input
+                            placeholder="Ej. CP-20260001"
+                            class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                        />
+                    </label>
+
+                    <label data-url-field class="hidden">
+                        <span class="mb-1 block text-xs font-semibold uppercase text-slate-500">
+                            Botón de enlace
+                        </span>
+
+                        <input
+                            name="buttonVariable"
+                            data-url-input
+                            placeholder="Ej. CP-20260001"
+                            class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                        />
+                    </label>
                 </div>
 
                 <p class="text-xs text-slate-500">
                     En el cuerpo de la plantilla, los valores fijos se escriben tal cual
                     y el nombre del contacto con <span class="font-mono">{nombre}</span>.
+                    Si la plantilla trae encabezado o un botón con enlace, aparecen sus
+                    campos: el encabezado admite <strong>una</strong> variable y el enlace
+                    otra, al final.
                 </p>
 
                 <button class="w-full rounded-xl bg-margarita-600 px-4 py-3 text-sm font-semibold text-white hover:bg-margarita-700">
                     Enviar plantilla
                 </button>
             </form>
+
+            <script>
+                /**
+                 * Muestra sólo los campos que la plantilla elegida pide.
+                 *
+                 * El encabezado lleva una variable y el botón de enlace otra; el
+                 * cuerpo, las que tenga. Mandar un componente de más (o uno
+                 * vacío) hace que Meta rechace el envío, así que los campos
+                 * viajan con el formulario sólo cuando corresponden.
+                 */
+                (function () {
+                    const form = document.querySelector('form[action$="/messages/template"]');
+
+                    if (!form) {
+                        return;
+                    }
+
+                    const select = form.querySelector('select[name="templateId"]');
+                    const bodyFields = form.querySelectorAll("[data-body-field]");
+                    const headerField = form.querySelector("[data-header-field]");
+                    const headerInput = form.querySelector("[data-header-input]");
+                    const urlField = form.querySelector("[data-url-field]");
+                    const urlInput = form.querySelector("[data-url-input]");
+
+                    function toggle(field, input, visible) {
+                        if (!field || !input) {
+                            return;
+                        }
+
+                        field.classList.toggle("hidden", !visible);
+                        input.disabled = !visible;
+                        input.required = visible;
+                    }
+
+                    function refresh() {
+                        const option = select ? select.selectedOptions[0] : null;
+                        const variables = Number(option?.getAttribute("data-variables") || 0);
+                        const header = Number(option?.getAttribute("data-header-variable") || 0);
+                        const url = Number(option?.getAttribute("data-url-variable") || 0);
+
+                        bodyFields.forEach(function (field) {
+                            const position = Number(field.getAttribute("data-position") || 0);
+                            const input = field.querySelector("[data-body-input]");
+                            const visible = Boolean(option) && position <= variables;
+
+                            field.classList.toggle("hidden", !visible);
+
+                            if (input) {
+                                input.disabled = !visible;
+                                input.required = visible;
+                            }
+                        });
+
+                        toggle(headerField, headerInput, Boolean(option) && header > 0);
+                        toggle(urlField, urlInput, Boolean(option) && url > 0);
+                    }
+
+                    if (select) {
+                        select.addEventListener("change", refresh);
+                        refresh();
+                    }
+                })();
+            </script>
         <% } %>
     </section>
 <% } %>

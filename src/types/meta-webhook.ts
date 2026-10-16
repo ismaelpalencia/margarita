@@ -82,7 +82,23 @@ export type MetaWebhookMessage = {
         filename?: string;
         caption?: string;
     };
-    interactive?: unknown;
+    /**
+     * Respuesta a un botón o a una lista. Meta manda `type` (`button_reply` o
+     * `list_reply`) y, dentro, el `id` de la opción elegida y su `title` —que es
+     * lo que la persona vio en pantalla—.
+     */
+    interactive?: {
+        type?: string;
+        button_reply?: {
+            id?: string;
+            title?: string;
+        };
+        list_reply?: {
+            id?: string;
+            title?: string;
+            description?: string;
+        };
+    };
     button?: unknown;
 };
 

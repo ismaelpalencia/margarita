@@ -16,7 +16,14 @@ plantilla o la variable de entorno, se corre el comando y se vuelve a subir.
 `acceso.html`, el CSS, los archivos de marca y los favicons. Todo con rutas
 relativas: funciona igual en un dominio propio o dentro de una carpeta.
 
+> Este `README.md` es la explicación de la carpeta. Si subes la carpeta completa
+> a un hosting estático, se publica como `/README.md`: no molesta, pero puedes
+> quitarlo del paquete antes de subir.
+
 ---
+
+La guía completa —dominio de la operación, variables, DNS y comprobaciones—
+está en [`../docs/dominios.md`](../docs/dominios.md).
 
 ## Cómo subirlo
 

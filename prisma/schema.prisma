@@ -516,6 +516,18 @@ model Message {
   mediaId  String?
   mimeType String?
 
+  /**
+   * Respuesta de un botón o de una lista (mensaje interactivo entrante).
+   *
+   * `replyId` va **en claro** a propósito: es la llave con la que se mapea la
+   * respuesta a un resultado de gestión, así que se filtra y se compara. El
+   * título es lo que la persona vio y se leyó ("Ya pagué"), y va **cifrado**
+   * como el resto del contenido; por eso no se puede buscar por él.
+   */
+  interactiveType String?
+  replyId         String?
+  replyTitle      String?
+
   mediaPath         String?
   mediaSize         Int?
   mediaFilename     String?

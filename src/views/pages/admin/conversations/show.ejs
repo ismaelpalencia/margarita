@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Conversación | Margarita</title>
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
 
     <%- include("../../../partials/brand-head") %>
 </head>
@@ -281,7 +281,8 @@
             <%- include("../../../partials/conversation-tools", {
                 conversation,
                 templates,
-                basePath: "/admin/conversations"
+                basePath: "/admin/conversations",
+                templateVariableShape
             }) %>
 
             <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">

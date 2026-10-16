@@ -80,6 +80,13 @@ function locals(title: string) {
  * de origen).
  */
 function rewriteLinks(html: string) {
+    /**
+     * La versión del despliegue va al final del CSS y los favicons: así, al
+     * volver a subir el sitio, el navegador de quien ya lo visitó trae los
+     * archivos nuevos en lugar de los guardados.
+     */
+    const assetTag = `?v=${appConfig.commit || appConfig.version}`;
+
     return html
         .replace(/href="\/como-empezar"/g, 'href="como-empezar.html"')
         .replace(/href="\/aviso-de-privacidad"/g, 'href="aviso-de-privacidad.html"')
@@ -91,8 +98,12 @@ function rewriteLinks(html: string) {
          * Los archivos van con ruta relativa: así el sitio funciona igual si se
          * sube a un dominio propio o dentro de una carpeta (`/landing/`).
          */
-        .replace(/href="\/css\//g, 'href="css/')
-        .replace(/href="\/(favicon|apple-touch|android-chrome|site\.webmanifest)/g, 'href="$1')
+        .replace(/href="\/css\//g, `href="css/`)
+        .replace(/href="(css\/style\.css)"/g, `href="$1${assetTag}"`)
+        .replace(
+            /href="\/(favicon|apple-touch|android-chrome|site\.webmanifest)([^"]*)"/g,
+            `href="$1$2${assetTag}"`
+        )
         .replace(/src="\/brand\//g, 'src="brand/')
         .replace(/src="\/(favicon|apple-touch|android-chrome)/g, 'src="$1');
 }

@@ -130,7 +130,14 @@ type WriteRule = (data: JsonObject) => void;
  */
 const ENCRYPTED_FIELDS: Record<string, string[]> = {
     Contact: ["notes", "outcomeAmount"],
-    Message: ["body", "mediaFilename", "metaPayload", "metaResponse"],
+    Message: [
+        "body",
+        "mediaFilename",
+        "metaPayload",
+        "metaResponse",
+        /** Lo que la persona vio en el botón o en la lista (contenido). */
+        "replyTitle"
+    ],
     CampaignRecipient: ["phone", "variables"],
     Log: ["payload"],
     WebhookEvent: ["payload"],
@@ -226,6 +233,7 @@ const WRITE_RULES: Record<string, WriteRule> = {
 
     Message(data) {
         encryptTextFields(data, ["body", "mediaFilename"]);
+        encryptTextFields(data, ["replyTitle"]);
         encryptJsonFields(data, ["metaPayload", "metaResponse"]);
     },
 

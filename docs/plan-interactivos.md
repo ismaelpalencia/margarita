@@ -9,6 +9,12 @@ mismo trabajo: es **elegir el tramo que más vale y posponer el resto**.
 
 ## 1. Qué entra, qué se pospone y por qué
 
+**Estado del sprint A:** fase 1 ✅ entregada y verificada (respuestas de botón y de
+lista interpretadas, guardadas, visibles en el hilo y en la bitácora) · fase 2a ✅
+(envío de plantillas con botones desde el hilo, con las tres variables y el aviso
+de reclasificación a marketing) · **falta la fase 2b** (campañas con encabezado y
+botón de enlace) y, con ella, el bloqueo de campañas con plantilla reclasificada.
+
 | Sprint | Fases | Entregable | Criterio de cierre |
 | --- | --- | --- | --- |
 | **A** (semana 1) | 1 y 2 completas | Las respuestas de botón se **entienden y se guardan**; las plantillas con botones se **crean y se envían** (envío suelto y campaña), con las variables del cuerpo, del encabezado y del botón de URL; aviso si la plantilla se reclasifica a marketing | Pruebas de integración contra la Graph API simulada: el cuerpo enviado lleva los tres componentes con sus parámetros. Un toque se ve en el hilo con su etiqueta |

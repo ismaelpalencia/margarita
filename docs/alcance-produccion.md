@@ -37,8 +37,8 @@ empresa), así que cada subdominio lleva su propio registro DNS, con el proxy de
 Cloudflare apagado porque el panel usa conexiones en vivo. El comodín
 `*.margaritaapp.org` queda para cuando se pase a multi-inquilino: como la
 dirección del cliente no cambia, esa migración se puede hacer después sin
-avisarle a nadie. El detalle operativo está en
-[`landing/README.md`](../landing/README.md).
+avisarle a nadie. El paso a paso —variables, DNS, certificado y comprobaciones— está en
+[`dominios.md`](dominios.md).
 
 La variable `PRODUCT_DOMAIN` decide **quién sirve la oferta** (se admiten varios
 dominios separados por coma). Sin ella, la aplicación se comporta como antes y
@@ -89,7 +89,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Verificación en dos pasos (2FA)**: cada persona la activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación —Google Authenticator, Authy, Microsoft Authenticator, 1Password, Bitwarden o la app **Contraseñas** de Apple— usando un código TOTP de 6 dígitos (el estándar RFC 6238, SHA-1, 30 segundos). La pantalla muestra un **código QR** para escanear y, debajo, la clave de configuración para capturarla a mano (o el enlace `otpauth://` completo) por si no se puede escanear. Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo y queda en la bitácora con quién lo hizo. El panel de Sistema muestra cuántas cuentas y cuántos administradores la tienen.
 - **Etiquetas**: crear, editar, desactivar y asignar a contactos.
 - **Cuenta de WhatsApp**: administrar los números de la WABA (agregar, editar, activar o desactivar, ver calidad y estado de cada uno y probar su conexión); actualizar las credenciales de la cuenta (tokens, business account, versión de API) y cifrarlas.
-- **Plantillas**: sincronizar las plantillas de Meta con su estado real (`APPROVED`, `PENDING`, `REJECTED`).
+- **Plantillas**: sincronizar las plantillas de Meta con su estado real (`APPROVED`, `PENDING`, `REJECTED`), ver cuáles traen botones y **avisar si Meta las reclasificó como marketing** (cuestan varias veces más por mensaje).
 - **Conversaciones**: ver todas, abrir desde un contacto, responder, asignar y reasignar, cerrar y reabrir, con búsqueda por nombre o teléfono, filtros por estado, por asignación y por no leídos, y el contador de pendientes por hilo.
 - **Campañas**: crear seleccionando contactos o subiendo Excel/CSV, **con variables** (texto fijo, el nombre o el teléfono del contacto, y cualquier columna del archivo), enviar, ver el estado por destinatario y reintentar los fallidos.
 - **Campañas en cola**: el envío corre en segundo plano, por lotes y con una pausa entre mensajes para no chocar con los límites de Meta. Se puede pausar, reanudar y cancelar, y la pantalla muestra el avance en vivo.
@@ -104,6 +104,8 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - Estado operativo: `AVAILABLE`, `BUSY`, `BREAK`, `OFFLINE`. No queda disponible automáticamente al entrar.
 - Cuatro formas de responder: **nota local** (no sale a WhatsApp), **texto libre** dentro de la ventana de 24 horas, **archivos** (imagen, video, audio o documento) dentro de la misma ventana, y **plantilla aprobada** cuando está cerrada.
 - **Respuestas rápidas**: un clic inserta el texto guardado en el compositor, ya con el nombre y el teléfono del contacto.
+- **Respuestas de botón y de lista**: cuando el cliente toca un botón o elige de una lista, se guarda **qué opción eligió** (identificador y texto), el hilo lo muestra con su etiqueta y queda en la bitácora. El identificador se guarda en claro porque es con lo que se mapea a un resultado de gestión; el texto va cifrado, como el resto del contenido.
+- **Plantillas con botones**: se envían desde el hilo resolviendo las **tres variables** que admite Meta: una en el encabezado, las del cuerpo y una al final de la URL de un botón. El compositor muestra solo los campos que la plantilla pide, para no mandar un componente de más (que Meta rechaza).
 - **Bandeja con filtros y no leídos**: busca por nombre o teléfono, filtra por estado y por no leídos, y ve el contador de pendientes por hilo.
 - Cierra conversaciones.
 
@@ -154,10 +156,10 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | --- | --- |
 | **Solo México** | El normalizador de teléfonos asume números mexicanos y agrega el prefijo `521`. Números de otros países se rechazan. |
 | **Archivos con caducidad** | Meta conserva lo que envían los clientes alrededor de 30 días. Un archivo que nadie abrió en ese plazo ya no se puede recuperar; el hilo lo avisa en lugar de fallar. |
-| **Sin botones ni listas** | Se envían texto, plantillas y archivos, pero todavía no mensajes interactivos (botones o listas). **Está en camino**: el plan de dos sprints está en [`plan-interactivos.md`](plan-interactivos.md), y para cobranza el alcance acordado es una plantilla con **dos botones**: «Quiero que me llame un asesor» (respuesta rápida) y «Aviso de privacidad» (enlace). |
-| **Variables solo en el cuerpo** | Las campañas resuelven las variables del componente `BODY` de la plantilla. Si la plantilla tiene variables en el encabezado o en un botón con URL, **hoy no se llenan** (es la fase 2 del plan de interactivos). Cuidado al crear plantillas: el encabezado admite **exactamente una** variable y la URL del botón **una sola, al final**. |
+| **Sin interactivos libres** | Las plantillas **con botones** ya se envían (y sus respuestas se interpretan), pero todavía no se mandan botones ni listas *dentro* de la ventana de 24 horas desde el compositor: eso es la fase 6 de [`plan-interactivos.md`](plan-interactivos.md). |
+| **Variables del encabezado y del botón, solo en el hilo** | Enviar una plantilla con encabezado o con botón de enlace ya funciona **desde el hilo de conversación**. En **campañas** todavía solo se resuelven las variables del cuerpo: es el tramo que falta del sprint de interactivos. Y al crear plantillas, recuerda que el encabezado admite **exactamente una** variable y la URL del botón **una sola, al final**. |
 | **Campañas sin agendar** | Se pueden pausar, reanudar y cancelar, pero todavía no programar por fecha y hora. |
-| **Respuestas de botones sin interpretar** | Si un cliente toca un botón, se guarda como `[Mensaje interactivo]`, sin saber qué opción eligió. Es la fase 1 del plan de interactivos y la que convierte un toque en un resultado de gestión (**sin** marcar «pagado»: entra como pago reportado, pendiente de confirmación). |
+| **Falta el puente respuesta → resultado** | Las respuestas ya se entienden y se ven en el hilo, pero todavía no **disparan** reglas: mapear `YA_PAGUE`, `NO_RECONOZCO` o `NO_CONTACTAR` a un resultado de gestión (y a la pausa o la baja) es la fase 3. El criterio acordado: `YA_PAGUE` **no** marca pagado, entra como pago reportado pendiente de confirmación. |
 | **Baja solo por palabra clave** | Se detecta la palabra al inicio del mensaje (`STOP`, `STOP por favor`). Si el cliente la pide con otras palabras ("no me escriban más"), hay que marcarlo a mano desde su ficha. |
 | **El opt-in no se verifica** | La herramienta registra el consentimiento y respeta las bajas, pero no comprueba de dónde salió: registrar el opt-in es responsabilidad del operador. Las campañas avisan cuántos destinatarios no tienen consentimiento registrado. |
 | **No leídos por conversación** | El contador es del hilo, no de cada persona: si alguien abre la conversación, el aviso desaparece para todos. |
@@ -246,9 +248,9 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 208 pruebas unitarias en 31 archivos + **41 pruebas de integración** contra PostgreSQL |
+| Pruebas automatizadas | 216 pruebas unitarias en 32 archivos + **49 pruebas de integración** contra PostgreSQL |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
-| Migraciones | Versionadas en `prisma/migrations`, con trece aplicadas |
+| Migraciones | Versionadas en `prisma/migrations`, con catorce aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
 | Entorno de build | Node 22 declarado en `package.json` (`engines`) y `.nvmrc`. `nixpacks.toml` instala con `npm install --include=dev` (no `npm ci`: borra `node_modules` y choca con el caché del builder) y compila con `npm run build`. El Build Command del servicio debe quedar vacío para que la instalación no se ejecute dos veces. |
 | Verificación de integración | **Automatizada**: un trabajo de CI levanta PostgreSQL, aplica las migraciones y corre la suite contra esa base (`npm run test:integration`). Cubre webhook firmado de punta a punta, cifrado en reposo, campañas, resultados de gestión, sesiones, contraseñas y respaldos. Dos pruebas destructivas (alta desde cero y restauración) solo corren en CI, donde la base es desechable, con `INTEGRATION_DESTRUCTIVE=1`. |
@@ -264,6 +266,7 @@ Además de las pruebas unitarias, hay una **suite de integración** que corre en
 - **Resultados de gestión**: la promesa vencida se deduce con los días de atraso correctos, marcar pagado la cierra y sale de la lista de trabajo, el cumplimiento la cuenta como pagada tarde, los intentos se cuentan solos y se reinician al responder, el marcado en bloque deja historial con autor.
 - **Sesiones y contraseñas**: tope de dispositivos, cierre de sesiones al restablecer la contraseña y al desactivar a alguien, cambio obligatorio, y la regla que impide quedarse sin administrador activo.
 - **Respaldos**: se crean cifrados, se vuelven a leer, contienen las tablas y su poda respeta el tope; un archivo ajeno se rechaza.
+- **Respuestas interactivas**: un toque de botón y una elección de lista llegan por el webhook firmado, se guardan con su identificador en claro y su texto cifrado en la columna cruda, dejan su registro en la bitácora y un interactivo sin opción reconocible no rompe nada.
 - **Verificación en dos pasos**: con la cuenta protegida, la contraseña correcta **no** abre sesión (devuelve un desafío y no crea ninguna); un código incorrecto no crea sesión y suma un intento fallido; el código correcto abre exactamente una y limpia los intentos; el secreto queda cifrado en la columna cruda; desactivarla exige un código vigente; y un administrador puede apagarla si alguien pierde el teléfono. Se comprobó también que una activación a medias (con la clave generada pero sin confirmar) no bloquea el acceso y se puede descartar.
 
 Los flujos que además se verificaron a mano contra una base real, antes de tener suite:
@@ -316,6 +319,13 @@ El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 **Antes de vender o crecer.**
 
 1. **Sacar el respaldo del servidor**: hay copia automática verificada, pero vive en el mismo Volume que la base. Nadie la mueve a un lugar externo sola.
+
+**Sprint en curso (botones e interacciones).** El plan está en
+[`plan-interactivos.md`](plan-interactivos.md). Ya entregado: interpretar las
+respuestas de botón y de lista, el envío de plantillas con botones desde el hilo
+(las tres variables) y el aviso de plantillas reclasificadas a marketing.
+Falta: la misma resolución de variables en **campañas** y el **puente** de la
+respuesta al resultado de gestión.
 
 **Proteger la operación.**
 

@@ -14,6 +14,15 @@
     const deleted = Boolean(message.deletedAt);
     const isNote = Boolean(message.isInternalNote);
 
+    /**
+     * Respuesta de un botón o de una lista. Se muestra como etiqueta —lo que la
+     * persona tocó— y el identificador queda en el globito de ayuda: el agente
+     * ve la opción, y quien depura tiene la llave a mano.
+     */
+    const replyLabel = message.replyTitle || message.replyId || "";
+    const isInteractiveReply =
+        message.type === "INTERACTIVE" && Boolean(replyLabel);
+
     const tickByStatus = {
         CREATED: "🕓",
         SENDING: "🕓",
@@ -105,7 +114,15 @@
             </a>
         <% } %>
 
-        <% if (showBody) { %>
+        <% if (isInteractiveReply) { %>
+            <span
+                class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold <%= isOut ? 'bg-white/15 text-white' : 'bg-white ring-1 ring-slate-200 text-slate-800' %>"
+                title="<%= message.interactiveType === 'list_reply' ? 'Eligió de una lista' : 'Tocó un botón' %> · <%= message.replyId %>"
+            >
+                <span aria-hidden="true">👆</span>
+                <%= replyLabel %>
+            </span>
+        <% } else if (showBody) { %>
             <p class="whitespace-pre-line break-words text-sm <%= hasMedia ? 'mt-2' : '' %>">
                 <%= body %>
             </p>

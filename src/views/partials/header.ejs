@@ -8,7 +8,7 @@
 
     <%- include("brand-head") %>
 
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
 </head>
 
 <body class="min-h-screen bg-slate-100 text-slate-900 antialiased">

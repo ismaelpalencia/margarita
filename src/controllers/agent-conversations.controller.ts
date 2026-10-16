@@ -25,6 +25,7 @@ import {
     formatDayLabelMX,
     formatTimeMX
 } from "../utils/date";
+import { templateVariableShape } from "../utils/template";
 
 
 export class AgentConversationsController {
@@ -106,6 +107,8 @@ export class AgentConversationsController {
             formatDateTimeMX,
             formatDayLabelMX,
             formatTimeMX,
+            /** Para que el compositor muestre los campos que la plantilla pide. */
+            templateVariableShape,
             success: req.query.success || null,
             error: req.query.error || null
         });

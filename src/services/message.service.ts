@@ -25,7 +25,8 @@ import { SendTemplateMessageInput } from "../validations/template-message.valida
 import { SendFreeTextMessageInput } from "../validations/free-text-message.validation";
 import {
     buildTemplateMessagePayload,
-    countTemplateVariables,
+    missingTemplateVariables,
+    normalizeTemplateVariables,
     renderTemplatePreview
 } from "../utils/template";
 import { isConversationWindowOpen } from "../utils/conversation-window";
@@ -161,18 +162,33 @@ export class MessageService {
             params.input.variable3
         ];
 
-        const requiredVariables = countTemplateVariables(template.components);
+        /**
+         * Se ajusta lo escrito a lo que la plantilla pide: cuerpo, encabezado y
+         * el valor del botón de enlace (si los tiene).
+         */
+        const used = normalizeTemplateVariables(template.components, {
+            body: variables,
+            header: params.input.headerVariable,
+            button: params.input.buttonVariable
+        });
 
-        const usedVariables = variables.slice(0, requiredVariables);
+        const missing = missingTemplateVariables(template.components, used);
 
-        if (usedVariables.some((value) => value.trim() === "")) {
-            throw new Error("Faltan variables para la plantilla.");
+        if (missing.length > 0) {
+            throw new Error(
+                `Faltan valores para: ${missing.join(", ")}. Revisa la plantilla.`
+            );
         }
 
         const previewBody = renderTemplatePreview(
             template.components,
-            usedVariables
+            used.body
         );
+
+        /** Lo que se ve en el hilo: el encabezado arriba y luego el cuerpo. */
+        const previewText = used.header
+            ? `${used.header}\n\n${previewBody}`
+            : previewBody;
 
         const localMessage = await prisma.message.create({
             data: {
@@ -183,12 +199,14 @@ export class MessageService {
                 type: MessageType.TEMPLATE,
                 status: MessageStatus.SENDING,
                 source: MessageSource.MANUAL,
-                body: previewBody,
+                body: previewText,
                 metaPayload: {
                     templateId: template.id,
                     templateName: template.name,
                     language: template.language,
-                    variables: usedVariables
+                    variables: used.body,
+                    headerVariable: used.header || null,
+                    buttonVariable: used.button || null
                 }
             }
         });
@@ -197,7 +215,9 @@ export class MessageService {
             to: conversation.contact.phone,
             name: template.name,
             language: template.language,
-            variables: usedVariables
+            variables: used.body,
+            header: used.header,
+            button: used.button
         });
 
         try {

@@ -36,6 +36,20 @@ function toPrismaJson(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
+/**
+ * Lo que se guarda de un mensaje entrante. Los tres últimos campos sólo
+ * aparecen cuando la persona tocó un botón o eligió de una lista.
+ */
+type ParsedIncomingMessage = {
+    type: MessageType;
+    body: string;
+    mediaId: string | null;
+    mimeType: string | null;
+    interactiveType?: string | null;
+    replyId?: string | null;
+    replyTitle?: string | null;
+};
+
 export class MetaWebhookHandlerService {
     // Se usa cuando un evento de la cola agotó sus reintentos.
     static async logProcessorFailure(params: {
@@ -233,10 +247,39 @@ export class MetaWebhookHandlerService {
                 body: parsed.body,
                 mediaId: parsed.mediaId,
                 mimeType: parsed.mimeType,
+                interactiveType: parsed.interactiveType ?? null,
+                replyId: parsed.replyId ?? null,
+                replyTitle: parsed.replyTitle ?? null,
                 metaPayload: toPrismaJson(message),
                 createdAt: messageDate
             }
         });
+
+        /**
+         * La respuesta queda en la bitácora con su identificador y su texto.
+         * El texto va en el payload (que se guarda cifrado); el mensaje del
+         * registro no lo repite, para no dejar contenido en claro.
+         */
+        if (parsed.replyId) {
+            await LogService.create({
+                workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.MESSAGE,
+                action: "INTERACTIVE_REPLY",
+                message:
+                    parsed.interactiveType === "list_reply"
+                        ? "El cliente eligió una opción de una lista."
+                        : "El cliente respondió con un botón.",
+                payload: {
+                    wamid: message.id,
+                    messageId: savedMessage.id,
+                    conversationId: conversation.id,
+                    replyId: parsed.replyId,
+                    replyTitle: parsed.replyTitle,
+                    interactiveType: parsed.interactiveType
+                }
+            });
+        }
 
         const updatedConversation = await prisma.conversation.update({
             where: {
@@ -417,7 +460,14 @@ export class MetaWebhookHandlerService {
         });
     }
 
-    private static parseIncomingMessage(message: MetaWebhookMessage) {
+    /**
+     * Traduce el mensaje de Meta a lo que se guarda. Para las respuestas de
+     * botón o de lista se guarda además **qué opción eligió** la persona: sin
+     * eso, un toque quedaba como `[Mensaje interactivo]` y el dato se perdía.
+     */
+    private static parseIncomingMessage(
+        message: MetaWebhookMessage
+    ): ParsedIncomingMessage {
         if (message.type === "text") {
             return {
                 type: MessageType.TEXT,
@@ -467,11 +517,22 @@ export class MetaWebhookHandlerService {
         }
 
         if (message.type === "interactive") {
+            const button = message.interactive?.button_reply;
+            const list = message.interactive?.list_reply;
+            const reply = button || list;
+
             return {
                 type: MessageType.INTERACTIVE,
-                body: "[Mensaje interactivo]",
+                body: reply?.title || "[Mensaje interactivo]",
                 mediaId: null,
-                mimeType: null
+                mimeType: null,
+                interactiveType: button
+                    ? "button_reply"
+                    : list
+                      ? "list_reply"
+                      : null,
+                replyId: reply?.id || null,
+                replyTitle: reply?.title || null
             };
         }
 

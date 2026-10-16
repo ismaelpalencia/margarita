@@ -19,6 +19,18 @@ export const sendTemplateMessageSchema = z.object({
         .string()
         .trim()
         .optional()
+        .transform((value) => value || ""),
+    /** Valor de la variable del encabezado, si la plantilla la pide. */
+    headerVariable: z
+        .string()
+        .trim()
+        .optional()
+        .transform((value) => value || ""),
+    /** Valor que se pega al final de la URL del botón, si la plantilla lo pide. */
+    buttonVariable: z
+        .string()
+        .trim()
+        .optional()
         .transform((value) => value || "")
 });
 
