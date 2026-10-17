@@ -551,6 +551,34 @@ export class MetaWebhookHandlerService {
             };
         }
 
+        /**
+         * Botón de una **plantilla**. Meta lo manda por otro camino: no es
+         * `interactive` con `button_reply`, es `type: "button"` con su `text` y
+         * su `payload`. Sin este caso, el toque de la plantilla de cobranza
+         * quedaba como `[button]`, no se guardaba qué opción eligió el deudor y
+         * ninguna regla se disparaba. Se descubrió con la primera prueba real,
+         * el 2026-10-16.
+         *
+         * El identificador es el `payload` cuando viene —es el dato que el
+         * deudor no ve— y, si no, el texto del botón. El texto siempre se
+         * guarda, porque es lo que la persona tocó y el mapeo también admite
+         * buscarlo por ahí.
+         */
+        if (message.type === "button") {
+            const title = message.button?.text?.trim() || "";
+            const payload = message.button?.payload?.trim() || "";
+
+            return {
+                type: MessageType.INTERACTIVE,
+                body: title || "[Botón]",
+                mediaId: null,
+                mimeType: null,
+                interactiveType: "button",
+                replyId: payload || title || null,
+                replyTitle: title || null
+            };
+        }
+
         return {
             type: MessageType.UNKNOWN,
             body: `[${message.type || "unknown"}]`,

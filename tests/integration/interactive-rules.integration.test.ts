@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import test, { after, before } from "node:test";
 
-import { ContactOutcomeType, ReplyEffect } from "@prisma/client";
+import { ContactOutcomeType, MessageType, ReplyEffect } from "@prisma/client";
 
 import { appConfig } from "../../src/config/app.config";
 import { prisma } from "../../src/config/prisma";
@@ -118,6 +118,26 @@ async function tap(params: { phone: string; replyId: string; title: string }) {
     });
 
     return wamid;
+}
+
+/** Espera a que el mensaje quede guardado (el worker corre aparte). */
+async function waitForMessage(wamid: string) {
+    const deadline = Date.now() + 5000;
+
+    for (;;) {
+        const message = await prisma.message.findUnique({ where: { wamid } });
+
+        if (message) {
+            return message;
+        }
+
+        if (Date.now() > deadline) {
+            throw new Error(`El mensaje ${wamid} no se guardó en 5 segundos.`);
+        }
+
+        await runWebhookWorkerOnce().catch(() => 0);
+        await new Promise((resolve) => setTimeout(resolve, 250));
+    }
 }
 
 /**
@@ -487,5 +507,95 @@ test("al registrar otro resultado, el cliente sale de las llamadas pendientes", 
         ),
         false,
         "y al registrar el resultado sale de la lista"
+    );
+});
+
+/**
+ * El botón de una **plantilla** llega por otro camino que el interactivo.
+ *
+ * Meta no manda `interactive.button_reply`: manda `type: "button"` con su
+ * `text` y su `payload`. Se descubrió con la primera prueba real contra Meta
+ * (2026-10-16), donde el toque quedó guardado como `[button]` y no disparó
+ * nada. Este caso reproduce exactamente lo que llegó ese día.
+ */
+test("el botón de una plantilla dispara la regla igual que un interactivo", async () => {
+    const phone = testPhone();
+    const wamid = `wamid.plantilla.${Date.now()}.${Math.random()
+        .toString(16)
+        .slice(2, 8)}`;
+    const texto = "Quiero que me llame un asesor";
+
+    await deliver({
+        object: "whatsapp_business_account",
+        entry: [
+            {
+                id: `waba-${fixture.workspaceId}`,
+                changes: [
+                    {
+                        field: "messages",
+                        value: {
+                            messaging_product: "whatsapp",
+                            metadata: {
+                                display_phone_number: "5215500000000",
+                                phone_number_id: fixture.phoneNumberId
+                            },
+                            contacts: [
+                                { profile: { name: "Cliente Plantilla" }, wa_id: phone }
+                            ],
+                            messages: [
+                                {
+                                    from: phone,
+                                    id: wamid,
+                                    timestamp: String(Math.floor(Date.now() / 1000)),
+                                    type: "button",
+                                    /**
+                                     * Así llega el botón de una plantilla: el
+                                     * payload repite el texto, porque las
+                                     * plantillas solo definen el texto.
+                                     */
+                                    button: {
+                                        text: texto,
+                                        payload: texto
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ]
+    });
+
+    const message = await waitForMessage(wamid);
+
+    assert.equal(
+        message.type,
+        MessageType.INTERACTIVE,
+        "se guarda como interacción, no como mensaje desconocido"
+    );
+    assert.equal(
+        message.interactiveType,
+        "button",
+        "con su propio subtipo, que distingue de dónde salió el botón"
+    );
+    assert.equal(message.replyId, texto, "el identificador queda en claro");
+    assert.equal(message.replyTitle, texto, "y el texto que tocó la persona");
+    assert.equal(
+        message.body,
+        texto,
+        "el cuerpo deja de ser «[button]», que es lo que se veía en el hilo"
+    );
+
+    /** Y la regla se aplica sola, aunque el identificador sea el texto. */
+    const contact = await waitForContact(phone, () => true);
+    const timezone = await SendPolicyService.timezoneFor(fixture.workspaceId);
+    const requests = await ReportService.callRequests(
+        fixture.workspaceId,
+        timezone
+    );
+
+    assert.ok(
+        requests.some((row) => row.contactId === contact.id),
+        "el deudor entra a las llamadas pendientes"
     );
 });

@@ -99,7 +99,16 @@ export type MetaWebhookMessage = {
             description?: string;
         };
     };
-    button?: unknown;
+    /**
+     * Botón de **plantilla**. Es un camino distinto del interactivo: cuando el
+     * botón viene dentro de una plantilla aprobada, Meta manda
+     * `type: "button"` con `text` y `payload` (el payload casi siempre repite
+     * el texto, porque las plantillas solo definen el texto del botón).
+     */
+    button?: {
+        text?: string;
+        payload?: string;
+    };
 };
 
 export type MetaWebhookStatus = {

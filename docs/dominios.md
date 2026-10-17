@@ -94,6 +94,41 @@ que la aplicación cree tener (`publicUrl`). Ahí se ve si `APP_URL` quedó bien
 
 ---
 
+## Cuando el link deja de abrir
+
+Los tres síntomas que se ven "igual" (el navegador no muestra nada) se arreglan
+en lugares distintos, así que lo primero es distinguirlos:
+
+| Lo que dice el navegador | Qué está pasando | Dónde se arregla |
+| --- | --- | --- |
+| "No se puede acceder al sitio" / `DNS_PROBE_FINISHED_NXDOMAIN` | El nombre **no existe** en el DNS | Cloudflare → DNS: volver a crear el CNAME (paso 2) |
+| Página de error de Railway (`502`, "application failed to respond") | El nombre resuelve, pero el servicio no contesta | Logs del servicio en Railway |
+| Página de Cloudflare (`522`, `525`) o error de certificado | Quedó el proxy naranja puesto, o el certificado no se emitió | Dejar la nube en gris y esperar la emisión |
+
+Para saber cuál es, dos comandos:
+
+```bash
+# ¿El nombre existe?
+dig palencia.margaritaapp.org | grep status
+
+# ¿Quién contesta?
+curl -sI https://palencia.margaritaapp.org/ | head -1
+```
+
+Si sale `status: NXDOMAIN` —y `dig @1.1.1.1 palencia.margaritaapp.org` también
+sale vacío— el registro se perdió: **el navegador nunca llegó a pedirle nada a
+la aplicación**, así que no hay nada que buscar en los logs del servicio. Se
+arregla creando otra vez el CNAME del paso 2, con el valor que muestre Railway.
+
+Pasó el **2026-10-16**, después de mover la landing a Cloudflare Pages. La causa
+más probable, por el orden de los hechos: al agregar el dominio del producto,
+Cloudflare ofrece reemplazar los registros que chocan, y el subdominio de la
+operación se quedó sin el suyo. Lo que sí es seguro es que **nada de lo que
+ocurre dentro del panel puede borrar ese registro**: si se pierde, es un cambio
+en la zona de DNS.
+
+---
+
 ## Paso 4 · La landing en Cloudflare Pages
 
 Primero se genera la carpeta:

@@ -85,7 +85,32 @@ pantalla.
 
 ## 4. Qué espero ver en el evento
 
-Abreviado, un toque de botón se ve así (los datos cambian):
+**Ojo: hay dos formas y no son la misma.** El botón de una **plantilla** —el de
+nuestra plantilla de cobranza— llega así (abreviado; los datos cambian):
+
+```json
+{
+  "messages": [
+    {
+      "from": "5215500000000",
+      "id": "wamid.<...>",
+      "type": "button",
+      "button": {
+        "text": "Quiero que me llame un asesor",
+        "payload": "Quiero que me llame un asesor"
+      }
+    }
+  ]
+}
+```
+
+El `payload` suele repetir el texto, porque al crear la plantilla solo se
+escribe el texto del botón. Por eso el mapeo del panel admite buscar la regla
+por el **texto** además del identificador: es la defensa que hace que esto
+funcione aunque Meta no mande un id propio.
+
+Un botón **interactivo** (los que se mandan dentro de la ventana de 24 horas, no
+desde una plantilla) llega distinto, y una lista también:
 
 ```json
 {
@@ -122,11 +147,15 @@ Abreviado, un toque de botón se ve así (los datos cambian):
 }
 ```
 
-El dato importante es **`button_reply.id`**. Puede venir como el texto («Quiero
-que me llame un asesor») o como el identificador que se configuró al crear la
-plantilla; por eso el mapeo funciona por identificador **y**, si no coincide,
-por el texto del botón. Si Meta manda algo raro, la regla por texto lo sostiene
-y el identificador se ajusta en un minuto.
+En el interactivo el dato importante es **`button_reply.id`** (y en una lista,
+`list_reply.id`). Las tres formas quedan guardadas igual —como interacción, con
+su identificador en claro y su texto cifrado—, así que el resto del circuito no
+cambia.
+
+> Las dos formas se descubrieron por separado: la de plantilla, con la primera
+> prueba real del 2026-10-16, cuando el toque quedó guardado como `[button]`
+> porque el código solo esperaba la forma interactiva. Ya está corregido, y hay
+> una prueba de integración que reproduce ese payload exacto.
 
 ---
 

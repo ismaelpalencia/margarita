@@ -32,6 +32,14 @@ construirse: solo la **verificación real** necesita la plantilla aprobada y un
 teléfono, y para eso está [`pruebas-meta.md`](pruebas-meta.md), que dice qué
 copiar y de dónde.
 
+**Corrección salida de la primera prueba real (2026-10-16).** El botón de una
+**plantilla** no llega como `interactive.button_reply`, sino como
+`type: "button"` con su `text` y su `payload`; el toque se guardaba como
+`[button]` y ninguna regla se disparaba. Ya se entienden las tres formas
+(`button`, `button_reply` y `list_reply`) y hay una prueba de integración que
+reproduce ese payload exacto. Es la razón de ser de este documento: la
+verificación contra Meta no es un trámite.
+
 | Sprint | Fases | Entregable | Criterio de cierre |
 | --- | --- | --- | --- |
 | **A** (semana 1) | 1 y 2 completas | Las respuestas de botón se **entienden y se guardan**; las plantillas con botones se **crean y se envían** (envío suelto y campaña), con las variables del cuerpo, del encabezado y del botón de URL; aviso si la plantilla se reclasifica a marketing | Pruebas de integración contra la Graph API simulada: el cuerpo enviado lleva los tres componentes con sus parámetros. Un toque se ve en el hilo con su etiqueta |
