@@ -27,6 +27,8 @@ router.use("/webhooks", webhookRoutes);
 router.use("/media", authMiddleware, mediaRoutes);
 
 router.get("/como-empezar", HomeController.howToStart);
+/** Manual del equipo: público, para mandarlo por WhatsApp. */
+router.get("/guia", HomeController.guide);
 router.get("/acceso", HomeController.access);
 /**
  * Cambio de contraseña: la misma pantalla para administradores y agentes.

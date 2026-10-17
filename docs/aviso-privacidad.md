@@ -7,11 +7,12 @@
 > tu empresa. Aplica a México (Ley Federal de Protección de Datos Personales en
 > Posesión de los Particulares).
 
-Última actualización: [FECHA].
+Última actualización: 16 de octubre de 2026.
 
 ## 1. Quién es el responsable
 
-**Eduardo Ismael Fernández Palencia**, con domicilio en [DOMICILIO FISCAL] y RFC **[RFC]**, es el responsable del tratamiento de los datos
+**Eduardo Ismael Fernández Palencia**, con domicilio en Candelaria, Oyoacán,
+C.P. 04380, es el responsable del tratamiento de los datos
 personales que se describen aquí. Puedes contactarnos en **contacto@margaritaapp.org**
 o al teléfono 55 3878 3682.
 
@@ -138,8 +139,8 @@ Puedes pedirnos que no te enviemos más mensajes en cualquier momento por los
 mismos medios. Además, si respondes **STOP** por WhatsApp, el sistema marca tu
 número como dado de baja en el momento y deja de enviarte mensajes (incluidas
 campañas) sin que nadie tenga que intervenir; también quedamos en condiciones de
-atender la solicitud por otra vía, en un plazo máximo de **[PLAZO, POR EJEMPLO 48
-HORAS]**. Si en el futuro quieres volver a recibir mensajes, solo pídelo y
+atender la solicitud por otra vía, en un plazo máximo de **7 días hábiles**. Si
+en el futuro quieres volver a recibir mensajes, solo pídelo y
 registramos tu consentimiento de nuevo.
 
 ## 11. Cambios a este aviso

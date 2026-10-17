@@ -67,6 +67,17 @@ export class HomeController {
     }
 
     /**
+     * Guía de uso: el manual del equipo del cliente. Es pública a propósito,
+     * para que se pueda mandar por WhatsApp sin pedir sesión.
+     */
+    static async guide(_req: Request, res: Response) {
+        return res.render("pages/home/guia", {
+            title: "Guía de uso - Margarita",
+            ...supportContext()
+        });
+    }
+
+    /**
      * «Ya tengo acceso»: la página a la que apunta el botón de la landing
      * estática. Explica de dónde se entra, porque cada operación tiene su
      * propio subdominio y aquí no hay formulario que valga.

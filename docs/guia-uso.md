@@ -3,6 +3,10 @@
 Para el equipo que cobra por WhatsApp. Es la guía que se entrega al contratar,
 junto con la **sesión de arranque de dos horas** y la guía de plantillas.
 
+**Publicada** en `margaritaapp.org/guia` (y en la carpeta `landing/`, como
+`guia.html`). Si cambias el texto de la página, actualiza también este archivo:
+son el mismo contenido y tienen que decir lo mismo.
+
 La idea en una frase: **cada conversación termina en un resultado**, y cada
 resultado alimenta la lista de trabajo del día siguiente. Si el equipo hace eso,
 los reportes salen solos.

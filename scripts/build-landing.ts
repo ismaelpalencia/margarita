@@ -40,6 +40,11 @@ const PAGES: Array<{ view: string; file: string; title: string }> = [
         title: "Cómo empezar - Margarita"
     },
     {
+        view: "pages/home/guia",
+        file: "guia.html",
+        title: "Guía de uso - Margarita"
+    },
+    {
         view: "pages/home/access",
         file: "acceso.html",
         title: "Ya tengo acceso - Margarita"
@@ -90,6 +95,7 @@ function rewriteLinks(html: string) {
 
     return html
         .replace(/href="\/como-empezar"/g, 'href="como-empezar.html"')
+        .replace(/href="\/guia"/g, 'href="guia.html"')
         .replace(/href="\/aviso-de-privacidad"/g, 'href="aviso-de-privacidad.html"')
         .replace(/href="\/acceso"/g, 'href="acceso.html"')
         .replace(/href="\/auth\/login"/g, 'href="acceso.html"')

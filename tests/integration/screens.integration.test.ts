@@ -85,6 +85,7 @@ test("ninguna pantalla del panel responde 500", async () => {
     const pantallas = [
         "/",
         "/como-empezar",
+        "/guia",
         "/aviso-de-privacidad",
         "/admin/dashboard",
         "/admin/conversations",
