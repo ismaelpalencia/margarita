@@ -64,6 +64,15 @@
                 <p class="mt-1 text-slate-500">
                     Vista general de las conversaciones de la empresa.
                 </p>
+
+                <% if (typeof suggestedNumber !== "undefined" && suggestedNumber) { %>
+                    <p class="mt-2 inline-flex flex-wrap items-center gap-2 rounded-full bg-margarita-50 px-3 py-1 text-xs font-semibold text-margarita-800 ring-1 ring-margarita-200">
+                        Para conversaciones nuevas, el número con más tramo es
+                        <strong><%= suggestedNumber.displayName %></strong>
+                        (quedan <%= suggestedNumber.service.remaining %> de
+                        <%= suggestedNumber.service.limit %> mensajes de servicio este mes).
+                    </p>
+                <% } %>
             </div>
         </section>
 

@@ -7,7 +7,8 @@ import { UserService } from "../services/user.service";
 import { QuickReplyService } from "../services/quick-reply.service";
 import { ContactOutcomeService } from "../services/contact-outcome.service";
 import { SendPolicyService } from "../services/send-policy.service";
-import { startOfTodayIn } from "../utils/date";
+import { monthKeyIn, startOfMonthIn, startOfTodayIn } from "../utils/date";
+import { NumberUsageService } from "../services/number-usage.service";
 import { templateVariableShape } from "../utils/template";
 import {
     OUTCOME_BADGE_CLASSES,
@@ -55,9 +56,24 @@ export class AdminConversationsController {
             }
         );
 
+        /**
+         * Al empezar el día, cuál número conviene usar para las conversaciones
+         * nuevas: el que tiene más tramo libre este mes.
+         */
+        const timezone = await SendPolicyService.timezoneFor(
+            req.user!.workspaceId
+        );
+        const usage = await NumberUsageService.forWorkspace(
+            req.user!.workspaceId,
+            startOfMonthIn(timezone)
+        ).catch(() => []);
+        const suggested = NumberUsageService.suggested(usage);
+
         return res.render("pages/admin/conversations/index", {
             user: req.user,
             conversations,
+            suggestedNumber: suggested,
+            usageMonth: monthKeyIn(timezone),
             status,
             search,
             assigned,

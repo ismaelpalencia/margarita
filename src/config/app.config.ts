@@ -193,6 +193,19 @@ export const appConfig = {
         Number(process.env.PANEL_RATE_LIMIT_WINDOW_MINUTES) || 15,
 
     /**
+     * Tramo de mensajes de **servicio** gratis por número al mes y tarifas con
+     * las que se estima el costo. WhatsApp cobra aparte las plantillas; por eso
+     * hay tres tarifas. Se configuran porque Meta cambia precios por país.
+     */
+    serviceFreeMessages: Number(process.env.SERVICE_FREE_MESSAGES) || 1000,
+    serviceMessageRate: Number(process.env.SERVICE_MESSAGE_RATE) || 0.05,
+    utilityTemplateRate: Number(process.env.UTILITY_TEMPLATE_RATE) || 0.03,
+    marketingTemplateRate: Number(process.env.MARKETING_TEMPLATE_RATE) || 0.08,
+    usageCurrency: process.env.USAGE_CURRENCY?.trim() || "USD",
+    /** Porcentaje del tramo a partir del cual se avisa. */
+    usageAlertPercent: Number(process.env.USAGE_ALERT_PERCENT) || 80,
+
+    /**
      * Minutos de inactividad tras los cuales la sesión se cierra sola, y
      * cuántos dispositivos puede tener abiertos un usuario a la vez.
      *

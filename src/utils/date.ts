@@ -21,6 +21,16 @@ export function startOfTodayIn(timezone: string): Date {
     return dayjs().tz(timezone).startOf("day").toDate();
 }
 
+/** Primer minuto del mes en la zona de la empresa. */
+export function startOfMonthIn(timezone: string): Date {
+    return dayjs().tz(timezone).startOf("month").toDate();
+}
+
+/** "2026-11", el mes local de la empresa. */
+export function monthKeyIn(timezone: string): string {
+    return dayjs().tz(timezone).format("YYYY-MM");
+}
+
 export function formatDateForApp(date: Date) {
     return dayjs(date).tz(appConfig.timezone).format("YYYY-MM-DD HH:mm:ss");
 }

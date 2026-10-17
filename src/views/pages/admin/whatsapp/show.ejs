@@ -175,7 +175,17 @@
                         </p>
                     <% } %>
 
+                    <%
+                        /** Consumo del mes por número (se calcula en el controlador). */
+                        const usageByNumber = new Map(
+                            (usage || []).map((item) => [item.numberId, item])
+                        );
+                    %>
+
                     <% numbers.forEach((number) => { %>
+                        <%
+                            const consumo = usageByNumber.get(number.id) || null;
+                        %>
                         <div class="rounded-xl border border-slate-200 p-4">
                             <div class="flex flex-col justify-between gap-3 md:flex-row md:items-start">
                                 <div>
@@ -205,6 +215,12 @@
                                         <span class="text-slate-500">
                                             Calidad: <%= number.qualityRating || "sin dato" %>
                                         </span>
+
+                                        <% if (suggestedNumberId === number.id) { %>
+                                            <span class="rounded-full bg-sol-100 px-3 py-1 font-semibold text-sol-800">
+                                                Con más tramo: sugerido para abrir conversaciones
+                                            </span>
+                                        <% } %>
                                     </div>
                                 </div>
 
@@ -222,6 +238,52 @@
                                     </form>
                                 </div>
                             </div>
+
+                            <% if (consumo) { %>
+                                <div class="mt-4 rounded-xl bg-slate-50 p-4 ring-1 <%= consumo.alert ? 'ring-amber-200' : 'ring-slate-200' %>">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">
+                                            Tramo del mes · servicio
+                                        </p>
+
+                                        <% if (consumo.alert) { %>
+                                            <span class="rounded-full bg-amber-100 px-3 py-1 text-[11px] font-bold text-amber-900">
+                                                Pasó el <%= consumo.service.percent %>% del tramo
+                                            </span>
+                                        <% } %>
+                                    </div>
+
+                                    <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                                        <div
+                                            class="h-full rounded-full <%= consumo.alert ? 'bg-amber-500' : 'bg-margarita-500' %>"
+                                            style="width: <%= consumo.service.percent %>%"
+                                        ></div>
+                                    </div>
+
+                                    <p class="mt-2 text-xs text-slate-600">
+                                        <strong><%= consumo.service.used %></strong> de
+                                        <%= consumo.service.limit %> mensajes ·
+                                        quedan <strong><%= consumo.service.remaining %></strong>
+                                        · <%= consumo.service.percent %>%
+                                    </p>
+
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        Plantillas de utilidad: <%= consumo.utility.used %>
+                                        (~<%= consumo.currency %> <%= consumo.utility.cost.toFixed(2) %>)
+                                        · marketing: <%= consumo.marketing.used %>
+                                        (~<%= consumo.currency %> <%= consumo.marketing.cost.toFixed(2) %>)
+                                        <% if (consumo.otherTemplates > 0) { %>
+                                            · otras plantillas: <%= consumo.otherTemplates %>
+                                        <% } %>
+                                    </p>
+
+                                    <p class="mt-1 text-[11px] text-slate-400">
+                                        Costo estimado del mes:
+                                        <%= consumo.currency %> <%= consumo.estimatedCost.toFixed(2) %>.
+                                        Cuenta solo lo entregado o leído; el cargo real lo hace Meta.
+                                    </p>
+                                </div>
+                            <% } %>
 
                             <form
                                 action="/admin/whatsapp/numbers/<%= number.id %>"

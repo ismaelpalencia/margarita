@@ -102,6 +102,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Verificación en dos pasos (2FA)**: cada persona la activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación —Google Authenticator, Authy, Microsoft Authenticator, 1Password, Bitwarden o la app **Contraseñas** de Apple— usando un código TOTP de 6 dígitos (el estándar RFC 6238, SHA-1, 30 segundos). La pantalla muestra un **código QR** para escanear y, debajo, la clave de configuración para capturarla a mano (o el enlace `otpauth://` completo) por si no se puede escanear. Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo y queda en la bitácora con quién lo hizo. El panel de Sistema muestra cuántas cuentas y cuántos administradores la tienen.
 - **Etiquetas**: crear, editar, desactivar y asignar a contactos.
 - **Cuenta de WhatsApp**: administrar los números de la WABA (agregar, editar, activar o desactivar, ver calidad y estado de cada uno y probar su conexión); actualizar las credenciales de la cuenta (tokens, business account, versión de API) y cifrarlas.
+- **Tramo del mes por número**: cuántos mensajes de servicio lleva cada número de los 1,000 gratis, con barra, cuánto queda y alerta al 80% (una sola vez por mes, a la bitácora); aparte, las plantillas enviadas de utilidad y de marketing con su costo estimado. En la bandeja se sugiere el número **con más tramo** para las conversaciones nuevas.
 - **Plantillas**: sincronizar las plantillas de Meta con su estado real (`APPROVED`, `PENDING`, `REJECTED`), ver cuáles traen botones y **avisar si Meta las reclasificó como marketing** (cuestan varias veces más por mensaje).
 - **Conversaciones**: ver todas, abrir desde un contacto, responder, asignar y reasignar, cerrar y reabrir, con búsqueda por nombre o teléfono, filtros por estado, por asignación y por no leídos, y el contador de pendientes por hilo.
 - **Campañas**: crear seleccionando contactos o subiendo Excel/CSV, **con variables** (texto fijo, el nombre o el teléfono del contacto, y cualquier columna del archivo), enviar, ver el estado por destinatario y reintentar los fallidos.
@@ -180,7 +181,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Plantillas reclasificadas a marketing** | Meta puede reclasificar una plantilla de cobranza como marketing si el texto suena promocional, y entonces cuesta varias veces más. La herramienta lo avisa (lista de plantillas) y lo bloquea (campañas), pero **la redacción es responsabilidad de quien la crea**: al crear plantillas, el encabezado admite **exactamente una** variable y la URL del botón **una sola, al final**. |
 | **Campañas sin agendar** | Se pueden pausar, reanudar y cancelar, pero todavía no programar por fecha y hora. |
 | **La llamada se despacha a mano** | La llamada pedida **ya es una tarea** en Reportes → Hoy, con lo que lleva esperando y el atajo para cerrarla. Lo que no hay es **agenda**: no se programan llamadas a una hora, no hay recordatorio automático y la herramienta no sabe si la llamada se hizo o si solo se marcó «no contestó» — eso lo registra una persona. |
-| **El tramo gratis no se cuenta** | Cada número tiene mensajes de servicio sin costo al mes y de ahí en adelante se cobran, pero el panel **todavía no** lleva ese contador ni avisa al acercarse al límite (fase 5). |
+| **El costo del tramo es una estimación** | El panel cuenta servicio, plantillas de utilidad y de marketing, y estima el costo con las tarifas configuradas (`SERVICE_MESSAGE_RATE`, `UTILITY_TEMPLATE_RATE`, `MARKETING_TEMPLATE_RATE`). **No es la factura**: Meta cobra con sus propias tarifas por país y puede cambiar precios. Se cuentan solo los mensajes **entregados o leídos**, nunca los fallidos. |
 | **Baja solo por palabra clave** | Se detecta la palabra al inicio del mensaje (`STOP`, `STOP por favor`). Si el cliente la pide con otras palabras ("no me escriban más"), hay que marcarlo a mano desde su ficha. |
 | **El opt-in no se verifica** | La herramienta registra el consentimiento y respeta las bajas, pero no comprueba de dónde salió: registrar el opt-in es responsabilidad del operador. Las campañas avisan cuántos destinatarios no tienen consentimiento registrado. |
 | **No leídos por conversación** | El contador es del hilo, no de cada persona: si alguien abre la conversación, el aviso desaparece para todos. |
@@ -270,7 +271,7 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 218 pruebas unitarias en 32 archivos + **68 pruebas de integración** contra PostgreSQL (más 2 destructivas, que solo corren en CI) |
+| Pruebas automatizadas | 36 archivos de pruebas unitarias + **71 pruebas de integración** contra PostgreSQL (más 2 destructivas, que solo corren en CI) |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
 | Migraciones | Versionadas en `prisma/migrations`, con quince aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
@@ -353,8 +354,10 @@ reclasificadas a marketing, **el puente de la respuesta al resultado de gestión
 con sus efectos automáticos** (pausa y baja) y **la llamada pedida como tarea de
 la lista de trabajo** (fase 4), con su tiempo de espera, su atajo y la pantalla
 para copiar el volcado de un webhook.
-Falta: el contador del tramo gratis por número (fase 5) y los interactivos
-libres (fase 6). Y queda una **verificación pendiente**: la prueba contra Meta
+Ya está también el **contador del tramo del mes por número** (fase 5), con
+alerta al 80% y costo estimado. Falta: los interactivos libres (fase 6) y la
+**agenda de llamadas** (la llamada pedida ya es tarea, pero no se programa a una
+hora). Y queda una **verificación pendiente**: la prueba contra Meta
 real —plantilla aprobada y botón tocado— para cerrar las fases 3 y 4. Lo que hay
 que copiar y de dónde sale está en [`pruebas-meta.md`](pruebas-meta.md).
 

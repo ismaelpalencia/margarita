@@ -2,7 +2,10 @@ import { Request, Response } from "express";
 
 import { appConfig } from "../config/app.config";
 import { WhatsAppAccountService } from "../services/whatsapp-account.service";
+import { NumberUsageService } from "../services/number-usage.service";
+import { SendPolicyService } from "../services/send-policy.service";
 import { WhatsAppNumberService } from "../services/whatsapp-number.service";
+import { monthKeyIn, startOfMonthIn } from "../utils/date";
 import { getRequiredParam } from "../utils/request";
 import { updateWhatsAppCredentialsSchema } from "../validations/whatsapp-account.validation";
 import { createWhatsAppAccountSchema } from "../validations/whatsapp-account.validation";
@@ -21,10 +24,33 @@ export class AdminWhatsAppController {
                 WhatsAppNumberService.listNumbers(req.user!.workspaceId)
             ]);
 
+            /**
+             * Tramo del mes: cuánto servicio lleva cada número, cuánto queda y
+             * una estimación de lo que cobraría Meta con las tarifas
+             * configuradas. La alerta del 80% se deja una sola vez al mes.
+             */
+            const timezone = await SendPolicyService.timezoneFor(
+                req.user!.workspaceId
+            );
+            const usage = await NumberUsageService.forWorkspace(
+                req.user!.workspaceId,
+                startOfMonthIn(timezone)
+            );
+
+            await NumberUsageService.alertIfNeeded(
+                req.user!.workspaceId,
+                usage,
+                monthKeyIn(timezone)
+            ).catch(() => undefined);
+
+            const suggested = NumberUsageService.suggested(usage);
+
             return res.render("pages/admin/whatsapp/show", {
                 user: req.user,
                 account,
                 numbers,
+                usage,
+                suggestedNumberId: suggested?.numberId || null,
                 webhookUrl,
                 success: req.query.success || null,
                 error: req.query.error || null
@@ -39,6 +65,8 @@ export class AdminWhatsAppController {
                 user: req.user,
                 account: null,
                 numbers: [],
+                usage: [],
+                suggestedNumberId: null,
                 webhookUrl,
                 success: null,
                 error: message
