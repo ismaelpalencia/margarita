@@ -109,7 +109,7 @@ test("ninguna pantalla del panel responde 500", async () => {
         "/admin/logs",
         "/admin/logs/webhooks",
         "/admin/system",
-        "/admin/roadmap",
+        "/admin/guia",
         "/admin/whatsapp",
         "/admin/backup",
         "/admin/backup?success=snapshot",

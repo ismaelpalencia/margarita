@@ -1,0 +1,145 @@
+<%- include("../../../partials/header", { title: "Guía - Admin" }) %>
+
+<div class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-5xl px-4 py-8">
+        <div class="mb-8">
+            <p class="text-sm font-semibold uppercase tracking-wide text-margarita-600">
+                Guía rápida
+            </p>
+
+            <h1 class="mt-1 text-3xl font-black text-slate-900">
+                Qué hace Margarita y por dónde empezar
+            </h1>
+
+            <p class="mt-2 max-w-3xl text-slate-600">
+                La idea en una frase: <strong>cada conversación termina en un
+                resultado</strong>, y cada resultado alimenta la lista de trabajo del
+                día siguiente. Todo lo demás está para que eso sea fácil de sostener.
+            </p>
+        </div>
+
+        <section class="mb-8 grid gap-4 md:grid-cols-2">
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <p class="font-bold text-slate-900">Bandeja de conversaciones</p>
+                <p class="mt-1 text-sm text-slate-600">
+                    Atiende WhatsApp sin salir del panel: texto libre y archivos
+                    dentro de las 24 horas, plantillas aprobadas cuando la ventana
+                    está cerrada, notas internas, respuestas rápidas y botones.
+                </p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <p class="font-bold text-slate-900">Resultado de cada gestión</p>
+                <p class="mt-1 text-sm text-slate-600">
+                    Promesa, convenio, pagado, pago reportado, sin contestación,
+                    número inválido, no le interesa o volver a llamar, con monto y
+                    fecha. Cada marcado deja historial con quién y cuándo.
+                </p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <p class="font-bold text-slate-900">Lista de trabajo del día</p>
+                <p class="mt-1 text-sm text-slate-600">
+                    En <strong>Reportes → Hoy</strong>: primero los que pidieron
+                    llamada (con su tiempo de espera y su cita), luego promesas
+                    vencidas, las de hoy y los clientes sin contestar.
+                </p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <p class="font-bold text-slate-900">Campañas con plantillas</p>
+                <p class="mt-1 text-sm text-slate-600">
+                    Envía a contactos o a un Excel, con variables por destinatario,
+                    en cola, con pausa, reanudación y reintento de fallidos.
+                </p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <p class="font-bold text-slate-900">Botones que se entienden solos</p>
+                <p class="mt-1 text-sm text-slate-600">
+                    Cuando el deudor toca un botón, la app registra el resultado y,
+                    si hace falta, pausa la cuenta o da de baja. Se configura en
+                    <strong>Botones</strong>.
+                </p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <p class="font-bold text-slate-900">Tramo y costo</p>
+                <p class="mt-1 text-sm text-slate-600">
+                    En <strong>WhatsApp</strong> ves cuántos mensajes de servicio
+                    lleva cada número del tramo mensual, con alerta al 80%, y el
+                    costo estimado de plantillas.
+                </p>
+            </div>
+        </section>
+
+        <section class="mb-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <h2 class="font-bold text-slate-900">El día, en tres pasos</h2>
+
+            <ol class="mt-3 grid gap-3 md:grid-cols-3">
+                <li class="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
+                    <strong class="block text-slate-900">1. Abre Hoy</strong>
+                    Llama primero a los que pidieron llamada y registra el
+                    resultado en el momento.
+                </li>
+                <li class="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
+                    <strong class="block text-slate-900">2. Contesta la bandeja</strong>
+                    Al cerrar cada conversación, marca en qué quedó. Eso es lo que
+                    hace que mañana la lista tenga sentido.
+                </li>
+                <li class="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
+                    <strong class="block text-slate-900">3. Revisa al cierre</strong>
+                    Despacha lo que quedó sin contestar y baja el CSV si lo usas
+                    para tu control.
+                </li>
+            </ol>
+        </section>
+
+        <section class="mb-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <h2 class="font-bold text-slate-900">Lo que no hace</h2>
+
+            <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
+                <li>No es un CRM: no maneja ventas, embudos ni facturación.</li>
+                <li>No responde solo ni es un chatbot.</li>
+                <li>No crea plantillas en Meta: se aprueban allá.</li>
+                <li>No cobra ni concilia pagos: «pagado» es una anotación operativa.</li>
+                <li>El consumo de WhatsApp lo cobra Meta directamente a la empresa.</li>
+            </ul>
+        </section>
+
+        <section class="rounded-2xl bg-margarita-50 p-5 ring-1 ring-margarita-200">
+            <h2 class="font-bold text-margarita-900">Guías completas y soporte</h2>
+
+            <p class="mt-1 text-sm text-margarita-800">
+                La guía de uso y la de plantillas son públicas: se pueden mandar por
+                WhatsApp a cualquier compañero.
+            </p>
+
+            <div class="mt-4 flex flex-wrap gap-3">
+                <a href="/guia" class="rounded-xl bg-white px-4 py-2 text-sm font-bold text-margarita-800 ring-1 ring-margarita-200 hover:bg-margarita-100">
+                    Guía de uso
+                </a>
+
+                <a href="/plantillas" class="rounded-xl bg-white px-4 py-2 text-sm font-bold text-margarita-800 ring-1 ring-margarita-200 hover:bg-margarita-100">
+                    Guía de plantillas
+                </a>
+
+                <% if (supportWhatsappUrl) { %>
+                    <a href="<%= supportWhatsappUrl %>" class="rounded-xl bg-margarita-600 px-4 py-2 text-sm font-bold text-white hover:bg-margarita-700">
+                        WhatsApp <%= supportWhatsappDisplay %>
+                    </a>
+                <% } %>
+
+                <% if (supportEmail) { %>
+                    <a href="mailto:<%= supportEmail %>" class="rounded-xl bg-white px-4 py-2 text-sm font-bold text-margarita-800 ring-1 ring-margarita-200 hover:bg-margarita-100">
+                        <%= supportEmail %>
+                    </a>
+                <% } %>
+            </div>
+        </section>
+    </main>
+</div>
+
+<%- include("../../../partials/footer") %>

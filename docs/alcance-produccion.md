@@ -112,7 +112,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Aviso de carga con la marca**: al cambiar de pantalla y al enviar un formulario aparece el sello de Margarita con un aro girando y «Cargando…». El botón que se envió queda ocupado —con un aro dentro y sin poder tocarse otra vez—, así nadie manda dos veces el mismo mensaje o la misma campaña. Con «reducir movimiento» activado en el sistema, el sello y el aro se quedan quietos y solo avisa el texto.
 - **Respuestas rápidas**: textos guardados que el equipo inserta con un clic, con `{nombre}` y `{telefono}` del contacto.
 - **Sistema**: checklist de configuración y estado de seguridad, cola y worker.
-- **Roadmap**: alcance incluido y lo que está postergado.
+- **Guía rápida en el panel**: qué hace la herramienta, el día en tres pasos, lo que **no** hace y los accesos a la guía de uso, la de plantillas y soporte. Sustituyó al «Roadmap», que era información interna y no debía ver el cliente.
 
 ### Panel de agente
 

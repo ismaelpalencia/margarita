@@ -277,20 +277,20 @@
             </button>
         </form>
 
-        <section class="overflow-hidden rounded-2xl bg-white shadow">
+        <section class="overflow-x-auto rounded-2xl bg-white shadow">
             <table class="w-full text-left text-sm">
                 <thead class="bg-slate-50 text-slate-500">
                     <tr>
-                        <th class="px-5 py-4">
+                        <th class="px-3 py-4 md:px-5">
                             <span class="sr-only">Seleccionar</span>
                         </th>
-                        <th class="px-5 py-4">Nombre</th>
-                        <th class="px-5 py-4">Teléfono</th>
-                        <th class="px-5 py-4">Resultado</th>
-                        <th class="px-5 py-4">Intentos</th>
-                        <th class="px-5 py-4">Etiquetas</th>
-                        <th class="px-5 py-4">Notas</th>
-                        <th class="px-5 py-4 text-right">Acciones</th>
+                        <th class="px-3 py-4 md:px-5">Nombre</th>
+                        <th class="hidden px-3 py-4 md:table-cell md:px-5">Teléfono</th>
+                        <th class="px-3 py-4 md:px-5">Resultado</th>
+                        <th class="hidden px-3 py-4 md:table-cell md:px-5">Intentos</th>
+                        <th class="hidden px-3 py-4 md:table-cell md:px-5">Etiquetas</th>
+                        <th class="hidden px-3 py-4 md:table-cell md:px-5">Notas</th>
+                        <th class="px-3 py-4 md:px-5 text-right">Acciones</th>
                     </tr>
                 </thead>
 
@@ -312,7 +312,7 @@
                             const late = daysLate(contact);
                         %>
                         <tr>
-                            <td class="px-5 py-4">
+                            <td class="px-3 py-4 md:px-5">
                                 <input
                                     type="checkbox"
                                     name="contactIds"
@@ -322,11 +322,11 @@
                                 />
                             </td>
 
-                            <td class="px-5 py-4">
+                            <td class="px-3 py-4 md:px-5">
                                 <div class="flex items-center gap-2">
-                                    <span class="font-medium text-slate-800">
+                                    <a href="/admin/contacts/<%= contact.id %>/edit" class="font-medium text-slate-800 underline-offset-2 hover:text-margarita-700 hover:underline">
                                         <%= contact.customName || contact.profileName || contact.phone %>
-                                    </span>
+                                    </a>
 
                                     <% if (contact.optOutAt) { %>
                                         <span
@@ -361,11 +361,11 @@
                                 </div>
                             </td>
 
-                            <td class="px-5 py-4 text-slate-600">
+                            <td class="hidden px-5 py-4 text-slate-600 md:table-cell">
                                 <%= contact.phone %>
                             </td>
 
-                            <td class="px-5 py-4">
+                            <td class="px-3 py-4 md:px-5">
                                 <% if (contact.outcomeType) { %>
                                     <span class="rounded-full px-2 py-0.5 text-[11px] font-bold <%= outcomeBadgeClasses[contact.outcomeType] %>">
                                         <%= outcomeLabels[contact.outcomeType] %>
@@ -387,7 +387,7 @@
                                 <% } %>
                             </td>
 
-                            <td class="px-5 py-4 text-slate-600">
+                            <td class="hidden px-5 py-4 text-slate-600 md:table-cell">
                                 <span class="<%= contactAttempts.attempts >= 3 ? 'font-bold text-amber-700' : '' %>">
                                     <%= contactAttempts.attempts %>
                                 </span>
@@ -399,7 +399,7 @@
                                 <% } %>
                             </td>
 
-                            <td class="px-5 py-4">
+                            <td class="hidden px-3 py-4 md:table-cell md:px-5">
                                 <div class="flex flex-wrap gap-1">
                                     <% if (contact.tags.length === 0) { %>
                                         <span class="text-slate-400">—</span>
@@ -416,23 +416,22 @@
                                 </div>
                             </td>
 
-                            <td class="px-5 py-4 text-slate-600">
+                            <td class="hidden px-5 py-4 text-slate-600 md:table-cell">
                                 <%= contact.notes || "—" %>
                             </td>
 
-                            <td class="px-5 py-4">
-                                <div class="flex justify-end gap-2">
-
-                                    <div class="flex justify-end gap-2">
-    <form action="/admin/conversations/from-contact/<%= contact.id %>" method="POST">
-        <button class="rounded-lg bg-margarita-600 px-3 py-2 text-xs font-medium text-white hover:bg-margarita-700">
-            Abrir conversación
-        </button>
-    </form>
+                            <td class="px-3 py-4 md:px-5">
+                                <div class="flex flex-wrap justify-end gap-2">
+                                    <form action="/admin/conversations/from-contact/<%= contact.id %>" method="POST">
+                                        <button class="rounded-lg bg-margarita-600 px-3 py-2 text-xs font-medium text-white hover:bg-margarita-700">
+                                            <span class="md:hidden">Abrir</span>
+                                            <span class="hidden md:inline">Abrir conversación</span>
+                                        </button>
+                                    </form>
 
                                     <a
                                         href="/admin/contacts/<%= contact.id %>/edit"
-                                        class="rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-200"
+                                        class="hidden rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-200 md:inline-flex"
                                     >
                                         Editar
                                     </a>
@@ -441,6 +440,7 @@
                                         action="/admin/contacts/<%= contact.id %>/deactivate"
                                         method="POST"
                                         onsubmit="return confirm('¿Desactivar este contacto?');"
+                                        class="hidden md:block"
                                     >
                                         <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white">
                                             Desactivar
