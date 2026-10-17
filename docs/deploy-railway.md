@@ -104,7 +104,7 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `SETUP_SERVICE_PRICE` | `se cotiza aparte` | Precio del acompañamiento con Meta en la página pública |
 | `INSTALL_PRICE` | `$4,900.00 MXN` | Precio de lista de la instalación |
 | `INSTALL_PRICE_PROMO` | `$2,500.00 MXN` | Precio de la oferta de lanzamiento |
-| `INSTALL_PROMO_LABEL` | `Oferta de lanzamiento: primeros 3 clientes` | Texto que acompaña la oferta |
+| `INSTALL_PROMO_LABEL` | `Precio de instalación vigente` | Texto que acompaña el precio de instalación |
 | `INSTALL_MONTHLY_PRICE` | `$699.00 MXN` | Mensualidad (contrato mínimo de 3 meses) |
 | `INSTALL_MONTHLY_LIST_PRICE` | `$1,490.00 MXN` | Mensualidad a precio de lista |
 | `INSTALL_PROMO_UNTIL` | `2026-12-31` | Fecha en que la página deja de anunciar la oferta |

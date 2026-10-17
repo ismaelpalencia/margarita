@@ -259,7 +259,7 @@ export const appConfig = {
         process.env.INSTALL_PRICE_PROMO?.trim() || "$2,500.00 MXN",
     installPromoLabel:
         process.env.INSTALL_PROMO_LABEL?.trim() ||
-        "Oferta de lanzamiento: primeros 3 clientes",
+        "Precio de instalación vigente",
     /** Hasta cuándo vale la oferta. Pasada la fecha, se deja de anunciar. */
     installPromoUntil:
         process.env.INSTALL_PROMO_UNTIL?.trim() || "2026-12-31",

@@ -302,7 +302,7 @@ def main():
     parser.add_argument("--price-before", default="$4,900 MXN")
     parser.add_argument("--monthly", default="$900 MXN")
     parser.add_argument(
-        "--promo-label", default="Oferta de lanzamiento: primeros 3 clientes"
+        "--promo-label", default="Precio de instalación vigente"
     )
     parser.add_argument(
         "--whatsapp",

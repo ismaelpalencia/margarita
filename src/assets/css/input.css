@@ -245,6 +245,65 @@
     .guia-prose hr {
         @apply my-8 border-slate-200;
     }
+
+    /**
+     * Tablas en el celular.
+     *
+     * En pantallas angostas se esconden las columnas de relleno y quedan las
+     * que sirven para decidir y actuar: nombre, resultado y el botón. Antes la
+     * columna de acciones quedaba fuera de la vista y parecía que la app no
+     * tenía forma de abrir nada.
+     */
+    @media (max-width: 767px) {
+        .tabla-usuarios th:nth-child(3),
+        .tabla-usuarios td:nth-child(3),
+        .tabla-usuarios th:nth-child(4),
+        .tabla-usuarios td:nth-child(4),
+        .tabla-usuarios th:nth-child(5),
+        .tabla-usuarios td:nth-child(5),
+        .tabla-usuarios th:nth-child(6),
+        .tabla-usuarios td:nth-child(6) {
+            display: none;
+        }
+
+        .tabla-etiquetas th:nth-child(2),
+        .tabla-etiquetas td:nth-child(2),
+        .tabla-etiquetas th:nth-child(3),
+        .tabla-etiquetas td:nth-child(3) {
+            display: none;
+        }
+
+        .tabla-plantillas th:nth-child(2),
+        .tabla-plantillas td:nth-child(2),
+        .tabla-plantillas th:nth-child(5),
+        .tabla-plantillas td:nth-child(5) {
+            display: none;
+        }
+
+        .tabla-botones th:nth-child(4),
+        .tabla-botones td:nth-child(4) {
+            display: none;
+        }
+
+        .tabla-respuestas th:nth-child(3),
+        .tabla-respuestas td:nth-child(3) {
+            display: none;
+        }
+
+        .tabla-conversaciones th:nth-child(2),
+        .tabla-conversaciones td:nth-child(2),
+        .tabla-conversaciones th:nth-child(3),
+        .tabla-conversaciones td:nth-child(3),
+        .tabla-conversaciones th:nth-child(4),
+        .tabla-conversaciones td:nth-child(4) {
+            display: none;
+        }
+
+        .tabla-agente-conversaciones th:nth-child(2),
+        .tabla-agente-conversaciones td:nth-child(2) {
+            display: none;
+        }
+    }
 }
 
 @keyframes marga-girar {

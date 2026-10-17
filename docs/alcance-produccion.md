@@ -5,8 +5,8 @@ Documento de referencia para decidir y sostener el uso de Margarita en producci�
 Última revisión: 2026-10-16 (mensualidad a **$699** con **contrato mínimo de 3 meses** en la página, landing separada por dominio, plantillas de cobranza con dos botones, llamadas pedidas como tarea del día y volcado de webhooks para copiar).
 
 > **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
-> **Instalación $2,500.00 MXN** (una vez, en oferta de lanzamiento; precio de
-> lista $4,900.00) y **mensualidad $699.00 MXN** (precio de lista $1,490.00). El
+> **Instalación $2,500.00 MXN** (una vez, precio vigente; de lista $4,900.00) y
+> **mensualidad $699.00 MXN** (de lista $1,490.00). El
 > primer mes se paga junto con la instalación. **Todos los precios son más IVA.**
 > **El contrato es de mínimo 3 meses**: no es mes a mes libre, y así se anuncia
 > en la página. Al terminar ese plazo, el cliente decide si continúa.

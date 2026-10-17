@@ -45,8 +45,8 @@
             </div>
         <% } %>
 
-        <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-            <table class="w-full text-left text-sm">
+        <section class="overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+            <table class="w-full text-left text-sm tabla-usuarios">
                 <thead class="bg-slate-50 text-slate-500">
                     <tr>
                         <th class="px-5 py-4">Nombre</th>
@@ -87,7 +87,7 @@
                                         </span>
                                     <% } %>
                                 </div>
-                                <div class="mt-1 text-xs text-slate-400"><%= member.email %></div>
+                                <div class="mt-1 hidden text-xs text-slate-400 md:block"><%= member.email %></div>
                             </td>
 
                             <td class="px-5 py-4">
@@ -156,12 +156,12 @@
                                         <button
                                             disabled
                                             title="Es el único administrador activo: crea otro antes de desactivarlo."
-                                            class="cursor-not-allowed rounded-lg bg-slate-200 px-3 py-2 text-xs font-medium text-slate-500"
+                                            class="hidden cursor-not-allowed rounded-lg bg-slate-200 px-3 py-2 text-xs font-medium text-slate-500 md:inline-flex"
                                         >
                                             Desactivar
                                         </button>
                                     <% } else { %>
-                                        <form action="/admin/users/<%= member.id %>/toggle-status" method="POST">
+                                        <form action="/admin/users/<%= member.id %>/toggle-status" method="POST" class="hidden md:block">
                                             <button
                                                 class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white"
                                             >
