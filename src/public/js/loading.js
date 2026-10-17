@@ -81,6 +81,16 @@
         showTimer = null;
         giveUpTimer = null;
 
+        /**
+         * La capa de arranque la maneja su propio script en el `<head>`; aquí
+         * solo se retira si quedó viva al volver con el botón "atrás".
+         */
+        var boot = document.getElementById("marga-boot");
+
+        if (boot && boot.parentNode) {
+            boot.parentNode.removeChild(boot);
+        }
+
         if (!visible || !overlay) {
             return;
         }

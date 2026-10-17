@@ -26,9 +26,129 @@
 <link rel="manifest" href="<%= `/site.webmanifest${assetTag}` %>" />
 
 <%#
-    Aviso de carga con el sello de la marca: aparece al cambiar de pantalla y
-    en el botón que se acaba de enviar. Va en el encabezado compartido para que
-    lo tengan todas las páginas, incluidas las que no usan `partials/header`.
+    Aviso de carga con el sello de la marca.
+
+    Son dos momentos y comparten el mismo dibujo:
+
+    - **Arranque** (aquí abajo): la capa se crea con un script en línea, antes
+      de que exista el <body>, así que se pinta con el primer HTML. No depende
+      de que cargue ningún archivo: si el CSS o el JS externos fallan, el aviso
+      igual aparece y, peor aún, igual se quita (hay un reloj de seguridad).
+    - **Cambio de pantalla** y **botón enviado**: los maneja `loading.js`.
+
+    El estilo crítico va en línea a propósito: la capa tiene que verse bien
+    antes de que llegue la hoja de estilos.
 %>
 <meta name="marga-seal" content="/brand/img/margarita-icon-128.png" />
+
+<style>
+    #marga-boot {
+        position: fixed;
+        inset: 0;
+        z-index: 120;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.85rem;
+        background: #f8fafc;
+        transition: opacity 220ms ease;
+    }
+
+    #marga-boot[data-visible="false"] {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    #marga-boot .marga-boot__seal {
+        width: 3rem;
+        height: 3rem;
+        filter: drop-shadow(0 6px 14px rgb(15 111 74 / 0.16));
+    }
+
+    #marga-boot .marga-boot__ring {
+        position: absolute;
+        width: 4.4rem;
+        height: 4.4rem;
+        border-radius: 9999px;
+        border: 2.5px solid transparent;
+        border-top-color: #17865a;
+        border-right-color: #7cd9a8;
+        animation: marga-boot-girar 850ms linear infinite;
+    }
+
+    #marga-boot .marga-boot__text {
+        font: 700 0.85rem/1.2 ui-sans-serif, system-ui, sans-serif;
+        color: #10573c;
+        letter-spacing: 0.02em;
+    }
+
+    @keyframes marga-boot-girar {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #marga-boot .marga-boot__ring {
+            animation: none;
+        }
+    }
+</style>
+
+<script>
+    /**
+     * Capa de arranque. Se crea aquí mismo, con el sello y el texto ya
+     * dibujados, y se retira cuando la página termina de cargar. Tiene un
+     * mínimo de 250 ms (para que no sea un parpadeo) y un máximo de 6 s (para
+     * que un recurso colgado no deje la pantalla tapada).
+     */
+    (function () {
+        var created = Date.now();
+        var sealTag = document.querySelector('meta[name="marga-seal"]');
+        var seal = (sealTag && sealTag.getAttribute("content")) ||
+            "/brand/img/margarita-icon-128.png";
+
+        var layer = document.createElement("div");
+        layer.id = "marga-boot";
+        layer.setAttribute("role", "status");
+        layer.setAttribute("aria-live", "polite");
+        layer.innerHTML =
+            '<div style="position:relative;display:flex;align-items:center;justify-content:center">' +
+            '<span class="marga-boot__ring" aria-hidden="true"></span>' +
+            '<img src="' + seal + '" alt="" class="marga-boot__seal" />' +
+            "</div>" +
+            '<p class="marga-boot__text">Cargando…</p>';
+
+        (document.body || document.documentElement).appendChild(layer);
+
+        var hidden = false;
+
+        function retire() {
+            if (hidden) {
+                return;
+            }
+
+            hidden = true;
+
+            var wait = Math.max(0, 250 - (Date.now() - created));
+
+            setTimeout(function () {
+                layer.setAttribute("data-visible", "false");
+                layer.setAttribute("aria-hidden", "true");
+
+                setTimeout(function () {
+                    if (layer.parentNode) {
+                        layer.parentNode.removeChild(layer);
+                    }
+                }, 260);
+            }, wait);
+        }
+
+        window.addEventListener("load", retire);
+        window.addEventListener("pageshow", retire);
+        setTimeout(retire, 6000);
+    })();
+</script>
+
 <script src="<%= `/js/loading.js${assetTag}` %>" defer></script>
