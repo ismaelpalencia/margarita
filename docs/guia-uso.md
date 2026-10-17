@@ -240,7 +240,9 @@ Es la pantalla que se abre en la mañana. Va de arriba abajo por urgencia:
    intención de pago de la cartera. Muestra cuánto lleva esperando cada uno y si
    lo pidió fuera del horario permitido (**8:00 a 21:00**, hora de la empresa).
    Se despacha con **«No contestó»** o abriendo la ficha para registrar promesa,
-   convenio o pago. Sale de la lista solo cuando se registra otro resultado.
+   convenio o pago. También se le puede **agendar fecha y hora**: la cita de hoy
+   o vencida sube al principio y se marca «Toca ahora». Sale de la lista solo
+   cuando se registra otro resultado.
 2. **Promesas vencidas**, con monto y días de atraso.
 3. **Vencen hoy** y **esta semana**.
 4. **Sin contestar** tras varios intentos.

@@ -303,3 +303,89 @@ test("el volcado del webhook se puede copiar desde el panel", async () => {
         "y un evento en cola, sin empresa asignada, también se ve"
     );
 });
+
+/**
+ * Agenda de llamadas (fase B2): la llamada pedida puede llevar fecha y hora.
+ * Se guarda en UTC y se muestra en la zona de la empresa.
+ */
+test("una llamada pedida se agenda, aparece en Hoy y se puede quitar", async () => {
+    const contact = await createContact(`Cliente Cita ${Date.now()}`);
+
+    await ContactOutcomeService.mark({
+        workspaceId: fixture.workspaceId,
+        contactIds: [contact.id],
+        userId: fixture.adminId,
+        type: ContactOutcomeType.CALLBACK
+    });
+
+    const cita = "2026-12-01T10:30";
+
+    const agenda = await fetch(`${baseUrl()}/admin/reports/schedule-call`, {
+        method: "POST",
+        redirect: "manual",
+        headers: {
+            "content-type": "application/x-www-form-urlencoded",
+            cookie
+        },
+        body: new URLSearchParams({
+            contactId: contact.id,
+            scheduledFor: cita
+        }).toString()
+    });
+
+    assert.equal(agenda.status, 302, "agendar responde con redirección");
+    assert.match(
+        agenda.headers.get("location") || "",
+        /success=marked/,
+        "y vuelve con la confirmación"
+    );
+
+    const guardada = await prisma.contact.findUniqueOrThrow({
+        where: { id: contact.id },
+        select: { scheduledCallAt: true, outcomeType: true }
+    });
+
+    assert.ok(guardada.scheduledCallAt, "la cita queda guardada");
+    assert.equal(
+        guardada.scheduledCallAt!.toISOString(),
+        "2026-12-01T16:30:00.000Z",
+        "10:30 en la empresa son 16:30 UTC"
+    );
+    assert.equal(guardada.outcomeType, ContactOutcomeType.CALLBACK);
+
+    const timezone = await SendPolicyService.timezoneFor(fixture.workspaceId);
+    const pendientes = await ReportService.callRequests(
+        fixture.workspaceId,
+        timezone
+    );
+    const item = pendientes.find((row) => row.contactId === contact.id);
+
+    assert.ok(item, "sigue en las llamadas pedidas");
+    assert.equal(item!.scheduledLabel, "01/12/2026 10:30");
+    assert.equal(item!.scheduledDue, false, "todavía no toca");
+
+    const pagina = await visit("/admin/reports?vista=hoy", cookie);
+    assert.match(pagina.body, /Agendada · 01\/12\/2026 10:30/);
+
+    const quitar = await fetch(`${baseUrl()}/admin/reports/schedule-call`, {
+        method: "POST",
+        redirect: "manual",
+        headers: {
+            "content-type": "application/x-www-form-urlencoded",
+            cookie
+        },
+        body: new URLSearchParams({
+            contactId: contact.id,
+            clear: "1"
+        }).toString()
+    });
+
+    assert.equal(quitar.status, 302);
+
+    const sinCita = await prisma.contact.findUniqueOrThrow({
+        where: { id: contact.id },
+        select: { scheduledCallAt: true }
+    });
+
+    assert.equal(sinCita.scheduledCallAt, null, "la cita se puede quitar");
+});

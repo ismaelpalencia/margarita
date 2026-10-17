@@ -3,6 +3,7 @@ import { ContactOutcomeType } from "@prisma/client";
 
 import { ReportService } from "../services/report.service";
 import { ContactOutcomeService } from "../services/contact-outcome.service";
+import { CallScheduleService } from "../services/call-schedule.service";
 import { UserService } from "../services/user.service";
 import { TagService } from "../services/tag.service";
 import { prisma } from "../config/prisma";
@@ -339,6 +340,40 @@ export class AdminReportsController {
                 note: "Marcado desde la lista de llamadas.",
                 source: "PANEL"
             });
+        } catch {
+            return res.redirect("/admin/reports?vista=hoy&error=mark");
+        }
+
+        return res.redirect("/admin/reports?vista=hoy&success=marked");
+    }
+
+    /**
+     * Agenda (o quita) la cita de una llamada pedida.
+     *
+     * La hora llega de un `datetime-local`, sin zona: se interpreta en la zona
+     * de la empresa, que es la que ve quien agenda.
+     */
+    static async scheduleCall(req: Request, res: Response) {
+        const contactId =
+            typeof req.body?.contactId === "string" ? req.body.contactId : "";
+        const clear = req.body?.clear === "1";
+        const scheduledFor =
+            typeof req.body?.scheduledFor === "string" ? req.body.scheduledFor : "";
+
+        try {
+            if (clear) {
+                await CallScheduleService.clear({
+                    workspaceId: req.user!.workspaceId,
+                    contactId
+                });
+            } else {
+                await CallScheduleService.schedule({
+                    workspaceId: req.user!.workspaceId,
+                    contactId,
+                    localDateTime: scheduledFor,
+                    userId: req.user!.id
+                });
+            }
         } catch {
             return res.redirect("/admin/reports?vista=hoy&error=mark");
         }

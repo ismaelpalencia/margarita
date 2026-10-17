@@ -453,6 +453,12 @@ model Contact {
    */
   outcomePaidAt DateTime?
 
+  /**
+   * Llamada agendada (en UTC). La tarea sigue siendo «volver a llamar», pero
+   * con una hora concreta: así no compite con todo lo demás del día.
+   */
+  scheduledCallAt DateTime?
+
   lastSeenAt DateTime?
 
   tags               ContactTag[]

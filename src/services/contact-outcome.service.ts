@@ -165,7 +165,16 @@ export class ContactOutcomeService {
                     /** Un pago cierra la promesa: ya no hay nada que vencer. */
                     outcomeDueAt:
                         input.type === ContactOutcomeType.PAID ? null : dueAt,
-                    outcomePaidAt: paidAt
+                    outcomePaidAt: paidAt,
+                    /**
+                     * Una llamada agendada solo tiene sentido mientras el
+                     * resultado sea «volver a llamar»: si la persona ya pagó o
+                     * no le interesa, la cita se borra sola.
+                     */
+                    scheduledCallAt:
+                        input.type === ContactOutcomeType.CALLBACK
+                            ? undefined
+                            : null
                 }
             });
 

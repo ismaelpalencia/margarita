@@ -207,6 +207,35 @@ test("los caminos de error también pintan pantalla", async () => {
     assert.equal(vacio.status, 400, "un formulario inválido responde 400");
 });
 
+/**
+ * Humo de interfaz: las pantallas clave traen su contenido, no solo un 200.
+ *
+ * Cubre lo que un cambio de plantilla rompe sin que nadie lo note: el aviso de
+ * carga, el precio de la portada, el aviso de privacidad, la guía, el bloque de
+ * trabajo del día y el tramo de mensajes.
+ */
+test("las pantallas clave traen su contenido", async () => {
+    const { cookie } = await login(fixture.adminEmail, fixture.adminPassword);
+
+    const casos: Array<[string, RegExp]> = [
+        ["/", /Cobra por WhatsApp/],
+        ["/", /js\/loading\.js/],
+        ["/aviso-de-privacidad", /7 días hábiles/],
+        ["/guia", /En esta guía/],
+        ["/plantillas", /Plantillas que se aprueban/],
+        ["/admin/reports?vista=hoy", /A quién escribirle hoy/],
+        ["/admin/whatsapp", /Tramo del mes/],
+        ["/admin/conversations", /Conversaciones/]
+    ];
+
+    for (const [path, patron] of casos) {
+        const { status, body } = await visit(path, cookie);
+
+        assert.equal(status, 200, `${path} responde 200`);
+        assert.match(body, patron, `${path} trae su contenido`);
+    }
+});
+
 test("cambiar la contraseña no rompe la pantalla de confirmación", async () => {
     const email = `prueba-integracion-password-${Date.now()}@ejemplo.mx`;
     const original = "ClaveOriginal123";

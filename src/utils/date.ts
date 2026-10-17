@@ -31,6 +31,25 @@ export function monthKeyIn(timezone: string): string {
     return dayjs().tz(timezone).format("YYYY-MM");
 }
 
+/**
+ * Lee un `datetime-local` ("2026-10-17T18:00") como hora de la empresa.
+ *
+ * El navegador manda la hora sin zona; interpretarla en UTC movería la cita
+ * seis horas. Devuelve `null` si el texto no es una fecha válida.
+ */
+export function parseLocalDateTime(
+    value: string | null | undefined,
+    timezone: string
+): Date | null {
+    if (!value || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value.trim())) {
+        return null;
+    }
+
+    const parsed = dayjs.tz(value.trim(), timezone);
+
+    return parsed.isValid() ? parsed.toDate() : null;
+}
+
 export function formatDateForApp(date: Date) {
     return dayjs(date).tz(appConfig.timezone).format("YYYY-MM-DD HH:mm:ss");
 }

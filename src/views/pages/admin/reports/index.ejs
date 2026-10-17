@@ -401,6 +401,7 @@
                                 <th class="px-5 py-3">Teléfono</th>
                                 <th class="px-5 py-3">Lo pidió</th>
                                 <th class="px-5 py-3">Esperando</th>
+                                <th class="px-5 py-3">Cita</th>
                                 <%#
                                     El origen es lo único que se puede caer en el
                                     celular: si la llamada salió del botón o la
@@ -439,6 +440,37 @@
                                         >
                                             <%= formatWaitingTime(item.requestedAt) %>
                                         </span>
+                                    </td>
+
+                                    <td class="px-5 py-3">
+                                        <% if (item.scheduledLabel) { %>
+                                            <span class="rounded-full px-2 py-0.5 text-[11px] font-bold <%= item.scheduledDue ? 'bg-red-50 text-red-700' : 'bg-margarita-50 text-margarita-700' %>">
+                                                <%= item.scheduledDue ? "Toca ahora" : "Agendada" %> · <%= item.scheduledLabel %>
+                                            </span>
+
+                                            <form action="/admin/reports/schedule-call" method="POST" class="mt-1">
+                                                <input type="hidden" name="contactId" value="<%= item.contactId %>" />
+                                                <input type="hidden" name="clear" value="1" />
+
+                                                <button class="text-[11px] font-semibold text-slate-500 underline hover:text-slate-700">
+                                                    Quitar cita
+                                                </button>
+                                            </form>
+                                        <% } else { %>
+                                            <form action="/admin/reports/schedule-call" method="POST" class="flex items-center gap-1">
+                                                <input type="hidden" name="contactId" value="<%= item.contactId %>" />
+
+                                                <input
+                                                    type="datetime-local"
+                                                    name="scheduledFor"
+                                                    class="w-[9.5rem] rounded-lg border border-slate-300 px-2 py-1 text-xs"
+                                                />
+
+                                                <button class="rounded-lg bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200">
+                                                    Agendar
+                                                </button>
+                                            </form>
+                                        <% } %>
                                     </td>
 
                                     <td class="hidden px-5 py-3 text-slate-600 md:table-cell">

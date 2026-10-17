@@ -5,7 +5,8 @@ import {
     formatDayLabelMX,
     formatDateTimeMX,
     formatTimeMX,
-    formatWaitingTime
+    formatWaitingTime,
+    parseLocalDateTime
 } from "./date";
 
 test("marca el día actual como Hoy", () => {
@@ -56,4 +57,17 @@ test("la espera se cuenta en minutos, horas y días", () => {
 
 test("sin fecha, la espera no inventa un texto", () => {
     assert.equal(formatWaitingTime(null), "");
+});
+
+test("la hora de una cita se lee en la zona de la empresa", () => {
+    /** 18:00 en Ciudad de México (UTC-6) son las 00:00 UTC del día siguiente. */
+    const value = parseLocalDateTime("2026-10-17T18:00", "America/Mexico_City");
+
+    assert.ok(value);
+    assert.equal(value!.toISOString(), "2026-10-18T00:00:00.000Z");
+});
+
+test("una fecha mal escrita no se convierte en cita", () => {
+    assert.equal(parseLocalDateTime("17/10/2026 18:00", "America/Mexico_City"), null);
+    assert.equal(parseLocalDateTime("", "America/Mexico_City"), null);
 });

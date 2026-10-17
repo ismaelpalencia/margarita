@@ -83,6 +83,14 @@ export type CallRequestItem = {
     outsideHours: boolean;
     /** De dónde salió: el botón, o alguien del equipo lo marcó. */
     fromButton: boolean;
+    /** Cita de llamada, si alguien la agendó. */
+    scheduledAt: Date | null;
+    /** La cita ya llegó (o pasó): va primero en la lista. */
+    scheduledDue: boolean;
+    /** Valor para el `<input type="datetime-local">`, en hora local. */
+    scheduledInputValue: string;
+    /** "17/10/2026 18:00", ya formateada. */
+    scheduledLabel: string | null;
 };
 
 /** Cuántas filas como máximo se cargan para calcular un reporte. */
@@ -302,6 +310,7 @@ export class ReportService {
                 profileName: true,
                 phone: true,
                 outcomeAt: true,
+                scheduledCallAt: true,
                 outcomes: {
                     orderBy: { createdAt: "desc" },
                     take: 1,
@@ -314,7 +323,7 @@ export class ReportService {
 
         const now = Date.now();
 
-        return contacts.map((contact) => {
+        const items = contacts.map((contact) => {
             const requestedAt = contact.outcomeAt ?? new Date();
             const local = dayjs(requestedAt).tz(timezone);
             const hour = local.hour();
@@ -332,8 +341,50 @@ export class ReportService {
                 requestedLocalTime: local.format("DD/MM/YYYY HH:mm"),
                 /** De 8:00 a 21:00, hora de la empresa. */
                 outsideHours: hour < 8 || hour >= 21,
-                fromButton: contact.outcomes[0]?.source === "INTERACTIVE"
+                fromButton: contact.outcomes[0]?.source === "INTERACTIVE",
+                scheduledAt: contact.scheduledCallAt,
+                scheduledDue: Boolean(
+                    contact.scheduledCallAt &&
+                        contact.scheduledCallAt.getTime() <= now
+                ),
+                scheduledInputValue: contact.scheduledCallAt
+                    ? dayjs(contact.scheduledCallAt)
+                          .tz(timezone)
+                          .format("YYYY-MM-DDTHH:mm")
+                    : "",
+                scheduledLabel: contact.scheduledCallAt
+                    ? dayjs(contact.scheduledCallAt)
+                          .tz(timezone)
+                          .format("DD/MM/YYYY HH:mm")
+                    : null
             };
+        });
+
+        /**
+         * Primero lo que ya toca llamar (cita vencida o de esta hora), luego
+         * las citas futuras por hora y al final los que pidieron llamada pero
+         * siguen sin cita. Dentro de cada grupo, el que lleva más esperando.
+         */
+        const rank = (item: CallRequestItem) => {
+            if (item.scheduledAt && item.scheduledDue) {
+                return 0;
+            }
+
+            return item.scheduledAt ? 1 : 2;
+        };
+
+        return items.sort((a, b) => {
+            const byRank = rank(a) - rank(b);
+
+            if (byRank !== 0) {
+                return byRank;
+            }
+
+            if (a.scheduledAt && b.scheduledAt) {
+                return a.scheduledAt.getTime() - b.scheduledAt.getTime();
+            }
+
+            return a.requestedAt.getTime() - b.requestedAt.getTime();
         });
     }
 
