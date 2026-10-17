@@ -11,6 +11,12 @@ jobs:
     name: Tipos, tests y build
     runs-on: ubuntu-latest
 
+    env:
+      # La suite unitaria no toca la base de datos, pero dos módulos importan
+      # el cliente de Prisma y este exige la variable al cargarse. Con un valor
+      # de relleno, la prueba compila y corre sin servidor de PostgreSQL.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -83,6 +89,9 @@ jobs:
 
       - name: Instalar dependencias
         run: npm install --include=dev --no-audit --no-fund
+
+      - name: Generar cliente de Prisma
+        run: npx prisma generate
 
       - name: Aplicar migraciones en la base de pruebas
         run: npx prisma migrate deploy

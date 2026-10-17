@@ -78,6 +78,17 @@ export class HomeController {
     }
 
     /**
+     * Guía de plantillas: cómo crearlas en Meta para que se aprueben y cuesten
+     * lo menos posible. Pública por la misma razón que la guía de uso.
+     */
+    static async templatesGuide(_req: Request, res: Response) {
+        return res.render("pages/home/plantillas", {
+            title: "Guía de plantillas - Margarita",
+            ...supportContext()
+        });
+    }
+
+    /**
      * «Ya tengo acceso»: la página a la que apunta el botón de la landing
      * estática. Explica de dónde se entra, porque cada operación tiene su
      * propio subdominio y aquí no hay formulario que valga.

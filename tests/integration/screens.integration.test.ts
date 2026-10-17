@@ -86,6 +86,7 @@ test("ninguna pantalla del panel responde 500", async () => {
         "/",
         "/como-empezar",
         "/guia",
+        "/plantillas",
         "/aviso-de-privacidad",
         "/admin/dashboard",
         "/admin/conversations",
