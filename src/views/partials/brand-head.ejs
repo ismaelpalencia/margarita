@@ -24,3 +24,11 @@
 <link rel="icon" type="image/png" sizes="16x16" href="<%= `/favicon-16x16.png${assetTag}` %>" />
 <link rel="apple-touch-icon" sizes="180x180" href="<%= `/apple-touch-icon.png${assetTag}` %>" />
 <link rel="manifest" href="<%= `/site.webmanifest${assetTag}` %>" />
+
+<%#
+    Aviso de carga con el sello de la marca: aparece al cambiar de pantalla y
+    en el botón que se acaba de enviar. Va en el encabezado compartido para que
+    lo tengan todas las páginas, incluidas las que no usan `partials/header`.
+%>
+<meta name="marga-seal" content="/brand/img/margarita-icon-128.png" />
+<script src="<%= `/js/loading.js${assetTag}` %>" defer></script>

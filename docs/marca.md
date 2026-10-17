@@ -86,6 +86,22 @@ que muestra la página pública, para que la imagen y la web no se contradigan.
 Si no se le da contacto, la imagen lo dice en voz alta en lugar de salir sin
 forma de contestar.
 
+### Cómo se mueve el sello
+
+El sello tiene una sola animación, y es la del aviso de carga: **el sello no
+gira** (la cara quedaría de cabeza y se pierde lo que lo hace reconocible). Lo
+que gira es un aro verde alrededor, mientras el sello respira muy despacio (5%
+de escala, sin rebote). Los estilos viven en `.marga-loader` y `.marga-overlay`
+de `src/assets/css/input.css`, y quien los activa es `src/public/js/loading.js`.
+
+Reglas que conviene no romper:
+
+- Nada de giros sobre el sello, ni de rebotes: la marca es tranquila.
+- Con «reducir movimiento» activado en el sistema, todo se queda quieto y el
+  texto «Cargando…» es el que avisa.
+- El botón que se envió queda ocupado con un aro del color del texto: es el
+  mismo lenguaje, en pequeño.
+
 ---
 
 ## 2. La paleta

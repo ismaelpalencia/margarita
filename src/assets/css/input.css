@@ -73,4 +73,114 @@
     .margarita-input {
         @apply w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100;
     }
+
+    /**
+     * Indicador de carga con el sello de la marca.
+     *
+     * El sello **no gira**: la cara quedaría de cabeza y se pierde justo lo que
+     * hace reconocible a Margarita. Lo que gira es un aro alrededor, mientras el
+     * sello respira muy despacio (un 5% de escala, sin rebote). Así se lee como
+     * "estoy trabajando" y no como un spinner genérico.
+     */
+    .marga-loader {
+        @apply relative inline-flex items-center justify-center;
+    }
+
+    .marga-loader__seal {
+        @apply h-12 w-12;
+        filter: drop-shadow(0 6px 14px rgb(15 111 74 / 0.16));
+        animation: marga-latir 2.2s ease-in-out infinite;
+    }
+
+    .marga-loader__ring {
+        @apply absolute rounded-full;
+        inset: -0.6rem;
+        border: 2px solid transparent;
+        border-top-color: var(--color-margarita-500);
+        border-right-color: var(--color-margarita-300);
+        animation: marga-girar 950ms linear infinite;
+    }
+
+    /**
+     * Capa a pantalla completa para los cambios de página. Empieza oculta y se
+     * muestra con un fundido corto, para que una respuesta rápida no produzca
+     * el parpadeo blanco clásico.
+     */
+    .marga-overlay {
+        @apply fixed inset-0 z-[90] flex flex-col items-center justify-center;
+        gap: 0.85rem;
+        background: rgb(248 250 252 / 0.86);
+        backdrop-filter: blur(3px);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 180ms ease, visibility 180ms ease;
+    }
+
+    .marga-overlay[data-visible="true"] {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .marga-overlay__text {
+        @apply text-sm font-bold;
+        color: var(--color-margarita-800);
+        letter-spacing: 0.02em;
+    }
+
+    /**
+     * Botón ocupado: un aro minúsculo con el color del texto y el cursor de
+     * "en curso". Se marca con `data-marga-loading`, que pone el script.
+     */
+    [data-marga-loading="true"] {
+        position: relative;
+        pointer-events: none;
+        cursor: progress;
+    }
+
+    [data-marga-loading="true"]::after {
+        content: "";
+        display: inline-block;
+        width: 0.75em;
+        height: 0.75em;
+        margin-left: 0.5rem;
+        vertical-align: -0.08em;
+        border-radius: 9999px;
+        /**
+         * Mitad del aro, no un aro completo con un hueco: con un trazo
+         * delgado se lee como movimiento y no como la letra "C".
+         */
+        border: 1.5px solid transparent;
+        border-top-color: currentColor;
+        border-right-color: currentColor;
+        animation: marga-girar 800ms linear infinite;
+    }
+}
+
+@keyframes marga-girar {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes marga-latir {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/**
+ * Con "reducir movimiento" activado no se anima nada: el aro y el sello se
+ * quedan quietos y el texto sigue diciendo que algo está en curso.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .marga-loader__ring,
+    .marga-loader__seal,
+    [data-marga-loading="true"]::after {
+        animation: none;
+    }
 }

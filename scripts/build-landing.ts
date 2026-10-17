@@ -105,6 +105,17 @@ function rewriteLinks(html: string) {
             /href="\/(favicon|apple-touch|android-chrome|site\.webmanifest)([^"]*)"/g,
             `href="$1$2${assetTag}"`
         )
+        /**
+         * El aviso de carga también vive en el sitio estático: la capa del
+         * sello aparece al cambiar de página, igual que dentro del panel.
+         */
+        .replace(/src="\/js\//g, 'src="js/')
+        .replace(/src="(js\/loading\.js)"/g, `src="$1${assetTag}"`)
+        /**
+         * El sello del aviso de carga se toma de este `meta`: en el sitio
+         * estático la ruta tiene que ser relativa, igual que el resto.
+         */
+        .replace(/content="\/brand\//g, 'content="brand/')
         .replace(/src="\/brand\//g, 'src="brand/')
         .replace(/src="\/(favicon|apple-touch|android-chrome)/g, 'src="$1');
 }
@@ -142,6 +153,15 @@ function build() {
 
     /** El CSS compilado y los archivos de marca. */
     copy(path.join(PUBLIC, "css", "style.css"), path.join(OUT, "css", "style.css"));
+
+    /**
+     * El aviso de carga. Es el mismo archivo que usa el panel: aquí queda con
+     * rutas relativas para que el sitio funcione en cualquier carpeta.
+     */
+    copy(
+        path.join(PUBLIC, "js", "loading.js"),
+        path.join(OUT, "js", "loading.js")
+    );
 
     for (const file of fs.readdirSync(path.join(PUBLIC, "brand", "img"))) {
         copy(
