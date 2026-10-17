@@ -240,7 +240,7 @@ export const appConfig = {
     installPromoUntil:
         process.env.INSTALL_PROMO_UNTIL?.trim() || "2026-12-31",
     installMonthlyPrice:
-        process.env.INSTALL_MONTHLY_PRICE?.trim() || "$900.00 MXN",
+        process.env.INSTALL_MONTHLY_PRICE?.trim() || "$699.00 MXN",
     installMonthlyListPrice:
         process.env.INSTALL_MONTHLY_LIST_PRICE?.trim() || "$1,490.00 MXN",
 

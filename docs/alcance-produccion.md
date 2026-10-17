@@ -2,12 +2,14 @@
 
 Documento de referencia para decidir y sostener el uso de Margarita en producción. Describe **lo que la herramienta hace hoy**, lo que no hace, los controles de seguridad vigentes y las responsabilidades que quedan del lado de quien la opera.
 
-Última revisión: 2026-10-16 (precios vigentes, landing separada por dominio, plantillas de cobranza con dos botones, llamadas pedidas como tarea del día y volcado de webhooks para copiar).
+Última revisión: 2026-10-16 (mensualidad a **$699** con **contrato mínimo de 3 meses** en la página, landing separada por dominio, plantillas de cobranza con dos botones, llamadas pedidas como tarea del día y volcado de webhooks para copiar).
 
 > **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
 > **Instalación $2,500.00 MXN** (una vez, en oferta de lanzamiento; precio de
-> lista $4,900.00) y **mensualidad $900.00 MXN** (precio de lista $1,490.00). El
+> lista $4,900.00) y **mensualidad $699.00 MXN** (precio de lista $1,490.00). El
 > primer mes se paga junto con la instalación. **Todos los precios son más IVA.**
+> **El contrato es de mínimo 3 meses**: no es mes a mes libre, y así se anuncia
+> en la página. Al terminar ese plazo, el cliente decide si continúa.
 > **El cliente debe llegar con su cuenta de Meta ya configurada** (verificación,
 > número y método de pago); si no la tiene, la conexión se **cotiza aparte**.
 > La oferta se anuncia hasta el **31 de diciembre de 2026** y la página deja de
@@ -24,7 +26,7 @@ Sí, como **instalación por empresa** en Railway: el alta de un cliente nuevo t
 | Punto | Estado |
 | --- | --- |
 | Cuenta de WhatsApp y método de pago en Meta | **Del cliente, y de entrada.** Llega con su cuenta de WhatsApp Business ya configurada (verificación del negocio, nombre visible, número registrado con PIN y método de pago). Si no la tiene, acompañarlo es una **cotización aparte**; [`guia-meta.md`](guia-meta.md) sirve para hacerlo solo. |
-| Cobro y contrato | **Del operador.** Instalación **$2,500** (una vez) + mensualidad **$900**, precio de oferta hasta el **31 de diciembre de 2026**; precios de lista $4,900 y $1,490. **Más IVA**, y el primer mes se paga junto con la instalación. Recomendado: **mínimo tres meses** por contrato. |
+| Cobro y contrato | **Del operador.** Instalación **$2,500** (una vez) + mensualidad **$699**, precio de oferta hasta el **31 de diciembre de 2026**; precios de lista $4,900 y $1,490. **Más IVA**, y el primer mes se paga junto con la instalación. **Contrato mínimo de 3 meses** (no es mes a mes libre), y la página lo dice así. |
 | Plantillas de las campañas | **Del cliente, con nuestra guía.** Al contratar se le entrega el documento de cómo crear las plantillas (categoría, textos permitidos, botones y variables); armarlas en Meta es suyo, y revisarlas con él es parte del arranque. **Ese documento está por escribirse**; hoy la referencia para acompañarlo es [`guia-meta.md`](guia-meta.md). |
 | Opt-in de los contactos | **Del cliente.** La herramienta lo registra y respeta las bajas, pero no verifica de dónde salió el consentimiento. |
 | Respaldos fuera del servidor | **Del cliente (u operación compartida).** Hay copia automática cada 24 h, pero vive en el mismo Volume que la base: alguien tiene que descargarla de vez en cuando. |
@@ -256,7 +258,7 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 - **Descargar el respaldo fuera del servidor** de vez en cuando: el respaldo automático vive en el mismo lugar que la base, así que cubre un borrado accidental o una migración mal hecha, no la pérdida del disco completo. Y **probar una restauración** al menos una vez (`npm run db:restore -- --file=… --dry-run` para validar, sin `--dry-run` para restaurar).
 - **Acceso del administrador**: crear un segundo administrador desde Equipo y comprobar que puede entrar; definir quién más tiene acceso y dónde se guarda la contraseña. Con un solo admin, cualquier olvido depende del servidor.
 - **Respaldos y adjuntos**: confirmar que el volumen de archivos existe y que alguien descarga respaldos con regularidad, porque nada de eso ocurre solo.
-- **Cobro y contrato**: dejar por escrito el mínimo de tres meses, que la mensualidad es adelantada y que el consumo de Meta va por cuenta del cliente.
+- **Cobro y contrato**: dejar por escrito el **mínimo de 3 meses** (es la condición de la oferta, no una recomendación), que la mensualidad es adelantada y que el consumo de Meta va por cuenta del cliente.
 - **Entregar la guía de plantillas y la sesión de arranque** al contratar: el cliente arma sus plantillas en Meta (categoría, textos permitidos, botones y variables), y esa guía es la que evita que se las rechacen o que las reclasifiquen a marketing. Revisarlas con él es parte del arranque.
 - **Repartir los números entre el equipo** si hay más de uno: hoy todos los agentes ven todos los números. La asignación por persona (tabla usuario ↔ número) está diseñada y pendiente en [`multinumero.md`](multinumero.md).
 

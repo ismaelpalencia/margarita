@@ -100,7 +100,7 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `INSTALL_PRICE` | `$4,900.00 MXN` | Precio de lista de la instalación |
 | `INSTALL_PRICE_PROMO` | `$2,500.00 MXN` | Precio de la oferta de lanzamiento |
 | `INSTALL_PROMO_LABEL` | `Oferta de lanzamiento: primeros 3 clientes` | Texto que acompaña la oferta |
-| `INSTALL_MONTHLY_PRICE` | `$900.00 MXN` | Mensualidad |
+| `INSTALL_MONTHLY_PRICE` | `$699.00 MXN` | Mensualidad (contrato mínimo de 3 meses) |
 | `INSTALL_MONTHLY_LIST_PRICE` | `$1,490.00 MXN` | Mensualidad a precio de lista |
 | `INSTALL_PROMO_UNTIL` | `2026-12-31` | Fecha en que la página deja de anunciar la oferta |
 | `SUPPORT_WHATSAPP_DISPLAY` | `55 3878 3682` | El WhatsApp como se muestra en la página |

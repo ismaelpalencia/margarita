@@ -47,7 +47,7 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 | `INSTALL_PRICE` / `INSTALL_PRICE_PROMO` | `$4,900.00 MXN` / `$2,500.00 MXN` | Precio de lista y de la oferta de instalación. |
 | `INSTALL_PROMO_LABEL` | `Oferta de lanzamiento: primeros 3 clientes` | Texto de la oferta. |
 | `INSTALL_PROMO_UNTIL` | `2026-12-31` | Se apaga sola al pasar esa fecha. |
-| `INSTALL_MONTHLY_PRICE` | `$900.00 MXN` | La mensualidad. |
+| `INSTALL_MONTHLY_PRICE` | `$699.00 MXN` | La mensualidad (contrato mínimo de 3 meses). |
 | `INSTALL_MONTHLY_LIST_PRICE` | `$1,490.00 MXN` | La mensualidad a precio de lista. |
 
    Marca como **requeridas** solo `DATABASE_URL`, `JWT_SECRET` y `ENCRYPTION_KEY`; el resto ya trae valor por defecto en el código.

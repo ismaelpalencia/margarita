@@ -117,11 +117,12 @@ nadie sobre un contrato que no se comprobó.
    la hora local del deudor para las tareas de llamada.
 4. **La tarifa por mensaje** que usará el contador de la fase 5 para estimar el
    costo acumulado (es un dato de configuración, no un precio de venta).
-5. **Los precios.** El roadmap propone $4,900 de instalación y $1,490 al mes; lo
-   que está publicado hoy es $1,500–$2,500 de instalación y $800 al mes. **Hoy
-   los dos documentos se contradicen**: hay que decidir cuál gobierna y alinear
-   la página, la propuesta y [`facturacion.md`](facturacion.md) en el mismo
-   cambio.
+5. **Los precios.** **Resuelto**: gobiernan los de
+   [`alcance-produccion.md`](alcance-produccion.md) — instalación $2,500 (lista
+   $4,900) y mensualidad **$699** (lista $1,490), más IVA, con **contrato mínimo
+   de 3 meses**. La página ya está alineada; [`propuesta-comercial.md`](propuesta-comercial.md)
+   y [`facturacion.md`](facturacion.md) conservan los números viejos a propósito
+   y hay que ajustarlos antes de mandarlos a un cliente.
 
 ---
 
