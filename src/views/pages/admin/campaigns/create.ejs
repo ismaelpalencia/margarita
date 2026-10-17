@@ -154,6 +154,39 @@
                 <div data-variable-fields class="hidden lg:col-span-4">
                     <%- include("../../../partials/campaign-variable-fields") %>
                 </div>
+
+                <%
+                    /**
+                     * Estructura del Excel para la plantilla elegida. Se llena
+                     * con el script de abajo: la forma depende de la plantilla
+                     * (variables del cuerpo, encabezado y botón).
+                     */
+                %>
+                <div
+                    data-example-panel
+                    class="hidden rounded-xl bg-margarita-50 p-4 ring-1 ring-margarita-200 lg:col-span-4"
+                >
+                    <p class="text-sm font-bold text-margarita-900">
+                        Tu Excel debe traer estas columnas
+                    </p>
+
+                    <p class="mt-1 font-mono text-xs text-margarita-800" data-example-columns></p>
+
+                    <div class="mt-3 flex flex-wrap items-center gap-3">
+                        <a
+                            href="/admin/campaigns/example"
+                            data-example-link
+                            class="rounded-xl bg-margarita-600 px-4 py-2 text-sm font-bold text-white hover:bg-margarita-700"
+                        >
+                            Descargar ejemplo (.csv)
+                        </a>
+
+                        <span class="text-[11px] text-margarita-800">
+                            Ya viene con los encabezados y una fila de ejemplo:
+                            llénalo y súbelo tal cual.
+                        </span>
+                    </div>
+                </div>
             </form>
         </section>
 
@@ -299,6 +332,12 @@
         const headerInput = container.querySelector("[data-header-input]");
         const urlField = container.querySelector("[data-url-field]");
         const urlInput = container.querySelector("[data-url-input]");
+        const examplePanel = form.querySelector("[data-example-panel]");
+        const exampleColumns = form.querySelector("[data-example-columns]");
+        const exampleLink = form.querySelector("[data-example-link]");
+
+        /** Solo el formulario de Excel puede resolver {columna:…}. */
+        const isExcelForm = (form.getAttribute("action") || "").endsWith("/excel");
 
         /**
          * Muestra u oculta un campo y, si no aplica, lo desactiva: un campo
@@ -343,6 +382,58 @@
 
             toggle(headerField, headerInput, header > 0);
             toggle(urlField, urlInput, url > 0);
+
+            /**
+             * Estructura del archivo: teléfono, nombre y una columna por
+             * variable. Se muestra al elegir la plantilla y el enlace apunta al
+             * ejemplo de esa plantilla.
+             */
+            if (examplePanel && exampleColumns) {
+                const columns = ["phone", "name"];
+
+                for (let index = 1; index <= count; index++) {
+                    columns.push(`var${index}`);
+                }
+
+                if (header > 0) {
+                    columns.push("encabezado");
+                }
+
+                if (url > 0) {
+                    columns.push("enlace");
+                }
+
+                exampleColumns.textContent = columns.join(" · ");
+                examplePanel.classList.toggle("hidden", !select.value);
+
+                if (exampleLink) {
+                    exampleLink.href =
+                        "/admin/campaigns/example?templateId=" +
+                        encodeURIComponent(select.value);
+                }
+            }
+
+            /**
+             * Precarga la referencia a la columna si el campo está vacío: quien
+             * baja el ejemplo solo tiene que llenarlo, no aprender la sintaxis.
+             */
+            if (isExcelForm) {
+                fields.forEach((field, index) => {
+                    const input = field.querySelector("input");
+
+                    if (index < count && input && !input.value.trim()) {
+                        input.value = `{columna:var${index + 1}}`;
+                    }
+                });
+
+                if (header > 0 && headerInput && !headerInput.value.trim()) {
+                    headerInput.value = "{columna:encabezado}";
+                }
+
+                if (url > 0 && urlInput && !urlInput.value.trim()) {
+                    urlInput.value = "{columna:enlace}";
+                }
+            }
         };
 
         select.addEventListener("change", sync);

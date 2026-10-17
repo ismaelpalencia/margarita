@@ -7,6 +7,8 @@ const router = Router();
 
 router.get("/", AdminCampaignsController.index);
 router.get("/create", AdminCampaignsController.create);
+/** CSV de ejemplo con las columnas que pide la plantilla elegida. */
+router.get("/example", AdminCampaignsController.example);
 router.post("/", AdminCampaignsController.store);
 router.post(
     "/excel",

@@ -168,6 +168,13 @@ se usa para saber qué tocó el deudor.
 4. Enviar. El envío corre **en cola**, por lotes y con una pausa entre mensajes
    para no chocar con los límites de Meta.
 
+**El Excel, sin adivinar.** Al elegir la plantilla, la página te dice **qué
+columnas debe traer tu archivo** y te deja **descargar un ejemplo** con los
+encabezados exactos (`phone`, `name`, `var1`, `var2`… y `encabezado` o `enlace`
+si la plantilla los pide) y una fila de muestra. Bájalo, llénalo y súbelo tal
+cual. Si el archivo trae **columnas de más**, no pasa nada: solo se usan las que
+referencias. Si le **falta** una que usas, la app dice cuál falta y cuáles hay.
+
 Durante el envío puedes **pausar**, **reanudar** o **cancelar**, y ver el avance
 en vivo. Al terminar, cada destinatario muestra su estado y puedes **reintentar
 los fallidos**.

@@ -8,6 +8,9 @@ import { readRecipientTemplateValues } from "../utils/campaign-variables";
 
 import fs from "fs";
 import { ExcelCampaignService } from "../services/excel-campaign.service";
+import { prisma } from "../config/prisma";
+import { campaignExampleCsv } from "../utils/campaign-example";
+import { templateVariableShape } from "../utils/template";
 import {
     createCampaignFromExcelSchema,
     createCampaignSchema
@@ -99,6 +102,56 @@ export class AdminCampaignsController {
             contacts: data.contacts,
             error: req.query.error || null
         });
+    }
+
+    /**
+     * Ejemplo de Excel para la plantilla elegida.
+     *
+     * Devuelve un CSV con los encabezados exactos —`phone`, `name` y una columna
+     * por variable— y una fila de ejemplo. Se genera al momento porque la forma
+     * depende de la plantilla: cuántas variables de cuerpo, si lleva encabezado
+     * y si el botón de enlace tiene una.
+     */
+    static async example(req: Request, res: Response) {
+        const templateId =
+            typeof req.query.templateId === "string" ? req.query.templateId : "";
+
+        if (!templateId) {
+            return res.redirect("/admin/campaigns/create?error=validation");
+        }
+
+        const template = await prisma.template.findFirst({
+            where: {
+                id: templateId,
+                workspaceId: req.user!.workspaceId
+            },
+            select: { name: true, components: true }
+        });
+
+        if (!template) {
+            return res.redirect("/admin/campaigns/create?error=validation");
+        }
+
+        const shape = templateVariableShape(template.components);
+        const csv = campaignExampleCsv({
+            header: shape.header > 0,
+            body: shape.body,
+            url: shape.url > 0
+        });
+        const safeName = template.name
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-zA-Z0-9_-]+/g, "-")
+            .replace(/^-+|-+$/g, "")
+            .slice(0, 40) || "plantilla";
+
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="ejemplo-${safeName}.csv"`
+        );
+        /** BOM para que Excel abra los acentos bien. */
+        res.send("\uFEFF" + csv + "\n");
     }
 
     static async store(req: Request, res: Response) {
