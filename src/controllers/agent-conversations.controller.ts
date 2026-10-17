@@ -18,6 +18,8 @@ import {
 } from "../utils/outcome";
 import { getRequiredParam } from "../utils/request";
 import { sendFreeTextMessageSchema } from "../validations/free-text-message.validation";
+import { sendInteractiveMessageSchema } from "../validations/interactive-message.validation";
+import { buildInteractiveButtons } from "../utils/interactive-message";
 import { sendLocalMessageSchema } from "../validations/message.validation";
 import { sendTemplateMessageSchema } from "../validations/template-message.validation";
 import {
@@ -142,6 +144,43 @@ export class AgentConversationsController {
         } catch {
             return res.redirect(
                 `/agent/conversations/${conversationId}?error=free_text`
+            );
+        }
+    }
+
+    /** Botones dentro de la ventana de 24 horas (mismas reglas que el admin). */
+    static async sendInteractiveMessage(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+
+        const parsed = sendInteractiveMessageSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.redirect(
+                `/agent/conversations/${conversationId}?error=interactive`
+            );
+        }
+
+        try {
+            const message = buildInteractiveButtons({
+                body: parsed.data.body,
+                footer: parsed.data.footer,
+                titles: [parsed.data.button1, parsed.data.button2, parsed.data.button3]
+            });
+
+            await MessageService.sendInteractiveMessage({
+                workspaceId: req.user!.workspaceId,
+                conversationId,
+                userId: req.user!.id,
+                role: req.user!.role,
+                message
+            });
+
+            return res.redirect(
+                `/agent/conversations/${conversationId}?success=interactive`
+            );
+        } catch {
+            return res.redirect(
+                `/agent/conversations/${conversationId}?error=interactive`
             );
         }
     }

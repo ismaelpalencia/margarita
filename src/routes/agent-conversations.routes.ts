@@ -16,6 +16,7 @@ router.post(
     AgentConversationsController.sendMediaMessage
 );
 router.post("/:id/messages/free-text", AgentConversationsController.sendFreeTextMessage);
+router.post("/:id/messages/interactive", AgentConversationsController.sendInteractiveMessage);
 router.post(
     "/:id/outcome",
     OutcomeController.markFromConversation({

@@ -108,7 +108,7 @@
                 <p class="border-b border-margarita-100 bg-margarita-50 px-4 py-2 text-xs font-semibold text-margarita-700">
                     Resultado de la gestión guardado.
                 </p>
-            <% } else if (success === "free_text" || success === "template" || success === "message" || success === "media") { %>
+            <% } else if (success === "free_text" || success === "template" || success === "message" || success === "media" || success === "interactive") { %>
                 <p class="border-b border-margarita-100 bg-margarita-50 px-4 py-2 text-xs font-semibold text-margarita-700">
                     <%= success === "media" ? "Archivo enviado." : "Mensaje enviado." %>
                 </p>
@@ -133,6 +133,10 @@
             <% } else if (error === "media") { %>
                 <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
                     No se pudo enviar el archivo. Revisa el formato, el tamaño y que la ventana de 24 horas siga abierta.
+                </p>
+            <% } else if (error === "interactive") { %>
+                <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+                    No se enviaron los botones. Revisa los límites o que la ventana de 24 horas siga abierta.
                 </p>
             <% } %>
 

@@ -22,7 +22,13 @@
 (function () {
     "use strict";
 
-    var SHOW_DELAY = 160;
+    /**
+     * Sin retraso: si la respuesta tarda, se ve; si es instantánea, el aviso
+     * dura un parpadeo. Con 160 ms de espera, las pantallas del panel
+     * respondían antes de que se pintara y no se veía nada, que es justo lo que
+     * confundía.
+     */
+    var SHOW_DELAY = 0;
     var GIVE_UP = 12000;
 
     var overlay = null;
@@ -237,6 +243,12 @@
         ) {
             return;
         }
+
+        /**
+         * Aviso inmediato en el propio enlace: aunque el navegador tarde en
+         * pintar la capa, el enlace se ve atenuado y se entiende que algo pasó.
+         */
+        link.setAttribute("aria-busy", "true");
 
         scheduleShow();
     });

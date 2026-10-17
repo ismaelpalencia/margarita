@@ -118,7 +118,7 @@
                 <p class="border-b border-margarita-100 bg-margarita-50 px-4 py-2 text-xs font-semibold text-margarita-700">
                     Resultado de la gestión guardado.
                 </p>
-            <% } else if (success === "assigned" || success === "closed" || success === "reopened" || success === "deleted" || success === "restored" || success === "purged" || success === "free_text" || success === "template" || success === "message" || success === "media") { %>
+            <% } else if (success === "assigned" || success === "closed" || success === "reopened" || success === "deleted" || success === "restored" || success === "purged" || success === "free_text" || success === "template" || success === "message" || success === "media" || success === "interactive") { %>
                 <p class="border-b border-margarita-100 bg-margarita-50 px-4 py-2 text-xs font-semibold text-margarita-700">
                     Acción realizada correctamente.
                 </p>
@@ -135,6 +135,10 @@
             <% } else if (error === "media") { %>
                 <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
                     No se pudo enviar el archivo. Revisa el formato, el tamaño y que la ventana de 24 horas siga abierta.
+                </p>
+            <% } else if (error === "interactive") { %>
+                <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+                    No se enviaron los botones. Revisa que el texto no pase de 1024 caracteres, que cada botón tenga 20 o menos y que la ventana de 24 horas siga abierta.
                 </p>
             <% } else if (error) { %>
                 <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">

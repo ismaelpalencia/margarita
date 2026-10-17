@@ -114,7 +114,7 @@
 
             hidden = true;
 
-            var wait = Math.max(0, 250 - (Date.now() - created));
+            var wait = Math.max(0, 150 - (Date.now() - created));
 
             setTimeout(function () {
                 layer.setAttribute("data-visible", "false");
@@ -317,7 +317,7 @@
 <p><strong>Pausa.</strong> Si el cliente dice que no reconoce la deuda, pon la cuenta en <strong>pausa</strong> desde su ficha: no recibe mensajes ni campañas hasta que alguien la quite. Con la regla de botón correspondiente, la pausa se pone sola.</p>
 <hr />
 <h2 id="5-la-bandeja-atender-conversaciones">5. La bandeja: atender conversaciones</h2>
-<ul><li>Cada agente ve <strong>solo las conversaciones asignadas a él</strong>.</li><li>El estado (<strong>Disponible, Ocupado, Break, Fuera</strong>) lo pone la persona; no se queda disponible solo al entrar. La asignación automática va al disponible con menos carga.</li><li><strong>Ventana de 24 horas</strong>: si el cliente escribió en las últimas 24 horas puedes mandar texto libre y archivos. Pasado ese plazo, WhatsApp solo permite <strong>plantillas aprobadas</strong>; la app te lo avisa en el compositor.</li><li><strong>Nota interna</strong>: no sale a WhatsApp, sirve para el equipo.</li><li><strong>Archivos</strong>: imagen hasta 5 MB, video y audio hasta 16 MB, documentos hasta 100 MB.</li><li><strong>Respuestas rápidas</strong>: insertan un texto guardado con <code>{nombre}</code> y <code>{telefono}</code> ya resueltos.</li><li><strong>Ocultar o borrar</strong>: ocultar un mensaje es reversible (el administrador lo ve y lo restaura); borrar el hilo completo exige escribir <code>BORRAR</code>.</li><li>El contador de no leídos es <strong>por conversación</strong>, no por persona.</li></ul>
+<ul><li>Cada agente ve <strong>solo las conversaciones asignadas a él</strong>.</li><li>El estado (<strong>Disponible, Ocupado, Break, Fuera</strong>) lo pone la persona; no se queda disponible solo al entrar. La asignación automática va al disponible con menos carga.</li><li><strong>Ventana de 24 horas</strong>: si el cliente escribió en las últimas 24 horas puedes mandar texto libre y archivos. Pasado ese plazo, WhatsApp solo permite <strong>plantillas aprobadas</strong>; la app te lo avisa en el compositor.</li><li><strong>Nota interna</strong>: no sale a WhatsApp, sirve para el equipo.</li><li><strong>Archivos</strong>: imagen hasta 5 MB, video y audio hasta 16 MB, documentos hasta 100 MB.</li><li><strong>Respuestas rápidas</strong>: insertan un texto guardado con <code>{nombre}</code> y <code>{telefono}</code> ya resueltos.</li><li><strong>Botones dentro de las 24 horas</strong>: desde la columna lateral se manda un mensaje con hasta <strong>3 botones</strong> de 20 caracteres. Sirve para pedir un sí/no o un «ya pagué» sin gastar plantilla; cuando el cliente toca, la respuesta entra al hilo y puede disparar su regla en <strong>Admin → Botones</strong>.</li><li><strong>Ocultar o borrar</strong>: ocultar un mensaje es reversible (el administrador lo ve y lo restaura); borrar el hilo completo exige escribir <code>BORRAR</code>.</li><li>El contador de no leídos es <strong>por conversación</strong>, no por persona.</li></ul>
 <p>Cada mensaje muestra su estado real de WhatsApp: enviado, entregado, leído o fallido, con el motivo traducido cuando falla.</p>
 <hr />
 <h2 id="6-plantillas-la-parte-que-abarata-el-envio">6. Plantillas: la parte que abarata el envío</h2>

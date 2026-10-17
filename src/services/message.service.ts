@@ -30,6 +30,10 @@ import {
     renderTemplatePreview
 } from "../utils/template";
 import { isConversationWindowOpen } from "../utils/conversation-window";
+import {
+    InteractiveButtonMessage,
+    interactivePayload
+} from "../utils/interactive-message";
 import { decryptSecret } from "../utils/crypto";
 import { describeMetaError } from "../utils/meta-error";
 import {
@@ -433,6 +437,134 @@ export class MessageService {
             );
 
             throw new Error("No se pudo enviar el mensaje de texto a Meta.");
+        }
+    }
+
+    /**
+     * Mensaje con botones (dentro de la ventana de 24 horas).
+     *
+     * Es la misma ruta que el texto libre —mismos permisos, mismo tope, misma
+     * ventana— con el cuerpo `interactive` de la Graph API. Los botones no
+     * abren conversaciones: solo se pueden mandar cuando el cliente ya escribió.
+     */
+    static async sendInteractiveMessage(params: {
+        workspaceId: string;
+        conversationId: string;
+        userId: string;
+        role: UserRole;
+        message: InteractiveButtonMessage;
+    }) {
+        const conversation = await this.getConversationForSending(
+            params.workspaceId,
+            params.conversationId,
+            params.userId,
+            params.role
+        );
+
+        await SendPolicyService.assertCanSendManually({
+            userId: params.userId,
+            role: params.role,
+            contact: conversation.contact
+        });
+
+        if (!isConversationWindowOpen(conversation.lastIncomingMessageAt)) {
+            throw new Error(
+                "La ventana de 24 horas está cerrada. Los botones solo se pueden mandar cuando el cliente ya escribió."
+            );
+        }
+
+        const credentials = await this.getSendingCredentials(conversation);
+        const payload = interactivePayload({
+            to: conversation.contact.phone,
+            message: params.message
+        });
+
+        const localMessage = await prisma.message.create({
+            data: {
+                workspaceId: params.workspaceId,
+                conversationId: conversation.id,
+                sentByUserId: params.userId,
+                direction: MessageDirection.OUT,
+                type: MessageType.INTERACTIVE,
+                status: MessageStatus.SENDING,
+                source: MessageSource.MANUAL,
+                body: params.message.body,
+                interactiveType: "buttons",
+                metaPayload: payload
+            }
+        });
+
+        try {
+            const response = await axios.post(
+                `${appConfig.graphBaseUrl}/${credentials.apiVersion}/${credentials.phoneNumberId}/messages`,
+                payload,
+                {
+                    params: { access_token: credentials.accessToken },
+                    timeout: 15000
+                }
+            );
+
+            const wamid =
+                Array.isArray(response.data?.messages) &&
+                response.data.messages[0]?.id
+                    ? String(response.data.messages[0].id)
+                    : null;
+
+            const updatedMessage = await prisma.message.update({
+                where: { id: localMessage.id },
+                data: {
+                    status: MessageStatus.SENT,
+                    wamid,
+                    metaResponse: response.data
+                }
+            });
+
+            await this.touchConversationAfterOutgoingMessage(
+                conversation.id,
+                updatedMessage.createdAt,
+                conversation.assignedUserId
+            );
+
+            this.emitOutgoingMessage(
+                params.workspaceId,
+                conversation,
+                updatedMessage
+            );
+
+            return updatedMessage;
+        } catch (error) {
+            const errorPayload = axios.isAxiosError(error)
+                ? {
+                      status: error.response?.status,
+                      data: error.response?.data,
+                      message: error.message
+                  }
+                : {
+                      message:
+                          error instanceof Error ? error.message : "Error desconocido"
+                  };
+
+            const failedMessage = await prisma.message.update({
+                where: { id: localMessage.id },
+                data: {
+                    status: MessageStatus.FAILED,
+                    metaResponse: errorPayload
+                }
+            });
+
+            await this.touchConversationAfterOutgoingMessage(
+                conversation.id,
+                failedMessage.createdAt,
+                conversation.assignedUserId
+            );
+
+            this.emitOutgoingMessage(
+                params.workspaceId,
+                conversation,
+                failedMessage
+            );
+
+            throw new Error("No se pudo enviar el mensaje con botones a Meta.");
         }
     }
 

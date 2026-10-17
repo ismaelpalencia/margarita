@@ -121,6 +121,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - Cuatro formas de responder: **nota local** (no sale a WhatsApp), **texto libre** dentro de la ventana de 24 horas, **archivos** (imagen, video, audio o documento) dentro de la misma ventana, y **plantilla aprobada** cuando está cerrada.
 - **Respuestas rápidas**: un clic inserta el texto guardado en el compositor, ya con el nombre y el teléfono del contacto.
 - **Respuestas de botón y de lista**: cuando el cliente toca un botón o elige de una lista, se guarda **qué opción eligió** (identificador y texto), el hilo lo muestra con su etiqueta y queda en la bitácora. Se entienden las **tres formas** que manda Meta: el botón de una **plantilla** (`type: "button"` con su texto y su payload), el botón de un mensaje interactivo (`button_reply`) y la elección de una lista (`list_reply`). El identificador se guarda en claro porque es con lo que se mapea a un resultado de gestión; el texto va cifrado, como el resto del contenido. El identificador se copia de la burbuja con un clic, que es lo que hace falta para crear su regla.
+- **Enviar botones dentro de la ventana de 24 horas**: desde el hilo (admin y agente) se manda un mensaje con **hasta 3 botones** de 20 caracteres. Los límites de Meta se validan antes de llamarla —texto de 1,024, pie de 60 y botones únicos— y la respuesta del cliente entra al mismo circuito de reglas que un botón de plantilla.
 - **Plantillas con botones**: se envían —desde el hilo y en **campañas**— resolviendo las **tres variables** que admite Meta: una en el encabezado, las del cuerpo y una al final de la URL de un botón. El formulario muestra solo los campos que la plantilla pide, para no mandar un componente de más (que Meta rechaza), y los valores quedan guardados **por destinatario** (con `{nombre}`, `{telefono}` y columnas del Excel).
 - **Aviso de plantilla reclasificada**: si Meta marca una plantilla como **marketing** (cuesta varias veces más por mensaje), la lista de plantillas lo advierte y una campaña **no se crea** con ella, con el motivo a la vista.
 - **Respuestas que se traducen solas**: cada botón se mapea a un resultado de gestión en **Admin → Botones** (por el identificador que manda Meta o por el texto del botón, como respaldo). Al tocar, la respuesta **registra el resultado sin intervención del agente**, con tres efectos posibles: nada, **pausar la cuenta** o **dar de baja**. Los mapeos recomendados para cobranza se crean de un clic y no pisan lo que ya se editó.
@@ -178,7 +179,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | --- | --- |
 | **Solo México** | El normalizador de teléfonos asume números mexicanos y agrega el prefijo `521`. Números de otros países se rechazan. |
 | **Archivos con caducidad** | Meta conserva lo que envían los clientes alrededor de 30 días. Un archivo que nadie abrió en ese plazo ya no se puede recuperar; el hilo lo avisa en lugar de fallar. |
-| **Sin interactivos libres** | Las plantillas **con botones** ya se envían (y sus respuestas se interpretan), pero todavía no se mandan botones ni listas *dentro* de la ventana de 24 horas desde el compositor: eso es la fase 6 de [`plan-interactivos.md`](plan-interactivos.md). Para cobranza, el alcance acordado es una plantilla con **dos botones**: «Quiero que me llame un asesor» (respuesta rápida) y «Aviso de privacidad» (enlace). |
+| **Botones sí, listas no** | Dentro de la ventana de 24 horas ya se mandan **mensajes con hasta 3 botones** (con validación de límites antes de llamar a Meta, y con la respuesta del cliente interpretada como cualquier botón). Las **listas** desplegables todavía no se envían desde el panel; se construirán encima de la misma ruta. |
 | **Plantillas reclasificadas a marketing** | Meta puede reclasificar una plantilla de cobranza como marketing si el texto suena promocional, y entonces cuesta varias veces más. La herramienta lo avisa (lista de plantillas) y lo bloquea (campañas), pero **la redacción es responsabilidad de quien la crea**: al crear plantillas, el encabezado admite **exactamente una** variable y la URL del botón **una sola, al final**. |
 | **Campañas sin agendar** | Se pueden pausar, reanudar y cancelar, pero todavía no programar por fecha y hora. |
 | **La llamada se agenda, pero no avisa** | La llamada pedida **es una tarea** y se puede **agendar** con fecha y hora (hora de la empresa), incluidas las citas de hoy y las vencidas, que suben al principio de la lista; y se puede quitar. Lo que no hay es recordatorio automático al deudor ni notificación push al equipo: el aviso es la pantalla. La herramienta tampoco sabe si la llamada se hizo: eso lo registra una persona. |
@@ -356,9 +357,10 @@ con sus efectos automáticos** (pausa y baja) y **la llamada pedida como tarea d
 la lista de trabajo** (fase 4), con su tiempo de espera, su atajo y la pantalla
 para copiar el volcado de un webhook.
 Ya está también el **contador del tramo del mes por número** (fase 5), con
-alerta al 80% y costo estimado. Falta: los interactivos libres (fase 6) y la
-**agenda de llamadas** (la llamada pedida ya es tarea, pero no se programa a una
-hora). Y queda una **verificación pendiente**: la prueba contra Meta
+alerta al 80% y costo estimado, y la **agenda de llamadas** (fase B2) con fecha
+y hora, orden por vencimiento y limpieza automática. De la fase 6 quedan las
+**listas** desplegables (los botones ya se envían). Y queda una **verificación
+pendiente**: la prueba contra Meta
 real —plantilla aprobada y botón tocado— para cerrar las fases 3 y 4. Lo que hay
 que copiar y de dónde sale está en [`pruebas-meta.md`](pruebas-meta.md).
 

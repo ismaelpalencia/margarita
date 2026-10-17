@@ -18,6 +18,8 @@ router.post(
     AdminConversationsController.sendMediaMessage
 );
 router.post("/:id/messages/free-text", AdminConversationsController.sendFreeTextMessage);
+/** Botones dentro de la ventana de 24 horas. */
+router.post("/:id/messages/interactive", AdminConversationsController.sendInteractiveMessage);
 router.post(
     "/:id/outcome",
     OutcomeController.markFromConversation({

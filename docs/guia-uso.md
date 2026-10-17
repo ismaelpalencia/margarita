@@ -121,6 +121,10 @@ quite. Con la regla de botón correspondiente, la pausa se pone sola.
   100 MB.
 - **Respuestas rápidas**: insertan un texto guardado con `{nombre}` y
   `{telefono}` ya resueltos.
+- **Botones dentro de las 24 horas**: desde la columna lateral se manda un
+  mensaje con hasta **3 botones** de 20 caracteres. Sirve para pedir un sí/no o
+  un «ya pagué» sin gastar plantilla; cuando el cliente toca, la respuesta entra
+  al hilo y puede disparar su regla en **Admin → Botones**.
 - **Ocultar o borrar**: ocultar un mensaje es reversible (el administrador lo
   ve y lo restaura); borrar el hilo completo exige escribir `BORRAR`.
 - El contador de no leídos es **por conversación**, no por persona.

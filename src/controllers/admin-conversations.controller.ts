@@ -23,6 +23,8 @@ import { getRequiredParam } from "../utils/request";
 import { sendFreeTextMessageSchema } from "../validations/free-text-message.validation";
 import { sendLocalMessageSchema } from "../validations/message.validation";
 import { sendTemplateMessageSchema } from "../validations/template-message.validation";
+import { sendInteractiveMessageSchema } from "../validations/interactive-message.validation";
+import { buildInteractiveButtons } from "../utils/interactive-message";
 import {
     formatDateTimeMX,
     formatDayLabelMX,
@@ -205,6 +207,52 @@ export class AdminConversationsController {
         } catch {
             return res.redirect(
                 `/admin/conversations/${conversationId}?error=media`
+            );
+        }
+    }
+
+    /**
+     * Botones dentro de la ventana de 24 horas.
+     *
+     * No abre conversaciones: si la ventana está cerrada, el servicio lo
+     * rechaza y se regresa con el motivo.
+     */
+    static async sendInteractiveMessage(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+
+        const parsed = sendInteractiveMessageSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.redirect(
+                `/admin/conversations/${conversationId}?error=interactive`
+            );
+        }
+
+        try {
+            const message = buildInteractiveButtons({
+                body: parsed.data.body,
+                footer: parsed.data.footer,
+                titles: [parsed.data.button1, parsed.data.button2, parsed.data.button3]
+            });
+
+            await MessageService.sendInteractiveMessage({
+                workspaceId: req.user!.workspaceId,
+                conversationId,
+                userId: req.user!.id,
+                role: req.user!.role,
+                message
+            });
+
+            return res.redirect(
+                `/admin/conversations/${conversationId}?success=interactive`
+            );
+        } catch {
+            /**
+             * Un límite de Meta (botón muy largo, ventana cerrada, error de la
+             * API) se muestra como aviso en el hilo, no como un 500.
+             */
+            return res.redirect(
+                `/admin/conversations/${conversationId}?error=interactive`
             );
         }
     }

@@ -121,6 +121,15 @@
         visibility: visible;
     }
 
+    /**
+     * El enlace que se acaba de tocar se atenúa al instante: es la señal
+     * inmediata mientras la capa del sello se pinta.
+     */
+    a[aria-busy="true"] {
+        opacity: 0.55;
+        transition: opacity 120ms ease;
+    }
+
     .marga-overlay__text {
         @apply text-sm font-bold;
         color: var(--color-margarita-800);

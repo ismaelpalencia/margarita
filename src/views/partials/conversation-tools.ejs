@@ -54,6 +54,65 @@
                 </button>
             </form>
         </section>
+
+        <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <h3 class="font-bold text-slate-800">
+                Enviar botones
+            </h3>
+
+            <p class="mt-1 text-xs text-slate-500">
+                Hasta 3 botones de 20 caracteres. Solo dentro de las 24 horas:
+                cuando el cliente los toca, la respuesta llega al hilo y puede
+                disparar su regla en <strong>Admin → Botones</strong>.
+            </p>
+
+            <form
+                action="<%= basePath %>/<%= conversation.id %>/messages/interactive"
+                method="POST"
+                class="mt-4 space-y-2"
+            >
+                <textarea
+                    name="body"
+                    rows="2"
+                    maxlength="1024"
+                    required
+                    placeholder="Texto del mensaje"
+                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                ></textarea>
+
+                <input
+                    name="footer"
+                    maxlength="60"
+                    placeholder="Pie (opcional)"
+                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+
+                <input
+                    name="button1"
+                    maxlength="20"
+                    placeholder="Botón 1 · por ejemplo: Sí, pagaré"
+                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+
+                <input
+                    name="button2"
+                    maxlength="20"
+                    placeholder="Botón 2 (opcional)"
+                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+
+                <input
+                    name="button3"
+                    maxlength="20"
+                    placeholder="Botón 3 (opcional)"
+                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                />
+
+                <button class="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                    Enviar botones
+                </button>
+            </form>
+        </section>
     <% } %>
 
     <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
