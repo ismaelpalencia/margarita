@@ -1,3 +1,4 @@
+-- revisado: columnas que ningún código leía; borrado intencional (2026-10-15).
 -- Se quitan los ajustes del workspace que ningún código leía.
 --
 -- Prometían horarios de atención, mensaje fuera de horario, modo de

@@ -64,7 +64,13 @@ app.use(csrfProtection);
 app.use(
     rateLimit({
         windowMs: 15 * 60 * 1000,
-        max: 300,
+        /**
+         * Defensa de borde, no el cupo de trabajo. El límite real del panel es
+         * **por usuario** (`panelRateLimiter`, después de autenticar): este solo
+         * corta un abuso evidente desde una misma dirección. Con 300 aquí,
+         * quince agentes en la misma oficina se tumbaban entre sí.
+         */
+        max: Number(process.env.EDGE_RATE_LIMIT_MAX) || 3000,
         standardHeaders: true,
         legacyHeaders: false,
         /**

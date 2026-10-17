@@ -21,6 +21,7 @@ import adminRoadmapRoutes from "./admin-roadmap.routes";
 import adminBackupRoutes from "./admin-backup.routes";
 import { activeNumberMiddleware } from "../middlewares/active-number.middleware";
 import { ActiveNumberController } from "../controllers/active-number.controller";
+import { panelRateLimiter } from "../middlewares/panel-rate-limit.middleware";
 
 
 const router = Router();
@@ -28,6 +29,8 @@ const router = Router();
 router.use(authMiddleware);
 router.use(requireRole(UserRole.ADMIN));
 router.use(activeNumberMiddleware);
+/** Cupo por persona: quince agentes en la misma oficina no se estorban. */
+router.use(panelRateLimiter);
 
 router.get("/dashboard", AdminDashboardController.index);
 router.post("/number/switch", ActiveNumberController.switch);

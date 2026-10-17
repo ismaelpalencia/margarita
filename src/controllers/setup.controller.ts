@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 
 import { appConfig } from "../config/app.config";
 import { SetupService } from "../services/setup.service";
+import {
+    storageBlocksSetup,
+    storageStatus
+} from "../services/storage-status.service";
 import { setupSchema } from "../validations/setup.validation";
 
 /**
@@ -32,6 +36,38 @@ export class SetupController {
     static async submit(req: Request, res: Response) {
         if (await SetupService.isConfigured()) {
             return res.redirect("/auth/login");
+        }
+
+        /**
+         * Sin un Volume, la primera actualización borra los archivos de las
+         * conversaciones. El alta se detiene aquí, antes de crear la empresa,
+         * para que nadie active un cliente que va a perder datos.
+         */
+        if (storageBlocksSetup()) {
+            return res.status(409).render("pages/setup/index", {
+                appName: appConfig.name,
+                values: {
+                    workspaceName:
+                        typeof req.body?.workspaceName === "string"
+                            ? req.body.workspaceName
+                            : appConfig.name,
+                    workspaceSlug:
+                        typeof req.body?.workspaceSlug === "string"
+                            ? req.body.workspaceSlug
+                            : "",
+                    adminName:
+                        typeof req.body?.adminName === "string"
+                            ? req.body.adminName
+                            : "",
+                    adminEmail:
+                        typeof req.body?.adminEmail === "string"
+                            ? req.body.adminEmail
+                            : ""
+                },
+                error:
+                    "Antes de activar la instalación, monta un Volume y apunta MEDIA_STORAGE_DIR a esa carpeta. " +
+                    `Hoy los archivos se guardan en ${storageStatus().dir}, que se borra en cada despliegue.`
+            });
         }
 
         const parsed = setupSchema.safeParse(req.body);

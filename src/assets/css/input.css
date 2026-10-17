@@ -154,6 +154,88 @@
         border-right-color: currentColor;
         animation: marga-girar 800ms linear infinite;
     }
+
+    /**
+     * Las guías se generan desde Markdown (`docs/guia-uso.md` y
+     * `docs/guia-plantillas.md`). Aquí se les da el estilo de la página, para
+     * que el documento y el sitio se vean iguales sin duplicar el texto.
+     */
+    .guia-prose {
+        @apply text-slate-700;
+    }
+
+    .guia-prose h2 {
+        @apply mt-14 scroll-mt-6 text-2xl font-black text-slate-950;
+    }
+
+    .guia-prose h3 {
+        @apply mt-8 text-lg font-black text-slate-900;
+    }
+
+    .guia-prose p {
+        @apply mt-3 leading-7;
+    }
+
+    .guia-prose ul {
+        @apply mt-3 list-disc space-y-2 pl-5;
+    }
+
+    .guia-prose ol {
+        @apply mt-3 list-decimal space-y-2 pl-5;
+    }
+
+    .guia-prose li > ul,
+    .guia-prose li > ol {
+        @apply mt-2;
+    }
+
+    .guia-prose a {
+        @apply font-semibold text-margarita-700 underline;
+    }
+
+    .guia-prose strong {
+        @apply font-bold text-slate-900;
+    }
+
+    .guia-prose code {
+        @apply rounded bg-slate-100 px-1 py-0.5 text-[13px] text-slate-800;
+    }
+
+    .guia-prose pre {
+        @apply mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-xs text-slate-100;
+    }
+
+    .guia-prose pre code {
+        @apply bg-transparent p-0 text-inherit;
+    }
+
+    .guia-prose blockquote {
+        @apply mt-4 rounded-xl border-l-4 border-margarita-300 bg-margarita-50 px-4 py-3 text-sm text-margarita-900;
+    }
+
+    .guia-prose .marga-table {
+        @apply mt-4 overflow-x-auto;
+    }
+
+    .guia-prose table {
+        @apply w-full min-w-[520px] text-left text-sm ring-1 ring-slate-200;
+    }
+
+    .guia-prose thead {
+        @apply bg-slate-50 text-slate-600;
+    }
+
+    .guia-prose th {
+        @apply px-4 py-3 align-top font-bold;
+    }
+
+    .guia-prose td {
+        @apply border-t border-slate-100 px-4 py-3 align-top;
+    }
+
+    .guia-prose hr {
+        @apply my-8 border-slate-200;
+    }
 }
 
 @keyframes marga-girar {

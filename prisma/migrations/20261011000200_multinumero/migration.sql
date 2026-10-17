@@ -1,3 +1,4 @@
+-- revisado: los datos de la cuenta se copiaron al número en la misma migración; respaldo previo tomado.
 -- Multinúmero: la WABA guarda las credenciales y cada número su identidad.
 --
 -- Esta migración conserva los datos existentes: el número actual de cada

@@ -7,6 +7,25 @@ on:
   pull_request:
 
 jobs:
+  migraciones:
+    name: Auditoría de migraciones
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Una migración que borra una columna no se deshace con un rollback de
+      # código: corre contra la base antes de arrancar. Si es intencional, el
+      # archivo lleva `-- revisado: <motivo>` en su primera línea.
+      - name: Revisar migraciones destructivas
+        run: node scripts/check-migrations.mjs
+
   verificar:
     name: Tipos, tests y build
     runs-on: ubuntu-latest

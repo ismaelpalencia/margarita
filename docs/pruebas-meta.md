@@ -51,6 +51,8 @@ Ese texto es el que quiero pegado en el chat. Con él:
 1. Confirmo el identificador real (`button_reply.id`) y su texto.
 2. Lo guardo como evidencia de la prueba.
 3. Escribo la prueba automática que reproduce ese caso exacto.
+   El volcado se guarda en [`pruebas/`](pruebas/README.md), con el teléfono y
+   los nombres cambiados por datos de prueba.
 
 ### c) Si el evento no aparece
 

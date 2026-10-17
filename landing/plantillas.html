@@ -194,49 +194,49 @@
             <ol class="mt-4 grid gap-2 text-sm font-semibold text-slate-700 sm:grid-cols-2">
                 
                     <li>
-                        <a href="#porque" class="hover:text-margarita-700">
-                            1. Por qué existen
+                        <a href="#1-por-que-existen-las-plantillas" class="hover:text-margarita-700">
+                            1. Por qué existen las plantillas
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#reglas" class="hover:text-margarita-700">
-                            2. Las cinco reglas
+                        <a href="#2-las-cinco-reglas-que-hacen-que-se-aprueben" class="hover:text-margarita-700">
+                            2. Las cinco reglas que hacen que se aprueben
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#variables" class="hover:text-margarita-700">
+                        <a href="#3-que-puede-llenar-la-app" class="hover:text-margarita-700">
                             3. Qué puede llenar la app
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#pasos" class="hover:text-margarita-700">
+                        <a href="#4-paso-a-paso-en-meta" class="hover:text-margarita-700">
                             4. Paso a paso en Meta
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#cobranza" class="hover:text-margarita-700">
-                            5. La plantilla de cobranza
+                        <a href="#5-la-plantilla-de-cobranza-recomendada" class="hover:text-margarita-700">
+                            5. La plantilla de cobranza recomendada
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#dia" class="hover:text-margarita-700">
-                            6. Plantillas del día a día
+                        <a href="#6-plantillas-que-sirven-para-el-dia-a-dia" class="hover:text-margarita-700">
+                            6. Plantillas que sirven para el día a día
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#rechazo" class="hover:text-margarita-700">
+                        <a href="#7-cuando-meta-la-rechaza" class="hover:text-margarita-700">
                             7. Cuando Meta la rechaza
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#calidad" class="hover:text-margarita-700">
+                        <a href="#8-cuidar-la-calidad-del-numero" class="hover:text-margarita-700">
                             8. Cuidar la calidad del número
                         </a>
                     </li>
@@ -244,233 +244,60 @@
             </ol>
         </nav>
 
-        <div class="mt-12 space-y-14 text-slate-700">
-            <section id="porque" class="scroll-mt-6">
-                <h2 class="text-2xl font-black text-slate-950">
-                    1. Por qué existen
-                </h2>
+        <div class="guia-prose mt-12">
+            <h2 id="1-por-que-existen-las-plantillas">1. Por qué existen las plantillas</h2>
+<p>WhatsApp solo deja escribir <strong>texto libre durante 24 horas</strong> después del último mensaje del cliente. Para volver a iniciar la conversación —o para escribir a alguien que no ha respondido— hace falta una <strong>plantilla aprobada por Meta</strong>.</p>
+<p>Y no todas cuestan lo mismo:</p>
+<div class="marga-table"><table><thead><tr><th>Categoría</th><th>Para qué es</th><th>Costo relativo</th></tr></thead><tbody><tr><td><strong>Utilidad</strong></td><td>Avisos sobre una cuenta, un pago, una entrega, un servicio que la persona ya tiene</td><td>Bajo</td></tr><tr><td><strong>Marketing</strong></td><td>Promociones, novedades, recuperación de clientes</td><td>Varias veces más</td></tr><tr><td><strong>Autenticación</strong></td><td>Códigos de un solo uso</td><td>Bajo</td></tr></tbody></table></div>
+<p>Para cobranza, el objetivo es que Meta las clasifique como <strong>utilidad</strong>. La app te avisa cuando una plantilla quedó como marketing y <strong>no deja usarla en campañas</strong> sin que lo sepas.</p>
+<hr />
+<h2 id="2-las-cinco-reglas-que-hacen-que-se-aprueben">2. Las cinco reglas que hacen que se aprueben</h2>
+<ol><li><strong>Habla de la cuenta de esa persona, no de una oferta.</strong> «Le recordamos su saldo pendiente» es utilidad; «aproveche el 20% de descuento» es marketing.</li><li><strong>Nada de urgencia falsa ni promociones.</strong> Sin «última oportunidad», sin «promoción», sin «descuento», salvo que de verdad sea marketing.</li><li><strong>Identifícate.</strong> El cuerpo debe decir de qué negocio es el mensaje; el cliente tiene que saber quién le escribe sin adivinar.</li><li><strong>Un solo objetivo por plantilla.</strong> Recordatorio de pago, confirmación, convenio. No mezcles aviso, promoción y encuesta.</li><li><strong>Ejemplos reales en cada variable.</strong> Si usas <code>{{1}}</code>, Meta pide un ejemplo («María»); sin él, la plantilla se rechaza.</li></ol>
+<hr />
+<h2 id="3-que-puede-llenar-la-app">3. Qué puede llenar la app</h2>
+<div class="marga-table"><table><thead><tr><th>Parte</th><th>Variables</th><th>Nota</th></tr></thead><tbody><tr><td><strong>Encabezado de texto</strong></td><td><strong>una</strong></td><td>Opcional</td></tr><tr><td><strong>Cuerpo</strong></td><td>las que necesites</td><td>Se resuelven por destinatario</td></tr><tr><td><strong>Botón con URL</strong></td><td><strong>una, al final</strong></td><td>La parte fija de la URL la pones tú en Meta</td></tr></tbody></table></div>
+<p>En campañas, las variables se llenan con texto fijo, el <strong>nombre</strong>, el <strong>teléfono</strong> o cualquier <strong>columna del Excel</strong>. En el hilo se capturan a mano.</p>
+<p>Los botones de <strong>respuesta rápida</strong> no llevan variables: su texto es fijo y es lo que la app usa para saber qué tocó el deudor.</p>
+<hr />
+<h2 id="4-paso-a-paso-en-meta">4. Paso a paso en Meta</h2>
+<ol><li>Entra a <strong>WhatsApp Manager → Plantillas de mensajes</strong> (dentro de tu cuenta de WhatsApp Business).</li><li><strong>Crear plantilla</strong>.</li><li><strong>Nombre</strong>: en minúsculas y con guiones bajos, por ejemplo <code>recordatorio_pago_v1</code>. No se puede repetir.</li><li><strong>Categoría</strong>: <code>Utilidad</code> para cobranza.</li><li><strong>Idioma</strong>: <code>es_MX</code> (español de México).</li><li><strong>Contenido</strong>:</li><li><strong>Encabezado de texto</strong> (opcional): por ejemplo <code>Aviso de pago</code>.</li><li><strong>Cuerpo</strong>: el mensaje, con <code>{{1}}</code>, <code>{{2}}</code>… donde van los datos.</li><li><strong>Pie</strong> (opcional): el nombre del negocio.</li><li><strong>Botones</strong>: respuesta rápida y/o enlace.</li><li><strong>Ejemplos</strong>: llena cada variable con un valor realista.</li><li><strong>Enviar a revisión</strong>. Meta suele responder en minutos; a veces tarda hasta 24–48 horas.</li></ol>
+<p>Cuando esté aprobada, en Margarita entra a <strong>Admin → Plantillas → Sincronizar</strong> y aparece con su estado.</p>
+<hr />
+<h2 id="5-la-plantilla-de-cobranza-recomendada">5. La plantilla de cobranza recomendada</h2>
+<p><strong>Nombre</strong>: <code>recordatorio_pago_asesor</code> <strong>Categoría</strong>: Utilidad · <strong>Idioma</strong>: es_MX</p>
+<p><strong>Encabezado</strong>: <code>Aviso de pago</code></p>
+<p><strong>Cuerpo</strong>:</p>
+<blockquote>Hola {{1}}, le escribimos de {{2}} por su cuenta. Tiene un saldo pendiente de {{3}}. Si ya lo pagó, puede avisarnos por aquí; si necesita revisarlo, con gusto le ayudamos.</blockquote>
+<p><strong>Pie</strong>: <code>{{2}}</code></p>
+<p><strong>Botones</strong>:</p>
+<ol><li>Respuesta rápida: <strong>Quiero que me llame un asesor</strong></li><li>Enlace: <strong>Aviso de privacidad</strong> → <code>https://suempresa.margaritaapp.org/aviso-de-privacidad</code></li></ol>
+<blockquote>El texto del botón importa: es lo que la app usa para reconocer la respuesta (además del identificador). «Quiero que me llame un asesor» ya viene mapeado en las reglas recomendadas de <strong>Admin → Botones</strong>.</blockquote>
+<hr />
+<h2 id="6-plantillas-que-sirven-para-el-dia-a-dia">6. Plantillas que sirven para el día a día</h2>
+<div class="marga-table"><table><thead><tr><th>Momento</th><th>Cuerpo sugerido</th><th>Variables</th></tr></thead><tbody><tr><td><strong>Recordatorio</strong></td><td>«Hola {{1}}, le escribimos de {{2}} por su cuenta. Tiene un saldo pendiente de {{3}}…»</td><td>nombre, negocio, monto</td></tr><tr><td><strong>Promesa por vencer</strong></td><td>«Hola {{1}}, le recordamos el pago acordado para el {{2}} por {{3}}…»</td><td>nombre, fecha, monto</td></tr><tr><td><strong>Convenio</strong></td><td>«Hola {{1}}, quedó registrado su convenio de {{2}}. El primer pago es el {{3}}…»</td><td>nombre, monto, fecha</td></tr><tr><td><strong>Pago confirmado</strong></td><td>«Hola {{1}}, recibimos su pago de {{2}}. Gracias…»</td><td>nombre, monto</td></tr><tr><td><strong>Reagendar llamada</strong></td><td>«Hola {{1}}, no pudimos localizarle. ¿A qué hora le podemos llamar?»</td><td>nombre</td></tr><tr><td><strong>Aviso de baja</strong></td><td>«Hola {{1}}, registramos que no desea recibir mensajes. No le escribiremos más…»</td><td>nombre</td></tr></tbody></table></div>
+<hr />
+<h2 id="7-cuando-meta-la-rechaza">7. Cuando Meta la rechaza</h2>
+<div class="marga-table"><table><thead><tr><th>Motivo típico</th><th>Qué corregir</th></tr></thead><tbody><tr><td>«Variable sin ejemplo»</td><td>Llenar el ejemplo de cada <code>{{n}}</code></td></tr><tr><td>«Categoría incorrecta»</td><td>Si suena comercial, es marketing; si es un aviso de cuenta, es utilidad</td></tr><tr><td>«Contenido promocional»</td><td>Quitar descuentos, urgencias y promesas de beneficio</td></tr><tr><td>«URL no válida»</td><td>La URL del botón debe ser pública y empezar con <code>https://</code></td></tr><tr><td>«Formato de variable inválido»</td><td>Deben ser <code>{{1}}</code>, <code>{{2}}</code>… sin espacios ni texto dentro</td></tr><tr><td>«Nombre repetido»</td><td>Cambiar el nombre (por ejemplo, <code>_v2</code>)</td></tr></tbody></table></div>
+<p>Una plantilla rechazada no se puede usar: se corrige, se envía de nuevo y, si Meta la aprueba, se sincroniza en el panel.</p>
+<hr />
+<h2 id="8-cuidar-la-calidad-del-numero">8. Cuidar la calidad del número</h2>
+<ul><li>Manda solo a quien dio su consentimiento.</li><li>Respeta las bajas el mismo día.</li><li>No dispares campañas enormes de golpe: la app ya pone una pausa entre mensajes, pero el volumen total también cuenta.</li><li>Revisa la calidad del número en <strong>Admin → WhatsApp</strong> y en el panel de Meta.</li></ul>
+<blockquote>Si prefieres no pelearte con esto, lo hacemos nosotros: la conexión con Meta, las plantillas y la prueba de punta a punta se cotizan aparte.</blockquote>
+        </div>
 
-                <p class="mt-3">
-                    WhatsApp solo deja escribir <strong>texto libre durante 24
-                    horas</strong> después del último mensaje del cliente. Para volver
-                    a iniciar la conversación, o para escribirle a alguien que no ha
-                    respondido, hace falta una <strong>plantilla aprobada</strong>.
-                </p>
+        <div class="mt-12 rounded-2xl bg-margarita-50 p-6 ring-1 ring-margarita-200">
+            <p class="text-sm font-bold text-margarita-900">
+                ¿Prefieres no pelearte con esto?
+            </p>
 
-                <p class="mt-3">Y no todas cuestan lo mismo:</p>
+            <p class="mt-1 text-sm text-margarita-800">
+                La conexión con Meta, las plantillas y la prueba de punta a punta se
+                cotizan aparte.
+            </p>
 
-                <div class="mt-4 overflow-x-auto">
-                    <table class="w-full text-left text-sm ring-1 ring-slate-200">
-                        <thead class="bg-slate-50 text-slate-600">
-                            <tr>
-                                <th class="px-4 py-3">Categoría</th>
-                                <th class="px-4 py-3">Para qué es</th>
-                                <th class="px-4 py-3">Costo</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <tr><td class="px-4 py-3 font-semibold">Utilidad</td><td class="px-4 py-3">Avisos sobre una cuenta, un pago, una entrega, un servicio que la persona ya tiene</td><td class="px-4 py-3">Bajo</td></tr>
-                            <tr><td class="px-4 py-3 font-semibold">Marketing</td><td class="px-4 py-3">Promociones, novedades, recuperación de clientes</td><td class="px-4 py-3">Varias veces más</td></tr>
-                            <tr><td class="px-4 py-3 font-semibold">Autenticación</td><td class="px-4 py-3">Códigos de un solo uso</td><td class="px-4 py-3">Bajo</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <p class="mt-4">
-                    Para cobranza, el objetivo es que Meta las clasifique como
-                    <strong>utilidad</strong>. La app te avisa cuando una quedó como
-                    marketing y <strong>no deja usarla en campañas</strong> sin que lo
-                    sepas.
-                </p>
-            </section>
-
-            <section id="reglas" class="scroll-mt-6">
-                <h2 class="text-2xl font-black text-slate-950">
-                    2. Las cinco reglas que hacen que se aprueben
-                </h2>
-
-                <ol class="mt-3 list-decimal space-y-2 pl-5">
-                    <li><strong>Habla de la cuenta de esa persona, no de una oferta.</strong> «Le recordamos su saldo pendiente» es utilidad; «aproveche el 20% de descuento» es marketing.</li>
-                    <li><strong>Nada de urgencia falsa ni promociones.</strong> Sin «última oportunidad», sin «descuento», salvo que de verdad sea marketing.</li>
-                    <li><strong>Identifícate.</strong> El mensaje debe decir de qué negocio es; el cliente tiene que saber quién le escribe.</li>
-                    <li><strong>Un solo objetivo por plantilla.</strong> Recordatorio de pago, confirmación o convenio. No mezcles aviso, promoción y encuesta.</li>
-                    <li><strong>Ejemplos reales en cada variable.</strong> Si usas <code>{{1}}</code>, Meta pide un ejemplo («María»); sin él, se rechaza.</li>
-                </ol>
-            </section>
-
-            <section id="variables" class="scroll-mt-6">
-                <h2 class="text-2xl font-black text-slate-950">
-                    3. Qué puede llenar la app
-                </h2>
-
-                <div class="mt-4 overflow-x-auto">
-                    <table class="w-full text-left text-sm ring-1 ring-slate-200">
-                        <thead class="bg-slate-50 text-slate-600">
-                            <tr>
-                                <th class="px-4 py-3">Parte</th>
-                                <th class="px-4 py-3">Variables</th>
-                                <th class="px-4 py-3">Nota</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <tr><td class="px-4 py-3 font-semibold">Encabezado de texto</td><td class="px-4 py-3"><strong>una</strong></td><td class="px-4 py-3">Opcional</td></tr>
-                            <tr><td class="px-4 py-3 font-semibold">Cuerpo</td><td class="px-4 py-3">las que necesites</td><td class="px-4 py-3">Se resuelven por destinatario</td></tr>
-                            <tr><td class="px-4 py-3 font-semibold">Botón con URL</td><td class="px-4 py-3"><strong>una, al final</strong></td><td class="px-4 py-3">La parte fija la pones en Meta</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <p class="mt-4">
-                    En campañas, las variables se llenan con texto fijo, el
-                    <strong>nombre</strong>, el <strong>teléfono</strong> o cualquier
-                    <strong>columna del Excel</strong>. En el hilo se capturan a mano.
-                </p>
-
-                <p class="mt-3">
-                    Los botones de <strong>respuesta rápida</strong> no llevan
-                    variables: su texto es fijo y es lo que la app usa para saber qué
-                    tocó el deudor.
-                </p>
-            </section>
-
-            <section id="pasos" class="scroll-mt-6">
-                <h2 class="text-2xl font-black text-slate-950">
-                    4. Paso a paso en Meta
-                </h2>
-
-                <ol class="mt-3 list-decimal space-y-2 pl-5">
-                    <li>Entra a <strong>WhatsApp Manager → Plantillas de mensajes</strong>, dentro de tu cuenta de WhatsApp Business.</li>
-                    <li><strong>Crear plantilla</strong>.</li>
-                    <li><strong>Nombre</strong>: en minúsculas y con guiones bajos, por ejemplo <code>recordatorio_pago_v1</code>.</li>
-                    <li><strong>Categoría</strong>: <code>Utilidad</code> para cobranza.</li>
-                    <li><strong>Idioma</strong>: <code>es_MX</code> (español de México).</li>
-                    <li><strong>Contenido</strong>: encabezado, cuerpo con <code>{{1}}</code>, <code>{{2}}</code>…, pie opcional y botones.</li>
-                    <li><strong>Ejemplos</strong>: llena cada variable con un valor realista.</li>
-                    <li><strong>Enviar a revisión</strong>. Meta suele responder en minutos; a veces tarda hasta 24–48 horas.</li>
-                </ol>
-
-                <p class="mt-4">
-                    Cuando esté aprobada, en Margarita entra a <strong>Admin →
-                    Plantillas → Sincronizar</strong> y aparece con su estado.
-                </p>
-            </section>
-
-            <section id="cobranza" class="scroll-mt-6">
-                <h2 class="text-2xl font-black text-slate-950">
-                    5. La plantilla de cobranza recomendada
-                </h2>
-
-                <div class="mt-4 rounded-2xl bg-slate-950 p-6 text-white">
-                    <p class="text-xs font-bold uppercase tracking-wide text-sol-300">
-                        recordatorio_pago_asesor · Utilidad · es_MX
-                    </p>
-
-                    <p class="mt-4 text-sm font-bold">Encabezado</p>
-                    <p class="mt-1 text-slate-200">Aviso de pago</p>
-
-                    <p class="mt-4 text-sm font-bold">Cuerpo</p>
-                    <p class="mt-1 leading-7 text-slate-200">
-                        Hola {{1}}, le escribimos de {{2}} por su cuenta. Tiene un saldo
-                        pendiente de {{3}}. Si ya lo pagó, puede avisarnos por aquí; si
-                        necesita revisarlo, con gusto le ayudamos.
-                    </p>
-
-                    <p class="mt-4 text-sm font-bold">Pie</p>
-                    <p class="mt-1 text-slate-200">{{2}}</p>
-
-                    <p class="mt-4 text-sm font-bold">Botones</p>
-                    <ul class="mt-1 list-disc space-y-1 pl-5 text-slate-200">
-                        <li>Respuesta rápida: <strong class="text-white">Quiero que me llame un asesor</strong></li>
-                        <li>Enlace: <strong class="text-white">Aviso de privacidad</strong> → la dirección del aviso de tu operación</li>
-                    </ul>
-                </div>
-
-                <p class="mt-4">
-                    El texto del botón importa: es lo que la app usa para reconocer la
-                    respuesta, además del identificador. «Quiero que me llame un
-                    asesor» ya viene mapeado en las reglas recomendadas de
-                    <strong>Admin → Botones</strong>.
-                </p>
-            </section>
-
-            <section id="dia" class="scroll-mt-6">
-                <h2 class="text-2xl font-black text-slate-950">
-                    6. Plantillas del día a día
-                </h2>
-
-                <div class="mt-4 overflow-x-auto">
-                    <table class="w-full text-left text-sm ring-1 ring-slate-200">
-                        <thead class="bg-slate-50 text-slate-600">
-                            <tr>
-                                <th class="px-4 py-3">Momento</th>
-                                <th class="px-4 py-3">Cuerpo sugerido</th>
-                                <th class="px-4 py-3">Variables</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <tr><td class="px-4 py-3 font-semibold">Recordatorio</td><td class="px-4 py-3">«Hola {{1}}, le escribimos de {{2}} por su cuenta. Tiene un saldo pendiente de {{3}}…»</td><td class="px-4 py-3">nombre, negocio, monto</td></tr>
-                            <tr><td class="px-4 py-3 font-semibold">Promesa por vencer</td><td class="px-4 py-3">«Hola {{1}}, le recordamos el pago acordado para el {{2}} por {{3}}…»</td><td class="px-4 py-3">nombre, fecha, monto</td></tr>
-                            <tr><td class="px-4 py-3 font-semibold">Convenio</td><td class="px-4 py-3">«Hola {{1}}, quedó registrado su convenio de {{2}}. El primer pago es el {{3}}…»</td><td class="px-4 py-3">nombre, monto, fecha</td></tr>
-                            <tr><td class="px-4 py-3 font-semibold">Pago confirmado</td><td class="px-4 py-3">«Hola {{1}}, recibimos su pago de {{2}}. Gracias…»</td><td class="px-4 py-3">nombre, monto</td></tr>
-                            <tr><td class="px-4 py-3 font-semibold">Reagendar llamada</td><td class="px-4 py-3">«Hola {{1}}, no pudimos localizarle. ¿A qué hora le podemos llamar?»</td><td class="px-4 py-3">nombre</td></tr>
-                            <tr><td class="px-4 py-3 font-semibold">Aviso de baja</td><td class="px-4 py-3">«Hola {{1}}, registramos que no desea recibir mensajes…»</td><td class="px-4 py-3">nombre</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section id="rechazo" class="scroll-mt-6">
-                <h2 class="text-2xl font-black text-slate-950">
-                    7. Cuando Meta la rechaza
-                </h2>
-
-                <div class="mt-4 overflow-x-auto">
-                    <table class="w-full text-left text-sm ring-1 ring-slate-200">
-                        <thead class="bg-slate-50 text-slate-600">
-                            <tr>
-                                <th class="px-4 py-3">Motivo típico</th>
-                                <th class="px-4 py-3">Qué corregir</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <tr><td class="px-4 py-3">«Variable sin ejemplo»</td><td class="px-4 py-3">Llenar el ejemplo de cada <code>{{n}}</code></td></tr>
-                            <tr><td class="px-4 py-3">«Categoría incorrecta»</td><td class="px-4 py-3">Si suena comercial es marketing; si es aviso de cuenta, utilidad</td></tr>
-                            <tr><td class="px-4 py-3">«Contenido promocional»</td><td class="px-4 py-3">Quitar descuentos, urgencias y promesas de beneficio</td></tr>
-                            <tr><td class="px-4 py-3">«URL no válida»</td><td class="px-4 py-3">Debe ser pública y empezar con <code>https://</code></td></tr>
-                            <tr><td class="px-4 py-3">«Formato de variable inválido»</td><td class="px-4 py-3">Deben ser <code>{{1}}</code>, <code>{{2}}</code>… sin espacios dentro</td></tr>
-                            <tr><td class="px-4 py-3">«Nombre repetido»</td><td class="px-4 py-3">Cambiar el nombre (por ejemplo, <code>_v2</code>)</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section id="calidad" class="scroll-mt-6">
-                <h2 class="text-2xl font-black text-slate-950">
-                    8. Cuidar la calidad del número
-                </h2>
-
-                <ul class="mt-3 list-disc space-y-2 pl-5">
-                    <li>Manda solo a quien dio su consentimiento.</li>
-                    <li>Respeta las bajas el mismo día.</li>
-                    <li>No dispares campañas enormes de golpe: la app ya pone una pausa entre mensajes, pero el volumen total también cuenta.</li>
-                    <li>Revisa la calidad del número en <strong>Admin → WhatsApp</strong> y en el panel de Meta.</li>
-                </ul>
-
-                <div class="mt-6 rounded-2xl bg-margarita-50 p-6 ring-1 ring-margarita-200">
-                    <p class="text-sm font-bold text-margarita-900">
-                        ¿Prefieres no pelearte con esto?
-                    </p>
-
-                    <p class="mt-1 text-sm text-margarita-800">
-                        La conexión con Meta, las plantillas y la prueba de punta a
-                        punta se cotizan aparte.
-                    </p>
-
-                    <a href="https://wa.me/525538783682" class="mt-4 inline-flex rounded-xl bg-margarita-600 px-5 py-3 text-sm font-black text-white hover:bg-margarita-700">
-                        Pedir que me ayuden
-                    </a>
-                </div>
-            </section>
+            <a href="https://wa.me/525538783682" class="mt-4 inline-flex rounded-xl bg-margarita-600 px-5 py-3 text-sm font-black text-white hover:bg-margarita-700">
+                Pedir que me ayuden
+            </a>
         </div>
     </section>
 </main>

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 
 import { appConfig, servesLanding } from "../config/app.config";
 import { SetupService } from "../services/setup.service";
+import { loadGuide } from "../content/guides";
 
 /**
  * Datos de contacto comercial. Se configuran por variables de entorno para
@@ -20,6 +21,7 @@ function supportContext() {
         installPricePromo: appConfig.installPricePromo,
         installPromoLabel: appConfig.installPromoLabel,
         installPromoUntil: appConfig.installPromoUntil,
+        installPromoSpotsLeft: appConfig.installPromoSpotsLeft,
         installMonthlyPrice: appConfig.installMonthlyPrice,
         installMonthlyListPrice: appConfig.installMonthlyListPrice,
         appName: appConfig.name
@@ -71,8 +73,12 @@ export class HomeController {
      * para que se pueda mandar por WhatsApp sin pedir sesión.
      */
     static async guide(_req: Request, res: Response) {
+        const guide = loadGuide("uso");
+
         return res.render("pages/home/guia", {
             title: "Guía de uso - Margarita",
+            guideHtml: guide.html,
+            guideHeadings: guide.headings.filter((heading) => heading.level === 2),
             ...supportContext()
         });
     }
@@ -82,8 +88,12 @@ export class HomeController {
      * lo menos posible. Pública por la misma razón que la guía de uso.
      */
     static async templatesGuide(_req: Request, res: Response) {
+        const guide = loadGuide("plantillas");
+
         return res.render("pages/home/plantillas", {
             title: "Guía de plantillas - Margarita",
+            guideHtml: guide.html,
+            guideHeadings: guide.headings.filter((heading) => heading.level === 2),
             ...supportContext()
         });
     }

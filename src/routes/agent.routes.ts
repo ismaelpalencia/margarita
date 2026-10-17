@@ -8,12 +8,15 @@ import agentConversationsRoutes from "./agent-conversations.routes";
 import agentSessionsRoutes from "./agent-sessions.routes";
 import { activeNumberMiddleware } from "../middlewares/active-number.middleware";
 import { ActiveNumberController } from "../controllers/active-number.controller";
+import { panelRateLimiter } from "../middlewares/panel-rate-limit.middleware";
 
 const router = Router();
 
 router.use(authMiddleware);
 router.use(requireRole(UserRole.AGENT));
 router.use(activeNumberMiddleware);
+/** El cupo es de la persona, no de la IP compartida de la oficina. */
+router.use(panelRateLimiter);
 
 router.get("/dashboard", AgentDashboardController.index);
 router.post("/number/switch", ActiveNumberController.switch);

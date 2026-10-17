@@ -7,6 +7,7 @@ import { LEGACY_PHONE_HASH_PREFIX } from "../jobs/phone-hash.job";
 import { LEGACY_EMAIL_HASH_PREFIX } from "../jobs/email-hash.job";
 import { BackupFileService } from "./backup-file.service";
 import { UserService } from "./user.service";
+import { storageStatus } from "./storage-status.service";
 
 export class SystemStatusService {
     /**
@@ -265,7 +266,13 @@ export class SystemStatusService {
                 loginMaxAttempts: appConfig.loginMaxAttempts,
                 loginLockMinutes: appConfig.loginLockMinutes,
                 logRetentionDays: appConfig.logRetentionDays,
-                webhookEventRetentionDays: appConfig.webhookEventRetentionDays
+                webhookEventRetentionDays: appConfig.webhookEventRetentionDays,
+                /**
+                 * Dónde viven los archivos. Si no es un Volume, el siguiente
+                 * despliegue los borra: es el aviso que evita perder fotos y
+                 * documentos de las conversaciones.
+                 */
+                storage: storageStatus()
             },
             checks: {
                 workspaceReady: Boolean(workspace),

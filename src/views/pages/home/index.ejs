@@ -36,7 +36,21 @@
     const promoVigente =
         !installPromoUntil ||
         new Date() <= new Date(`${installPromoUntil}T23:59:59`);
-    const hasPromo = installPricePromo !== installPrice && promoVigente;
+    /**
+     * La oferta se apaga sola por dos caminos: la fecha y los lugares.
+     * Los lugares se llevan a mano (la app no vende); al llegar a 0 la página
+     * muestra el precio de lista sin que nadie toque el HTML.
+     */
+    const promoSpotsLeft =
+        typeof installPromoSpotsLeft === "number" ? installPromoSpotsLeft : 3;
+    const hasPromo =
+        installPricePromo !== installPrice && promoVigente && promoSpotsLeft > 0;
+    /**
+     * Si la oferta se apagó (fecha o lugares), la página muestra el precio de
+     * lista. Antes el número grande era siempre el de promoción, así que
+     * apagarla no cambiaba nada a la vista.
+     */
+    const displayInstallPrice = hasPromo ? installPricePromo : installPrice;
 %>
 
 <main class="min-h-screen bg-white text-slate-950">
@@ -137,7 +151,7 @@
 
                         <div>
                             <p class="text-sm font-black text-margarita-900">
-                                Instalación <%= installPricePromo %>
+                                Instalación <%= displayInstallPrice %>
                                 <% if (hasPromo) { %>
                                     <span class="font-semibold text-slate-500">
                                         <span class="line-through"><%= installPrice %></span>
@@ -364,7 +378,7 @@
 
                     <div class="flex flex-wrap items-end gap-x-4 gap-y-1">
                         <p class="text-4xl font-black text-slate-950">
-                            <%= installPricePromo %>
+                            <%= displayInstallPrice %>
                         </p>
 
                         <p class="pb-1 text-sm font-semibold text-slate-500">

@@ -1,3 +1,4 @@
+-- revisado: el contador manual pasó a calcularse de los mensajes; la columna vieja no se leía.
 -- Consentimiento (opt-in), bajas (STOP), no leídos, notas internas,
 -- respuestas rápidas y contador diario de mensajes manuales.
 --

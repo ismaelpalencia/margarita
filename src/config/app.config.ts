@@ -182,6 +182,17 @@ export const appConfig = {
     loginRateLimitMax: Number(process.env.LOGIN_RATE_LIMIT_MAX) || 10,
 
     /**
+     * Tope de acciones **por usuario** cada 15 minutos en el panel.
+     *
+     * El anterior era por IP: quince agentes en la misma oficina compartían el
+     * cupo y los últimos del día recibían 429. Ahora cada persona tiene el
+     * suyo, y el límite por IP queda como defensa de borde, mucho más alto.
+     */
+    panelRateLimitMax: Number(process.env.PANEL_RATE_LIMIT_MAX) || 300,
+    panelRateLimitWindowMinutes:
+        Number(process.env.PANEL_RATE_LIMIT_WINDOW_MINUTES) || 15,
+
+    /**
      * Minutos de inactividad tras los cuales la sesión se cierra sola, y
      * cuántos dispositivos puede tener abiertos un usuario a la vez.
      *
@@ -239,6 +250,16 @@ export const appConfig = {
     /** Hasta cuándo vale la oferta. Pasada la fecha, se deja de anunciar. */
     installPromoUntil:
         process.env.INSTALL_PROMO_UNTIL?.trim() || "2026-12-31",
+    /**
+     * Lugares que quedan de la oferta de lanzamiento.
+     *
+     * Se lleva a mano (la app no vende): al llegar a 0, la página deja de
+     * anunciar el precio de captación y muestra el de lista, sin tocar HTML.
+     */
+    installPromoSpotsLeft:
+        process.env.INSTALL_PROMO_SPOTS_LEFT !== undefined
+            ? Number(process.env.INSTALL_PROMO_SPOTS_LEFT)
+            : 3,
     installMonthlyPrice:
         process.env.INSTALL_MONTHLY_PRICE?.trim() || "$699.00 MXN",
     installMonthlyListPrice:

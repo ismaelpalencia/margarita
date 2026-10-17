@@ -6,6 +6,7 @@ import { retentionState } from "../jobs/retention.job";
 import { webhookWorkerState } from "../jobs/webhook-worker";
 import { webhookTelemetry } from "./webhook-telemetry.service";
 import { BackupFileService } from "./backup-file.service";
+import { storageStatus } from "./storage-status.service";
 
 /**
  * Superficie mínima del cliente de base de datos que usa el healthcheck.
@@ -132,6 +133,14 @@ export class HealthService {
          */
         const backups = await BackupFileService.status().catch(() => null);
 
+        /**
+         * Almacenamiento de archivos. Sin un Volume, cada despliegue borra las
+         * fotos y documentos de las conversaciones; no tumba el healthcheck
+         * (el servicio está vivo), pero queda dicho en la respuesta y en el
+         * panel de Sistema.
+         */
+        const storage = storageStatus();
+
         const checks = {
             database: database === "up",
             webhookQueueReadable: queue.readable,
@@ -156,7 +165,9 @@ export class HealthService {
             alertsConfigured: Boolean(appConfig.alertWebhookUrl),
             /** Aviso cuando hay eventos que agotaron sus reintentos. */
             webhookQueueHasFailures: queue.failed > 0,
-            backupsFresh: Boolean(backups && backups.enabled && !backups.stale)
+            backupsFresh: Boolean(backups && backups.enabled && !backups.stale),
+            /** Archivos en un Volume: sobreviven a los despliegues. */
+            mediaStoragePersistent: storage.persistent
         };
 
         const degraded =
@@ -226,6 +237,7 @@ export class HealthService {
                       dir: backups.dir
                   }
                 : null,
+            storage,
             checks,
             timestamp: new Date().toISOString()
         };

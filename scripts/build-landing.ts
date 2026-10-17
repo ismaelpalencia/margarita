@@ -21,6 +21,7 @@ import path from "node:path";
 import ejs from "ejs";
 
 import { appConfig } from "../src/config/app.config";
+import { loadGuide } from "../src/content/guides";
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, "landing");
@@ -77,6 +78,7 @@ function locals(title: string) {
         installPricePromo: appConfig.installPricePromo,
         installPromoLabel: appConfig.installPromoLabel,
         installPromoUntil: appConfig.installPromoUntil,
+        installPromoSpotsLeft: appConfig.installPromoSpotsLeft,
         installMonthlyPrice: appConfig.installMonthlyPrice,
         installMonthlyListPrice: appConfig.installMonthlyListPrice
     };
@@ -154,9 +156,33 @@ function build() {
 
     for (const page of PAGES) {
         const file = path.join(VIEWS, `${page.view}.ejs`);
+
+        /**
+         * Las guías salen del mismo `.md` que usa la aplicación: la página es
+         * solo la portada y el estilo. Así no se pueden separar.
+         */
+        const extra: Record<string, unknown> = {};
+
+        if (page.file === "guia.html") {
+            const guide = loadGuide("uso");
+            extra.guideHtml = guide.html;
+            extra.guideHeadings = guide.headings.filter(
+                (heading) => heading.level === 2
+            );
+        }
+
+        if (page.file === "plantillas.html") {
+            const guide = loadGuide("plantillas");
+            extra.guideHtml = guide.html;
+            extra.guideHeadings = guide.headings.filter(
+                (heading) => heading.level === 2
+            );
+        }
+
         const html = ejs.render(fs.readFileSync(file, "utf8"), {
             filename: file,
-            ...locals(page.title)
+            ...locals(page.title),
+            ...extra
         });
 
         fs.writeFileSync(path.join(OUT, page.file), rewriteLinks(html));

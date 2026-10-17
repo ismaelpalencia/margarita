@@ -4,6 +4,11 @@ Guía operativa para subir Margarita (WhatsApp Business Cloud API) a Railway sin
 
 > **¿Es un cliente nuevo?** Para eso está [`plantilla-railway.md`](plantilla-railway.md): publicar la plantilla una vez y después cada alta son minutos, sin configurar variables a mano. Esta guía es el camino manual (útil para tu propio entorno o si prefieres controlar cada paso).
 
+> **¿Ya hay clientes?** Entonces manda [`ramas-y-despliegue.md`](ramas-y-despliegue.md):
+> `main` despliega **staging** y **`release`** es la única rama conectada a las
+> instalaciones reales. Ahí están también la reversión y la auditoría de
+> migraciones.
+
 ## Resumen en 6 pasos
 
 1. Crear el proyecto en Railway y agregar el plugin PostgreSQL.
@@ -103,6 +108,10 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `INSTALL_MONTHLY_PRICE` | `$699.00 MXN` | Mensualidad (contrato mínimo de 3 meses) |
 | `INSTALL_MONTHLY_LIST_PRICE` | `$1,490.00 MXN` | Mensualidad a precio de lista |
 | `INSTALL_PROMO_UNTIL` | `2026-12-31` | Fecha en que la página deja de anunciar la oferta |
+| `INSTALL_PROMO_SPOTS_LEFT` | `3` | Lugares que quedan de la oferta; al llegar a 0 la página muestra el precio de lista |
+| `PANEL_RATE_LIMIT_MAX` | `300` | Peticiones por **usuario** cada 15 minutos en el panel |
+| `PANEL_RATE_LIMIT_WINDOW_MINUTES` | `15` | Ventana del cupo por usuario |
+| `EDGE_RATE_LIMIT_MAX` | `3000` | Tope de borde por IP (solo contra abuso evidente) |
 | `SUPPORT_WHATSAPP_DISPLAY` | `55 3878 3682` | El WhatsApp como se muestra en la página |
 | `BACKUP_ENABLED` | `true` | Respaldo automático de la base encendido o apagado |
 | `BACKUP_INTERVAL_HOURS` | `24` | Cada cuánto se guarda una copia completa |
