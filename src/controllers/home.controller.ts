@@ -18,12 +18,17 @@ function supportContext() {
         supportWhatsappDisplay: appConfig.supportWhatsappDisplay,
         setupServicePrice: appConfig.setupServicePrice,
         installPrice: appConfig.installPrice,
+        installPriceWithMeta: appConfig.installPriceWithMeta,
         installPricePromo: appConfig.installPricePromo,
         installPromoLabel: appConfig.installPromoLabel,
         installPromoUntil: appConfig.installPromoUntil,
         installPromoSpotsLeft: appConfig.installPromoSpotsLeft,
         installMonthlyPrice: appConfig.installMonthlyPrice,
         installMonthlyListPrice: appConfig.installMonthlyListPrice,
+        monthlyCommit3: appConfig.monthlyCommit3,
+        monthlyCommit6: appConfig.monthlyCommit6,
+        monthlyCommit12: appConfig.monthlyCommit12,
+        pilotDays: appConfig.pilotDays,
         appName: appConfig.name
     };
 }
@@ -94,6 +99,17 @@ export class HomeController {
             title: "Guía de plantillas - Margarita",
             guideHtml: guide.html,
             guideHeadings: guide.headings.filter((heading) => heading.level === 2),
+            ...supportContext()
+        });
+    }
+
+    /**
+     * Propuesta comercial: la versión de la landing para un cliente que ya se
+     * interesó. Vive en el sitio público y no enseña nada interno.
+     */
+    static async proposal(_req: Request, res: Response) {
+        return res.render("pages/home/propuesta", {
+            title: "Propuesta comercial - Margarita",
             ...supportContext()
         });
     }

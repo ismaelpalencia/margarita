@@ -1,0 +1,335 @@
+<%- include("../../partials/header", { title }) %>
+
+<%
+    const contactUrl =
+        supportWhatsappUrl ||
+        (supportEmail ? `mailto:${supportEmail}` : "/");
+
+    const funciones = [
+        ["Bandeja de conversaciones", "Atiende WhatsApp desde el panel: texto y archivos dentro de las 24 horas, plantillas aprobadas cuando la ventana está cerrada, notas internas y respuestas rápidas."],
+        ["Resultado de cada gestión", "Promesa, convenio, pagado, pago reportado, sin contestación, número inválido o «volver a llamar», con monto y fecha. Cada marcado queda con quién y cuándo."],
+        ["La lista del día", "Un tablero que pone primero a quien pidió llamada, luego las promesas vencidas y al final los que no han contestado. Con la hora de la cita."],
+        ["Campañas con plantillas", "Envía a contactos o a un Excel con variables por destinatario. En cola, con pausa, reanudación y reintento de fallidos."],
+        ["Botones que se entienden", "Cuando el deudor toca un botón, la app registra el resultado sola y puede pausar la cuenta o darla de baja."],
+        ["Plantillas que cuestan menos", "Sincroniza las plantillas de Meta, avisa de las rechazadas y bloquea las que Meta reclasificó como marketing."],
+        ["Tramo y costo", "Cuántos mensajes de servicio lleva cada número del tramo mensual, con alerta al 80% y costo estimado de plantillas."],
+        ["Equipo y permisos", "Usuarios ilimitados, roles de administrador y agente, tope diario de envío manual y verificación en dos pasos."],
+        ["Datos protegidos", "Teléfonos, mensajes y correos cifrados en la base, respaldos diarios y bitácora de lo importante."]
+    ];
+
+    const preguntas = [
+        ["¿Quién configura la cuenta de Meta?", "El cliente, con nuestra guía paso a paso. Si prefieres que lo hagamos nosotros —app de Meta, cuenta, número, token, webhook y prueba de punta a punta— se cotiza aparte."],
+        ["¿El consumo de WhatsApp va incluido?", "No. Meta cobra directamente a la empresa por los mensajes. La app te muestra una estimación y te avisa cuando un número se acerca al tramo."],
+        ["¿Cuántos usuarios puedo dar de alta?", "Los que necesites. No cobramos por agente ni por número de WhatsApp."],
+        ["¿Puedo cancelar cuando quiera?", "Sí. El primer mes es un piloto pagado: al día 30 decides si sigues, sin penalización. Si no continúas, te llevas tu respaldo y se borra la instalación a petición. Los compromisos de 3, 6 o 12 meses son opcionales y solo sirven para bajar la mensualidad."],
+        ["¿Sirve para números fuera de México?", "Hoy no: la app está preparada para números mexicanos."],
+        ["¿Necesito instalar algo?", "No. Se usa desde el navegador, en computadora y celular."]
+    ];
+%>
+
+<main class="min-h-screen bg-white text-slate-950">
+    <section class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+            <a href="/" class="flex items-center gap-3">
+                <img src="/brand/img/margarita-wordmark-512.png" alt="Margarita" class="h-10 w-auto" />
+            </a>
+
+            <div class="flex items-center gap-3">
+                <a href="/" class="hidden rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 md:inline-flex">
+                    Inicio
+                </a>
+
+                <a href="<%= contactUrl %>" class="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
+                    Quiero una demo
+                </a>
+
+                <a href="/docs/propuesta-margarita.pdf" class="hidden rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200 sm:inline-flex">
+                    Descargar PDF
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-gradient-to-b from-margarita-50 to-white">
+        <div class="mx-auto max-w-7xl px-6 py-16">
+            <div class="max-w-3xl">
+                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
+                    Propuesta comercial
+                </p>
+
+                <h1 class="mt-3 text-5xl font-black tracking-tight text-slate-950">
+                    Cobra por WhatsApp sin perder el hilo.
+                </h1>
+
+                <p class="mt-6 text-lg leading-8 text-slate-600">
+                    Margarita opera la API oficial de WhatsApp para cobranza: envía
+                    plantillas, atiende conversaciones y registra <strong>en qué quedó
+                    cada cliente</strong>. Al día siguiente te dice a quién escribirle
+                    o llamarle primero.
+                </p>
+
+                <div class="mt-8 flex flex-wrap gap-3">
+                    <a href="#precios" class="rounded-xl bg-margarita-600 px-6 py-4 text-sm font-black text-white hover:bg-margarita-700">
+                        Ver precios
+                    </a>
+
+                    <a href="<%= contactUrl %>" class="rounded-xl bg-white px-6 py-4 text-sm font-black text-margarita-700 ring-1 ring-margarita-200 hover:bg-margarita-50">
+                        Pedir una demo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mx-auto max-w-7xl px-6 py-16">
+        <p class="text-sm font-black uppercase tracking-wide text-margarita-700">
+            El problema
+        </p>
+
+        <h2 class="mt-2 max-w-3xl text-3xl font-black text-slate-950">
+            La cobranza por WhatsApp se vuelve un rompecabezas.
+        </h2>
+
+        <div class="mt-8 grid gap-4 md:grid-cols-3">
+            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <p class="font-bold text-slate-900">Se pierde el hilo</p>
+                <p class="mt-1 text-sm text-slate-600">
+                    La conversación vive en un celular, el acuerdo en una libreta y el
+                    reporte en un Excel que nadie actualiza.
+                </p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <p class="font-bold text-slate-900">El número se castiga</p>
+                <p class="mt-1 text-sm text-slate-600">
+                    WhatsApp normal bloquea o limita los envíos masivos. La API oficial
+                    no bloquea, pero la calidad del número hay que cuidarla.
+                </p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <p class="font-bold text-slate-900">No se sabe a quién llamar</p>
+                <p class="mt-1 text-sm text-slate-600">
+                    Sin una lista del día, se llama a quien se acuerda uno, no a quien
+                    pidió llamada o prometió pagar.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-slate-50">
+        <div class="mx-auto max-w-7xl px-6 py-16">
+            <p class="text-sm font-black uppercase tracking-wide text-margarita-700">
+                Qué incluye
+            </p>
+
+            <h2 class="mt-2 max-w-3xl text-3xl font-black text-slate-950">
+                Todo lo que necesitas para cobrar, en un solo panel.
+            </h2>
+
+            <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <% funciones.forEach(([titulo, texto]) => { %>
+                    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                        <p class="font-bold text-slate-900"><%= titulo %></p>
+                        <p class="mt-1 text-sm leading-6 text-slate-600"><%= texto %></p>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+
+    <section class="mx-auto max-w-7xl px-6 py-16">
+        <p class="text-sm font-black uppercase tracking-wide text-margarita-700">
+            Cómo funciona
+        </p>
+
+        <h2 class="mt-2 text-3xl font-black text-slate-950">
+            Tres pasos para empezar.
+        </h2>
+
+        <ol class="mt-8 grid gap-4 md:grid-cols-3">
+            <li class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <p class="text-2xl font-black text-margarita-600">1</p>
+                <p class="mt-2 font-bold text-slate-900">Conectamos tu WhatsApp</p>
+                <p class="mt-1 text-sm text-slate-600">
+                    Tu cuenta de WhatsApp Business (Meta), tu número y tus plantillas
+                    aprobadas. Si no las tienes, te guiamos paso a paso.
+                </p>
+            </li>
+
+            <li class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <p class="text-2xl font-black text-margarita-600">2</p>
+                <p class="mt-2 font-bold text-slate-900">Subes tu cartera</p>
+                <p class="mt-1 text-sm text-slate-600">
+                    Contactos con etiquetas, o directo desde un Excel al crear una
+                    campaña. Cada contacto conserva su historial.
+                </p>
+            </li>
+
+            <li class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <p class="text-2xl font-black text-margarita-600">3</p>
+                <p class="mt-2 font-bold text-slate-900">Trabajas la lista del día</p>
+                <p class="mt-1 text-sm text-slate-600">
+                    Llamadas pedidas, promesas vencidas y clientes sin contestar, en
+                    orden de urgencia. Al cierre, el reporte se baja en CSV.
+                </p>
+            </li>
+        </ol>
+    </section>
+
+    <section id="precios" class="bg-slate-950 text-white">
+        <div class="mx-auto max-w-7xl px-6 py-16">
+            <p class="text-sm font-black uppercase tracking-wide text-sol-300">
+                Inversión
+            </p>
+
+            <h2 class="mt-2 text-3xl font-black">
+                Dos paquetes. Un mes para probarlo.
+            </h2>
+
+            <p class="mt-3 max-w-3xl text-slate-300">
+                El primer mes es un <strong class="text-white">piloto pagado</strong>:
+                al día <%= pilotDays %> decides si sigues, sin penalización y con tu
+                respaldo. Después, mes a mes, con descuento si te comprometes.
+                <strong class="text-white">Precios más IVA</strong> y el consumo de
+                WhatsApp se paga directo a Meta.
+            </p>
+
+            <div class="mt-8 grid gap-6 lg:grid-cols-2">
+                <div class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+                    <p class="text-xs font-black uppercase tracking-wide text-sol-300">
+                        Paquete A · Llave en mano
+                    </p>
+
+                    <p class="mt-3 text-4xl font-black"><%= installPriceWithMeta %></p>
+
+                    <p class="mt-1 text-sm text-slate-300">
+                        una vez · más IVA · incluye el primer mes
+                    </p>
+
+                    <p class="mt-4 text-sm leading-6 text-slate-300">
+                        Proyecto, base de datos, dominio, administrador,
+                        <strong class="text-white">conexión completa con Meta</strong>
+                        (app, cuenta, número, token y webhook), plantillas iniciales y
+                        sesión de arranque de dos horas.
+                    </p>
+                </div>
+
+                <div class="rounded-2xl bg-sol-400 p-6 text-margarita-950">
+                    <p class="text-xs font-black uppercase tracking-wide text-margarita-900">
+                        Paquete B · Ya tengo Meta
+                    </p>
+
+                    <p class="mt-3 text-4xl font-black"><%= installPricePromo %></p>
+
+                    <p class="mt-1 text-sm font-semibold">
+                        una vez · más IVA · incluye el primer mes
+                    </p>
+
+                    <p class="mt-4 text-sm leading-6">
+                        Instalación, dominio, base de datos, administrador, alta del
+                        número con tus credenciales, plantillas y sesión de arranque de
+                        dos horas.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-6 rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+                <div class="flex flex-wrap items-end justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-wide text-slate-400">
+                            Mensualidad
+                        </p>
+
+                        <p class="mt-2 text-3xl font-black">
+                            <%= installMonthlyPrice %>
+                            <span class="text-sm font-semibold text-slate-300">al mes · más IVA</span>
+                        </p>
+                    </div>
+
+                    <p class="text-sm text-slate-300">
+                        Usuarios ilimitados, actualizaciones, soporte en horario hábil
+                        y respaldos diarios.
+                    </p>
+                </div>
+
+                <div class="mt-5 grid gap-3 sm:grid-cols-3">
+                    <div class="rounded-xl bg-white/5 px-4 py-3 ring-1 ring-white/10">
+                        <p class="text-xs text-slate-400">3 meses</p>
+                        <p class="mt-1 text-xl font-black"><%= monthlyCommit3 %> <span class="text-xs text-slate-300">/mes</span></p>
+                    </div>
+
+                    <div class="rounded-xl bg-white/5 px-4 py-3 ring-1 ring-white/10">
+                        <p class="text-xs text-slate-400">6 meses</p>
+                        <p class="mt-1 text-xl font-black"><%= monthlyCommit6 %> <span class="text-xs text-slate-300">/mes</span></p>
+                    </div>
+
+                    <div class="rounded-xl bg-white/5 px-4 py-3 ring-1 ring-white/10">
+                        <p class="text-xs text-slate-400">12 meses</p>
+                        <p class="mt-1 text-xl font-black"><%= monthlyCommit12 %> <span class="text-xs text-slate-300">/mes</span></p>
+                    </div>
+                </div>
+
+                <p class="mt-3 text-xs text-slate-400">
+                    Los compromisos son opcionales y solo sirven para bajar la
+                    mensualidad.
+                </p>
+            </div>
+
+            <p class="mt-6 text-xs text-slate-400">
+                Precio de lista: <%= installPrice %> de instalación y
+                <%= installMonthlyListPrice %> al mes. Promoción vigente hasta el
+                <%= installPromoUntil %>.
+            </p>
+        </div>
+    </section>
+
+    <section class="mx-auto max-w-4xl px-6 py-16">
+        <p class="text-sm font-black uppercase tracking-wide text-margarita-700">
+            Preguntas frecuentes
+        </p>
+
+        <h2 class="mt-2 text-3xl font-black text-slate-950">
+            Lo que suelen preguntar antes de firmar.
+        </h2>
+
+        <div class="mt-8 divide-y divide-slate-200 rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+            <% preguntas.forEach(([pregunta, respuesta]) => { %>
+                <details class="px-6 py-5">
+                    <summary class="cursor-pointer list-none font-bold text-slate-900">
+                        <%= pregunta %>
+                    </summary>
+
+                    <p class="mt-2 text-sm leading-6 text-slate-600"><%= respuesta %></p>
+                </details>
+            <% }) %>
+        </div>
+    </section>
+
+    <section class="bg-margarita-50">
+        <div class="mx-auto max-w-4xl px-6 py-16 text-center">
+            <h2 class="text-3xl font-black text-margarita-900">
+                ¿Lo vemos con tus datos?
+            </h2>
+
+            <p class="mt-2 text-margarita-800">
+                Te mostramos la herramienta con una cartera de ejemplo y te decimos
+                qué necesitas para arrancar.
+            </p>
+
+            <div class="mt-6 flex flex-wrap justify-center gap-3">
+                <a href="<%= contactUrl %>" class="rounded-xl bg-margarita-600 px-6 py-4 text-sm font-black text-white hover:bg-margarita-700">
+                    Escríbenos por WhatsApp
+                </a>
+
+                <% if (supportEmail) { %>
+                    <a href="mailto:<%= supportEmail %>" class="rounded-xl bg-white px-6 py-4 text-sm font-black text-margarita-800 ring-1 ring-margarita-200 hover:bg-margarita-100">
+                        <%= supportEmail %>
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </section>
+</main>
+
+<%- include("../../partials/footer") %>

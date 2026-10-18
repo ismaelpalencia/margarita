@@ -432,3 +432,37 @@
         }
     });
 })();
+
+/**
+ * Atajo del compositor: **Enter envía**, **Shift+Enter** hace un salto de
+ * línea. Es lo que espera cualquiera que haya usado un chat, y evita el viaje
+ * al botón con el mouse en cada mensaje.
+ *
+ * Se escucha en el documento porque el compositor se reemplaza al actualizar
+ * el hilo en vivo.
+ */
+document.addEventListener("keydown", function (event) {
+    if (event.key !== "Enter" || event.shiftKey || event.isComposing) {
+        return;
+    }
+
+    var composer = event.target.closest("#composer-body");
+
+    if (!composer) {
+        return;
+    }
+
+    var form = composer.closest("form");
+
+    if (!form) {
+        return;
+    }
+
+    event.preventDefault();
+
+    if (form.requestSubmit) {
+        form.requestSubmit();
+    } else {
+        form.submit();
+    }
+});

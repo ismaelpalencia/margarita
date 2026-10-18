@@ -51,6 +51,11 @@ const PAGES: Array<{ view: string; file: string; title: string }> = [
         title: "Guía de plantillas - Margarita"
     },
     {
+        view: "pages/home/propuesta",
+        file: "propuesta.html",
+        title: "Propuesta comercial - Margarita"
+    },
+    {
         view: "pages/home/access",
         file: "acceso.html",
         title: "Ya tengo acceso - Margarita"
@@ -75,10 +80,15 @@ function locals(title: string) {
         supportWhatsappDisplay: appConfig.supportWhatsappDisplay,
         setupServicePrice: appConfig.setupServicePrice,
         installPrice: appConfig.installPrice,
+        installPriceWithMeta: appConfig.installPriceWithMeta,
         installPricePromo: appConfig.installPricePromo,
         installPromoLabel: appConfig.installPromoLabel,
         installPromoUntil: appConfig.installPromoUntil,
         installPromoSpotsLeft: appConfig.installPromoSpotsLeft,
+        monthlyCommit3: appConfig.monthlyCommit3,
+        monthlyCommit6: appConfig.monthlyCommit6,
+        monthlyCommit12: appConfig.monthlyCommit12,
+        pilotDays: appConfig.pilotDays,
         installMonthlyPrice: appConfig.installMonthlyPrice,
         installMonthlyListPrice: appConfig.installMonthlyListPrice
     };
@@ -104,6 +114,7 @@ function rewriteLinks(html: string) {
         .replace(/href="\/como-empezar"/g, 'href="como-empezar.html"')
         .replace(/href="\/guia"/g, 'href="guia.html"')
         .replace(/href="\/plantillas"/g, 'href="plantillas.html"')
+        .replace(/href="\/propuesta"/g, 'href="propuesta.html"')
         .replace(/href="\/aviso-de-privacidad"/g, 'href="aviso-de-privacidad.html"')
         .replace(/href="\/acceso"/g, 'href="acceso.html"')
         .replace(/href="\/auth\/login"/g, 'href="acceso.html"')
@@ -114,6 +125,7 @@ function rewriteLinks(html: string) {
          * sube a un dominio propio o dentro de una carpeta (`/landing/`).
          */
         .replace(/href="\/css\//g, `href="css/`)
+        .replace(/href="\/docs\//g, 'href="docs/')
         .replace(/href="(css\/style\.css)"/g, `href="$1${assetTag}"`)
         .replace(
             /href="\/(favicon|apple-touch|android-chrome|site\.webmanifest)([^"]*)"/g,
@@ -200,6 +212,13 @@ function build() {
         path.join(PUBLIC, "js", "loading.js"),
         path.join(OUT, "js", "loading.js")
     );
+
+    /** La propuesta en PDF, para el botón «Descargar» de la página. */
+    const propuestaPdf = path.join(PUBLIC, "docs", "propuesta-margarita.pdf");
+
+    if (fs.existsSync(propuestaPdf)) {
+        copy(propuestaPdf, path.join(OUT, "docs", "propuesta-margarita.pdf"));
+    }
 
     for (const file of fs.readdirSync(path.join(PUBLIC, "brand", "img"))) {
         copy(

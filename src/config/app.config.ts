@@ -255,6 +255,11 @@ export const appConfig = {
      * Los precios van **más IVA**, como el resto de la propuesta.
      */
     installPrice: process.env.INSTALL_PRICE?.trim() || "$4,900.00 MXN",
+    /** Paquete A: instalación + conexión con Meta. */
+    installPriceWithMeta:
+        process.env.INSTALL_PRICE_WITH_META?.trim() ||
+        process.env.SETUP_BUNDLE_PRICE?.trim() ||
+        "$3,500.00 MXN",
     installPricePromo:
         process.env.INSTALL_PRICE_PROMO?.trim() || "$2,500.00 MXN",
     installPromoLabel:
@@ -277,6 +282,28 @@ export const appConfig = {
         process.env.INSTALL_MONTHLY_PRICE?.trim() || "$699.00 MXN",
     installMonthlyListPrice:
         process.env.INSTALL_MONTHLY_LIST_PRICE?.trim() || "$1,490.00 MXN",
+    /**
+     * Mensualidad con compromiso opcional. No hay mínimo obligatorio: el primer
+     * mes es un piloto pagado y, al día 30, el cliente decide si sigue.
+     */
+    monthlyCommit3:
+        process.env.MONTHLY_3?.trim() ||
+        process.env.MONTHLY_COMMIT_3?.trim() ||
+        "$649.00 MXN",
+    monthlyCommit6:
+        process.env.MONTHLY_6?.trim() ||
+        process.env.MONTHLY_COMMIT_6?.trim() ||
+        "$599.00 MXN",
+    monthlyCommit12:
+        process.env.MONTHLY_12?.trim() ||
+        process.env.MONTHLY_COMMIT_12?.trim() ||
+        "$549.00 MXN",
+    /** Ahorro contra el precio de lista, para las tarjetas de la landing. */
+    installSavingWithMeta:
+        process.env.INSTALL_SAVING_WITH_META?.trim() || "$1,400.00 MXN",
+    installSavingBasic:
+        process.env.INSTALL_SAVING_BASIC?.trim() || "$2,400.00 MXN",
+    pilotDays: Number(process.env.PILOT_DAYS) || 30,
 
 
     logRetentionDays: Number(process.env.LOG_RETENTION_DAYS) || 90,

@@ -83,16 +83,27 @@ Decirlo aquí evita discusiones después:
 ## 7. Inversión
 
 La cobranza es del día a día, así que el cobro también: **instalación una vez y
-después mes con mes**. Sin plazos forzosos.
+después mes con mes**, sin mínimo obligatorio. El primer mes es un **piloto
+pagado**.
 
 | Concepto | Importe | Cuándo |
 | --- | --- | --- |
-| **Instalación (promoción de lanzamiento, todo noviembre)** | **$1,500.00 MXN** | Una vez, al firmar; **incluye el primer mes** |
-| Instalación a precio de lista (fuera de la promoción) | $2,500.00 MXN | Una vez, al firmar; incluye el primer mes |
-| **Mensualidad** | **$800.00 MXN al mes** | Del segundo mes en adelante |
-| Conexión con Meta (opcional) | +$1,500.00 MXN | Una vez, junto con la instalación |
-| **Instalación + conexión con Meta** (contratadas juntas) | **$2,500.00 MXN** | Una vez; ahorra $500 |
+| **Paquete A · Llave en mano** | **$3,500.00 MXN** | Una vez; instalación, primer mes y **conexión completa con Meta** |
+| **Paquete B · Ya tengo Meta** | **$2,500.00 MXN** | Una vez; instalación y primer mes |
+| **Mensualidad** (mes a mes) | **$699.00 MXN al mes** | Del segundo mes en adelante |
+| Compromiso 3 meses | $649.00 MXN al mes | Opcional; baja la mensualidad |
+| Compromiso 6 meses | $599.00 MXN al mes | Opcional |
+| Compromiso 12 meses | $549.00 MXN al mes | Opcional |
+| Consumo de WhatsApp | Lo cobra Meta | Directo a la empresa |
 | Migración de cartera | [PRECIO O INCLUIDA] | Una vez |
+
+**El piloto de 30 días.** El primer mes está incluido en la instalación y se
+trata como piloto: **al día 30 el cliente decide si continúa**, sin penalización.
+Si no sigue, se le entrega su respaldo completo y se borra la instalación a
+petición.
+
+Precio de lista: $4,900 de instalación y $1,490 al mes. Promoción vigente hasta
+el **31 de diciembre de 2026**; todos los precios son **más IVA**.
 
 **Qué incluye la mensualidad** (esto es lo que se está pagando cada mes):
 

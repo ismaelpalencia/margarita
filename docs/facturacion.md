@@ -21,11 +21,12 @@ está en [`propuesta-comercial.md`](propuesta-comercial.md).
 
 ## 2. Las tres reglas que no se negocian
 
-1. **Mínimo tres meses de servicio, por contrato.** La instalación cubre el
-   primer mes y eso ya protege el trabajo de alta, pero un cliente que se va al
-   segundo mes deja el alta pagada a medias. Con dos mensualidades cobradas
-   (segundo y tercer mes) el alta ya está pagada y de ahí en adelante es
-   ganancia. **Anotarlo en el contrato**, no sólo decirlo.
+1. **El primer mes es piloto y no hay mínimo obligatorio.** Se cobra la
+   instalación con el primer mes incluido; al día 30 el cliente decide si sigue.
+   Si no sigue, se le entrega su respaldo y se borra la instalación a petición.
+   El **compromiso es opcional** y solo sirve para bajar la mensualidad:
+   3 meses $649, 6 meses $599, 12 meses $549 (todos más IVA). **Anotar en el
+   contrato** qué eligió el cliente, si eligió alguno.
 2. **La mensualidad es adelantada.** Se cobra el día 1 (o al cumplirse el mes
    de la instalación), nunca a mes vencido.
 3. **El consumo de Meta y el alojamiento no son nuestros.** Los mensajes los

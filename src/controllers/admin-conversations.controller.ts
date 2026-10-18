@@ -345,8 +345,16 @@ export class AdminConversationsController {
                 actor: { id: req.user!.id, role: req.user!.role }
             });
 
+            /**
+             * Desde el dashboard se oculta y se regresa ahí mismo; desde el
+             * hilo, al hilo. Solo se acepta la ruta interna del dashboard.
+             */
+            const fromDashboard = req.body?.redirectTo === "/admin/dashboard";
+
             return res.redirect(
-                `/admin/conversations/${conversationId}?success=deleted`
+                fromDashboard
+                    ? "/admin/dashboard?success=hidden"
+                    : `/admin/conversations/${conversationId}?success=deleted`
             );
         } catch {
             return res.redirect(

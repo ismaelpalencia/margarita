@@ -121,6 +121,7 @@ quite. Con la regla de botón correspondiente, la pausa se pone sola.
   100 MB.
 - **Respuestas rápidas**: insertan un texto guardado con `{nombre}` y
   `{telefono}` ya resueltos.
+- **Enter envía** el mensaje y **Shift + Enter** hace un salto de línea.
 - **Botones dentro de las 24 horas**: desde la columna lateral se manda un
   mensaje con hasta **3 botones** de 20 caracteres. Sirve para pedir un sí/no o
   un «ya pagué» sin gastar plantilla; cuando el cliente toca, la respuesta entra
@@ -357,8 +358,10 @@ Para no prometer de más:
 - La **sesión de arranque de dos horas** se agenda después de la instalación:
   ahí se revisan tus plantillas, se carga la primera campaña y se deja al equipo
   operando.
-- **Contrato mínimo de 3 meses**. La instalación incluye el primer mes; después
-  se paga la mensualidad. El consumo de Meta va por cuenta de la empresa.
+- **El primer mes es un piloto pagado**: al día 30 decides si sigues, sin
+  penalización. Después se paga la mensualidad mes a mes; los compromisos de 3,
+  6 o 12 meses son opcionales y bajan el precio. El consumo de Meta va por
+  cuenta de la empresa.
 
 > Este documento y la app cambian juntos: si algo de aquí no coincide con lo que
 > ves en pantalla, gana la pantalla — y avísanos para corregir la guía.

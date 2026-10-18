@@ -217,20 +217,40 @@
                     <% } %>
 
                     <% dashboard.recentIncomingMessages.forEach((message) => { %>
-                        <a href="/admin/conversations/<%= message.conversation.id %>" class="block px-6 py-4 hover:bg-slate-50">
-                            <p class="font-semibold text-slate-900">
-                                <%= message.conversation.contact.name || message.conversation.contact.profileName || message.conversation.contact.phone %>
-                            </p>
+                        <div class="flex items-start gap-3 px-6 py-4 hover:bg-slate-50">
+                            <a href="/admin/conversations/<%= message.conversation.id %>" class="min-w-0 flex-1">
+                                <p class="font-semibold text-slate-900">
+                                    <%= message.conversation.contact.name || message.conversation.contact.profileName || message.conversation.contact.phone %>
+                                </p>
 
-                            <p class="mt-1 line-clamp-2 text-sm text-slate-600">
-                                <%= message.body || "[" + message.type + "]" %>
-                            </p>
+                                <p class="mt-1 line-clamp-2 text-sm text-slate-600">
+                                    <%= message.body || "[" + message.type + "]" %>
+                                </p>
 
-                            <p class="mt-2 text-xs text-slate-400">
-                                Agente:
-                                <%= message.conversation.assignedUser ? message.conversation.assignedUser.name : "Sin asignar" %>
-                            </p>
-                        </a>
+                                <p class="mt-2 text-xs text-slate-400">
+                                    Agente:
+                                    <%= message.conversation.assignedUser ? message.conversation.assignedUser.name : "Sin asignar" %>
+                                </p>
+                            </a>
+
+                            <%#
+                                Ocultar desde aquí: es el mismo ocultado del hilo
+                                (reversible, con bitácora), pero sin tener que
+                                entrar a la conversación.
+                            %>
+                            <form
+                                action="/admin/conversations/<%= message.conversation.id %>/messages/<%= message.id %>/delete"
+                                method="POST"
+                                class="shrink-0"
+                                onsubmit="return confirm('¿Ocultar este mensaje del dashboard? El administrador puede restaurarlo desde el hilo.');"
+                            >
+                                <input type="hidden" name="redirectTo" value="/admin/dashboard" />
+
+                                <button class="rounded-lg px-2 py-1 text-[11px] font-semibold text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                                    Ocultar
+                                </button>
+                            </form>
+                        </div>
                     <% }) %>
                 </div>
             </div>

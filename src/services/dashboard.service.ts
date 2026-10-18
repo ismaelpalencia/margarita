@@ -57,7 +57,12 @@ export class DashboardService {
             prisma.message.findMany({
                 where: {
                     workspaceId,
-                    direction: MessageDirection.IN
+                    direction: MessageDirection.IN,
+                    /**
+                     * Un mensaje oculto no debe reaparecer en el dashboard:
+                     * era justo lo que pasaba al borrar un chat desde el hilo.
+                     */
+                    deletedAt: null
                 },
                 include: {
                     conversation: {
@@ -107,6 +112,7 @@ export class DashboardService {
                     contact: true,
                     assignedUser: true,
                     messages: {
+                        where: { deletedAt: null },
                         orderBy: {
                             createdAt: "desc"
                         },
@@ -201,6 +207,7 @@ export class DashboardService {
             prisma.message.findMany({
                 where: {
                     workspaceId,
+                    deletedAt: null,
                     conversation: {
                         assignedUserId: userId
                     }
@@ -227,6 +234,7 @@ export class DashboardService {
                 include: {
                     contact: true,
                     messages: {
+                        where: { deletedAt: null },
                         orderBy: {
                             createdAt: "desc"
                         },

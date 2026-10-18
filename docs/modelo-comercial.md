@@ -19,14 +19,16 @@ Lo que se vende es **un paquete y un extra**:
    usuarios ilimitados. La página pública (`/`) muestra el precio de la
    promoción (`INSTALL_PRICE_PROMO`), el de lista (`INSTALL_PRICE`) y la
    vigencia (`INSTALL_PROMO_LABEL`).
-2. **La mensualidad** (`INSTALL_MONTHLY_PRICE`), del segundo mes en adelante:
-   mes con mes, sin plazos forzosos. Si el cliente deja de pagar, se acaba:
-   se lleva su respaldo y se borra todo a petición.
-3. **El servicio de conexión con Meta** (pago único, opcional): el trámite que
-   todo el mundo subestima y que casi nadie quiere hacer. Detalle en
-   [`guia-meta.md`](guia-meta.md); su precio es `SETUP_SERVICE_PRICE`
-   ($1,500.00 MXN por omisión) y, si se contrata junto con la instalación, el
-   paquete completo cuesta `SETUP_BUNDLE_PRICE` ($2,500.00 MXN).
+2. **La mensualidad** (`INSTALL_MONTHLY_PRICE`, $699): del segundo mes en
+   adelante, **mes a mes y sin mínimo obligatorio**. El primer mes es un
+   **piloto pagado**: al día 30 el cliente decide si sigue, sin penalización.
+   Si no continúa, se lleva su respaldo y se borra todo a petición.
+   El **compromiso es opcional** y baja la mensualidad: 3 meses $649, 6 meses
+   $599, 12 meses $549 (más IVA).
+3. **El servicio de conexión con Meta**: el trámite que todo el mundo
+   subestima. Va **incluido en el Paquete A** ($3,500 con instalación y primer
+   mes); quien ya tiene Meta contratado usa el **Paquete B** ($2,500). El
+   detalle del trámite está en [`guia-meta.md`](guia-meta.md).
 
 **Lo que paga el cliente a Meta, no a nosotros:** el consumo de WhatsApp
 (conversaciones y plantillas). Se dice en la página pública, en la propuesta y
@@ -161,16 +163,14 @@ Un punto que hay que decir en voz alta: **en cuanto das soporte, tienes acceso a
 5. **Piloto**: 1–3 contactos, una plantilla y una semana de uso antes de
    comprometer volumen.
 
-## Paquetes sugeridos
+## Paquetes
 
 | Paquete | Para quién | Incluye |
 | --- | --- | --- |
-| **Esencial** | Quien solo necesita enviar y atender WhatsApp | Bandeja, varios números, campañas con plantillas, bajas (STOP), respuestas rápidas, consentimiento, bitácora y respaldos |
-| **Cobranza** | Equipos de cobranza (el paquete que se empuja) | Todo lo de Esencial + resultado de gestión con montos y fechas compromiso, promesas vencidas automáticas, intentos sin contestación, lista de trabajo del día y reportes con exportación |
-| **Equipo** | Varios cobradores o agentes | Todo lo de Cobranza + usuarios por rol, límite diario de mensajes por persona, contador de no leídos y control de sesiones |
+| **A · Llave en mano** | Quien todavía no tiene nada en Meta | Instalación, primer mes y **conexión completa con Meta** (app, cuenta, número, token y webhook) |
+| **B · Ya tengo Meta** | Quien ya tiene cuenta, número y método de pago | Instalación y primer mes; sus credenciales se cargan en el panel |
 
-El **servicio de conexión con Meta** se cobra aparte en todos los paquetes (o se
-incluye como gancho en contratos anuales).
+No hay paquetes por tamaño de equipo: **los usuarios son ilimitados** en los dos.
 
 ## Qué falta para venderlo en serie
 

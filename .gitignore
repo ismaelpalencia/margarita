@@ -17,3 +17,6 @@ desarrollo.md
 uploads/
 # Caché de Python (scripts de marca)
 __pycache__/
+
+# Intermedios del generador de PDF (el PDF final vive en output/pdf/)
+tmp/

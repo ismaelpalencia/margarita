@@ -31,6 +31,8 @@ router.get("/como-empezar", HomeController.howToStart);
 router.get("/guia", HomeController.guide);
 /** Guía de plantillas: la que se entrega al contratar. */
 router.get("/plantillas", HomeController.templatesGuide);
+/** Propuesta comercial para el sitio público. */
+router.get("/propuesta", HomeController.proposal);
 router.get("/acceso", HomeController.access);
 /**
  * Cambio de contraseña: la misma pantalla para administradores y agentes.
