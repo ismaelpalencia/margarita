@@ -28,6 +28,8 @@ function supportContext() {
         monthlyCommit3: appConfig.monthlyCommit3,
         monthlyCommit6: appConfig.monthlyCommit6,
         monthlyCommit12: appConfig.monthlyCommit12,
+        installSavingWithMeta: appConfig.installSavingWithMeta,
+        installSavingBasic: appConfig.installSavingBasic,
         pilotDays: appConfig.pilotDays,
         appName: appConfig.name
     };
