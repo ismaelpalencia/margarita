@@ -170,3 +170,57 @@ export async function deleteObject(key: string): Promise<void> {
         throw new Error(`R2 rechazó el borrado (${response.status}).`);
     }
 }
+
+/**
+ * Prueba de extremo a extremo: sube un archivo diminuto, lo lee y lo borra.
+ *
+ * Sirve para saber *por qué* falla R2 sin adivinar: el mensaje de Cloudflare
+ * es el que se muestra en el panel.
+ */
+export async function probeObjectStorage(): Promise<{
+    ok: boolean;
+    bucket: string;
+    latencyMs: number;
+    error: string | null;
+}> {
+    const config = objectStorageConfig();
+    const started = Date.now();
+
+    if (!config) {
+        return {
+            ok: false,
+            bucket: process.env.R2_BUCKET || "",
+            latencyMs: 0,
+            error:
+                "Faltan variables: R2_ACCOUNT_ID, R2_BUCKET, R2_ACCESS_KEY_ID o R2_SECRET_ACCESS_KEY."
+        };
+    }
+
+    try {
+        const key = `_diagnostico/prueba-${Date.now()}.txt`;
+        const body = Buffer.from("prueba de Margarita", "utf8");
+
+        await putObject(key, body, "text/plain");
+        const downloaded = await getObject(key);
+
+        if (downloaded.toString("utf8") !== body.toString("utf8")) {
+            throw new Error("El archivo subió, pero se leyó distinto.");
+        }
+
+        await deleteObject(key);
+
+        return {
+            ok: true,
+            bucket: config.bucket,
+            latencyMs: Date.now() - started,
+            error: null
+        };
+    } catch (error) {
+        return {
+            ok: false,
+            bucket: config.bucket,
+            latencyMs: Date.now() - started,
+            error: error instanceof Error ? error.message : "Error desconocido"
+        };
+    }
+}

@@ -3,8 +3,19 @@ import { Request, Response } from "express";
 import { SystemStatusService } from "../services/system-status.service";
 import { appConfig } from "../config/app.config";
 import { formatDateTimeMX } from "../utils/date";
+import { probeObjectStorage } from "../services/object-storage.service";
 
 export class AdminSystemController {
+    /**
+     * Prueba de Cloudflare R2. Devuelve el error tal cual para no adivinar:
+     * permisos del token, bucket inexistente o llaves mal copiadas.
+     */
+    static async testR2(_req: Request, res: Response) {
+        const result = await probeObjectStorage();
+
+        return res.status(result.ok ? 200 : 502).json(result);
+    }
+
     static async index(req: Request, res: Response) {
         const status = await SystemStatusService.getAdminStatus(
             req.user!.workspaceId

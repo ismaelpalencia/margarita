@@ -228,6 +228,15 @@
                     <p class="mt-1 break-all font-mono text-[11px] <%= storage.persistent ? 'text-margarita-700' : 'text-amber-700' %>">
                         <%= storage.dir %>
                     </p>
+
+                    <a
+                        href="/admin/system/r2"
+                        target="_blank"
+                        rel="noopener"
+                        class="mt-2 inline-flex rounded-lg bg-white px-3 py-1 text-[11px] font-bold text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50"
+                    >
+                        Probar Cloudflare R2
+                    </a>
                 </div>
 
                 <div class="rounded-xl p-4 ring-1 <%= status.checks.webhookHealthy ? 'bg-margarita-50 ring-margarita-200' : 'bg-red-50 ring-red-200' %>">
