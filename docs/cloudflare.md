@@ -50,7 +50,11 @@ probar WebSockets y certificado de origen; no se hace el día de un alta.
 
 ---
 
-## 4. R2 (archivos y respaldos)
+## 4. R2 (respaldos; archivos en el siguiente paso)
+
+**Hoy**: los **respaldos** se suben cifrados a `backups/` en cuanto las cuatro
+variables existen. Los **archivos de las conversaciones** siguen en disco
+(`MEDIA_STORAGE_DIR`) hasta que se implemente el adaptador de medios.
 
 ### Crear el bucket
 

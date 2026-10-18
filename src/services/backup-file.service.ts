@@ -15,6 +15,7 @@ import {
     snapshotFilename
 } from "../utils/backup-format";
 import { LogService } from "./log.service";
+import { objectStorageConfig, putObject } from "./object-storage.service";
 
 /**
  * Respaldo automático de la base.
@@ -287,6 +288,44 @@ export class BackupFileService {
 
         const pruned = this.prune();
         const stats = fs.statSync(target);
+
+        /**
+         * Copia fuera del servidor: el respaldo local vive en el mismo Volume
+         * que la base. Si R2 está configurado, se sube cifrado tal cual quedó
+         * (el archivo ya va cifrado con la llave de la app).
+         *
+         * Un fallo al subir no invalida el respaldo local: se registra y se
+         * sigue. Lo peor sería perder la copia buena por un problema de red.
+         */
+        if (objectStorageConfig()) {
+            try {
+                await putObject(
+                    `backups/${file}`,
+                    Buffer.from(encoded, "utf8"),
+                    "application/octet-stream"
+                );
+
+                await LogService.create({
+                    level: LogLevel.INFO,
+                    module: LogModule.SYSTEM,
+                    action: "BACKUP_UPLOADED_TO_R2",
+                    message: "El respaldo se copió a Cloudflare R2.",
+                    payload: { file }
+                });
+            } catch (error) {
+                await LogService.create({
+                    level: LogLevel.WARN,
+                    module: LogModule.SYSTEM,
+                    action: "BACKUP_R2_UPLOAD_FAILED",
+                    message:
+                        "El respaldo se guardó local, pero no pudo copiarse a R2.",
+                    payload: {
+                        file,
+                        error: error instanceof Error ? error.message : "desconocido"
+                    }
+                });
+            }
+        }
 
         const info: SnapshotInfo = {
             file,

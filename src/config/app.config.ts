@@ -332,6 +332,8 @@ export const appConfig = {
     mediaStorageDir:
         process.env.MEDIA_STORAGE_DIR?.trim() ||
         path.join(process.cwd(), "uploads", "media"),
+    /** `local` (disco) o `r2` (Cloudflare). */
+    mediaStorage: (process.env.MEDIA_STORAGE || "local").trim().toLowerCase(),
 
     /** Tamaño máximo que se descarga de Meta (por defecto 25 MB). */
     mediaMaxBytes: Number(process.env.MEDIA_MAX_BYTES) || 25 * 1024 * 1024

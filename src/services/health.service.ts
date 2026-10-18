@@ -7,6 +7,7 @@ import { webhookWorkerState } from "../jobs/webhook-worker";
 import { webhookTelemetry } from "./webhook-telemetry.service";
 import { BackupFileService } from "./backup-file.service";
 import { storageStatus } from "./storage-status.service";
+import { objectStorageConfig } from "./object-storage.service";
 
 /**
  * Superficie mínima del cliente de base de datos que usa el healthcheck.
@@ -234,7 +235,14 @@ export class HealthService {
                               : Math.round(backups.ageHours * 10) / 10,
                       maxAgeHours: backups.maxAgeHours,
                       stale: backups.stale,
-                      dir: backups.dir
+                      dir: backups.dir,
+                      /**
+                       * Copia fuera del servidor: hoy los respaldos se suben
+                       * a R2 si las credenciales están puestas. Los archivos de
+                       * las conversaciones siguen en disco hasta el siguiente
+                       * cambio.
+                       */
+                      offsite: Boolean(objectStorageConfig())
                   }
                 : null,
             storage,
