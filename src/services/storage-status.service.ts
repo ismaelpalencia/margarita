@@ -40,7 +40,18 @@ export function isMountPoint(dir: string, mountInfo: string): boolean {
             String.fromCharCode(parseInt(octal, 8))
         );
 
-        return path.resolve(mounted) === target;
+        const mount = path.resolve(mounted);
+
+        /**
+         * La raíz del contenedor no cuenta como volumen. Y una carpeta
+         * **dentro** del volumen también es persistente: el volumen se monta
+         * en `/data` y los archivos pueden vivir en `/data/media`.
+         */
+        if (mount === path.parse(mount).root) {
+            return false;
+        }
+
+        return target === mount || target.startsWith(mount + path.sep);
     });
 }
 

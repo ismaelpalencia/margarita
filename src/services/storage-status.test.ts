@@ -20,7 +20,8 @@ test("reconoce el directorio montado como Volume", () => {
 });
 
 test("un directorio dentro del contenedor no es Volume", () => {
-    assert.equal(isMountPoint("/app/uploads/media/otra", MOUNT_INFO), false);
+    /** Colgado de un montaje sí es persistente; colgado de `/` no. */
+    assert.equal(isMountPoint("/app/uploads/media/otra", MOUNT_INFO), true);
     assert.equal(isMountPoint("/app", MOUNT_INFO), false);
 });
 
