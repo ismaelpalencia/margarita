@@ -24,8 +24,31 @@
 
         <% if (success === "password") { %>
             <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
-                Contraseña restablecida. Sus sesiones se cerraron y tendrá que
-                cambiarla al entrar.
+                Contraseña restablecida. Sus sesiones se cerraron, se quitó el
+                bloqueo por intentos fallidos y tendrá que cambiarla al entrar.
+            </div>
+        <% } %>
+
+        <% if (success === "unlocked") { %>
+            <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
+                Cuenta desbloqueada. Puede intentar entrar de nuevo con su
+                contraseña actual.
+            </div>
+        <% } %>
+
+        <% if (member.lockedUntil && new Date(member.lockedUntil) > new Date()) { %>
+            <div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200">
+                <p>
+                    <strong>Cuenta bloqueada</strong> por intentos fallidos hasta
+                    el <%= new Date(member.lockedUntil).toLocaleString("es-MX") %>.
+                    Puede venir de un bot probando correos, no de la persona.
+                </p>
+
+                <form action="/admin/users/<%= member.id %>/unlock" method="POST">
+                    <button class="rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white hover:bg-amber-700">
+                        Desbloquear ahora
+                    </button>
+                </form>
             </div>
         <% } %>
 
@@ -193,6 +216,13 @@
                         Cópiala y pásala por un medio distinto al de la herramienta
                         (llamada, en persona). Puedes cambiarla por otra que cumpla la
                         política: 10 caracteres, letras y números.
+                    </p>
+
+                    <p class="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                        Al restablecerla se <strong>cierran sus sesiones</strong> y
+                        <strong>se quita cualquier bloqueo</strong> por intentos
+                        fallidos: la persona podrá entrar con la temporal y tendrá que
+                        cambiarla.
                     </p>
                 </div>
 

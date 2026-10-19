@@ -324,6 +324,30 @@ export class UserService {
      * administrador no se queda sabiendo la contraseña definitiva de nadie.
      * Además se cierran todas sus sesiones.
      */
+    /**
+     * Quita el bloqueo por intentos fallidos sin cambiar la contraseña.
+     *
+     * Sirve cuando un bot (o un compañero equivocado) deja la cuenta bloqueada:
+     * el administrador la libera sin tener que repartir una contraseña nueva.
+     */
+    static async unlock(workspaceId: string, userId: string, actorId: string) {
+        const target = await this.getMemberById(workspaceId, userId);
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { failedLoginAttempts: 0, lockedUntil: null }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.WARN,
+            module: LogModule.USER,
+            action: "USER_UNLOCKED",
+            message: "Se desbloqueó una cuenta sin cambiar su contraseña.",
+            payload: { userId: target.id, by: actorId }
+        });
+    }
+
     static async resetPassword(
         workspaceId: string,
         userId: string,

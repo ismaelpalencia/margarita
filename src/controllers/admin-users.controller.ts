@@ -210,6 +210,23 @@ export class AdminUsersController {
         return res.redirect(`/admin/users/${id}/edit?success=password`);
     }
 
+    /** Libera una cuenta bloqueada por intentos fallidos. */
+    static async unlock(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+
+        try {
+            await UserService.unlock(req.user!.workspaceId, id, req.user!.id);
+        } catch (error) {
+            return res.redirect(
+                `/admin/users/${id}/edit?error=${encodeURIComponent(
+                    error instanceof Error ? error.message : "No se pudo desbloquear."
+                )}`
+            );
+        }
+
+        return res.redirect(`/admin/users/${id}/edit?success=unlocked`);
+    }
+
     /**
      * Recuperación: apagar la verificación en dos pasos de alguien que
      * perdió el teléfono. Queda en la bitácora con quién lo hizo, para que
