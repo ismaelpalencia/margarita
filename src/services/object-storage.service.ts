@@ -180,21 +180,35 @@ export async function deleteObject(key: string): Promise<void> {
 export async function probeObjectStorage(): Promise<{
     ok: boolean;
     bucket: string;
+    host: string;
+    /** Huella de la llave: sirve para saber si Railway usa la nueva. */
+    keyFingerprint: string;
     latencyMs: number;
     error: string | null;
 }> {
     const config = objectStorageConfig();
     const started = Date.now();
+    const fingerprint = config
+        ? crypto
+              .createHash("sha256")
+              .update(config.accessKeyId)
+              .digest("hex")
+              .slice(0, 10)
+        : "";
 
     if (!config) {
         return {
             ok: false,
             bucket: process.env.R2_BUCKET || "",
+            host: "",
+            keyFingerprint: fingerprint,
             latencyMs: 0,
             error:
                 "Faltan variables: R2_ACCOUNT_ID, R2_BUCKET, R2_ACCESS_KEY_ID o R2_SECRET_ACCESS_KEY."
         };
     }
+
+    const host = `${config.accountId}.r2.cloudflarestorage.com`;
 
     try {
         const key = `_diagnostico/prueba-${Date.now()}.txt`;
@@ -212,6 +226,8 @@ export async function probeObjectStorage(): Promise<{
         return {
             ok: true,
             bucket: config.bucket,
+            host,
+            keyFingerprint: fingerprint,
             latencyMs: Date.now() - started,
             error: null
         };
@@ -219,6 +235,8 @@ export async function probeObjectStorage(): Promise<{
         return {
             ok: false,
             bucket: config.bucket,
+            host,
+            keyFingerprint: fingerprint,
             latencyMs: Date.now() - started,
             error: error instanceof Error ? error.message : "Error desconocido"
         };
