@@ -1,7 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
+import { Readable } from "node:stream";
 
 import { appConfig } from "../config/app.config";
+import {
+    deleteObject,
+    getObject,
+    objectStorageConfig,
+    putObject
+} from "./object-storage.service";
 
 const MIME_EXTENSIONS: Record<string, string> = {
     "image/jpeg": ".jpg",
@@ -143,6 +150,76 @@ export function deleteMediaFile(relativePath: string): void {
         fs.unlinkSync(resolveMediaPath(relativePath));
     } catch {
         /* Si ya no existe, no hay nada que hacer. */
+    }
+}
+
+/** Prefijo dentro del bucket: `media/<workspace>/<mensaje>.ext`. */
+export function mediaObjectKey(relativePath: string): string {
+    return `media/${relativePath.replace(/^\/+/, "")}`;
+}
+
+/**
+ * Guarda el archivo en disco y, si R2 está configurado, también en el bucket.
+ *
+ * La copia en R2 es lo que evita perder los adjuntos cuando el contenedor se
+ * reemplaza. Si la subida falla, el archivo local se conserva y el error se
+ * registra al leer (no se rompe el envío por un problema de red).
+ */
+export async function storeMediaFile(
+    relativePath: string,
+    contents: Buffer
+): Promise<void> {
+    writeMediaFile(relativePath, contents);
+
+    if (!objectStorageConfig()) {
+        return;
+    }
+
+    try {
+        await putObject(mediaObjectKey(relativePath), contents);
+    } catch {
+        /* Queda la copia local; en el siguiente acceso se vuelve a intentar. */
+    }
+}
+
+/**
+ * Abre un archivo desde donde esté: disco o R2.
+ *
+ * Es lo que hace que un adjunto siga disponible después de un despliegue,
+ * cuando el contenedor ya no tiene el archivo local.
+ */
+export async function openStoredMedia(relativePath: string): Promise<{
+    stream: NodeJS.ReadableStream;
+    size: number;
+    source: "local" | "r2";
+}> {
+    if (mediaFileExists(relativePath)) {
+        return {
+            stream: readMediaStream(relativePath),
+            size: mediaFileSize(relativePath),
+            source: "local"
+        };
+    }
+
+    if (objectStorageConfig()) {
+        const buffer = await getObject(mediaObjectKey(relativePath));
+
+        return {
+            stream: Readable.from(buffer),
+            size: buffer.length,
+            source: "r2"
+        };
+    }
+
+    throw new Error("El archivo no está en disco ni en R2.");
+}
+
+/** Borra en los dos lados; si R2 falla, el local ya se borró. */
+export async function deleteStoredMedia(relativePath: string): Promise<void> {
+    deleteMediaFile(relativePath);
+
+    if (objectStorageConfig()) {
+        await deleteObject(mediaObjectKey(relativePath)).catch(() => undefined);
     }
 }
 

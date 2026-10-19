@@ -52,7 +52,7 @@ import {
     buildMediaRelativePath,
     extensionFromMime,
     sanitizeFilename,
-    writeMediaFile
+    storeMediaFile
 } from "./media-storage.service";
 
 type SendLocalMessageParams = {
@@ -869,7 +869,7 @@ export class MessageService {
             extension
         });
 
-        writeMediaFile(relativePath, buffer);
+        await storeMediaFile(relativePath, buffer);
 
         await prisma.message.update({
             where: {

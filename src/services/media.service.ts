@@ -11,7 +11,9 @@ import {
     extensionFromMime,
     mediaFileExists,
     mediaFileSize,
+    openStoredMedia,
     readMediaStream,
+    storeMediaFile,
     sanitizeFilename,
     writeMediaFile
 } from "./media-storage.service";
@@ -184,17 +186,23 @@ async function recordFailure(message: Message, error: unknown) {
 export async function ensureStoredMedia(
     message: Message
 ): Promise<StoredMedia> {
-    if (message.mediaPath && mediaFileExists(message.mediaPath)) {
-        return {
-            stream: readMediaStream(message.mediaPath),
-            size: mediaFileSize(message.mediaPath),
-            mimeType: message.mimeType || "application/octet-stream",
-            filename: sanitizeFilename(
-                message.mediaFilename ||
-                    filenameFromPayload(message) ||
-                    `archivo-${message.id}`
-            )
-        };
+    if (message.mediaPath) {
+        try {
+            const stored = await openStoredMedia(message.mediaPath);
+
+            return {
+                stream: stored.stream,
+                size: stored.size,
+                mimeType: message.mimeType || "application/octet-stream",
+                filename: sanitizeFilename(
+                    message.mediaFilename ||
+                        filenameFromPayload(message) ||
+                        `archivo-${message.id}`
+                )
+            };
+        } catch {
+            /** No está ni en disco ni en R2: se vuelve a descargar de Meta. */
+        }
     }
 
     try {
@@ -206,7 +214,7 @@ export async function ensureStoredMedia(
             extension
         });
 
-        writeMediaFile(relativePath, downloaded.buffer);
+        await storeMediaFile(relativePath, downloaded.buffer);
 
         const filename = sanitizeFilename(
             downloaded.filename ||
@@ -228,8 +236,10 @@ export async function ensureStoredMedia(
             }
         });
 
+        const stored = await openStoredMedia(relativePath);
+
         return {
-            stream: readMediaStream(relativePath),
+            stream: stored.stream,
             size: downloaded.buffer.length,
             mimeType: downloaded.mimeType || "application/octet-stream",
             filename
@@ -300,8 +310,14 @@ export async function uploadMediaToMeta(params: {
  * procesamiento del webhook.
  */
 export async function prefetchMedia(message: Message): Promise<void> {
-    if (message.mediaPath && mediaFileExists(message.mediaPath)) {
-        return;
+    if (message.mediaPath) {
+        try {
+            /** Si ya está en disco o en R2, no hay nada que descargar. */
+            await openStoredMedia(message.mediaPath);
+            return;
+        } catch {
+            /* Se descarga abajo. */
+        }
     }
 
     try {
