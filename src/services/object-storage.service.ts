@@ -39,6 +39,8 @@ export function signRequest(params: {
     host: string;
     /** Ruta ya codificada, empezando con `/`. */
     path: string;
+    /** Query canónica (ya ordenada y codificada), sin `?`. */
+    query?: string;
     payloadHash: string;
     amzDate: string;
     headers: Record<string, string>;
@@ -57,7 +59,7 @@ export function signRequest(params: {
     const canonicalRequest = [
         params.method,
         params.path,
-        "",
+        params.query || "",
         canonicalHeaders,
         signedHeaders,
         params.payloadHash
@@ -95,7 +97,8 @@ async function request(
     method: "PUT" | "GET" | "DELETE" | "HEAD",
     key: string,
     body?: Buffer,
-    contentType?: string
+    contentType?: string,
+    query?: string
 ): Promise<Response> {
     const config = objectStorageConfig();
 
@@ -122,6 +125,7 @@ async function request(
         method,
         host,
         path,
+        query,
         payloadHash,
         amzDate,
         headers,
@@ -131,7 +135,7 @@ async function request(
         service: "s3"
     });
 
-    return fetch(`https://${host}${path}`, {
+    return fetch(`https://${host}${path}${query ? `?${query}` : ""}`, {
         method,
         headers: { ...headers, authorization },
         /** `Uint8Array` es lo que acepta `fetch`; `Buffer` no encaja en el tipo. */
@@ -169,6 +173,76 @@ export async function deleteObject(key: string): Promise<void> {
     if (!response.ok && response.status !== 404) {
         throw new Error(`R2 rechazó el borrado (${response.status}).`);
     }
+}
+
+export type StorageSummary = {
+    bucket: string;
+    objects: number;
+    bytes: number;
+    lastModified: string | null;
+};
+
+/**
+ * Cuenta y suma los objetos del bucket (ListObjectsV2, paginado).
+ *
+ * El bucket es pequeño (respaldos y adjuntos de una operación), pero se pone un
+ * tope de 50 mil objetos para no colgar el panel si algún día crece.
+ */
+export async function storageSummary(): Promise<StorageSummary | null> {
+    const config = objectStorageConfig();
+
+    if (!config) {
+        return null;
+    }
+
+    let objects = 0;
+    let bytes = 0;
+    let lastModified: string | null = null;
+    let token: string | undefined;
+    let pages = 0;
+
+    while (pages < 50) {
+        const query = [
+            "list-type=2",
+            "max-keys=1000",
+            token
+                ? `continuation-token=${encodeURIComponent(token)}`
+                : ""
+        ]
+            .filter(Boolean)
+            .sort()
+            .join("&");
+        const response = await request("GET", "", undefined, undefined, query);
+
+        if (!response.ok) {
+            throw new Error(`R2 rechazó el listado (${response.status}).`);
+        }
+
+        const xml = await response.text();
+
+        for (const match of xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)) {
+            const block = match[1];
+            const size = Number(/<Size>(\d+)<\/Size>/.exec(block)?.[1] || 0);
+            const modified = /<LastModified>([^<]+)<\/LastModified>/.exec(block)?.[1];
+
+            objects += 1;
+            bytes += Number.isFinite(size) ? size : 0;
+
+            if (modified && (!lastModified || modified > lastModified)) {
+                lastModified = modified;
+            }
+        }
+
+        const truncated = /<IsTruncated>true<\/IsTruncated>/.test(xml);
+        token = /<NextContinuationToken>([^<]+)<\/NextContinuationToken>/.exec(xml)?.[1];
+        pages += 1;
+
+        if (!truncated || !token) {
+            break;
+        }
+    }
+
+    return { bucket: config.bucket, objects, bytes, lastModified };
 }
 
 /**

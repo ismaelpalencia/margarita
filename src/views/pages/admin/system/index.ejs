@@ -239,6 +239,33 @@
                     </a>
                 </div>
 
+                <% if (typeof r2 !== "undefined") { %>
+                    <div class="rounded-xl p-4 ring-1 <%= r2 ? 'bg-margarita-50 ring-margarita-200' : 'bg-slate-50 ring-slate-200' %>">
+                        <p class="text-sm font-bold <%= r2 ? 'text-margarita-800' : 'text-slate-700' %>">
+                            Cloudflare R2
+                        </p>
+
+                        <% if (!r2) { %>
+                            <p class="mt-1 text-xs text-slate-500">
+                                No configurado o sin acceso al bucket.
+                            </p>
+                        <% } else { %>
+                            <p class="mt-1 text-xs text-margarita-700">
+                                Bucket <strong><%= r2.bucket %></strong> ·
+                                <%= r2.objects %> archivo(s) ·
+                                <%= humanBytes(r2.bytes) %>
+                            </p>
+
+                            <p class="mt-1 text-[11px] text-margarita-700">
+                                Último archivo:
+                                <%= r2.lastModified
+                                    ? formatDateTimeMX(r2.lastModified)
+                                    : "ninguno todavía" %>
+                            </p>
+                        <% } %>
+                    </div>
+                <% } %>
+
                 <div class="rounded-xl p-4 ring-1 <%= status.checks.webhookHealthy ? 'bg-margarita-50 ring-margarita-200' : 'bg-red-50 ring-red-200' %>">
                     <p class="text-sm font-bold <%= status.checks.webhookHealthy ? 'text-margarita-800' : 'text-red-800' %>">
                         Cola de webhooks
