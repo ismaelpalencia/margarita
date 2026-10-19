@@ -12,7 +12,16 @@ import { SendPolicyService } from "./send-policy.service";
 import { ReportService } from "./report.service";
 
 export class DashboardService {
-    static async getAdminDashboard(workspaceId: string) {
+    static async getAdminDashboard(workspaceId: string, numberId?: string) {
+        /**
+         * El dashboard es **por número**: al cambiarlo en el encabezado, las
+         * conversaciones, los mensajes y los conteos cambian con él. Los
+         * contactos siguen siendo de la empresa (uno por deudor).
+         */
+        const porNumero = numberId ? { whatsappNumberId: numberId } : {};
+        const mensajesDelNumero = numberId
+            ? { conversation: { whatsappNumberId: numberId } }
+            : {};
         const [
             openConversations,
             unassignedConversations,
@@ -26,7 +35,8 @@ export class DashboardService {
             prisma.conversation.count({
                 where: {
                     workspaceId,
-                    status: ConversationStatus.OPEN
+                    status: ConversationStatus.OPEN,
+                    ...porNumero
                 }
             }),
 
@@ -34,7 +44,8 @@ export class DashboardService {
                 where: {
                     workspaceId,
                     status: ConversationStatus.OPEN,
-                    operationalStatus: ConversationOperationalStatus.UNASSIGNED
+                    operationalStatus: ConversationOperationalStatus.UNASSIGNED,
+                    ...porNumero
                 }
             }),
 
@@ -42,7 +53,8 @@ export class DashboardService {
                 where: {
                     workspaceId,
                     status: ConversationStatus.OPEN,
-                    operationalStatus: ConversationOperationalStatus.ASSIGNED
+                    operationalStatus: ConversationOperationalStatus.ASSIGNED,
+                    ...porNumero
                 }
             }),
 
@@ -50,7 +62,8 @@ export class DashboardService {
                 where: {
                     workspaceId,
                     status: ConversationStatus.OPEN,
-                    operationalStatus: ConversationOperationalStatus.IN_PROGRESS
+                    operationalStatus: ConversationOperationalStatus.IN_PROGRESS,
+                    ...porNumero
                 }
             }),
 
@@ -106,7 +119,8 @@ export class DashboardService {
             prisma.conversation.findMany({
                 where: {
                     workspaceId,
-                    status: ConversationStatus.OPEN
+                    status: ConversationStatus.OPEN,
+                    ...porNumero
                 },
                 include: {
                     contact: true,
