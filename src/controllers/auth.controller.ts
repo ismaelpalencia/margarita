@@ -5,9 +5,50 @@ import { appConfig } from "../config/app.config";
 import { AuthService } from "../services/auth.service";
 import { loginSchema } from "../validations/auth.validation";
 import { SetupService } from "../services/setup.service";
+import { prisma } from "../config/prisma";
+import { verifyAuthToken } from "../utils/jwt";
+import { SessionService } from "../services/session.service";
 
 export class AuthController {
     static async showLogin(req: Request, res: Response) {
+        /**
+         * Si ya hay una sesión válida, no se vuelve a pedir la contraseña:
+         * al abrir el navegador se entra directo al panel. Antes, el login
+         * siempre pintaba el formulario aunque la cookie siguiera viva.
+         */
+        const token = req.cookies?.[appConfig.cookieName];
+
+        if (token) {
+            try {
+                const payload = verifyAuthToken(token);
+                const session = await prisma.userSession.findUnique({
+                    where: { tokenId: payload.tokenId },
+                    include: { user: true }
+                });
+
+                if (
+                    session &&
+                    session.isActive &&
+                    session.expiresAt > new Date() &&
+                    !SessionService.isIdle(session) &&
+                    session.user.isActive
+                ) {
+                    /** Si debe cambiar la contraseña, eso va primero. */
+                    if (session.user.mustChangePassword) {
+                        return res.redirect("/account/password");
+                    }
+
+                    return res.redirect(
+                        session.user.role === UserRole.ADMIN
+                            ? "/admin/dashboard"
+                            : "/agent/dashboard"
+                    );
+                }
+            } catch {
+                /** Cookie vencida o firma inválida: sigue el formulario. */
+            }
+        }
+
         /**
          * Si la instalación todavía no tiene empresa ni administrador, se
          * avisa aquí: quien llegue al login de un despliegue nuevo tiene que
