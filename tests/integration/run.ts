@@ -90,6 +90,7 @@ async function main() {
              * la suya. En producción el tope sigue igual: 10.
              */
             LOGIN_RATE_LIMIT_MAX: "500",
+            HEALTH_TOKEN: "token-de-prueba",
             /** El webhook se encola: así se prueba el camino completo. */
             WEBHOOK_QUEUE_ENABLED: "true"
         },

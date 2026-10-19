@@ -206,6 +206,13 @@ export const appConfig = {
     usageAlertPercent: Number(process.env.USAGE_ALERT_PERCENT) || 80,
 
     /**
+     * Token para ver el detalle de `/health`. Sin él, en producción solo se
+     * publica `{ok, status, timestamp}`: el commit, las rutas y los contadores
+     * quedan fuera del alcance de un curioso.
+     */
+    healthToken: process.env.HEALTH_TOKEN?.trim() || "",
+
+    /**
      * Minutos de inactividad tras los cuales la sesión se cierra sola, y
      * cuántos dispositivos puede tener abiertos un usuario a la vez.
      *

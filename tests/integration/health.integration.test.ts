@@ -33,7 +33,13 @@ function baseUrl(): string {
 }
 
 test("el healthcheck reporta el almacenamiento de archivos", async () => {
-    const response = await fetch(`${baseUrl()}/health`);
+    const minimo = await fetch(`${baseUrl()}/health`);
+    const sinDetalle = (await minimo.json()) as Record<string, unknown>;
+
+    assert.equal(minimo.status, 200);
+    assert.deepEqual(Object.keys(sinDetalle).sort(), ["ok", "status", "timestamp"]);
+
+    const response = await fetch(`${baseUrl()}/health?token=token-de-prueba`);
     const body = (await response.json()) as {
         storage?: { dir: string; persistent: boolean; message: string };
         checks?: Record<string, boolean>;

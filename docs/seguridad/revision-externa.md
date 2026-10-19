@@ -92,3 +92,70 @@ en uso. Se resuelve con el punto 1.
 3. Repetir la revisión **con una cuenta de agente** para cubrir IDOR y permisos.
 4. Antes de vender a un cliente regulado: pentest externo y prueba de
    restauración desde R2 en un entorno limpio.
+
+---
+
+## Cómo leer esto si estás aprendiendo
+
+**La idea central**: un atacante no «adivina»; prueba lo mismo que probamos
+aquí, en orden y en segundos. Si algo responde de más, lo anota y sigue.
+
+### Qué buscábamos en cada prueba
+
+| Prueba | Qué se busca | Cómo se ve el fallo |
+| --- | --- | --- |
+| `/.env`, `/.git/config` | Archivos que filtran llaves o historial | `200` con contenido |
+| Rutas privadas sin sesión | Que el servidor confíe en la URL | `200` con datos del panel |
+| Webhook sin firma | Que cualquiera pueda inyectar mensajes | `200` en vez de `401` |
+| `' OR '1'='1' --` | **Inyección SQL**: que el texto se pegue a la consulta | `500` con error de base, o entrar sin contraseña |
+| `TRACE` | Que el servidor devuelva la petición tal cual | `200` |
+| `Host: evil.example` | Que el dominio se use para redirigir | `301/302` a ese dominio |
+| Listado de carpeta | Que se pueda ver el contenido de un directorio | `200` con una lista |
+
+### Reproducirlo tú mismo
+
+```bash
+# 1. ¿Existe un archivo que no debería?
+curl -s -o /dev/null -w "%{http_code}\n" https://tu-dominio/.env
+
+# 2. ¿Una ruta privada responde sin sesión?
+curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" https://tu-dominio/admin
+
+# 3. ¿El webhook exige firma?
+curl -s -o /dev/null -w "%{http_code}\n" -X POST \
+  -H "content-type: application/json" -d '{"entry":[]}' \
+  https://tu-dominio/webhooks/meta/whatsapp
+
+# 4. ¿El login es inmune a una inyección básica?
+curl -s -o /dev/null -w "%{http_code}\n" -X POST \
+  -d "email=' OR '1'='1' --&password=x" \
+  https://tu-dominio/auth/login
+```
+
+Lo que quieres ver: `404`, `302`, `401` y `400`. Lo que no quieres: `200` en los
+dos primeros, `500` en el último.
+
+### Vocabulario mínimo
+
+- **SQLi**: meter instrucciones de base de datos dentro de un campo. Se evita
+  usando consultas parametrizadas (Prisma lo hace) y validando con Zod.
+- **IDOR**: cambiar un identificador en la URL para ver datos de otro
+  (`/media/123` → `/media/124`). Se evita validando el permiso en la consulta,
+  no en la vista.
+- **CSRF**: que otra página envíe un formulario en tu nombre. Se evita con
+  `SameSite` en la cookie y comprobando el origen.
+- **XSS**: inyectar código en una página. EJS escapa por defecto con `<%= %>`;
+  el peligro está en `<%- %>`.
+- **Enumeración**: deducir si un usuario existe por mensajes o tiempos distintos.
+- **Cabeceras**: HSTS obliga HTTPS; `nosniff` evita que el navegador adivine el
+  tipo; `X-Frame-Options` evita meter la app en un iframe.
+
+### Cómo seguir practicando
+
+1. Repite estas pruebas **contra tu entorno local** cambiando una cosa a la vez.
+2. Lee el código de la ruta y pregúntate: «¿qué pasa si este parámetro no es lo
+   que espero?».
+3. Practica en laboratorios legales: OWASP Juice Shop, PortSwigger Web Security
+   Academy y DVWA.
+4. Nunca pruebes sobre dominios ajenos: aquí lo hicimos sobre tu instalación y
+   con tu autorización.

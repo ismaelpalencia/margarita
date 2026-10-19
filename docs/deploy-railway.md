@@ -112,6 +112,7 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `PANEL_RATE_LIMIT_MAX` | `300` | Peticiones por **usuario** cada 15 minutos en el panel |
 | `PANEL_RATE_LIMIT_WINDOW_MINUTES` | `15` | Ventana del cupo por usuario |
 | `EDGE_RATE_LIMIT_MAX` | `3000` | Tope de borde por IP (solo contra abuso evidente) |
+| `HEALTH_TOKEN` | — | Si se define, el detalle de `/health` exige `?token=` (sin él se publica solo el estado) |
 | `SERVICE_FREE_MESSAGES` | `1000` | Mensajes de servicio gratis por número al mes |
 | `SERVICE_MESSAGE_RATE` | `0.05` | Tarifa estimada por mensaje de servicio excedente |
 | `UTILITY_TEMPLATE_RATE` | `0.03` | Tarifa estimada por plantilla de utilidad |
