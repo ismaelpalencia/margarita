@@ -244,13 +244,13 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 Ser explícito aquí es parte del trato:
 
 1. **La verificación en dos pasos es opcional y no se puede obligar desde el panel.** Está disponible para cualquier cuenta y el panel de Sistema muestra cuántos administradores la usan, pero si nadie la activa, la contraseña sigue siendo el único factor. Activarla es una decisión de cada persona (o una regla de la empresa, por acuerdo del operador); conviene que los administradores la tengan puesta.
-2. **El cifrado es de campos, no del disco.** Un volcado de PostgreSQL ya no expone conversaciones, teléfonos, notas, correos ni credenciales, pero sí los **nombres de los contactos** y la estructura general (con quién se habló, cuándo y cuánto). Los archivos de PostgreSQL y los adjuntos en disco tampoco están cifrados: quien tenga acceso al servidor puede leer todo lo que la aplicación no cifra.
-3. **No hay antitivirus ni análisis de adjuntos.** Los archivos se guardan tal como llegan (fuera de la base, en disco).
-4. **Los respaldos viven en el mismo servidor.** Hay copia automática cada 24 h y se puede descargar, pero **nadie la saca de ahí sola**: si el disco (o el Volume) se pierde, se pierden la base y sus copias. Conviene descargar una de vez en cuando a un lugar externo, o activar también los respaldos del proveedor. Y los adjuntos no entran en el respaldo.
+2. **El cifrado es de campos, no del disco.** Un volcado de PostgreSQL ya no expone conversaciones, teléfonos, nombres, notas, correos ni credenciales, pero **sí** el esquema y los índices. Cifrar el volumen entero depende del proveedor.
+3. **No hay antivirus ni análisis de adjuntos.** Los archivos se guardan tal como llegan, en disco y (si R2 está configurado) en el bucket, **sin el cifrado de la aplicación**; R2 cifra en reposo a nivel de infraestructura.
+4. **La copia local sigue en el servidor.** Con R2 configurado, cada respaldo se sube cifrado al bucket (`backups/…`); la copia local se conserva como caché. Falta **probar una restauración desde R2** en un entorno limpio.
 5. **La sesión no se ata a la IP ni al dispositivo.** Se registra la IP y el dispositivo y se muestran en la lista de sesiones, se cierra por inactividad y hay tope de dispositivos, pero **no se bloquea** una sesión por venir de otra IP: en datos móviles y redes compartidas la IP cambia sola durante el día y bloquearla dejaría a la gente fuera sin motivo. La IP sirve para detectar, no para bloquear.
 6. **No hay rotación automática de secretos** ni caducidad de la `ENCRYPTION_KEY`. Perder esa llave deja ilegibles los campos cifrados, no solo los tokens.
 7. **No hay prueba de penetración.** Los controles están probados con pruebas automatizadas y verificación manual, no con un pentest externo.
-8. **No hay WAF ni protección DDoS propia.** Depende del borde del proveedor.
+8. **Sin WAF activo en el borde.** Cloudflare administra el DNS; el subdominio de la operación va en modo **DNS only**, así que la protección DDoS/WAF del proveedor no está delante. Activar el proxy requiere probar WebSockets, certificado y subidas grandes.
 
 ---
 
