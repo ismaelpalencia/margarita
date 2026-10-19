@@ -6,7 +6,7 @@ Para la parte comercial y los videos, el inventario completo —pantalla por
 pantalla, con reglas, atajos, flujos y guiones— está en
 [`catalogo-producto.md`](catalogo-producto.md).
 
-Última revisión: 2026-10-19 (paquetes A/B con piloto de 30 días, respaldos y adjuntos en Cloudflare R2, dashboard por número activo, opt-in formal con canal y autor, landing separada por dominio, plantillas con botones, llamadas pedidas y volcado de webhooks).
+Última revisión: 2026-10-19 (paquetes A/B con piloto de 30 días, respaldos y adjuntos en Cloudflare R2, nombres de contacto cifrados, dashboard por número activo, opt-in formal con canal y autor, campañas programadas, landing separada por dominio, plantillas con botones, llamadas pedidas y volcado de webhooks).
 
 > **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
 > **Instalación $2,500.00 MXN** (una vez, precio vigente; de lista $4,900.00) y
@@ -36,7 +36,7 @@ Sí, como **instalación por empresa** en Railway: el alta de un cliente nuevo t
 | Guía de uso del equipo | **Escrita y publicada** en `margaritaapp.org/guia` (código en [`guia-uso.md`](guia-uso.md) y en la página `guia.ejs`): arranque, bandeja, plantillas, campañas, resultados de gestión, botones, reportes, respaldos, límites y problemas comunes. Se entrega al contratar junto con la **sesión de arranque de 2 horas** que promete la página. |
 | Opt-in de los contactos | **Del cliente.** La herramienta lo registra y respeta las bajas, pero no verifica de dónde salió el consentimiento. |
 | Respaldos fuera del servidor | **Incluido cuando se configura R2.** La copia diaria cifrada se sube a Cloudflare R2 y Admin → Sistema muestra archivos, tamaño y fecha del último. Sin R2, la copia vive en el mismo Volume y alguien tiene que descargarla. |
-| Nombres de los contactos | **Único dato personal que queda en claro**, porque la búsqueda por texto del panel depende de ellos. Está documentado como límite y es el siguiente pendiente. |
+| Nombres de los contactos | **Cifrados desde el 2026-10-19**, con índice ciego para buscarlos por nombre completo. Ya no queda ningún dato personal en claro. |
 | Verificación en dos pasos | **Disponible y opcional.** Se activa por cuenta; conviene dejarla puesta en las de administrador (el panel dice cuántas están cubiertas). |
 
 Lo que **no** está en el producto y no se debe prometer: mandar botones o listas
@@ -154,7 +154,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Borrado de mensajes**: ocultar un mensaje sin destruirlo (el admin puede verlo y restaurarlo) o borrar todo el hilo definitivamente escribiendo `BORRAR`.
 - **Respaldos**: descarga completa en JSON o exportación por entidad en CSV.
 - **Respaldos automáticos**: cada `BACKUP_INTERVAL_HOURS` (24 por defecto) se guarda una copia completa de la base, comprimida y cifrada con la misma llave de los datos. Si Cloudflare R2 está configurado, **la copia se sube también al bucket** (`backups/…`) y el panel de Sistema muestra cuántos objetos hay, cuánto ocupan y la fecha del último. Cada copia se **verifica al crearse** (se vuelve a leer y descifrar) y se conservan las últimas `BACKUP_KEEP` (7 por defecto). Se pueden crear a mano, descargar y verificar desde Admin → Respaldos, y `/health` reporta la edad del último.
-- **Cifrado en reposo**: los teléfonos, las notas de contacto, el contenido de los mensajes, los nombres de archivo, los payloads de Meta (incluido el evento crudo del webhook), las variables de campaña, los números de la WABA y la bitácora se guardan cifrados con AES-256-GCM. La aplicación descifra al leer, así que el panel funciona igual; del teléfono se guarda además un índice ciego (`phoneHash`) que conserva la unicidad y la búsqueda exacta sin tener el número en claro.
+- **Cifrado en reposo**: los teléfonos, **los nombres de contacto**, las notas, el contenido de los mensajes, los nombres de archivo, los payloads de Meta (incluido el evento crudo del webhook), las variables de campaña, los números de la WABA y la bitácora se guardan cifrados con AES-256-GCM. La aplicación descifra al leer, así que el panel funciona igual; del teléfono se guarda además un índice ciego (`phoneHash`) que conserva la unicidad y la búsqueda exacta sin tener el número en claro.
 - **Alta sin consola**: en una instalación nueva, `/setup` crea la empresa y el usuario administrador desde el navegador, y las credenciales de Meta y el primer número se capturan en Admin → WhatsApp. El asistente se cierra solo cuando la instalación queda configurada.
 - **Alta en minutos**: el repositorio trae `railway.json` con el build, las migraciones previas al arranque, el comando de arranque y el healthcheck, así que una instalación desde plantilla no requiere configurar nada a mano. Mientras no exista empresa ni administrador, la raíz y el login llevan solos al asistente. Si falta `APP_URL`, se usa el dominio público de Railway. El paso a paso está en [`plantilla-railway.md`](plantilla-railway.md).
 - **Cierre de contrato**: el borrado total elimina mensajes, conversaciones, contactos, campañas, plantillas, usuarios, sesiones, credenciales y archivos, con la confirmación del identificador de la instalación y constancia en la bitácora.
@@ -200,7 +200,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Límite de peticiones** | El cupo del panel es **por persona** (300 cada 15 minutos, `PANEL_RATE_LIMIT_MAX`), no por IP: quince agentes en la misma oficina no se estorban entre sí, y el 429 dice cuántos minutos esperar. Queda un tope de borde por IP (`EDGE_RATE_LIMIT_MAX`, 3,000) solo contra abuso evidente. |
 | **Una réplica** | El tiempo real y la cola funcionan en una sola instancia. Con varias haría falta el adaptador de Redis. |
 | **Búsqueda exacta** | Teléfono y nombre están cifrados: se busca por número completo (10 dígitos) o por nombre completo; la coincidencia parcial no es posible. |
-| **Nombres de contacto en claro** | `Contact.profileName` y `Contact.customName` quedan sin cifrar porque la búsqueda por texto del panel depende de ellos; cifrarlos obliga a pasar esa búsqueda a coincidencia exacta con índice ciego. Es el único dato personal que sigue en claro: **los correos de acceso de los usuarios ya se cifran** (2026-10-15). |
+| **Búsqueda de nombre solo exacta** | Los nombres de contacto están **cifrados** y se buscan por su índice ciego: nombre completo o teléfono completo. La coincidencia parcial ya no existe. |
 | **Búsqueda de correo solo exacta** | El correo del usuario está cifrado y se resuelve con índice ciego: el inicio de sesión funciona igual y el correo se ve en el panel, pero una consulta por partes del correo falla con explicación en lugar de devolver resultados. En la práctica el panel no tiene buscador de usuarios. |
 | **Un pago reportado no es un pago** | «Ya pagué» es una declaración del deudor: entra como *reportado, por confirmar* y **no** suma a la recuperación hasta que alguien lo confirme marcando pagado. |
 | **"Pagado" no es conciliación** | Marcar pagado es una anotación operativa: la herramienta no comprueba que el dinero entró, no maneja pagos parciales ni saldos. Los reportes de monto son de promesas y pagos registrados, no un estado de cuenta. |
@@ -372,7 +372,6 @@ que copiar y de dónde sale está en [`pruebas-meta.md`](pruebas-meta.md).
 
 **Proteger la operación.**
 
-2. **Cifrar los nombres de contacto**, que hoy quedan en claro porque la búsqueda por texto del panel depende de ellos. Al cifrarlos, esa búsqueda pasa a coincidencia exacta con índice ciego. (Los correos de acceso ya se cifraron el 2026-10-15.)
 3. **Registro formal del opt-in**: quién lo dio, cuándo y por qué canal, en lugar de una sola fecha.
 
 **Mejorar el día a día de la bandeja.**
