@@ -2,6 +2,7 @@ import { logger } from "../config/logger";
 import { backfillUserEmails } from "./email-hash.job";
 import { backfillPhoneHashes } from "./phone-hash.job";
 import { startRetentionJob } from "./retention.job";
+import { backfillNameHashes } from "./phone-hash.job";
 import { startWebhookWorker } from "./webhook-worker";
 import { startCampaignWorker } from "./campaign-worker";
 import { startCampaignScheduler } from "./campaign-scheduler.job";
@@ -32,6 +33,7 @@ export async function startBackgroundJobs() {
 
     try {
         await backfillPhoneHashes();
+        await backfillNameHashes();
     } catch (error) {
         logger.error(
             { error: error instanceof Error ? error.message : error },

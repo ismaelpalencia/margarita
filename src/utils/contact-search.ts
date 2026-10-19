@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { blindIndex } from "./crypto";
+import { normalizeName } from "../config/prisma-encryption";
 import { isValidMexicanPhone, normalizeMexicanPhone } from "./phone";
 
 /**
@@ -14,18 +15,14 @@ import { isValidMexicanPhone, normalizeMexicanPhone } from "./phone";
 export function contactSearchOr(search: string): Prisma.ContactWhereInput[] {
     const term = search.trim();
 
+    /**
+     * El nombre va cifrado, así que ya no se busca por partes: se compara el
+     * índice ciego del nombre completo. Es el precio de que un volcado de la
+     * base no revele nombres.
+     */
     const conditions: Prisma.ContactWhereInput[] = [
         {
-            customName: {
-                contains: term,
-                mode: "insensitive"
-            }
-        },
-        {
-            profileName: {
-                contains: term,
-                mode: "insensitive"
-            }
+            nameHash: blindIndex(normalizeName(term))
         }
     ];
 

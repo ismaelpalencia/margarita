@@ -79,3 +79,58 @@ export async function backfillPhoneHashes(): Promise<number> {
 
     return updated;
 }
+
+/**
+ * Rellena el índice de nombres de los contactos anteriores al cifrado.
+ *
+ * Se leen los nombres (la capa de cifrado devuelve el texto claro de los que
+ * todavía no estaban cifrados) y se vuelven a escribir: al guardarlos se
+ * cifran y se calcula su `nameHash`. Sin esto, esos contactos no aparecerían
+ * al buscar por nombre.
+ */
+export async function backfillNameHashes(): Promise<number> {
+    const pending = await prisma.contact.findMany({
+        where: { nameHash: null },
+        select: {
+            id: true,
+            customName: true,
+            profileName: true
+        },
+        take: 2000
+    });
+
+    if (pending.length === 0) {
+        return 0;
+    }
+
+    logger.info(
+        { total: pending.length },
+        "Calculando el índice de nombres de contactos anteriores al cifrado."
+    );
+
+    let updated = 0;
+
+    for (const contact of pending) {
+        const nombre = contact.customName || contact.profileName;
+
+        if (!nombre) {
+            continue;
+        }
+
+        try {
+            await prisma.contact.update({
+                where: { id: contact.id },
+                data: {
+                    customName: contact.customName,
+                    profileName: contact.profileName
+                }
+            });
+
+            updated += 1;
+        } catch (error) {
+            logger.warn({ error, contactId: contact.id }, "No se pudo cifrar el nombre");
+        }
+    }
+
+    return updated;
+}

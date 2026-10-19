@@ -428,6 +428,9 @@ model Contact {
    * WhatsApp, contrato, importación…) y quién lo capturó. Es la defensa
    * documental del operador ante una revisión.
    */
+  /** Índice ciego del nombre visible: permite búsqueda exacta sin tenerlo en claro. */
+  nameHash          String?
+
   optInSource       String?
   optInRecordedById String?
   optInRecordedBy   User?  @relation("ContactOptIn", fields: [optInRecordedById], references: [id], onDelete: SetNull)

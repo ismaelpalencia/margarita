@@ -129,7 +129,7 @@ type WriteRule = (data: JsonObject) => void;
  * `{ not: null }` sí se permite: pregunta si hay valor, no cuál es.
  */
 const ENCRYPTED_FIELDS: Record<string, string[]> = {
-    Contact: ["notes", "outcomeAmount"],
+    Contact: ["notes", "outcomeAmount", "customName", "profileName"],
     Message: [
         "body",
         "mediaFilename",
@@ -219,6 +219,20 @@ function guardEncryptedFilters(
     }
 }
 
+/**
+ * Normaliza un nombre para el índice ciego: minúsculas, sin acentos, sin
+ * espacios repetidos. Así «María  Elena» y «maria elena» producen el mismo
+ * hash y la búsqueda exacta funciona sin guardar el nombre en claro.
+ */
+export function normalizeName(value: string): string {
+    return value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
 const WRITE_RULES: Record<string, WriteRule> = {
     Contact(data) {
         const phone = data.phone;
@@ -229,6 +243,24 @@ const WRITE_RULES: Record<string, WriteRule> = {
         }
 
         encryptTextFields(data, ["notes", "outcomeAmount"]);
+
+        /**
+         * Nombre + índice ciego. Se toma el nombre visible que venga en la
+         * escritura (`customName` manda sobre `profileName`) y se cifran los
+         * dos campos. Los valores viejos en claro se siguen leyendo.
+         */
+        const nombre =
+            typeof data.customName === "string" && data.customName.trim()
+                ? data.customName
+                : typeof data.profileName === "string" && data.profileName.trim()
+                  ? data.profileName
+                  : null;
+
+        if (nombre && !isEncrypted(nombre)) {
+            data.nameHash = blindIndex(normalizeName(nombre));
+        }
+
+        encryptTextFields(data, ["customName", "profileName"]);
     },
 
     Message(data) {
