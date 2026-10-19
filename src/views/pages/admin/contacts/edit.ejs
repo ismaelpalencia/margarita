@@ -59,13 +59,45 @@
             <% } else { %>
                 <p class="mt-3 text-sm text-slate-600">
                     <% if (contact.optInAt) { %>
-                        Consentimiento registrado. Puede recibir mensajes y campañas.
+                        Consentimiento registrado el
+                        <strong><%= formatDateTimeMX(contact.optInAt) %></strong>
+                        <% if (contact.optInSource) { %>
+                            · canal: <strong><%= contact.optInSource %></strong>
+                        <% } %>
+                        <% if (contact.optInRecordedBy) { %>
+                            · lo registró <strong><%= contact.optInRecordedBy.name %></strong>
+                        <% } %>.
+                        Puede recibir mensajes y campañas.
                     <% } else { %>
                         Sin consentimiento registrado. La herramienta no lo verifica:
                         es responsabilidad de la empresa solo escribir a quien aceptó
                         recibir mensajes.
                     <% } %>
                 </p>
+
+                <% if (!contact.optInAt) { %>
+                    <form action="/admin/contacts/<%= contact.id %>/opt-in" method="POST" class="mt-3 flex flex-wrap items-end gap-3">
+                        <input type="hidden" name="redirectTo" value="/admin/contacts/<%= contact.id %>/edit" />
+
+                        <div class="min-w-[220px] flex-1">
+                            <label class="mb-1 block text-xs font-semibold uppercase text-slate-500">
+                                ¿Por qué canal dio su consentimiento?
+                            </label>
+
+                            <select name="source" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm">
+                                <option value="FORMULARIO">Formulario o contrato firmado</option>
+                                <option value="WHATSAPP">Por WhatsApp</option>
+                                <option value="LLAMADA">Por teléfono</option>
+                                <option value="IMPORTACION">En la cartera importada</option>
+                                <option value="OTRO">Otro</option>
+                            </select>
+                        </div>
+
+                        <button class="rounded-xl bg-margarita-600 px-4 py-3 text-sm font-semibold text-white hover:bg-margarita-700">
+                            Registrar consentimiento
+                        </button>
+                    </form>
+                <% } %>
 
                 <form action="/admin/contacts/<%= contact.id %>/opt-out" method="POST" class="mt-3">
                     <input type="hidden" name="redirectTo" value="/admin/contacts/<%= contact.id %>/edit" />

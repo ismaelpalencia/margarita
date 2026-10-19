@@ -308,7 +308,11 @@ export class AdminContactsController {
         const id = getRequiredParam(req, "id");
 
         try {
-            await ContactService.setOptIn(req.user!.workspaceId, id);
+            await ContactService.setOptIn(req.user!.workspaceId, id, {
+                source:
+                    typeof req.body?.source === "string" ? req.body.source : null,
+                userId: req.user!.id
+            });
         } catch {
             return res.redirect(
                 AdminContactsController.safeRedirect(

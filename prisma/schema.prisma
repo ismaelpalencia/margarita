@@ -310,6 +310,7 @@ model User {
   campaigns    Campaign[]       @relation("CampaignCreatedBy")
   quickReplies QuickReply[]     @relation("QuickReplyCreatedBy")
   outcomes     ContactOutcome[] @relation("ContactOutcomeCreatedBy")
+  contactsOptIn Contact[]       @relation("ContactOptIn")
 
   assignedConversations Conversation[] @relation("ConversationAssignedUser")
 
@@ -421,6 +422,14 @@ model Contact {
    * no envía nada a ese contacto.
    */
   optInAt      DateTime?
+  /**
+   * Registro formal del consentimiento: por qué canal llegó (formulario,
+   * WhatsApp, contrato, importación…) y quién lo capturó. Es la defensa
+   * documental del operador ante una revisión.
+   */
+  optInSource       String?
+  optInRecordedById String?
+  optInRecordedBy   User?  @relation("ContactOptIn", fields: [optInRecordedById], references: [id], onDelete: SetNull)
   optOutAt     DateTime?
   optOutSource String?
 

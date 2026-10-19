@@ -110,6 +110,8 @@ export class ContactService {
                     : {})
             },
             include: {
+                /** Quién registró el consentimiento (para mostrarlo en la ficha). */
+                optInRecordedBy: { select: { name: true } },
                 tags: {
                     include: {
                         tag: true
@@ -344,7 +346,11 @@ export class ContactService {
      * consentimiento nuevo. Es una decisión explícita del operador: la
      * herramienta no la toma sola.
      */
-    static async setOptIn(workspaceId: string, contactId: string) {
+    static async setOptIn(
+        workspaceId: string,
+        contactId: string,
+        options: { source?: string | null; userId?: string | null } = {}
+    ) {
         const before = await this.getContactById(workspaceId, contactId);
 
         const contact = await prisma.contact.update({
@@ -354,22 +360,28 @@ export class ContactService {
             data: {
                 optOutAt: null,
                 optOutSource: null,
-                optInAt: new Date()
+                optInAt: new Date(),
+                /* Registro formal: canal y quién lo capturó. */
+                optInSource: options.source?.trim() || "MANUAL",
+                optInRecordedById: options.userId || null
             }
         });
 
-        if (before.optOutAt) {
-            await LogService.create({
-                workspaceId,
-                level: LogLevel.INFO,
-                module: LogModule.CONTACT,
-                action: "CONTACT_OPT_IN",
-                message: "Se reactivó a un contacto que había pedido la baja.",
-                payload: {
-                    contactId
-                }
-            });
-        }
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.CONTACT,
+            action: "CONTACT_OPT_IN",
+            message: before.optOutAt
+                ? "Se reactivó a un contacto que había pedido la baja."
+                : "Se registró el consentimiento del contacto.",
+            payload: {
+                contactId,
+                source: options.source?.trim() || "MANUAL",
+                recordedById: options.userId || null,
+                reactivation: Boolean(before.optOutAt)
+            }
+        });
 
         return contact;
     }
