@@ -9,8 +9,8 @@ pantalla, con reglas, atajos, flujos y guiones— está en
 Última revisión: 2026-10-19 (paquetes A/B con piloto de 30 días, respaldos y adjuntos en Cloudflare R2, nombres de contacto cifrados, dashboard por número activo, opt-in formal con canal y autor, campañas programadas, landing separada por dominio, plantillas con botones, llamadas pedidas y volcado de webhooks).
 
 > **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
-> **Instalación $2,500.00 MXN** (una vez, precio vigente; de lista $4,900.00) y
-> **mensualidad $699.00 MXN** (de lista $1,490.00). El
+> **Paquete A $3,500.00 MXN** (instalación, primer mes y conexión con Meta) o
+> **Paquete B $2,500.00 MXN** (instalación y primer mes); **mensualidad $699.00 MXN** (de lista $1,490.00). El
 > primer mes se paga junto con la instalación. **Todos los precios son más IVA.**
 > **El primer mes es un piloto pagado**: al día 30 el cliente decide si
 > continúa, sin penalización y con su respaldo. Después es mes a mes; los
@@ -42,7 +42,7 @@ Sí, como **instalación por empresa** en Railway: el alta de un cliente nuevo t
 Lo que **no** está en el producto y no se debe prometer: mandar botones o listas
 *dentro* de la ventana de 24 horas (las plantillas con botones sí se envían y sus
 respuestas sí se interpretan), programar campañas por fecha y hora, **agenda de
-llamadas** (la llamada pedida ya es tarea, pero no se programa a una hora),
+llamadas** (la tarea ya se agenda con fecha y hora),
 contador del tramo de mensajes gratis por número, números fuera de México,
 permisos por número, multi-instancia y respaldo fuera del servidor.
 
@@ -281,7 +281,7 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 | --- | --- |
 | Pruebas automatizadas | 39 archivos de pruebas unitarias (248 casos) + **76 pruebas de integración** contra PostgreSQL (más 2 destructivas, que solo corren en CI) |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
-| Migraciones | Versionadas en `prisma/migrations`, con quince aplicadas |
+| Migraciones | Versionadas en `prisma/migrations`, con veinte aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
 | Entorno de build | Node 22 declarado en `package.json` (`engines`) y `.nvmrc`. `nixpacks.toml` instala con `npm install --include=dev` (no `npm ci`: borra `node_modules` y choca con el caché del builder) y compila con `npm run build`. El Build Command del servicio debe quedar vacío para que la instalación no se ejecute dos veces. |
 | Verificación de integración | **Automatizada**: un trabajo de CI levanta PostgreSQL, aplica las migraciones y corre la suite contra esa base (`npm run test:integration`). Cubre webhook firmado de punta a punta, cifrado en reposo, campañas, resultados de gestión, respuestas interactivas, llamadas pedidas y el volcado de webhooks, sesiones, contraseñas y respaldos. Dos pruebas destructivas (alta desde cero y restauración) solo corren en CI, donde la base es desechable, con `INTEGRATION_DESTRUCTIVE=1`. |
@@ -354,30 +354,24 @@ El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
 
 1. **Respaldos fuera del servidor: hecho.** La copia diaria se sube cifrada a Cloudflare R2 (`backups/…`) y Admin → Sistema muestra cuántos objetos hay, cuánto ocupan y la fecha del último. Queda como pendiente **probar una restauración** desde R2 en un entorno limpio.
 
-**Sprint en curso (botones e interacciones).** El plan está en
-[`plan-interactivos.md`](plan-interactivos.md). Ya entregado: interpretar las
-respuestas de botón y de lista, el envío de plantillas con botones (hilo y
-campañas, con las tres variables), el aviso y bloqueo de plantillas
-reclasificadas a marketing, **el puente de la respuesta al resultado de gestión
-con sus efectos automáticos** (pausa y baja) y **la llamada pedida como tarea de
-la lista de trabajo** (fase 4), con su tiempo de espera, su atajo y la pantalla
-para copiar el volcado de un webhook.
-Ya está también el **contador del tramo del mes por número** (fase 5), con
-alerta al 80% y costo estimado, y la **agenda de llamadas** (fase B2) con fecha
-y hora, orden por vencimiento y limpieza automática. De la fase 6 quedan las
-**listas** desplegables (los botones ya se envían). Y queda una **verificación
-pendiente**: la prueba contra Meta
-real —plantilla aprobada y botón tocado— para cerrar las fases 3 y 4. Lo que hay
-que copiar y de dónde sale está en [`pruebas-meta.md`](pruebas-meta.md).
+**Entregado (octubre 2026).** Respuestas de botón y de lista interpretadas;
+plantillas con botones (hilo y campañas, con las tres variables); aviso y bloqueo
+de plantillas reclasificadas a marketing; puente respuesta → resultado con pausa
+y baja; **llamada pedida como tarea con agenda**; **contador del tramo por
+número** con alerta al 80%; **campañas programadas por fecha y hora**; **opt-in
+formal con canal y autor**; **nombres de contacto cifrados**; **respaldos y
+adjuntos en R2**; **dashboard por número activo**.
+
+**Pendiente.** Las **listas desplegables** (los botones ya se envían) y la
+**prueba real contra Meta** con la plantilla aprobada y un botón tocado; el paso
+a paso está en [`pruebas-meta.md`](pruebas-meta.md).
 
 **Proteger la operación.**
 
-3. **Registro formal del opt-in**: quién lo dio, cuándo y por qué canal, en lugar de una sola fecha.
 
 **Mejorar el día a día de la bandeja.**
 
 4. **Interactivos libres**: mandar botones y listas desde el compositor dentro de la ventana de 24 horas (las plantillas con botones ya se envían y sus respuestas ya se interpretan).
-5. **Programar campañas** por fecha y hora.
 6. **Recordatorios de la agenda**: la cita ya existe y se ordena por hora; falta que avise sola (notificación o recordatorio al deudor).
 
 **Cuando el equipo crezca.**
