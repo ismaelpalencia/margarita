@@ -77,6 +77,7 @@ enum MessageSource {
 
 enum CampaignStatus {
   DRAFT
+  SCHEDULED
   VALIDATING
   READY
   RUNNING
@@ -713,6 +714,9 @@ model Campaign {
 
   recipients CampaignRecipient[]
   messages   Message[]
+
+  /** Cuándo debe salir sola (UTC). Solo aplica al estado SCHEDULED. */
+  scheduledFor DateTime?
 
   startedAt  DateTime?
   finishedAt DateTime?

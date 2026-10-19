@@ -30,6 +30,8 @@ import {
 } from "../utils/template";
 import { buildTemplateMessagePayload } from "../utils/template";
 import { LogService } from "./log.service";
+import { SendPolicyService } from "./send-policy.service";
+import { parseLocalDateTime } from "../utils/date";
 import { WhatsAppNumberService } from "./whatsapp-number.service";
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
@@ -307,6 +309,16 @@ export class CampaignService {
             );
         }
 
+        /**
+         * Programada: se guarda la hora en UTC y queda en SCHEDULED. El
+         * planificador la pasa a READY y la arranca cuando llega el momento.
+         */
+        const timezone = await SendPolicyService.timezoneFor(workspaceId);
+        const scheduledFor = input.scheduledFor
+            ? parseLocalDateTime(input.scheduledFor, timezone)
+            : null;
+        const programada = Boolean(scheduledFor && scheduledFor.getTime() > Date.now());
+
         const campaign = await prisma.campaign.create({
             data: {
                 workspaceId,
@@ -314,7 +326,8 @@ export class CampaignService {
                 whatsappNumberId,
                 createdById,
                 name: input.name,
-                status: CampaignStatus.DRAFT,
+                status: programada ? CampaignStatus.SCHEDULED : CampaignStatus.DRAFT,
+                scheduledFor: programada ? scheduledFor : null,
                 totalRecipients: reachable.length,
                 validRecipients: reachable.length,
                 invalidRecipients: 0,

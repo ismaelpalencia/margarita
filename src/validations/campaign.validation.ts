@@ -33,7 +33,9 @@ export const createCampaignSchema = z.object({
     /** Valor de la variable del encabezado, si la plantilla la pide. */
     headerVariable: z.string().optional(),
     /** Valor que se pega al final de la URL del botón, si la plantilla lo pide. */
-    buttonVariable: z.string().optional()
+    buttonVariable: z.string().optional(),
+    /** "YYYY-MM-DDTHH:mm" en hora de la empresa. Vacío = enviar ahora. */
+    scheduledFor: z.string().trim().optional()
 });
 
 export const createCampaignFromExcelSchema = z.object({
@@ -50,7 +52,9 @@ export const createCampaignFromExcelSchema = z.object({
     variable2: variableField,
     variable3: variableField,
     headerVariable: z.string().optional(),
-    buttonVariable: z.string().optional()
+    buttonVariable: z.string().optional(),
+    /** "YYYY-MM-DDTHH:mm" en hora de la empresa. Vacío = enviar ahora. */
+    scheduledFor: z.string().trim().optional()
 });
 
 

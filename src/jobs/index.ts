@@ -4,6 +4,7 @@ import { backfillPhoneHashes } from "./phone-hash.job";
 import { startRetentionJob } from "./retention.job";
 import { startWebhookWorker } from "./webhook-worker";
 import { startCampaignWorker } from "./campaign-worker";
+import { startCampaignScheduler } from "./campaign-scheduler.job";
 import { startBackupJob } from "./backup.job";
 
 /**
@@ -41,6 +42,7 @@ export async function startBackgroundJobs() {
 
     const webhookWorker = startWebhookWorker();
     const campaignWorker = startCampaignWorker();
+    startCampaignScheduler();
     const retentionJob = startRetentionJob();
     const backupJob = startBackupJob();
 
