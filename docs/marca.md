@@ -7,9 +7,9 @@ verde, un amarillo y unas cuantas reglas.
 
 ## 1. El símbolo
 
-Una **margarita de ocho pétalos redondos, centro sólido y una carita tallada en
-hueco**. La versión actual la presenta dentro de un **sello cuadrado de esquinas
-redondeadas**: verde profundo, flor blanca y centro amarillo. Sigue siendo plana,
+Una **margarita de ocho pétalos redondos, centro sólido y una mirada mínima de
+dos ojos, sin sonrisa**. La versión actual la presenta dentro de un **sello
+circular**: verde profundo, flor blanca y centro amarillo. Sigue siendo plana,
 sin sombras ni degradados dentro del archivo, como los símbolos de Ollama o
 GitHub.
 
@@ -26,7 +26,8 @@ GitHub.
 
 | Variante | Cómo se ve | Dónde se usa |
 | --- | --- | --- |
-| `sello-moderno` | Cuadrado redondeado verde, flor blanca y centro amarillo | **Es la de la aplicación** (ícono, favicon, acceso, encabezado) |
+| `mirada-circulo` | Sello circular verde, flor blanca, centro amarillo y dos ojos | **Es la de la aplicación** (ícono, favicon, acceso, encabezado) |
+| `sello-moderno` | Cuadrado redondeado verde, flor blanca y centro amarillo | Alternativa moderna en formato app |
 | `sello-hojas` | Círculo verde con la flor en blanco y **dos hojas** en la base | Alternativa amable, ya no es la principal |
 | `sello` | Igual, sin las hojas: todo verde y blanco | La versión más limpia, si algún día se necesita |
 | `sello-sol` | Sello con el centro de la flor en amarillo | Alternativa con el acento de color |
@@ -34,14 +35,23 @@ GitHub.
 | `flor` | La flor sola, sin caja | El símbolo suelto: encabezados, volantes, presentaciones |
 | `hueco` | La flor con el centro vacío (aro) | La más sobria; pierde la carita |
 
-La versión elegida para 2026 es el **sello moderno**: conserva la flor y la
-carita, pero cambia el círculo por un cuadrado redondeado que se lee mejor junto
-al wordmark y en una interfaz SaaS. Las variantes con hojas y con aro quedan como
-alternativas de marca, no como el ícono principal.
+La versión elegida para 2026 es **mirada círculo**: conserva la flor, pero
+sustituye la sonrisa por dos ojos. Se lee como un sello y no como mascota; el
+cuadrado moderno, las hojas y el aro quedan como alternativas de marca.
 
 La hoja para elegir (o confirmar) está en `marketing/logo-opciones.png` y se
 regenera con `python3 scripts/generate-logo-options.py`. Cambiar de variante es
 una línea:
+
+Para una exploración más amplia —sello limpio, mirada mínima, aro, hoja, flor
+sola y lockup— está `marketing/logo-propuestas-2026.png`, generada con
+`python3 scripts/generate-logo-proposals.py`. Son propuestas de diseño, no
+assets oficiales.
+
+La exploración específica de la **mirada mínima** (ojos, sin sonrisa) está en
+`marketing/logo-mirada-variantes.png`, generada con
+`python3 scripts/generate-logo-mirada-variants.py`: círculo, cuadrado suave,
+aro, centro blanco, hoja y sello noche.
 
 ```bash
 python3 scripts/generate-brand.py --variant=flor
@@ -67,6 +77,8 @@ Produce:
 | `src/public/brand/img/margarita-mark.svg` y `margarita-mark-*.png` | La flor sola, en un color, para fondos claros u oscuros |
 | `src/public/brand/img/margarita-icon-{64,128,256,512}.png` | Encabezados del panel, pantalla de acceso, setup |
 | `src/public/brand/img/margarita-wordmark-{256,512}.png` | Símbolo + nombre, para los encabezados |
+| `src/public/brand/img/margarita-loader-petals-*.png` | Capa giratoria del aviso de carga |
+| `src/public/brand/img/margarita-loader-face-*.png` | Ojos fijos del aviso de carga |
 | `src/public/favicon-{16x16,32x32}.png` y `favicon.ico` | Pestaña del navegador |
 | `src/public/apple-touch-icon.png` y `android-chrome-*.png` | Al agregarlo a la pantalla de inicio |
 
@@ -91,15 +103,16 @@ forma de contestar.
 
 ### Cómo se mueve el sello
 
-El sello tiene una sola animación, y es la del aviso de carga: **el sello no
-gira** (la cara quedaría de cabeza y se pierde lo que lo hace reconocible). Lo
-que gira es un aro verde alrededor, mientras el sello respira muy despacio (5%
-de escala, sin rebote). Los estilos viven en `.marga-loader` y `.marga-overlay`
-de `src/assets/css/input.css`, y quien los activa es `src/public/js/loading.js`.
+El sello tiene una sola animación, y es la del aviso de carga: **la flor gira
+despacio y los ojos se quedan fijos**. Para lograrlo, el loader usa dos capas
+separadas: `margarita-loader-petals-*.png` (sello, pétalos y centro) y
+`margarita-loader-face-*.png` (solo los ojos). Los estilos viven en
+`.marga-loader` y `.marga-overlay` de `src/assets/css/input.css`, y quien los
+activa es `src/public/js/loading.js`.
 
 Reglas que conviene no romper:
 
-- Nada de giros sobre el sello, ni de rebotes: la marca es tranquila.
+- Nada de giros sobre la cara ni de rebotes: la marca es tranquila.
 - Con «reducir movimiento» activado en el sistema, todo se queda quieto y el
   texto «Cargando…» es el que avisa.
 - El botón que se envió queda ocupado con un aro del color del texto: es el

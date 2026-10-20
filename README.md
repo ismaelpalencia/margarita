@@ -710,7 +710,7 @@ Todas las vistas cargan los íconos desde `src/views/partials/brand-head.ejs`, q
 | Archivo | Uso |
 | --- | --- |
 | `src/public/brand/img/margarita-wordmark-512.png` | Símbolo + nombre, en encabezados y landing |
-| `src/public/brand/img/margarita-icon-64.png` | Sello moderno (cuadrado redondeado con la flor) en las barras de navegación |
+| `src/public/brand/img/margarita-icon-64.png` | Sello de mirada (círculo con la flor y dos ojos) en las barras de navegación |
 | `src/public/brand/img/margarita-icon-128.png` | Ícono en el login y en bloques destacados |
 | `src/public/brand/img/margarita-icon-256.png` | Versión grande para fondos oscuros |
 | `src/public/brand/img/margarita-mark-*.png` y `.svg` | La flor sola, en un color, para fondos claros u oscuros |
@@ -718,9 +718,9 @@ Todas las vistas cargan los íconos desde `src/views/partials/brand-head.ejs`, q
 | `src/public/apple-touch-icon.png`, `android-chrome-*.png` | App instalada (PWA) |
 | `src/public/site.webmanifest` | Metadatos de la app instalada |
 
-El símbolo (una margarita plana, con la carita tallada) tiene siete variantes;
-la de la aplicación es `sello-moderno` (cuadrado redondeado verde profundo,
-flor blanca y centro amarillo) y se eligen con
+El símbolo (una margarita plana, con mirada mínima de dos ojos) tiene ocho
+variantes; la de la aplicación es `mirada-circulo` (sello circular verde
+profundo, flor blanca y centro amarillo) y se eligen con
 `python3 scripts/generate-brand.py --variant=flor`. Todo está explicado en
 [`docs/marca.md`](docs/marca.md), con la hoja comparativa en
 `marketing/logo-opciones.png` (`scripts/generate-logo-options.py`).

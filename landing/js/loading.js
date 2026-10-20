@@ -1,11 +1,11 @@
 /**
- * Aviso de "cargando" con el sello de Margarita.
+ * Aviso de "cargando" con la margarita de Margarita.
  *
  * Dos momentos distintos, con la misma pieza:
  *
  * 1. **Cambio de pantalla** (un enlace o un formulario): aparece una capa con
- *    el sello y un aro girando. Se retrasa 160 ms a propósito: si la respuesta
- *    es instantánea, no se alcanza a ver y la navegación se siente más rápida.
+ *    la flor girando y la mirada fija. Se muestra de inmediato; si la respuesta
+ *    es instantánea, apenas se alcanza a ver.
  * 2. **Botón ocupado**: el botón que se envió se queda con un aro diminuto y
  *    sin poder tocarse otra vez, para que nadie mande el mensaje dos veces.
  *
@@ -43,12 +43,15 @@
         }
 
         /**
-         * La ruta del sello viene del `meta`: en la app es absoluta y en el
-         * sitio estático es relativa, y el script es el mismo para los dos.
+         * Las rutas de las capas vienen del `meta`: en la app son absolutas y
+         * en el sitio estático relativas; el script es el mismo para los dos.
          */
-        var sealTag = document.querySelector('meta[name="marga-seal"]');
-        var seal = (sealTag && sealTag.getAttribute("content")) ||
-            "/brand/img/margarita-icon-128.png";
+        var petalsTag = document.querySelector('meta[name="marga-loader-petals"]');
+        var faceTag = document.querySelector('meta[name="marga-loader-face"]');
+        var petals = (petalsTag && petalsTag.getAttribute("content")) ||
+            "/brand/img/margarita-loader-petals-128.png";
+        var face = (faceTag && faceTag.getAttribute("content")) ||
+            "/brand/img/margarita-loader-face-128.png";
 
         overlay = document.createElement("div");
         overlay.className = "marga-overlay";
@@ -56,8 +59,10 @@
         overlay.setAttribute("role", "status");
         overlay.innerHTML =
             '<div class="marga-loader">' +
-            '<span class="marga-loader__ring" aria-hidden="true"></span>' +
-            '<img src="' + seal + '" alt="" class="marga-loader__seal" />' +
+            '<span class="marga-loader__flower" aria-hidden="true">' +
+            '<img src="' + petals + '" alt="" class="marga-loader__petals" />' +
+            '<img src="' + face + '" alt="" class="marga-loader__face" />' +
+            "</span>" +
             "</div>" +
             '<p class="marga-overlay__text">Cargando…</p>';
 

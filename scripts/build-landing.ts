@@ -33,7 +33,7 @@ const PAGES: Array<{ view: string; file: string; title: string }> = [
     {
         view: "pages/home/index",
         file: "index.html",
-        title: "Margarita - WhatsApp operativo"
+        title: "Margarita — Cobranza por WhatsApp con seguridad bancaria"
     },
     {
         view: "pages/home/how-to-start",

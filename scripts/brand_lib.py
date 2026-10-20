@@ -7,15 +7,17 @@ sí se ejecutan:
 - `python3 scripts/generate-brand.py` → los archivos de la aplicación.
 - `python3 scripts/generate-promo.py` → la imagen para WhatsApp.
 
-La idea del símbolo: **un solo color, sin sombras ni degradados**, como los
-marcas de Ollama o GitHub. Lo que se reconoce es la silueta de la flor; la
-carita va tallada dentro del centro (en hueco), así que funciona igual sobre
-fondo claro y oscuro, y a 16 px se sigue leyendo.
+La idea del símbolo: **plano, sin sombras ni degradados**, como las marcas de
+Ollama o GitHub. El sello combina verde profundo, flor blanca y centro amarillo;
+la flor sola sigue siendo de un color. Lo que se reconoce es la silueta de la
+flor y la mirada mínima, que se mantiene legible a 16 px.
 
 Variantes (`variant`):
 
-- `sello-hojas`: círculo lleno con la flor en negativo y dos hojas en la base.
+- `mirada-circulo`: sello circular con flor blanca, centro amarillo y dos ojos.
   **Es la elegida** para la aplicación y los favicons.
+- `sello-hojas`: círculo lleno con la flor en negativo y dos hojas en la base.
+  Alternativa botánica.
 - `sello-sol`: igual, con el centro amarillo.
 - `sello` / `sello-anillo`: el sello liso y con un aro fino por dentro.
 - `flor`: solo la flor, sin caja. La más "Ollama".
@@ -239,6 +241,7 @@ def daisy_badge(
     background=GREEN,
     glyph=WHITE,
     face=True,
+    expression="smile",
     glyph_scale=GLYPH_SCALE,
     core=None,
     face_color=None,
@@ -326,21 +329,31 @@ def daisy_badge(
                 fill=carved,
             )
 
-        smile_top_left = to_pixels(SMILE_BOX[0], SMILE_BOX[1])
-        smile_bottom_right = to_pixels(SMILE_BOX[2], SMILE_BOX[3])
+        if expression == "smile":
+            smile_top_left = to_pixels(SMILE_BOX[0], SMILE_BOX[1])
+            smile_bottom_right = to_pixels(SMILE_BOX[2], SMILE_BOX[3])
 
-        draw.arc(
-            (
-                smile_top_left[0],
-                smile_top_left[1],
-                smile_bottom_right[0],
-                smile_bottom_right[1],
-            ),
-            start=SMILE_FROM,
-            end=SMILE_TO,
-            fill=carved,
-            width=max(2, round(SMILE_WIDTH * scale)),
-        )
+            draw.arc(
+                (
+                    smile_top_left[0],
+                    smile_top_left[1],
+                    smile_bottom_right[0],
+                    smile_bottom_right[1],
+                ),
+                start=SMILE_FROM,
+                end=SMILE_TO,
+                fill=carved,
+                width=max(2, round(SMILE_WIDTH * scale)),
+            )
+        elif expression == "neutral":
+            draw.line(
+                [
+                    to_pixels(CENTER - 40, CENTER + 78),
+                    to_pixels(CENTER + 40, CENTER + 78),
+                ],
+                fill=carved,
+                width=max(2, round(SMILE_WIDTH * scale)),
+            )
 
     return image.resize((size, size), Image.LANCZOS)
 
@@ -351,6 +364,7 @@ def daisy_tile(
     glyph=WHITE,
     core=SUN_400,
     face=True,
+    expression="smile",
     glyph_scale=0.8,
 ):
     """
@@ -399,19 +413,54 @@ def daisy_tile(
                 fill=carved,
             )
 
-        smile_top_left = to_pixels(SMILE_BOX[0], SMILE_BOX[1])
-        smile_bottom_right = to_pixels(SMILE_BOX[2], SMILE_BOX[3])
-        draw.arc(
-            (
-                smile_top_left[0],
-                smile_top_left[1],
-                smile_bottom_right[0],
-                smile_bottom_right[1],
-            ),
-            start=SMILE_FROM,
-            end=SMILE_TO,
-            fill=carved,
-            width=max(2, round(SMILE_WIDTH * scale)),
+        if expression == "smile":
+            smile_top_left = to_pixels(SMILE_BOX[0], SMILE_BOX[1])
+            smile_bottom_right = to_pixels(SMILE_BOX[2], SMILE_BOX[3])
+            draw.arc(
+                (
+                    smile_top_left[0],
+                    smile_top_left[1],
+                    smile_bottom_right[0],
+                    smile_bottom_right[1],
+                ),
+                start=SMILE_FROM,
+                end=SMILE_TO,
+                fill=carved,
+                width=max(2, round(SMILE_WIDTH * scale)),
+            )
+        elif expression == "neutral":
+            draw.line(
+                [
+                    to_pixels(CENTER - 40, CENTER + 78),
+                    to_pixels(CENTER + 40, CENTER + 78),
+                ],
+                fill=carved,
+                width=max(2, round(SMILE_WIDTH * scale)),
+            )
+
+    return image.resize((size, size), Image.LANCZOS)
+
+
+def daisy_face_layer(size, color=GREEN_TILE):
+    """
+    Solo los ojos de la mirada mínima, en una capa transparente.
+
+    Se usa para el loader: los pétalos giran y esta capa se queda fija encima,
+    así la cara nunca queda de cabeza.
+    """
+    big = size * SUPERSAMPLE
+    to_pixels, _ = mapper(big, 0.82)
+    image = Image.new("RGBA", (big, big), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+
+    for side in (-1, 1):
+        x = CENTER + side * EYE_DX
+        y = CENTER + EYE_DY
+        top_left = to_pixels(x - EYE_RX, y - EYE_RY)
+        bottom_right = to_pixels(x + EYE_RX, y + EYE_RY)
+        draw.ellipse(
+            (top_left[0], top_left[1], bottom_right[0], bottom_right[1]),
+            fill=color + (255,),
         )
 
     return image.resize((size, size), Image.LANCZOS)
@@ -476,6 +525,23 @@ def glyph_svg(variant="flor"):
         )
         return _svg_document(body)
 
+    if variant == "mirada-circulo":
+        eyes = (
+            f'  <ellipse cx="{CENTER - EYE_DX:.0f}" cy="{CENTER + EYE_DY:.0f}" '
+            f'rx="{EYE_RX}" ry="{EYE_RY}" fill="{hex_color(GREEN_TILE)}"/>'
+            f'\n  <ellipse cx="{CENTER + EYE_DX:.0f}" cy="{CENTER + EYE_DY:.0f}" '
+            f'rx="{EYE_RX}" ry="{EYE_RY}" fill="{hex_color(GREEN_TILE)}"/>'
+        )
+        body = (
+            f'  <circle cx="{CENTER:.0f}" cy="{CENTER:.0f}" r="{CENTER:.0f}" '
+            f'fill="{hex_color(GREEN_TILE)}"/>\n'
+            + "\n".join(petal.replace('fill="currentColor"', 'fill="#fff"') for petal in petals)
+            + f'\n  <circle cx="{CENTER:.0f}" cy="{CENTER:.0f}" r="{CORE_RADIUS}" '
+            f'fill="{hex_color(SUN_400)}"/>\n'
+            + eyes
+        )
+        return _svg_document(body)
+
     if variant == "sello":
         body = (
             f'  <circle cx="{CENTER:.0f}" cy="{CENTER:.0f}" r="{CENTER:.0f}" fill="currentColor"/>\n'
@@ -529,7 +595,7 @@ def _svg_document(body, defs=""):
 """
 
 
-def wordmark(height, variant="sello-moderno"):
+def wordmark(height, variant="mirada-circulo"):
     """Símbolo + nombre, para los encabezados. Usa el mismo símbolo que el ícono."""
     icon = draw_icon(height, variant)
     font = load_font(round(height * 0.56))
@@ -554,6 +620,7 @@ def wordmark(height, variant="sello-moderno"):
 
 
 VARIANTS = (
+    "mirada-circulo",
     "sello-moderno",
     "sello",
     "sello-sol",
@@ -564,8 +631,18 @@ VARIANTS = (
 )
 
 
-def draw_icon(size, variant="sello-moderno"):
+def draw_icon(size, variant="mirada-circulo"):
     """El símbolo como se usa en la aplicación, según la variante pedida."""
+    if variant == "mirada-circulo":
+        return daisy_badge(
+            size,
+            background=GREEN_TILE,
+            core=SUN_400,
+            face_color=GREEN_TILE,
+            expression="eyes",
+            glyph_scale=0.82,
+        )
+
     if variant == "sello-moderno":
         return daisy_tile(size)
 
@@ -589,7 +666,7 @@ def draw_icon(size, variant="sello-moderno"):
     return daisy_glyph(size, GREEN, face=True)
 
 
-def write_app_assets(variant="sello-moderno"):
+def write_app_assets(variant="mirada-circulo"):
     """Escribe los archivos que usa la aplicación."""
     os.makedirs(BRAND_DIR, exist_ok=True)
 
@@ -605,6 +682,22 @@ def write_app_assets(variant="sello-moderno"):
         )
         daisy_glyph(size, GREEN).save(
             os.path.join(BRAND_DIR, f"margarita-mark-{size}.png")
+        )
+
+    # Capas del loader: los pétalos giran y la cara se queda fija.
+    # La flor se dibuja sin ojos; la capa de la cara va aparte y transparente.
+    for size in (128, 256):
+        daisy_badge(
+            size,
+            background=GREEN_TILE,
+            core=SUN_400,
+            face=False,
+            glyph_scale=0.82,
+        ).save(
+            os.path.join(BRAND_DIR, f"margarita-loader-petals-{size}.png")
+        )
+        daisy_face_layer(size, GREEN_TILE).save(
+            os.path.join(BRAND_DIR, f"margarita-loader-face-{size}.png")
         )
 
     for size in (256, 512):

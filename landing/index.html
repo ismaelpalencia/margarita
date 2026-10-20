@@ -4,7 +4,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Margarita - WhatsApp operativo</title>
+        <title>Margarita — Cobranza por WhatsApp con seguridad bancaria</title>
 
 
 
@@ -22,6 +22,8 @@
 
 
 <meta name="marga-seal" content="brand/img/margarita-icon-128.png" />
+<meta name="marga-loader-petals" content="brand/img/margarita-loader-petals-128.png" />
+<meta name="marga-loader-face" content="brand/img/margarita-loader-face-128.png" />
 
 <style>
     #marga-boot {
@@ -42,21 +44,25 @@
         pointer-events: none;
     }
 
-    #marga-boot .marga-boot__seal {
+    #marga-boot .marga-boot__flower {
+        position: relative;
         width: 3rem;
         height: 3rem;
         filter: drop-shadow(0 6px 14px rgb(15 111 74 / 0.16));
     }
 
-    #marga-boot .marga-boot__ring {
+    #marga-boot .marga-boot__petals {
+        width: 100%;
+        height: 100%;
+        animation: marga-boot-flor 7s linear infinite;
+        transform-origin: 50% 50%;
+    }
+
+    #marga-boot .marga-boot__face {
         position: absolute;
-        width: 4.4rem;
-        height: 4.4rem;
-        border-radius: 9999px;
-        border: 2.5px solid transparent;
-        border-top-color: #0c5b4c;
-        border-right-color: #f2c14e;
-        animation: marga-boot-girar 850ms linear infinite;
+        inset: 0;
+        width: 100%;
+        height: 100%;
     }
 
     #marga-boot .marga-boot__text {
@@ -65,14 +71,14 @@
         letter-spacing: 0.02em;
     }
 
-    @keyframes marga-boot-girar {
+    @keyframes marga-boot-flor {
         to {
             transform: rotate(360deg);
         }
     }
 
     @media (prefers-reduced-motion: reduce) {
-        #marga-boot .marga-boot__ring {
+        #marga-boot .marga-boot__petals {
             animation: none;
         }
     }
@@ -80,25 +86,28 @@
 
 <script>
     /**
-     * Capa de arranque. Se crea aquí mismo, con el sello y el texto ya
+     * Capa de arranque. Se crea aquí mismo, con la flor y el texto ya
      * dibujados, y se retira cuando la página termina de cargar. Tiene un
      * mínimo de 250 ms (para que no sea un parpadeo) y un máximo de 6 s (para
      * que un recurso colgado no deje la pantalla tapada).
      */
     (function () {
         var created = Date.now();
-        var sealTag = document.querySelector('meta[name="marga-seal"]');
-        var seal = (sealTag && sealTag.getAttribute("content")) ||
-            "/brand/img/margarita-icon-128.png";
+        var petalsTag = document.querySelector('meta[name="marga-loader-petals"]');
+        var faceTag = document.querySelector('meta[name="marga-loader-face"]');
+        var petals = (petalsTag && petalsTag.getAttribute("content")) ||
+            "/brand/img/margarita-loader-petals-128.png";
+        var face = (faceTag && faceTag.getAttribute("content")) ||
+            "/brand/img/margarita-loader-face-128.png";
 
         var layer = document.createElement("div");
         layer.id = "marga-boot";
         layer.setAttribute("role", "status");
         layer.setAttribute("aria-live", "polite");
         layer.innerHTML =
-            '<div style="position:relative;display:flex;align-items:center;justify-content:center">' +
-            '<span class="marga-boot__ring" aria-hidden="true"></span>' +
-            '<img src="' + seal + '" alt="" class="marga-boot__seal" />' +
+            '<div class="marga-boot__flower" aria-hidden="true">' +
+            '<img src="' + petals + '" alt="" class="marga-boot__petals" />' +
+            '<img src="' + face + '" alt="" class="marga-boot__face" />' +
             "</div>" +
             '<p class="marga-boot__text">Cargando…</p>';
 

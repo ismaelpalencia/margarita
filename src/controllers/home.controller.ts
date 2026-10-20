@@ -63,7 +63,7 @@ export class HomeController {
         }
 
         return res.render("pages/home/index", {
-            title: "Margarita - WhatsApp operativo",
+            title: "Margarita — Cobranza por WhatsApp con seguridad bancaria",
             ...supportContext()
         });
     }

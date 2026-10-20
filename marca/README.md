@@ -13,11 +13,11 @@ python3 scripts/export-brand-assets.py
 
 ## Qué hay en cada carpeta
 
-### `sello/` — el símbolo moderno
+### `sello/` — el símbolo de mirada
 
-El sello cuadrado redondeado verde profundo, con la flor blanca, el centro
-amarillo y la cara. Es la marca de la app: favicon, ícono de la pestaña, avatar
-de WhatsApp y de redes.
+El sello circular verde profundo, con la flor blanca, el centro amarillo y dos
+ojos sin sonrisa. Es la marca de la app: favicon, ícono de la pestaña, avatar de
+WhatsApp y de redes.
 
 | Archivo | Para qué |
 | --- | --- |

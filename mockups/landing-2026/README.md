@@ -46,9 +46,9 @@ Los precios y enlaces de contacto son los vigentes del producto.
 
 ## Dirección de marca
 
-La maqueta conserva el símbolo de la margarita con cara, pero lo lleva a un
-**sello rectangular redondeado**: fondo verde profundo, flor blanca y centro
-amarillo. La carita sigue ahí, a tamaño de encabezado y de pie de página.
+La maqueta conserva el símbolo de la margarita, pero lo lleva a un **sello
+circular**: fondo verde profundo, flor blanca, centro amarillo y dos ojos sin
+sonrisa. La mirada sigue ahí, a tamaño de encabezado y de pie de página.
 
 La palabra “Margarita” va en una sans geométrica, con tracking cerrado, y el
 amarillo de la marca se usa como acento de acción en lugar de naranja. Es el

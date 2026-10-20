@@ -75,30 +75,29 @@
     }
 
     /**
-     * Indicador de carga con el sello de la marca.
+     * Indicador de carga con la margarita.
      *
-     * El sello **no gira**: la cara quedaría de cabeza y se pierde justo lo que
-     * hace reconocible a Margarita. Lo que gira es un aro alrededor, mientras el
-     * sello respira muy despacio (un 5% de escala, sin rebote). Así se lee como
-     * "estoy trabajando" y no como un spinner genérico.
+     * La flor gira despacio, pero los ojos viven en una capa aparte que no
+     * rota: la cara nunca queda de cabeza. Es un detalle de marca, no un
+     * spinner genérico.
      */
     .marga-loader {
         @apply relative inline-flex items-center justify-center;
     }
 
-    .marga-loader__seal {
-        @apply h-12 w-12;
+    .marga-loader__flower {
+        @apply relative h-12 w-12;
         filter: drop-shadow(0 6px 14px rgb(15 111 74 / 0.16));
-        animation: marga-latir 2.2s ease-in-out infinite;
     }
 
-    .marga-loader__ring {
-        @apply absolute rounded-full;
-        inset: -0.6rem;
-        border: 3px solid transparent;
-        border-top-color: var(--color-margarita-500);
-        border-right-color: var(--color-margarita-300);
-        animation: marga-girar 800ms linear infinite;
+    .marga-loader__petals {
+        @apply h-full w-full;
+        animation: marga-flor 7s linear infinite;
+        transform-origin: 50% 50%;
+    }
+
+    .marga-loader__face {
+        @apply absolute inset-0 h-full w-full;
     }
 
     /**
@@ -312,6 +311,12 @@
     }
 }
 
+@keyframes marga-flor {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 @keyframes marga-latir {
     0%,
     100% {
@@ -324,12 +329,12 @@
 }
 
 /**
- * Con "reducir movimiento" activado no se anima nada: el aro y el sello se
+ * Con "reducir movimiento" activado no se anima nada: la flor y el sello se
  * quedan quietos y el texto sigue diciendo que algo está en curso.
  */
 @media (prefers-reduced-motion: reduce) {
-    .marga-loader__ring,
-    .marga-loader__seal,
+    .marga-loader__petals,
+    .marga-boot__petals,
     [data-marga-loading="true"]::after {
         animation: none;
     }

@@ -39,8 +39,8 @@ def main():
     draw = ImageDraw.Draw(image)
 
     options = [
-        ("A · sello moderno · actual", "sello-moderno"),
-        ("B · sello base", "sello"),
+        ("A · mirada circular · actual", "mirada-circulo"),
+        ("B · sello moderno", "sello-moderno"),
         ("C · centro amarillo", "sello-sol"),
         ("D · con hojas", "sello-hojas"),
         ("E · con aro", "sello-anillo"),
@@ -51,7 +51,7 @@ def main():
     draw.text((60, TITLE_Y), "Margarita · opciones de símbolo", font=load_font(44), fill=GREEN_DARK)
     draw.text(
         (60, TITLE_Y + 58),
-        "Actual: A · sello moderno. El tamaño real de la pestaña es el más chico de la fila de en medio.",
+        "Actual: A · mirada circular. El tamaño real de la pestaña es el más chico de la fila de en medio.",
         font=load_font(24, bold=False),
         fill=SLATE_500,
     )
@@ -104,8 +104,8 @@ def main():
             )
 
     notes = [
-        "A · sello moderno: cuadrado redondeado verde profundo, flor blanca y centro amarillo. Conserva la cara.",
-        "B · sello base: círculo verde y blanco, sin más.",
+        "A · mirada circular: sello verde, flor blanca, centro amarillo y dos ojos.",
+        "B · sello moderno: cuadrado redondeado, flor blanca y centro amarillo.",
         "C · centro amarillo: el centro en el amarillo de la marca.",
         "D · con hojas: dos hojas en la base, como flor cortada.",
         "E · con aro: un aro fino por dentro del borde.",
