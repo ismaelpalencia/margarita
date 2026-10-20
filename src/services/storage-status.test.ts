@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 
-import { isMountPoint } from "./storage-status.service";
+import { ensureMediaDirectory, isMountPoint } from "./storage-status.service";
 
 /**
  * Líneas reales de `/proc/self/mountinfo` (recortadas): el punto de montaje es
@@ -27,4 +30,19 @@ test("un directorio dentro del contenedor no es Volume", () => {
 
 test("sin información de montajes no se inventa persistencia", () => {
     assert.equal(isMountPoint("/data", ""), false);
+});
+
+test("crea la subcarpeta de medios cuando el punto de montaje ya existe", () => {
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), "margarita-media-"));
+    const media = path.join(base, "media");
+
+    try {
+        const status = ensureMediaDirectory(media);
+
+        assert.equal(status.exists, true);
+        assert.equal(status.writable, true);
+        assert.equal(fs.existsSync(media), true);
+    } finally {
+        fs.rmSync(base, { recursive: true, force: true });
+    }
 });

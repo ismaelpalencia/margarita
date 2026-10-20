@@ -237,8 +237,8 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | Variable | Obligatoria | Descripción |
 | --- | --- | --- |
 | `APP_NAME` | No | Nombre de la aplicación. Default `Margarita` |
-| `APP_URL` | Producción | URL pública base **con esquema** (`https://dominio`). Se usa para CORS, socket.io, la validación CSRF y la URL del webhook. Si falta, se toma `RAILWAY_PUBLIC_DOMAIN`, así que en Railway se puede dejar vacía |
-| `PORT` | Sí | Puerto HTTP. Default `3000` |
+| `APP_URL` | Producción con dominio propio | URL pública base **con esquema** (`https://dominio`). Se usa para CORS, socket.io, la validación CSRF y la URL del webhook. Con el dominio que da Railway puede quedar vacía; con dominio propio es obligatoria |
+| `PORT` | No en Railway | Puerto HTTP. En local el default es `3000`; en Railway no la definas, porque el proveedor la inyecta |
 | `NODE_ENV` | Sí | `development` o `production` (activa cookies `secure`) |
 | `TIMEZONE` | No | Default `America/Mexico_City` |
 | `DATABASE_URL` | Sí | Cadena de conexión de PostgreSQL |
@@ -567,7 +567,7 @@ El cliente vive en `src/public/js/live.js` y se activa con atributos en `<body>`
 - **Bloqueo por fuerza bruta**: el login tiene su propio límite (10 peticiones por 15 minutos por IP) y, a nivel de cuenta, se bloquea `LOGIN_LOCK_MINUTES` minutos tras `LOGIN_MAX_ATTEMPTS` intentos fallidos. Cada intento fallido, cada bloqueo y cada acceso correcto quedan en la bitácora.
 - **Protección CSRF**: toda petición que cambia estado debe traer un `Origin` (o `Referer`) que coincida con `APP_URL`. Un formulario alojado en otro sitio recibe `403`. Las peticiones sin `Origin` (curl, healthchecks, webhooks de Meta) se permiten porque no son navegadores.
 - **`APP_URL` tolerante**: el valor se normaliza al arrancar, así que un dominio pegado sin `https://` (como lo muestra Railway) funciona igual y deja un aviso en los logs en lugar de desactivar la validación de origen en silencio. `/health` expone `publicUrl` para comprobar desde fuera qué URL cree tener la app.
-- **Alta sin configurar variables**: si `APP_URL` no está definida, se usa el dominio público de Railway; mientras la instalación no tenga empresa ni admin, la raíz y la pantalla de login llevan al asistente `/setup`; y `railway.json` deja el build, las migraciones, el arranque y el healthcheck listos para la plantilla.
+- **Alta con mínima configuración**: si `APP_URL` no está definida se usa el dominio público de Railway (con dominio propio hay que fijarla); mientras la instalación no tenga empresa ni admin, la raíz y la pantalla de login llevan al asistente `/setup`; y `railway.json` deja el build, las migraciones, el arranque y el healthcheck listos para la plantilla.
 - **Cifrado en reposo**: con AES-256-GCM y `ENCRYPTION_KEY` se cifran los tokens de Meta, el teléfono y las notas de cada contacto, el contenido y los payloads de cada mensaje, las variables de campaña, los números de la WABA, el correo de acceso de cada usuario y la bitácora. El descifrado es transparente al leer, así que el panel no cambia. Los datos guardados antes de habilitar el cifrado se siguen leyendo y se migran con `npm run db:encrypt-data` (o `db:encrypt-secrets` solo para los tokens); el correo y su índice se completan solos al arrancar el servicio. Teléfono y correo se comparan por su índice ciego (`phoneHash`, `emailHash`), con la misma llave.
 - **Firma de webhook**: HMAC-SHA256 con comparación en tiempo constante.
 - **Validación**: todos los cuerpos de entrada pasan por esquemas Zod.
@@ -577,7 +577,7 @@ El cliente vive en `src/public/js/live.js` y se activa con atributos en `<body>`
 - **Proxy**: `trust proxy` activo, porque la app corre detrás de un proxy en producción.
 - **Secretos**: los tokens se muestran enmascarados y el objeto que consume la vista no incluye el valor en claro. Además, la bitácora redacta cualquier campo que parezca credencial (`token`, `secret`, `password`, `authorization`) antes de guardarlo.
 - **Retención**: la bitácora se purga a los `LOG_RETENTION_DAYS` días y los eventos de webhook ya resueltos a los `WEBHOOK_EVENT_RETENTION_DAYS`, para acotar el crecimiento y la exposición de datos personales.
-- **Monitoreo**: `/health` reporta base de datos, profundidad de la cola, evento pendiente más antiguo, estado del worker y si falta alguna variable de seguridad. Devuelve `503` solo si la base está caída. También expone `webhook.received`, `webhook.enqueued`, `webhook.rejected` y `lastRejectionReason`: así se distingue "Meta no envía nada" de "Meta envía y lo estamos rechazando" sin entrar al panel.
+- **Monitoreo**: `/health` reporta base de datos, profundidad de la cola, evento pendiente más antiguo, estado del worker y si falta alguna variable de seguridad. En producción, sin `HEALTH_TOKEN`, solo publica `{ok, status, timestamp}`; el detalle exige `?token=`. Devuelve `503` si la base está caída o si la cola no se puede leer (por ejemplo, migraciones sin aplicar). También expone `webhook.received`, `webhook.enqueued`, `webhook.rejected` y `lastRejectionReason`: así se distingue "Meta no envía nada" de "Meta envía y lo estamos rechazando" sin entrar al panel.
 - **Resiliencia**: Express 4 no propaga los errores de los handlers asíncronos, así que una promesa rechazada podía tumbar el proceso completo. Ahora se registran y se avisan sin detener el servicio, y `/health` reporta el problema real (por ejemplo, migraciones sin aplicar) con una pista accionable.
 - **Alertas**: si defines `ALERT_WEBHOOK_URL`, cada log de nivel `ERROR` dispara un aviso externo con enfriamiento configurable.
 
@@ -592,13 +592,13 @@ La guía completa paso a paso está en [`docs/deploy-railway.md`](docs/deploy-ra
 | Build command | **Déjalo vacío** en el panel: viene en `nixpacks.toml` (`npm install --include=dev` + `npm run build`). Si pones otro `npm ci` ahí, corre dos veces y falla con `EBUSY` al borrar `node_modules` |
 | Start command | `npm start` |
 | Healthcheck | `/health` |
-| Puerto | `3000` |
+| Puerto | **No definas `PORT`**: Railway la inyecta y la app escucha ahí |
 | Node | 22 (Prisma 7 no instala en Node 18) |
-| Variables clave | `DATABASE_URL` (referencia al plugin de Postgres), `APP_URL` con el dominio público HTTPS, `NODE_ENV=production`, `JWT_SECRET` y las `META_*` |
+| Variables clave | `DATABASE_URL` (referencia al plugin de Postgres), `NODE_ENV=production`, `JWT_SECRET`, `ENCRYPTION_KEY` y `META_APP_SECRET`. `APP_URL` va vacía con dominio de Railway y es obligatoria con dominio propio |
 
 Los cinco tropiezos más comunes: que el build use **Node 18** y Prisma 7 se niegue a instalar (se resuelve con `NIXPACKS_NODE_VERSION=22.12.0` en el servicio; el repo ya declara `engines`, `.nvmrc` y `nixpacks.toml`), dejar un **Build Command** en el servicio que duplique la instalación (`EBUSY` al borrar `node_modules`), dejar `APP_URL` apuntando a localhost (rompe CORS y el socket), olvidar `META_APP_SECRET` (el webhook responde 401 en producción) y olvidar `ENCRYPTION_KEY` (nada se cifra en la base).
 
-El proyecto usa migraciones versionadas. Lo más simple es dejar que Railway las aplique dentro del contenedor, sin exponer la base ni copiar credenciales: configura el Pre-deploy Command con `node dist/tools/deploy-migrations.js`. Ese script detecta el estado de la base y resuelve los tres casos (base nueva, base existente sin historial y base ya baselinada) de forma idempotente.
+El proyecto usa migraciones versionadas. Lo más simple es dejar que Railway las aplique dentro del contenedor, sin exponer la base ni copiar credenciales: `railway.json` ya trae el Pre-deploy Command `node dist/tools/deploy-migrations.js`. Ese script detecta el estado de la base y resuelve los tres casos (base nueva, base existente sin historial y base ya baselinada) de forma idempotente; no lo dupliques en el panel.
 
 Si prefieres hacerlo a mano desde tu máquina, el orden para una base que venía funcionando con `db push` es marcar la migración inicial como aplicada y luego desplegar la nueva:
 

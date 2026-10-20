@@ -3,6 +3,12 @@
 Cómo se publica sin actualizar a todos los clientes al mismo tiempo, y cómo se
 revierte si algo sale mal. Es configuración y disciplina, no código.
 
+> **Estado actual (19 de octubre de 2026):** el repositorio solo tiene `main`.
+> `release` todavía **no existe**, así que las instalaciones nuevas se conectan
+> a `main` y cada push las actualiza. Este documento describe el modelo al que
+> conviene pasar antes de tener clientes reales; no lo tomes como configuración
+> ya aplicada.
+
 ---
 
 ## 1. El mapa

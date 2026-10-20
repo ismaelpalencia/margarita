@@ -59,20 +59,28 @@ lee primero de ahí y, si el archivo ya no está, lo trae de R2.
 
 ### Crear el bucket
 
-1. **R2 → Create bucket** → nombre `margarita-backup` (uno por entorno).
+1. **R2 → Create bucket** → un bucket **por instalación**, por ejemplo
+   `margarita-despacho`, `margarita-palencia`, `margarita-cliente-x`.
+   No reutilices el bucket de tu despacho para un cliente.
 2. Región automática.
 3. **No** lo hagas público: los archivos se sirven por la app, que valida la
    sesión y el permiso sobre la conversación.
 
+Los respaldos se guardan como `backups/<archivo>` y no llevan el workspace en
+el nombre. Por eso un bucket compartido puede pisar copias de otro cliente. Si
+más adelante quieres un solo bucket, primero hay que cambiar el código para
+prefijar `backups/<workspace>/`.
+
 ### Crear el token
 
 1. **R2 → Manage R2 API Tokens → Create API token**.
-2. Permiso: **Object Read & Write**, solo sobre ese bucket.
+2. Permiso: **Object Read & Write**, solo sobre ese bucket (no “todos los
+   buckets”).
 3. Guarda estos cuatro datos (los vas a pegar en Railway, no en el repo):
 
 ```
 R2_ACCOUNT_ID=...
-R2_BUCKET=margarita-backup
+R2_BUCKET=margarita-<slug-del-cliente>
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
 ```
@@ -114,8 +122,8 @@ Cloudflare inyecta el script en Pages; no usa cookies.
 
 ## 7. Cómo comprobar que quedó
 
-1. En Railway, las cuatro variables `R2_*` apuntan al bucket
-   `margarita-backup`.
+1. En Railway, las cuatro variables `R2_*` de **esa instalación** apuntan a su
+   bucket exclusivo.
 2. Admin → Sistema muestra el resumen de R2 con objetos, tamaño y fecha del
    último.
 3. Crea un respaldo a mano desde Admin → Respaldos y comprueba que aparece en
@@ -124,4 +132,4 @@ Cloudflare inyecta el script en Pages; no usa cookies.
    lo tendrá en la caché local y también en `media/` del bucket.
 
 > Los secretos van en **Variables de Railway**, nunca en el repositorio, y el
-> bucket se queda privado.
+> bucket se queda privado. Un token de R2 no debe servir para dos clientes.

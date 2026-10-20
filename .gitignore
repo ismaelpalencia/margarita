@@ -21,6 +21,9 @@ __pycache__/
 # Intermedios del generador de PDF (el PDF final vive en output/pdf/)
 tmp/
 
+# Documentos legales privados (contratos, credenciales y datos de clientes)
+/legal-privado/
+
 
 # Basura del sistema
 .DS_Store

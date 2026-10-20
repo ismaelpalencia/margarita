@@ -44,6 +44,8 @@ export class SetupController {
          * para que nadie active un cliente que va a perder datos.
          */
         if (storageBlocksSetup()) {
+            const storage = storageStatus();
+
             return res.status(409).render("pages/setup/index", {
                 appName: appConfig.name,
                 values: {
@@ -65,8 +67,8 @@ export class SetupController {
                             : ""
                 },
                 error:
-                    "Antes de activar la instalación, monta un Volume y apunta MEDIA_STORAGE_DIR a esa carpeta. " +
-                    `Hoy los archivos se guardan en ${storageStatus().dir}, que se borra en cada despliegue.`
+                    "Antes de activar la instalación, monta un Volume y apunta MEDIA_STORAGE_DIR a una carpeta dentro de él. " +
+                    `${storage.message} `
             });
         }
 

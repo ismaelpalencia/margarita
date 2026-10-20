@@ -6,6 +6,7 @@ import { logger } from "./config/logger";
 import { registerProcessGuards } from "./config/process-guards";
 import { startBackgroundJobs } from "./jobs";
 import { backfillUserEmails } from "./jobs/email-hash.job";
+import { ensureMediaDirectory } from "./services/storage-status.service";
 import { initSocket } from "./sockets";
 
 const server = http.createServer(app);
@@ -22,6 +23,18 @@ initSocket(server);
  * despliegue.
  */
 async function bootstrap() {
+    const storage = ensureMediaDirectory();
+
+    if (appConfig.env === "production" && !storage.persistent) {
+        logger.warn(
+            {
+                dir: storage.dir,
+                message: storage.message
+            },
+            "El almacenamiento de archivos no está en un Volume. Revisa MEDIA_STORAGE_DIR y el punto de montaje."
+        );
+    }
+
     try {
         await backfillUserEmails();
     } catch (error) {

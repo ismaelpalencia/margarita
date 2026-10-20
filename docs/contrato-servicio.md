@@ -1,5 +1,10 @@
 # Contrato de prestación de servicios — Margarita
 
+> **Versión pública resumida.** El contrato operativo con anexos de piloto,
+> compromiso, datos y accesos se mantiene **fuera de Git**, en una carpeta
+> privada, porque se llena con datos de cada cliente. Esta versión sirve para
+> revisar el alcance general, no para firmar sin completar los anexos.
+
 > **Borrador para revisión legal.** No sustituye la revisión de un abogado.
 > Los campos entre corchetes se llenan con cada cliente.
 

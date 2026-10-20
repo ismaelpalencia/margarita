@@ -99,6 +99,29 @@ export function storageStatus(dir: string = appConfig.mediaStorageDir): StorageS
 }
 
 /**
+ * Crea la carpeta de medios si hace falta.
+ *
+ * Railway crea el punto de montaje (`/data`), pero no las subcarpetas
+ * (`/data/media`). Sin esto, el asistente veía "No existe la carpeta
+ * /data/media" aunque el Volume estuviera bien montado.
+ *
+ * Si el Volume no está montado, la carpeta se crea en la capa del contenedor
+ * y `storageStatus` sigue reportando que no es persistente: no se oculta una
+ * mala configuración.
+ */
+export function ensureMediaDirectory(
+    dir: string = appConfig.mediaStorageDir
+): StorageStatus {
+    try {
+        fs.mkdirSync(path.resolve(dir), { recursive: true });
+    } catch {
+        /* El estado de abajo explica si no existe o no se puede escribir. */
+    }
+
+    return storageStatus(dir);
+}
+
+/**
  * En producción, el alta se detiene si los archivos no van a un Volume.
  *
  * Es una decisión deliberada: activar un cliente sin eso significa que la

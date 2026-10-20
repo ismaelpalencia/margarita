@@ -1,6 +1,10 @@
 # Alta de un cliente en minutos (plantilla de Railway)
 
-Objetivo: que un cliente nuevo pase de "aceptó la propuesta" a "tiene su panel corriendo" **sin que nadie configure variables a mano**. Se logra con una plantilla de Railway publicada una sola vez, más el asistente `/setup` que ya trae la aplicación.
+Objetivo: que un cliente nuevo pase de "aceptó la propuesta" a "tiene su panel
+corriendo" con la menor configuración manual posible. La plantilla de Railway se
+publica una sola vez y el asistente `/setup` crea la empresa y el administrador;
+el único dato que sí hay que capturar aparte es el `META_APP_SECRET` (y las
+credenciales de Meta en Admin → WhatsApp).
 
 Publicar la plantilla toma **unos 15 minutos, una sola vez**. Después, cada cliente es: mandarle un enlace → entra → configura su empresa y su admin → captura sus datos de Meta (o se los ponemos nosotros como servicio).
 
@@ -18,7 +22,7 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 | `startCommand` | `npm start` |
 | `healthcheckPath` | `/health` — el despliegue se marca sano cuando la base y el worker responden. |
 | `restartPolicyType` | `ON_FAILURE` con 10 reintentos: un fallo pasajero no deja la instalación caída. |
-| **Sin `APP_URL`** | Si no está definida, la app usa `RAILWAY_PUBLIC_DOMAIN`. Era el error número uno del alta manual (rompía CSRF y la URL del webhook). |
+| **`APP_URL` opcional** | Con el dominio de Railway puede quedar vacía: la app usa `RAILWAY_PUBLIC_DOMAIN`. Con dominio propio hay que fijarla. |
 | **Asistente `/setup`** | La raíz `/` redirige ahí mientras la instalación no tenga empresa y administrador. El cliente no tiene que adivinar la ruta. |
 | **`.env.example`** | La lista completa de variables, para el camino manual. |
 
@@ -28,6 +32,8 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 2. **Agrega PostgreSQL**: en el editor de la plantilla, *Add service* → *Database* → *PostgreSQL*.
 3. **Agrega un Volume** al servicio de la app: *Add* → *Volume*, con punto de montaje `/data`.
    Sirve para los adjuntos de los clientes **y** para los respaldos; sin él se pierden en cada deploy.
+   El nombre del Volume es libre; lo que importa es que el **Mount Path** sea
+   `/data` y que `MEDIA_STORAGE_DIR` sea `/data/media`.
 4. **Variables del servicio de la app** (en el editor de la plantilla, no en el proyecto):
 
 | Variable | Valor | Por qué |
@@ -37,6 +43,7 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 | `NODE_ENV` | `production` | Cookies seguras y menos ruido en los logs. |
 | `JWT_SECRET` | `${{secret(64)}}` | Lo genera Railway por instalación. |
 | `ENCRYPTION_KEY` | `${{secret(64)}}` | **Llave del cifrado**: genera una distinta por cliente y nunca la reutilices entre instalaciones. |
+| `META_APP_SECRET` | El App Secret de la app de Meta | Valida la firma del webhook; sin él, en producción responde 401. Se captura en Variables, no en el panel. |
 | `MEDIA_STORAGE_DIR` | `/data/media` | Adjuntos en el Volume. |
 | `BACKUP_DIR` | `/data/backups` | Respaldos en el Volume. |
 | `APP_NAME` | `Margarita` | Nombre que ve el cliente. |
@@ -52,11 +59,19 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 | `INSTALL_MONTHLY_LIST_PRICE` | `$1,490.00 MXN` | La mensualidad a precio de lista. |
 | `MONTHLY_3` / `MONTHLY_6` / `MONTHLY_12` | `$649` / `$599` / `$549` | Compromisos opcionales. |
 | `PILOT_DAYS` | `30` | Duración del piloto pagado. |
-| `R2_ACCOUNT_ID` / `R2_BUCKET` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | *(opcional)* | Respaldos y adjuntos en Cloudflare R2; el bucket recomendado es `margarita-backup`. |
+| `R2_ACCOUNT_ID` / `R2_BUCKET` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | *(opcional)* | Respaldos y adjuntos en Cloudflare R2. Usa **un bucket privado por instalación**; `margarita-backup` es el de esta instalación, no el de todos los clientes. |
 
-   Marca como **requeridas** solo `DATABASE_URL`, `JWT_SECRET` y `ENCRYPTION_KEY`; el resto ya trae valor por defecto en el código.
+   Para que la app arranque y cifre, marca como **requeridas** `DATABASE_URL`,
+   `JWT_SECRET` y `ENCRYPTION_KEY`. `META_APP_SECRET` puede capturarse después,
+   pero **antes de conectar el webhook**: sin él no entra ningún mensaje.
+   El resto trae valor por defecto en el código.
 
-   > **`APP_URL` déjala vacía a propósito**: se toma sola del dominio público. Si algún cliente usa dominio propio, la fija después y listo.
+   > **`APP_URL` depende del dominio.** Con el dominio que da Railway puedes
+   > dejarla vacía: se toma de `RAILWAY_PUBLIC_DOMAIN`. Con un dominio propio
+   > (`cliente.margaritaapp.org`) es obligatoria y debe coincidir exactamente;
+   > si se queda vacía, el panel falla con 403 por origen.
+
+   > **No definas `PORT`.** Railway la inyecta; la app escucha en ese puerto.
 
 5. **Publica la plantilla** (*Publish template*) y copia el enlace: queda como `https://railway.com/new/template/<id>`.
 6. Prueba el enlace una vez con una cuenta de Railway de prueba y cronometra: es la prueba de que el alta quedó en minutos.
@@ -74,11 +89,11 @@ Pasado eso ya opera. Lo que **no** se puede automatizar y hay que decirle: la cu
 
 | Comprobación | Cómo |
 | --- | --- |
-| La app está sana | Abrir `/health`: `status healthy` y `checks.database` en true. |
+| La app está sana | Abrir `/health`: `status healthy`. El detalle de `checks.database`, cola y worker se ve con `?token=<HEALTH_TOKEN>` o en desarrollo. |
 | Migraciones aplicadas | En los logs del deploy: `[migraciones] Listo. La base quedó al día`. |
-| Cifrado configurado | `/health` → `checks.encryptionKeyConfigured` en true. |
+| Cifrado configurado | `/health?token=…` → `checks.encryptionKeyConfigured` en true, o Admin → Sistema. |
 | La instalación quedó configurada | `/` ya no redirige a `/setup` y el login funciona. |
-| Respaldos funcionando | *Admin → Respaldos*: "Al día" y la carpeta `/data/backups`. |
+| Respaldos funcionando | *Admin → Respaldos*: "Al día"; Admin → Sistema muestra R2 si está configurado. |
 | El webhook responde | En Meta, la verificación del webhook acepta la URL `https://<dominio>/webhooks/meta/whatsapp`. |
 
 ### Dos reglas sobre el Build Command del servicio
@@ -94,9 +109,9 @@ Por la misma razón, la instalación del repositorio usa `npm install` y no `npm
 | **`Prisma only supports Node.js versions 20.19+, 22.12+, 24.0+`** | El build arrancó con Node 18 (el instalador de Nixpacks corre antes que cualquier comando de build) | Agrega la variable de servicio `NIXPACKS_NODE_VERSION=22.12.0` y vuelve a desplegar. El repo ya declara `engines` y `.nvmrc`; la variable es el cinturón. |
 | **`EBUSY: resource busy or locked, rmdir '/app/node_modules/.cache'`** | El Build Command del servicio ejecuta un `npm ci` **además** de la instalación de `nixpacks.toml`: corre dos veces y el segundo borra lo que el primero instaló | Vacía el Build Command del servicio (Settings → Build) y vuelve a desplegar. La instalación ya la hace `nixpacks.toml` con `npm install`. |
 | El build falla por TypeScript | Se instaló sin devDependencies (`NODE_ENV=production`) | `nixpacks.toml` ya lo resuelve; si lo tocas, mantén `--include=dev`. |
-| El log del build muestra un `npm ci` pelón y nada más | El servicio tiene un **Build Command** propio en el panel que ignora lo del repo | Bórralo (Settings → Build) o ponlo idéntico: `npm ci --include=dev && npm run build`. |
+| El log del build muestra un `npm ci` pelón y nada más | El servicio tiene un **Build Command** propio en el panel que ignora lo del repo | Bórralo (Settings → Build). Si el panel exige un valor, usa solo `npm run build`; nunca `npm ci`. |
 | La app arranca y muere en bucle | Falta `DATABASE_URL` o la referencia al plugin | Revisa las variables del servicio; el error del log ahora lo dice explícitamente. |
-| El panel rechaza las acciones (403 de origen) | `APP_URL` apuntando a otro dominio | Déjala vacía (toma el dominio de Railway) o fíjala con el dominio real. |
+| El panel rechaza las acciones (403 de origen) | `APP_URL` apuntando a otro dominio | Con dominio de Railway puede quedar vacía; con dominio propio, fíjala con el dominio exacto. |
 | El webhook responde 401 | `META_APP_SECRET` mal capturado o de relleno | Recaptúralo en *Admin → WhatsApp*. |
 | Se pierden los adjuntos en cada deploy | No hay Volume montado en `/data` | Agrega el Volume y verifica `MEDIA_STORAGE_DIR`. |
 | Los datos cifrados no se leen | Se cambió `ENCRYPTION_KEY` | Restaura la llave original; sin ella no hay forma de recuperar el contenido. |
@@ -105,4 +120,7 @@ Por la misma razón, la instalación del repositorio usa `npm install` y no `npm
 
 1. **Railway**: el plan del cliente cubre la app + PostgreSQL + Volume. Es el costo de infraestructura que se traslada a la suscripción.
 2. **Meta**: las conversaciones las cobra Meta directo al cliente, aparte de nuestra factura.
-3. **El respaldo vive en el mismo Volume**: si el cliente borra el proyecto, se va todo. Conviene descargar un respaldo a un lugar externo de vez en cuando (Admin → Respaldos).
+3. **Respaldos y adjuntos**: con R2 configurado, las copias y los adjuntos se
+   suben al bucket privado; sin R2, viven solo en el Volume y si el cliente
+   borra el proyecto se va todo. En ambos casos conviene descargar una copia
+   externa de vez en cuando desde Admin → Respaldos.
