@@ -138,9 +138,10 @@ Meta.
 trámites legales, aviso de privacidad del cliente, migración de un CRM ajeno,
 ni teléfonos o equipos.
 
-**Precio:** `SETUP_SERVICE_PRICE`, `$1,500.00 MXN` por omisión (se captura en
-las variables de entorno y se muestra en la página pública). Es un **extra
-opcional** al precio de la instalación: sirve para quien no quiere hacer el
-trámite, y la guía sigue disponible para quien lo haga por su cuenta.
+**Precio:** va **incluida en el Paquete A** ($3,500 con instalación y primer
+mes). Si el cliente ya tiene Meta usa el **Paquete B** ($2,500) y no
+paga esta parte. Cuando se contrata por separado, se cotiza con
+`SETUP_SERVICE_PRICE` (por omisión, «se cotiza aparte»). La guía sigue
+disponible para quien prefiera hacer el trámite por su cuenta.
 
 **Contacto:** `SUPPORT_WHATSAPP` y `SUPPORT_EMAIL`.

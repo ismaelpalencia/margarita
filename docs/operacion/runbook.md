@@ -50,6 +50,7 @@ entregó.
 | --- | --- | --- |
 | Respaldo automático (cifrado) | Cada 24 horas | La app |
 | Verificar que el último respaldo sea reciente (`/health` y Admin → Respaldos) | Semanal | Operador |
+| Comprobar que la copia llegó a R2 (`Admin → Sistema`) | Semanal | Operador |
 | Descargar una copia fuera del servidor | Semanal | Operador |
 | Probar una restauración (`--dry-run`) | Mensual | Operador |
 | Respaldo manual antes de una migración destructiva | Cada vez | Operador |

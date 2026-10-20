@@ -103,10 +103,13 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `SUPPORT_EMAIL` | — | Correo comercial de contacto |
 | `SETUP_SERVICE_PRICE` | `se cotiza aparte` | Precio del acompañamiento con Meta en la página pública |
 | `INSTALL_PRICE` | `$4,900.00 MXN` | Precio de lista de la instalación |
-| `INSTALL_PRICE_PROMO` | `$2,500.00 MXN` | Precio de la oferta de lanzamiento |
+| `INSTALL_PRICE_PROMO` | `$2,500.00 MXN` | Paquete B: instalación y primer mes, sin conexión con Meta |
+| `INSTALL_PRICE_WITH_META` | `$3,500.00 MXN` | Paquete A: instalación, primer mes y conexión con Meta (alias `SETUP_BUNDLE_PRICE`) |
 | `INSTALL_PROMO_LABEL` | `Precio de instalación vigente` | Texto que acompaña el precio de instalación |
-| `INSTALL_MONTHLY_PRICE` | `$699.00 MXN` | Mensualidad (contrato mínimo de 3 meses) |
+| `INSTALL_MONTHLY_PRICE` | `$699.00 MXN` | Mensualidad mes a mes; el primer mes va incluido y es el piloto |
 | `INSTALL_MONTHLY_LIST_PRICE` | `$1,490.00 MXN` | Mensualidad a precio de lista |
+| `MONTHLY_3` / `MONTHLY_6` / `MONTHLY_12` | `$649` / `$599` / `$549` | Compromisos opcionales que bajan la mensualidad |
+| `PILOT_DAYS` | `30` | Duración del piloto pagado |
 | `INSTALL_PROMO_UNTIL` | `2026-12-31` | Fecha en que la página deja de anunciar la oferta |
 | `INSTALL_PROMO_SPOTS_LEFT` | `3` | Lugares que quedan de la oferta; al llegar a 0 la página muestra el precio de lista |
 | `PANEL_RATE_LIMIT_MAX` | `300` | Peticiones por **usuario** cada 15 minutos en el panel |
@@ -138,6 +141,10 @@ Genera los cuatro de una vez y explica para qué sirve cada uno. Copia esos valo
 | `ALERT_COOLDOWN_MINUTES` | `10` | Enfriamiento entre avisos repetidos |
 | `MEDIA_STORAGE_DIR` | `/data/media` | Carpeta de los archivos que envían los clientes (el Volume) |
 | `MEDIA_MAX_BYTES` | `26214400` | Tamaño máximo que se descarga de Meta (25 MB) |
+| `R2_ACCOUNT_ID` | *(opcional)* | Cuenta de Cloudflare R2 |
+| `R2_BUCKET` | `margarita-backup` | Bucket privado de respaldos y adjuntos |
+| `R2_ACCESS_KEY_ID` | *(opcional)* | Llave con permiso *Object Read & Write* sobre el bucket |
+| `R2_SECRET_ACCESS_KEY` | *(opcional)* | Secreto de esa llave |
 | `CAMPAIGN_WORKER_INTERVAL_MS` | `5000` | Cada cuánto revisa el worker de campañas |
 | `CAMPAIGN_BATCH_SIZE` | `10` | Destinatarios por vuelta del worker |
 | `CAMPAIGN_SEND_INTERVAL_MS` | `700` | Pausa entre envíos, para cuidar los límites de Meta |
@@ -203,7 +210,7 @@ Si prefieres que la configuración viaje en el repositorio en lugar de vivir en 
 
 ## 5. Base de datos: esquema y seed
 
-El proyecto usa migraciones versionadas en `prisma/migrations`, con una migración inicial y una de endurecimiento.
+El proyecto usa migraciones versionadas en `prisma/migrations` (hoy son 20) y se aplican solas antes de arrancar.
 
 ### Camino recomendado: dentro de Railway, sin URL pública
 
@@ -332,7 +339,7 @@ Avisos importantes:
 - La restauración **borra** los datos actuales y los reemplaza por los del respaldo. Por eso pide `--yes`.
 - Si se interrumpe a la mitad, vuelve a correr el mismo comando con el mismo archivo: el proceso borra y recarga, así que es repetible.
 - El archivo **no se puede leer sin `ENCRYPTION_KEY`**. Guarda la llave junto con los respaldos, en otro lugar.
-- El respaldo cubre **la base**, no los adjuntos (fotos, audios, documentos): esos viven en el Volume.
+- El respaldo cubre **la base**, no los adjuntos (fotos, audios, documentos): esos viven en el Volume y, con R2 configurado, se copian también a `media/` del bucket.
 - Dentro del respaldo, los campos sensibles siguen cifrados: aunque alguien robe el archivo, no puede leer teléfonos ni mensajes sin la llave.
 - Nadie saca la copia del servidor sola. Descarga una de vez en cuando a un lugar externo: si el Volume se pierde, se pierden la base y sus copias.
 

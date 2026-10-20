@@ -118,11 +118,11 @@ nadie sobre un contrato que no se comprobó.
 4. **La tarifa por mensaje** que usará el contador de la fase 5 para estimar el
    costo acumulado (es un dato de configuración, no un precio de venta).
 5. **Los precios.** **Resuelto**: gobiernan los de
-   [`alcance-produccion.md`](alcance-produccion.md) — instalación $2,500 (lista
-   $4,900) y mensualidad **$699** (lista $1,490), más IVA, con **contrato mínimo
-   de 3 meses**. La página ya está alineada; [`propuesta-comercial.md`](propuesta-comercial.md)
-   y [`facturacion.md`](facturacion.md) conservan los números viejos a propósito
-   y hay que ajustarlos antes de mandarlos a un cliente.
+   [`alcance-produccion.md`](alcance-produccion.md) — Paquete A $3,500 (con
+   conexión a Meta) o Paquete B $2,500 (si ya tiene Meta), mensualidad **$699**
+   (lista $1,490), más IVA, con **piloto de 30 días y sin mínimo obligatorio**;
+   los compromisos de 3, 6 y 12 meses son opcionales. La página, la propuesta y
+   la facturación ya dicen lo mismo.
 
 ---
 
@@ -146,8 +146,8 @@ Para que se pueda revisar antes de empezar:
 
 1. **Se recorta verificación, no trabajo.** Con dos sprints se construye lo
    mismo que el roadmap reparte en seis, pero con menos tiempo de prueba manual
-   contra Meta. La red que lo sostiene es la misma de siempre: la suite (208
-   unitarias, 55 de integración) más el recorrido de pantallas que se agregó
+   contra Meta. La red que lo sostiene es la misma de siempre: la suite (252
+   unitarias y la de integración) más el recorrido de pantallas que se agregó
    después del 500 de las plantillas.
 2. **Migraciones aditivas, sin excepción.** Con varios clientes conectados a
    `release`, una migración destructiva no se puede deshacer.

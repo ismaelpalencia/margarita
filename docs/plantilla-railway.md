@@ -44,11 +44,15 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 | `SUPPORT_WHATSAPP` | tu número con lada | Aparece en la página pública del cliente. |
 | `SUPPORT_EMAIL` | tu correo | Contacto comercial. |
 | `SETUP_SERVICE_PRICE` | `se cotiza aparte` | Lo que cobras por la conexión con Meta. |
-| `INSTALL_PRICE` / `INSTALL_PRICE_PROMO` | `$4,900.00 MXN` / `$2,500.00 MXN` | Precio de lista y de la oferta de instalación. |
+| `INSTALL_PRICE` / `INSTALL_PRICE_PROMO` | `$4,900.00 MXN` / `$2,500.00 MXN` | Precio de lista y Paquete B (instalación + primer mes). |
+| `INSTALL_PRICE_WITH_META` | `$3,500.00 MXN` | Paquete A: instalación, primer mes y conexión con Meta. |
 | `INSTALL_PROMO_LABEL` | `Precio de instalación vigente` | Texto junto al precio de instalación. |
 | `INSTALL_PROMO_UNTIL` | `2026-12-31` | Se apaga sola al pasar esa fecha. |
-| `INSTALL_MONTHLY_PRICE` | `$699.00 MXN` | La mensualidad (contrato mínimo de 3 meses). |
+| `INSTALL_MONTHLY_PRICE` | `$699.00 MXN` | La mensualidad mes a mes; el primer mes es el piloto. |
 | `INSTALL_MONTHLY_LIST_PRICE` | `$1,490.00 MXN` | La mensualidad a precio de lista. |
+| `MONTHLY_3` / `MONTHLY_6` / `MONTHLY_12` | `$649` / `$599` / `$549` | Compromisos opcionales. |
+| `PILOT_DAYS` | `30` | Duración del piloto pagado. |
+| `R2_ACCOUNT_ID` / `R2_BUCKET` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | *(opcional)* | Respaldos y adjuntos en Cloudflare R2; el bucket recomendado es `margarita-backup`. |
 
    Marca como **requeridas** solo `DATABASE_URL`, `JWT_SECRET` y `ENCRYPTION_KEY`; el resto ya trae valor por defecto en el código.
 

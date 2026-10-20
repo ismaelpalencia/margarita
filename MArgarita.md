@@ -8,6 +8,12 @@
 
 **V1 construida.** Este documento es el origen del producto: describe el alcance con el que se diseñó y usa el tiempo futuro porque así se escribió. **Lo que la herramienta hace hoy, con sus límites reales, está en [`docs/alcance-produccion.md`](docs/alcance-produccion.md)**, que es el documento que se actualiza en cada sprint.
 
+> Cuando una sección diga «no se hará», «pendiente» o «en V1 no…», tómalo como
+> parte del diseño original. Varias de esas decisiones ya cambiaron (por
+> ejemplo, las credenciales de Meta se editan desde el panel, la asignación es
+> automática al agente con menos carga y hay un hilo por contacto **y por
+> número**). Para vender o prometer algo, usa `alcance-produccion.md`.
+
 ---
 
 # 1. ¿Qué es Margarita?
@@ -457,7 +463,8 @@ La cuenta tendrá:
 
 El `accessToken` no se mostrará completo en la interfaz.
 
-En V1, los datos críticos de Meta no se editarán desde pantalla.
+En el diseño original, los datos críticos de Meta no se editarían desde
+pantalla. Hoy **sí** se editan en Admin → WhatsApp (con los tokens cifrados).
 
 ---
 
@@ -630,7 +637,9 @@ El usuario podrá abrir o descargar el archivo bajo demanda.
 
 Una conversación agrupa los mensajes de un contacto.
 
-En V1, Margarita reutilizará la conversación del contacto en lugar de crear múltiples hilos históricos separados.
+En el diseño original, Margarita reutilizaría la conversación del contacto en
+lugar de crear hilos históricos separados. Con varios números hay **un hilo por
+contacto y por número**, para no mezclar quién escribió desde dónde.
 
 Una conversación tendrá:
 
@@ -687,7 +696,8 @@ Si un cliente vuelve a escribir después de que la conversación fue cerrada:
 * El Admin revisa historial.
 * El Admin decide a quién asignarla.
 
-En V1 no se asigna automáticamente al último agente.
+En el diseño original no se asignaba automáticamente al último agente. Hoy la
+asignación automática va al agente disponible con menos carga.
 
 ---
 

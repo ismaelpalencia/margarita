@@ -4,6 +4,11 @@ Plan de los siguientes sprints después de la V1, con el contexto actual: **inst
 
 Cada sprint tiene un objetivo, el detalle técnico y cómo se verifica que quedó bien.
 
+> **Documento histórico.** Aquí se registra cómo se hizo cada sprint y qué se
+> sabía en ese momento. El estado vigente —qué hace la app hoy y qué falta— es
+> [`alcance-produccion.md`](alcance-produccion.md); si hay diferencia, manda ese
+> documento.
+
 ---
 
 ## Sprint 33 — Endurecimiento para producción
@@ -450,7 +455,7 @@ Objetivo: cerrar el penúltimo dato personal que quedaba en claro. De la deuda a
 
 ---
 
-## Backlog posterior
+## Backlog posterior (histórico)
 
 Estas no bloquean nada y se priorizan según lo que pida la operación:
 
@@ -465,6 +470,11 @@ Estas no bloquean nada y se priorizan según lo que pida la operación:
 9. **Escalado a varias réplicas**: adaptador de Redis para socket.io y para las colas.
 
 > Respuestas rápidas, contador de no leídos, límites manuales y opt-in/BAJA se cerraron en el Sprint 42; el cifrado en reposo, en el 41.
+
+> Varias de esta lista ya salieron: las variables de encabezado y botón, las
+> campañas programadas, los botones interactivos y el opt-in formal están en el
+> producto. Las listas desplegables, los permisos por número y los no leídos por
+> persona siguen pendientes; el estado al día está en `alcance-produccion.md`.
 
 ## Lo que sigue fuera de alcance
 

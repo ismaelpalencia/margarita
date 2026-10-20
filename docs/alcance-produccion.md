@@ -20,9 +20,9 @@ pantalla, con reglas, atajos, flujos y guiones— está en
 > La oferta se anuncia hasta el **31 de diciembre de 2026** y la página deja de
 > mostrarla sola al pasar esa fecha (`INSTALL_PROMO_UNTIL`).
 >
-> Los documentos [`propuesta-comercial.md`](propuesta-comercial.md) y
-> [`facturacion.md`](facturacion.md) conservan los números anteriores a
-> propósito; hay que ajustarlos antes de mandarlos a un cliente.
+> La propuesta y la facturación usan estos números y la página pública los
+> muestra. El panel **no** muestra precios: es información del operador. Si
+> alguno cambia, se actualiza primero aquí y se corrige en los demás.
 
 ### ¿Se puede ofrecer hoy?
 
@@ -36,15 +36,13 @@ Sí, como **instalación por empresa** en Railway: el alta de un cliente nuevo t
 | Guía de uso del equipo | **Escrita y publicada** en `margaritaapp.org/guia` (código en [`guia-uso.md`](guia-uso.md) y en la página `guia.ejs`): arranque, bandeja, plantillas, campañas, resultados de gestión, botones, reportes, respaldos, límites y problemas comunes. Se entrega al contratar junto con la **sesión de arranque de 2 horas** que promete la página. |
 | Opt-in de los contactos | **Del cliente.** La herramienta lo registra y respeta las bajas, pero no verifica de dónde salió el consentimiento. |
 | Respaldos fuera del servidor | **Incluido cuando se configura R2.** La copia diaria cifrada se sube a Cloudflare R2 y Admin → Sistema muestra archivos, tamaño y fecha del último. Sin R2, la copia vive en el mismo Volume y alguien tiene que descargarla. |
-| Nombres de los contactos | **Cifrados desde el 2026-10-19**, con índice ciego para buscarlos por nombre completo. Ya no queda ningún dato personal en claro. |
+| Nombres de los contactos | **Cifrados desde el 2026-10-19**, con índice ciego para buscarlos por nombre completo. Los datos de los deudores (nombre, teléfono, mensajes, notas y montos) y los correos de acceso ya no quedan en claro. El nombre de los usuarios del equipo y el de la empresa no se cifran porque no son datos de los deudores. |
 | Verificación en dos pasos | **Disponible y opcional.** Se activa por cuenta; conviene dejarla puesta en las de administrador (el panel dice cuántas están cubiertas). |
 
-Lo que **no** está en el producto y no se debe prometer: mandar botones o listas
-*dentro* de la ventana de 24 horas (las plantillas con botones sí se envían y sus
-respuestas sí se interpretan), programar campañas por fecha y hora, **agenda de
-llamadas** (la tarea ya se agenda con fecha y hora),
-contador del tramo de mensajes gratis por número, números fuera de México,
-permisos por número, multi-instancia y respaldo fuera del servidor.
+Lo que **no** está en el producto y no se debe prometer: **listas desplegables**
+desde el panel (los botones sí se envían dentro de la ventana y sus respuestas
+sí se interpretan), recordatorios automáticos de la agenda de llamadas, números
+fuera de México, permisos por número y multi-instancia.
 
 ### Cómo está repartido el producto entre dominios
 
@@ -97,7 +95,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Sin horarios de atención**: no hay horario laboral, mensaje fuera de horario ni modo de asignación configurable. La asignación automática es siempre al agente disponible con menos carga y la interfaz está solo en español. (Esos ajustes existían en la base sin que ningún código los leyera; se quitaron el 2026-10-15 para que la base no prometa lo que la herramienta no hace.)
 - **Agentes**: crear, editar, activar o desactivar, con permiso de envío manual y límite configurable.
 - **Equipo**: crear administradores y agentes, cambiar el rol, activar o desactivar y restablecer contraseñas. La instalación nunca se queda sin un administrador activo: el sistema bloquea degradar o desactivar al último (y el botón aparece deshabilitado). Al desactivar a alguien se cierran sus sesiones.
-- **Contactos**: crear, editar, buscar por texto, filtrar por etiqueta y por bajas, registrar el consentimiento (opt-in), marcar la baja a mano y desactivar.
+- **Contactos**: crear, editar, buscar por **nombre completo o teléfono completo**, filtrar por etiqueta y por bajas, registrar el consentimiento (opt-in), marcar la baja a mano y desactivar.
 - **Resultado de la gestión (cobranza)**: marcar en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota. Se marca desde el hilo, desde la ficha del contacto y en bloque desde la lista. Cada marcado deja historial con quién y cuándo.
 - **Reportes**: gestiones del periodo por resultado, persona y día; promesas vigentes con lo vencido arriba, cumplimiento (a tiempo, tarde, sin pago) y prometido contra pagado; lista de clientes sin contestación tras X intentos; y detalle exportable a CSV. Con filtros por fecha, persona, campaña y etiqueta.
 - **Lista de trabajo del día**: una pantalla que pone **arriba de todo las llamadas pedidas** —el cliente que tocó el botón— y debajo lo vencido, lo que vence hoy, lo de esta semana y los clientes sin contestar, en orden de urgencia, con acceso directo a la ficha.
@@ -110,9 +108,10 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Cuenta de WhatsApp**: administrar los números de la WABA (agregar, editar, activar o desactivar, ver calidad y estado de cada uno y probar su conexión); actualizar las credenciales de la cuenta (tokens, business account, versión de API) y cifrarlas.
 - **Tramo del mes por número**: cuántos mensajes de servicio lleva cada número de los 1,000 gratis, con barra, cuánto queda y alerta al 80% (una sola vez por mes, a la bitácora); aparte, las plantillas enviadas de utilidad y de marketing con su costo estimado. En la bandeja se sugiere el número **con más tramo** para las conversaciones nuevas.
 - **Plantillas**: sincronizar las plantillas de Meta con su estado real (`APPROVED`, `PENDING`, `REJECTED`), ver cuáles traen botones y **avisar si Meta las reclasificó como marketing** (cuestan varias veces más por mensaje).
-- **Conversaciones**: ver todas, abrir desde un contacto, responder, asignar y reasignar, cerrar y reabrir, con búsqueda por nombre o teléfono, filtros por estado, por asignación y por no leídos, y el contador de pendientes por hilo.
+- **Conversaciones**: ver todas, abrir desde un contacto, responder, asignar y reasignar, cerrar y reabrir, con búsqueda por **nombre completo o teléfono completo**, filtros por estado, por asignación y por no leídos, y el contador de pendientes por hilo.
 - **Campañas**: crear seleccionando contactos o subiendo Excel/CSV, **con variables** (texto fijo, el nombre o el teléfono del contacto, y cualquier columna del archivo), enviar, ver el estado por destinatario y reintentar los fallidos.
 - **Campañas en cola**: el envío corre en segundo plano, por lotes y con una pausa entre mensajes para no chocar con los límites de Meta. Se puede pausar, reanudar y cancelar, y la pantalla muestra el avance en vivo.
+- **Campañas programadas**: se elige fecha y hora (zona de la empresa), la campaña queda en `PROGRAMADA` y el planificador la arranca sola. Después se pausa, reanuda o cancela como cualquier otra.
 - **Logs**: auditoría filtrable por nivel y módulo, con el detalle de cada evento, más **Webhooks recibidos** (Admin → Logs → Webhooks): los últimos 20 eventos **tal como los mandó Meta**, con un botón para copiarlos completos. Es la pantalla con la que se comprueba qué identificador trae un botón cuando un deudor lo toca de verdad, sin entrar a la base.
 - **Aviso de carga con la marca**: al cambiar de pantalla y al enviar un formulario aparece el sello de Margarita con un aro girando y «Cargando…». El botón que se envió queda ocupado —con un aro dentro y sin poder tocarse otra vez—, así nadie manda dos veces el mismo mensaje o la misma campaña. Con «reducir movimiento» activado en el sistema, el sello y el aro se quedan quietos y solo avisa el texto.
 - **Respuestas rápidas**: textos guardados que el equipo inserta con un clic, con `{nombre}` y `{telefono}` del contacto.
@@ -134,7 +133,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
   - **«No reconozco la deuda»**: deja el contacto **en pausa** (no se le escribe, ni en campañas) y el incidente queda en la bitácora **con nivel de error**, que es lo que dispara las alertas.
   - **«No quiero ser contactado»**: registra la baja el mismo día, sin depender de la palabra clave.
   - Una respuesta sin regla **no inventa nada**: se anota como «no mapeada» con su identificador, para agregarla en un minuto.
-- **Bandeja con filtros y no leídos**: busca por nombre o teléfono, filtra por estado y por no leídos, y ve el contador de pendientes por hilo.
+- **Bandeja con filtros y no leídos**: busca por nombre completo o teléfono completo, filtra por estado y por no leídos, y ve el contador de pendientes por hilo.
 - Cierra conversaciones.
 
 ### Motor de WhatsApp
@@ -149,7 +148,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Tiempo real**: la bandeja se actualiza sin recargar, con eventos por socket autenticados con la misma sesión del panel.
 - **Multimedia entrante**: las fotos, el video, el audio y los documentos que envían los clientes se ven dentro del hilo, con visor y descarga. Las imágenes se descargan al recibirlas y el resto cuando alguien lo abre.
 - **Envío de archivos**: se pueden adjuntar imágenes, video, audio y documentos dentro de la ventana de 24 horas, con texto opcional. Límites de Meta por tipo: imagen 5 MB, video y audio 16 MB, documentos 100 MB.
-- **Varios números de la misma WABA**: la cuenta guarda las credenciales y cada número aporta su identidad, su calidad y sus propios hilos. El panel funciona "desde" un número activo que se elige en el encabezado: la bandeja, las campañas y las conversaciones nuevas usan ese número.
+- **Varios números de la misma WABA**: la cuenta guarda las credenciales y cada número aporta su identidad, su calidad y sus propios hilos. El panel funciona "desde" un número activo que se elige en el encabezado: el dashboard, la bandeja, las campañas y las conversaciones nuevas usan ese número. Los contactos y los reportes son de todo el workspace, no de un número.
 - **Chat de conversación**: hilo con burbujas, separadores de fecha, palomitas de estado reales y barra de composición, con actualización en vivo. El compositor se queda con lo mínimo (escribir, adjuntar, respuestas rápidas) y las acciones grandes —archivo, plantilla, nota interna y borrado— viven en la columna lateral, que tiene su propio desplazamiento: nada queda escondido ni depende del tamaño de la pantalla.
 - **Borrado de mensajes**: ocultar un mensaje sin destruirlo (el admin puede verlo y restaurarlo) o borrar todo el hilo definitivamente escribiendo `BORRAR`.
 - **Respaldos**: descarga completa en JSON o exportación por entidad en CSV.
@@ -176,9 +175,10 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 
 ---
 
-## 3. Qué NO hace (límites actuales)
+## 3. Límites y matices actuales
 
-Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
+Lo que la herramienta no hace y los matices que conviene tener presentes antes
+de prometer algo:
 
 | Límite | Detalle |
 | --- | --- |
@@ -186,7 +186,6 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Archivos con caducidad** | Meta conserva lo que envían los clientes alrededor de 30 días. Un archivo que nadie abrió en ese plazo ya no se puede recuperar; el hilo lo avisa en lugar de fallar. |
 | **Botones sí, listas no** | Dentro de la ventana de 24 horas ya se mandan **mensajes con hasta 3 botones** (con validación de límites antes de llamar a Meta, y con la respuesta del cliente interpretada como cualquier botón). Las **listas** desplegables todavía no se envían desde el panel; se construirán encima de la misma ruta. |
 | **Plantillas reclasificadas a marketing** | Meta puede reclasificar una plantilla de cobranza como marketing si el texto suena promocional, y entonces cuesta varias veces más. La herramienta lo avisa (lista de plantillas) y lo bloquea (campañas), pero **la redacción es responsabilidad de quien la crea**: al crear plantillas, el encabezado admite **exactamente una** variable y la URL del botón **una sola, al final**. |
-| **Campañas programadas** | Se pueden **programar por fecha y hora** (hora de la empresa) y el planificador las arranca solo. Se pueden pausar, reanudar y cancelar como cualquier campaña. |
 | **La llamada se agenda, pero no avisa** | La llamada pedida **es una tarea** y se puede **agendar** con fecha y hora (hora de la empresa), incluidas las citas de hoy y las vencidas, que suben al principio de la lista; y se puede quitar. Lo que no hay es recordatorio automático al deudor ni notificación push al equipo: el aviso es la pantalla. La herramienta tampoco sabe si la llamada se hizo: eso lo registra una persona. |
 | **El costo del tramo es una estimación** | El panel cuenta servicio, plantillas de utilidad y de marketing, y estima el costo con las tarifas configuradas (`SERVICE_MESSAGE_RATE`, `UTILITY_TEMPLATE_RATE`, `MARKETING_TEMPLATE_RATE`). **No es la factura**: Meta cobra con sus propias tarifas por país y puede cambiar precios. Se cuentan solo los mensajes **entregados o leídos**, nunca los fallidos. |
 | **Baja solo por palabra clave** | Se detecta la palabra al inicio del mensaje (`STOP`, `STOP por favor`). Si el cliente la pide con otras palabras ("no me escriban más"), hay que marcarlo a mano desde su ficha. |
@@ -200,7 +199,6 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **Límite de peticiones** | El cupo del panel es **por persona** (300 cada 15 minutos, `PANEL_RATE_LIMIT_MAX`), no por IP: quince agentes en la misma oficina no se estorban entre sí, y el 429 dice cuántos minutos esperar. Queda un tope de borde por IP (`EDGE_RATE_LIMIT_MAX`, 3,000) solo contra abuso evidente. |
 | **Una réplica** | El tiempo real y la cola funcionan en una sola instancia. Con varias haría falta el adaptador de Redis. |
 | **Búsqueda exacta** | Teléfono y nombre están cifrados: se busca por número completo (10 dígitos) o por nombre completo; la coincidencia parcial no es posible. |
-| **Búsqueda de nombre solo exacta** | Los nombres de contacto están **cifrados** y se buscan por su índice ciego: nombre completo o teléfono completo. La coincidencia parcial ya no existe. |
 | **Búsqueda de correo solo exacta** | El correo del usuario está cifrado y se resuelve con índice ciego: el inicio de sesión funciona igual y el correo se ve en el panel, pero una consulta por partes del correo falla con explicación en lugar de devolver resultados. En la práctica el panel no tiene buscador de usuarios. |
 | **Un pago reportado no es un pago** | «Ya pagué» es una declaración del deudor: entra como *reportado, por confirmar* y **no** suma a la recuperación hasta que alguien lo confirme marcando pagado. |
 | **"Pagado" no es conciliación** | Marcar pagado es una anotación operativa: la herramienta no comprueba que el dinero entró, no maneja pagos parciales ni saldos. Los reportes de monto son de promesas y pagos registrados, no un estado de cuenta. |
@@ -218,9 +216,9 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | Área | Control |
 | --- | --- |
 | **Webhooks** | Firma `X-Hub-Signature-256` obligatoria, comparada en tiempo constante. Un payload sin firma válida se rechaza con 401. |
-| **Cifrado en reposo** | Los datos personales se guardan cifrados con AES-256-GCM: teléfono y notas del contacto, contenido y nombre de archivo de cada mensaje, payloads de Meta (respuestas, plantillas enviadas y evento crudo del webhook), variables de campaña, número de cada WABA, **correo de acceso de cada usuario** y bitácora. El cifrado y el descifrado son transparentes (extensión de Prisma), así que ninguna consulta del panel ve texto cifrado. Un respaldo o un volcado de la base no muestra conversaciones, teléfonos ni correos. |
+| **Cifrado en reposo** | Los datos personales de los contactos y las credenciales se guardan cifrados con AES-256-GCM: teléfono, **nombre y apodo del contacto**, notas, contenido y nombre de archivo de cada mensaje, payloads de Meta (respuestas, plantillas enviadas y evento crudo del webhook), variables de campaña, número de cada WABA, **correo de acceso de cada usuario** y bitácora. El cifrado y el descifrado son transparentes (extensión de Prisma), así que ninguna consulta del panel ve texto cifrado. Un respaldo o un volcado de la base no muestra conversaciones, teléfonos, nombres de contacto ni correos. |
 | **Credenciales de Meta** | `accessToken` y `verifyToken` cifrados en la base con AES-256-GCM. Sin la variable `ENCRYPTION_KEY` no se pueden leer. |
-| **Índices ciegos** | `Contact.phoneHash` y `User.emailHash` son HMAC-SHA256 con la llave de cifrado: conservan la unicidad y la búsqueda exacta sin que el valor se pueda recuperar del índice. Son los que sostienen el inicio de sesión y la detección de teléfonos o correos repetidos. |
+| **Índices ciegos** | `Contact.phoneHash`, `Contact.nameHash` y `User.emailHash` son HMAC-SHA256 con la llave de cifrado: conservan la unicidad y la búsqueda exacta sin que el valor se pueda recuperar del índice. Son los que sostienen el inicio de sesión, la detección de teléfonos o correos repetidos y la búsqueda por nombre completo. |
 | **Sesiones** | JWT en cookie `httpOnly`, `secure` en producción y `SameSite=Lax`, con registro en base que permite revocarlas. Expiración absoluta de 7 días, **cierre por inactividad** (`SESSION_IDLE_MINUTES`, 12 h por defecto), **tope de dispositivos** por usuario (`SESSION_MAX_ACTIVE`, 3 por defecto: al entrar en uno más se cierra el más viejo) y lista visible con revocación individual o masiva. |
 | **Contraseñas** | Hash con bcrypt (12 rondas). Mínimo 10 caracteres con letras y números, sin contraseñas obvias. Cada persona cambia la suya en «Mi cuenta» (con la actual) y **al cambiarla se cierran las demás sesiones**. Cuando un administrador la restablece, quien la recibe **debe cambiarla antes de operar**: así nadie conserva la contraseña de otro. |
 | **Fuerza bruta** | Bloqueo de la cuenta tras varios intentos fallidos (configurable) y límite propio de intentos por IP en el login. Todo queda auditado. |
@@ -234,7 +232,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 | **`/health` mínimo en producción** | Sin `HEALTH_TOKEN`, `/health` solo publica `{ok, status, timestamp}`; el commit, las rutas, la cola y el conteo de administradores se ven con `?token=` o en desarrollo. El healthcheck de Railway sigue funcionando sin token. |
 | **Exposición de secretos** | Los tokens nunca se envían al navegador (la vista recibe solo una versión enmascarada) y la bitácora redacta cualquier campo que parezca credencial. |
 | **Acceso a archivos** | Los archivos no son públicos: se sirven por un endpoint que exige sesión y valida que el usuario pueda ver esa conversación. Un agente sin la conversación recibe 404, y los archivos se guardan fuera del alcance del servidor web. |
-| **Borrado con intención** | Ocultar un mensaje es reversible y queda auditado. El borrado definitivo exige escribir `BORRAR` y también queda en la bitácora. El respaldo descargable **no incluye** credenciales de Meta ni contraseñas. |
+| **Borrado con intención** | Ocultar un mensaje es reversible y queda auditado. El borrado definitivo exige escribir `BORRAR` y también queda en la bitácora. La **exportación JSON/CSV** no incluye credenciales de Meta ni hashes de contraseña (los tokens salen enmascarados); la **copia cifrada de la base** sí lleva las tablas completas, pero los campos sensibles van cifrados. |
 | **Retención** | La bitácora se purga a los 90 días y los eventos de webhook resueltos a los 30. |
 | **Respaldos** | Copia completa de la base cada 24 h, comprimida y cifrada con `ENCRYPTION_KEY`, verificada al crearse y con retención de 7 copias. El archivo guarda los campos tal como están en la base, así que los datos sensibles siguen cifrados dentro del respaldo. |
 | **Errores en handlers asíncronos** | Express 4 no atiende las promesas rechazadas de un controlador: la petición se quedaba **colgada sin respuesta** y solo aparecía un rechazo no manejado en el log. Ahora cualquier rechazo llega al manejador de errores (página 500, incidente en la bitácora y alerta externa si está configurada). |
@@ -244,7 +242,7 @@ Estos límites son reales y conviene tenerlos presentes antes de prometer algo:
 Ser explícito aquí es parte del trato:
 
 1. **La verificación en dos pasos es opcional y no se puede obligar desde el panel.** Está disponible para cualquier cuenta y el panel de Sistema muestra cuántos administradores la usan, pero si nadie la activa, la contraseña sigue siendo el único factor. Activarla es una decisión de cada persona (o una regla de la empresa, por acuerdo del operador); conviene que los administradores la tengan puesta.
-2. **El cifrado es de campos, no del disco.** Un volcado de PostgreSQL ya no expone conversaciones, teléfonos, nombres, notas, correos ni credenciales, pero **sí** el esquema y los índices. Cifrar el volumen entero depende del proveedor.
+2. **El cifrado es de campos, no del disco.** Un volcado de PostgreSQL ya no expone conversaciones, teléfonos, nombres de contacto, notas, montos ni correos de acceso, pero **sí** el esquema, los índices y los nombres de los usuarios del equipo. Cifrar el volumen entero depende del proveedor.
 3. **No hay antivirus ni análisis de adjuntos.** Los archivos se guardan tal como llegan, en disco y (si R2 está configurado) en el bucket, **sin el cifrado de la aplicación**; R2 cifra en reposo a nivel de infraestructura.
 4. **La copia local sigue en el servidor.** Con R2 configurado, cada respaldo se sube cifrado al bucket (`backups/…`); la copia local se conserva como caché. Falta **probar una restauración desde R2** en un entorno limpio.
 5. **La sesión no se ata a la IP ni al dispositivo.** Se registra la IP y el dispositivo y se muestran en la lista de sesiones, se cierra por inactividad y hay tope de dispositivos, pero **no se bloquea** una sesión por venir de otra IP: en datos móviles y redes compartidas la IP cambia sola durante el día y bloquearla dejaría a la gente fuera sin motivo. La IP sirve para detectar, no para bloquear.
@@ -266,9 +264,9 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 - **Calidad por número**: con varios números, cada uno se calienta y se vigila por separado. Un número nuevo arranca en el nivel mínimo de mensajería y necesita su nombre visible aprobado y su registro con PIN antes de enviar.
 - **Custodia de `ENCRYPTION_KEY`**: es la llave de los datos cifrados **y de los índices ciegos**. Si se pierde, los teléfonos, los mensajes, las notas, la bitácora y los correos de acceso dejan de poder leerse, además de los tokens de Meta; y los índices dejan de coincidir, así que nadie podría entrar. Guárdala en un gestor de contraseñas, no solo en las variables del proveedor.
 - **Respaldos de la base de datos**. Cuidado con el respaldo: para restaurarlo y poder leer los datos hace falta la misma `ENCRYPTION_KEY`.
-- **Descargar el respaldo fuera del servidor** de vez en cuando: el respaldo automático vive en el mismo lugar que la base, así que cubre un borrado accidental o una migración mal hecha, no la pérdida del disco completo. Y **probar una restauración** al menos una vez (`npm run db:restore -- --file=… --dry-run` para validar, sin `--dry-run` para restaurar).
+- **Comprobar el respaldo en R2**: con R2 configurado, la copia diaria se sube cifrada al bucket privado y Admin → Sistema muestra cuántos objetos hay y cuál fue el último. La copia local sigue en el Volume; si R2 no está configurado, alguien tiene que descargar la copia a un lugar externo. Y **probar una restauración** al menos una vez (`npm run db:restore -- --file=… --dry-run` para validar, sin `--dry-run` para restaurar).
 - **Acceso del administrador**: crear un segundo administrador desde Equipo y comprobar que puede entrar; definir quién más tiene acceso y dónde se guarda la contraseña. Con un solo admin, cualquier olvido depende del servidor.
-- **Respaldos y adjuntos**: confirmar que el volumen de archivos existe y que alguien descarga respaldos con regularidad, porque nada de eso ocurre solo.
+- **Respaldos y adjuntos**: confirmar que el Volume de archivos existe y que R2 está configurado y respondiendo (Admin → Sistema). Sin R2, los adjuntos y las copias viven solo en el Volume.
 - **Cobro y contrato**: dejar por escrito el **piloto de 30 días**, qué paquete contrató (A o B), si eligió un compromiso opcional, que la mensualidad es adelantada y que el consumo de Meta va por cuenta del cliente.
 - **Entregar la guía de plantillas y la sesión de arranque** al contratar: el cliente arma sus plantillas en Meta (categoría, textos permitidos, botones y variables), y esa guía es la que evita que se las rechacen o que las reclasifiquen a marketing. Revisarlas con él es parte del arranque.
 - **Repartir los números entre el equipo** si hay más de uno: hoy todos los agentes ven todos los números. La asignación por persona (tabla usuario ↔ número) está diseñada y pendiente en [`multinumero.md`](multinumero.md).
@@ -279,7 +277,7 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 39 archivos de pruebas unitarias (248 casos) + **76 pruebas de integración** contra PostgreSQL (más 2 destructivas, que solo corren en CI) |
+| Pruebas automatizadas | 39 archivos de pruebas unitarias (252 casos) + **suite de integración** contra PostgreSQL; las 2 pruebas destructivas solo corren en CI |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
 | Migraciones | Versionadas en `prisma/migrations`, con veinte aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
@@ -334,13 +332,13 @@ Los flujos que además se verificaron a mano contra una base real, antes de tene
 | Agente sin tope configurado | Podría escribir más de lo previsto | El tope global de la empresa aplica por defecto; el uso del día se ve en Admin → Agentes y en el panel del agente |
 | Consentimiento sin verificar | Reportes de clientes y degradación de la calidad del número | La baja por palabra clave es automática y las campañas avisan cuántos destinatarios no tienen opt-in registrado |
 | Baja pedida con otras palabras | El cliente sigue recibiendo mensajes | Se marca a mano desde la ficha del contacto; conviene revisar los mensajes que se lean como baja |
-| Calidad de un número | Ese número envía menos o queda limitado | La calidad es por número, así que no arrastra a los demás; los avisos de Meta todavía se revisan en su panel (pendiente: alertas dentro de la app) |
+| Calidad de un número | Ese número envía menos o queda limitado | La calidad es por número, así que no arrastra a los demás; los avisos de Meta actualizan el estado en el panel y quedan en la bitácora con nivel de error cuando exigen atención |
 | Una sola instancia | Si el servicio se reinicia, la bandeja se reconecta sola | Railway reinicia el servicio automáticamente |
 | Pérdida de `ENCRYPTION_KEY` | Los campos cifrados (teléfonos, mensajes, notas, bitácora) y los tokens de Meta quedan ilegibles | Guardarla en un lugar seguro además de las variables, y respaldarla junto con la base |
 | Búsqueda por teléfono parcial | Escribir parte del número ya no encuentra contactos | La pantalla de Contactos lo recuerda: se busca por el número completo o por nombre |
 | Se pierde el teléfono con la verificación en dos pasos | Esa persona no puede entrar con su contraseña | Un administrador la desactiva desde Equipo y vuelve a entrar con su contraseña; el rescate queda en la bitácora. Conviene activarla también en el teléfono de respaldo |
 | Un solo administrador | Si esa persona falta, la instalación queda sin quien la administre | Crear un segundo administrador desde Equipo; la regla impide quedarse en cero, pero no obliga a tener dos. La recuperación desde el servidor existe (`npm run admin:reset-password`) |
-| Respaldos en el mismo servidor | Si se pierde el Volume (o el proyecto completo), se van la base y sus copias | Hay copia automática cada 24 h, verificada y con retención de 7; conviene descargar una a un lugar externo de vez en cuando y activar también los respaldos del proveedor |
+| Respaldos sin R2 | Si se pierde el Volume (o el proyecto completo), se van la base, los adjuntos y sus copias | Con R2 configurado, cada respaldo se sube cifrado al bucket privado (`margarita-backup`) y los adjuntos se copian también; Admin → Sistema muestra el estado. Sin R2, hay que descargar las copias a un lugar externo |
 | Adjuntos sin Volume | Los archivos enviados se pierden en cada deploy | Configurar `MEDIA_STORAGE_DIR` apuntando a un Volume y verificarlo en el checklist de alta |
 | Cupo de peticiones compartido | Varios agentes en la misma oficina pueden recibir 429 | Subir el tope o limitar por usuario cuando haya equipo; hoy el acuerdo es operativo |
 
@@ -348,52 +346,31 @@ Los flujos que además se verificaron a mano contra una base real, antes de tene
 
 ## 8. Qué sigue
 
-El detalle está en [`docs/roadmap-v2.md`](roadmap-v2.md):
+**Pendiente de producto.**
 
-**Antes de vender o crecer.**
+1. **Listas desplegables** desde el panel (los botones ya se envían y sus respuestas ya se interpretan).
+2. **Recordatorios de la agenda**: la cita ya existe y se ordena por hora; falta que avise sola.
+3. **Permisos por número** y **repartir campañas entre números** (ver [`multinumero.md`](multinumero.md)).
+4. **No leídos por persona**, si el equipo crece y molesta que el aviso sea por conversación.
 
-1. **Respaldos fuera del servidor: hecho.** La copia diaria se sube cifrada a Cloudflare R2 (`backups/…`) y Admin → Sistema muestra cuántos objetos hay, cuánto ocupan y la fecha del último. Queda como pendiente **probar una restauración** desde R2 en un entorno limpio.
+**Pendiente de operación.**
 
-**Entregado (octubre 2026).** Respuestas de botón y de lista interpretadas;
-plantillas con botones (hilo y campañas, con las tres variables); aviso y bloqueo
-de plantillas reclasificadas a marketing; puente respuesta → resultado con pausa
-y baja; **llamada pedida como tarea con agenda**; **contador del tramo por
-número** con alerta al 80%; **campañas programadas por fecha y hora**; **opt-in
-formal con canal y autor**; **nombres de contacto cifrados**; **respaldos y
-adjuntos en R2**; **dashboard por número activo**.
+1. **Probar una restauración desde R2** en un entorno limpio.
+2. **Prueba real contra Meta** con una plantilla aprobada y su botón tocado; el paso a paso está en [`pruebas-meta.md`](pruebas-meta.md).
 
-**Pendiente.** Las **listas desplegables** (los botones ya se envían) y la
-**prueba real contra Meta** con la plantilla aprobada y un botón tocado; el paso
-a paso está en [`pruebas-meta.md`](pruebas-meta.md).
-
-**Proteger la operación.**
-
-
-**Mejorar el día a día de la bandeja.**
-
-4. **Interactivos libres**: mandar botones y listas desde el compositor dentro de la ventana de 24 horas (las plantillas con botones ya se envían y sus respuestas ya se interpretan).
-6. **Recordatorios de la agenda**: la cita ya existe y se ordena por hora; falta que avise sola (notificación o recordatorio al deudor).
-
-**Cuando el equipo crezca.**
-
-7. **Asignar números a agentes** y **repartir campañas entre números** (ver [`multinumero.md`](multinumero.md)).
-8. **No leídos por persona**, si el equipo crece y molesta que el aviso sea por conversación.
-
-> La verificación en dos pasos salió de esta lista el 2026-10-15: ya está en el producto.
-> Y el 2026-10-16 salieron «interpretar las respuestas de botón y de lista»,
-> «enviar plantillas con botones» y «resolver las variables del encabezado y del
-> botón» —en el hilo **y en campañas**—, más el aviso y el bloqueo de plantillas
-> reclasificadas a marketing, el puente respuesta → resultado de gestión con sus
-> efectos automáticos, la llamada pedida como tarea del día y el volcado de
-> webhooks para copiar desde el panel.
+El histórico de sprints, con lo que ya se entregó y cuándo, está en
+[`roadmap-v2.md`](roadmap-v2.md).
 
 ---
 
 ## 9. Cómo comprobar el estado en cualquier momento
 
 ```bash
-# Estado del servicio: base, cola, worker, webhooks y configuración de seguridad
+# Estado mínimo (lo que usa Railway como healthcheck)
 curl -s https://<tu-dominio>/health
+
+# Detalle: base, cola, worker, webhooks y configuración de seguridad
+curl -s "https://<tu-dominio>/health?token=$HEALTH_TOKEN"
 
 # Pruebas y tipos, en local
 npm test
@@ -419,7 +396,8 @@ Para regenerar el sitio de venta después de cambiar un texto o un precio:
 npm run landing:build     # deja la carpeta landing/ lista para subir
 ```
 
-En el panel:
+En producción, sin `HEALTH_TOKEN`, `/health` solo devuelve `{ok, status,
+timestamp}`; el detalle completo exige el token. En el panel:
 
 - **Admin → Sistema**: checklist de configuración y tarjetas de seguridad (cifrado en reposo, firma, cola, alertas, retención). La tarjeta de cifrado dice cuántos registros quedaron en claro de antes del cifrado, si los hay.
 - **Mi cuenta → Seguridad**: activar o desactivar la verificación en dos pasos de la propia cuenta (la tarjeta de Sistema dice cuántas cuentas y cuántos administradores la tienen puesta).

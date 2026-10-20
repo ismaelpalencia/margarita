@@ -45,6 +45,10 @@ archivos sensibles publicados.
 
 ### 1. Media · `/health` es público y cuenta de más
 
+**Estado: corregido.** Hoy, sin `HEALTH_TOKEN`, `/health` solo devuelve
+`{ok, status, timestamp}`; el detalle queda detrás de `?token=`. Se deja el
+hallazgo como registro de lo que se encontró.
+
 `/health` responde sin sesión con versión, **commit desplegado**, entorno,
 estado de la base, número de administradores, rutas de almacenamiento
 (`/data/media`, `/data/backups`), tamaño de la cola y contadores del webhook.
@@ -65,6 +69,9 @@ scripts en línea), pero deja menos defensa ante un XSS.
 plantillas y cabeceras.
 
 ### 3. Baja · Pistas de enumeración
+
+**Estado: corregido** junto con el punto 1: el conteo de administradores ya no
+se publica sin token.
 
 El mensaje de login es genérico («Credenciales incorrectas»), lo cual está bien.
 El conteo de administradores de `/health` sí deja inferir si la instalación está
@@ -87,7 +94,7 @@ en uso. Se resuelve con el punto 1.
 
 ## Recomendación
 
-1. Proteger el detalle de `/health` (media).
+1. ~~Proteger el detalle de `/health` (media).~~ Hecho: exige `HEALTH_TOKEN`.
 2. Activar CSP con nonces (baja).
 3. Repetir la revisión **con una cuenta de agente** para cubrir IDOR y permisos.
 4. Antes de vender a un cliente regulado: pentest externo y prueba de

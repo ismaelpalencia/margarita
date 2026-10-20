@@ -55,7 +55,7 @@ Margarita es un panel para **cobrar por WhatsApp con orden**: registra en qué q
 
 **Seguridad.**
 
-- Datos cifrados en la base (teléfonos, mensajes, notas, **montos** y los correos de acceso). Los nombres de contacto quedan en claro porque la búsqueda por texto depende de ellos: se dice antes de firmar.
+- Datos cifrados en la base con AES-256-GCM: teléfonos, **nombres de contacto**, mensajes, notas, montos y correos de acceso. La búsqueda por nombre o teléfono es por coincidencia exacta (nombre completo o número completo), no por fragmento.
 - Sesiones con **cierre por inactividad**, tope de dispositivos y lista visible con revocación.
 - **Bitácora** de accesos y de cada cambio, con retención configurable.
 - Permisos por rol: cada persona ve solo sus conversaciones.
@@ -64,10 +64,10 @@ Margarita es un panel para **cobrar por WhatsApp con orden**: registra en qué q
 
 | Servicio | Qué incluye |
 | --- | --- |
-| **Conexión con Meta** (+$1,500.00 MXN, opcional) | Alta en Meta Business, app, cuenta de WhatsApp Business, número dedicado, token permanente, webhook firmado, primera plantilla y prueba de punta a punta. Ver [`guia-meta.md`](guia-meta.md). |
-| **Puesta en marcha de la instalación** (incluida en el precio de instalación) | Proyecto propio, base de datos propia, dominio, usuario administrador, cifrado de datos, respaldos configurados, **el primer mes de servicio** y una sesión de capacitación de 60 minutos. |
+| **Conexión con Meta** (incluida en el Paquete A; por separado se cotiza) | Alta en Meta Business, app, cuenta de WhatsApp Business, número dedicado, token permanente, webhook firmado, primera plantilla y prueba de punta a punta. Ver [`guia-meta.md`](guia-meta.md). |
+| **Puesta en marcha de la instalación** (incluida en el precio de instalación) | Proyecto propio, base de datos propia, dominio, usuario administrador, cifrado de datos, respaldos configurados, **el primer mes de servicio** y una sesión de capacitación de 2 horas. |
 | **Migración de cartera** ([PRECIO O INCLUIDA]) | Carga de contactos desde Excel con etiquetas y depuración de números inválidos. |
-| **Capacitación** (incluida) | Una sesión de 60 minutos para el equipo (cobranza y administración) y manual de uso. |
+| **Capacitación** (incluida) | Una sesión de arranque de 2 horas para el equipo (cobranza y administración) y manual de uso. |
 
 ## 6. Lo que NO incluye
 
@@ -128,23 +128,19 @@ el **31 de diciembre de 2026**; todos los precios son **más IVA**.
 - Cambios a la medida que no estén en el producto (se cotizan aparte).
 
 Notas de cobro: mensual adelantado, comprobante fiscal, [días de gracia] y qué
-pasa si no se renueva. **Recomendado**: pedir un mínimo de tres meses de
-servicio en el contrato; la instalación cubre el primer mes y eso ya protege el
-trabajo de alta, pero un cliente que se va al segundo mes deja el alta sin pagar.
-El detalle operativo (fechas, recordatorios y frases para cobrar) está en
-[`facturacion.md`](facturacion.md).
+pasa si no se renueva. **No hay mínimo obligatorio**: el primer mes es el piloto
+y al día 30 el cliente decide. El compromiso de 3, 6 o 12 meses es opcional y
+solo sirve para bajar la mensualidad; se anota en el contrato únicamente si el
+cliente lo elige. El detalle operativo (fechas, recordatorios y frases para
+cobrar) está en [`facturacion.md`](facturacion.md).
 
-**Cómo se calculó:** la instalación cubre el alta (2–3 horas entre despliegue,
-conexión y capacitación) y el primer mes; de ahí en adelante, $800 al mes por un
-equipo completo sin tope de usuarios. Del lado del costo, el mes incluye el canal
-de soporte (~1 hora), las mejoras del periodo, el monitoreo y, si el alojamiento
-va por nuestra cuenta, unos $150 más. La promoción de lanzamiento baja el precio
-de entrada a cambio de retroalimentación y de un caso de éxito que se pueda
-mostrar.
-
-**Opcional para cerrar antes:** quien pague **doce meses por adelantado** recibe
-dos meses de regalo ($8,000 en lugar de $9,600). Sirve para dos cosas: entra
-dinero por adelantado y baja la rotación.
+**Cómo se calculó:** la instalación cubre el alta (despliegue, conexión y
+capacitación) y el primer mes; de ahí en adelante, $699 al mes por un equipo
+completo sin tope de usuarios. Del lado del costo, el mes incluye el canal de
+soporte (~1 hora), las mejoras del periodo, el monitoreo y, si el alojamiento va
+por nuestra cuenta, unos $150 más. El precio de lista es $4,900 de instalación y
+$1,490 al mes; la promoción vigente baja el precio de entrada y se anuncia hasta
+el 31 de diciembre de 2026.
 
 ## 8. Requisitos del cliente
 
@@ -186,7 +182,7 @@ dinero por adelantado y baja la rotación.
 ## 12. Siguientes pasos
 
 1. [CLIENTE] confirma el alcance y firma.
-2. Se paga el anticipo del [50%] del servicio de conexión.
+2. Se paga el anticipo del [50%] de la instalación (Paquete A o B).
 3. Agendamos el alta en Meta ([FECHA PROPUESTA]) y la capacitación.
 4. Piloto con 1–3 contactos y arranque.
 

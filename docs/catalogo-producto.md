@@ -105,8 +105,9 @@ resultado alimenta la lista de trabajo del día siguiente.
 
 - Lista con **nombre, teléfono, resultado, intentos, etiquetas y notas**.
 - Filtros: etiqueta, resultado, **solo bajas**, **promesas vencidas**, **sin
-  resultado**, **nunca respondió**, intentos mínimos y búsqueda por texto.
-- Por teléfono, la búsqueda es **exacta** (10 dígitos): el número está cifrado.
+  resultado**, **nunca respondió**, intentos mínimos y búsqueda por nombre.
+- La búsqueda es **exacta**: nombre completo o teléfono completo (10 dígitos),
+  porque ambos campos están cifrados.
 - Selección múltiple para **marcar resultado en bloque**.
 - Ficha del contacto: datos, consentimiento, baja, **pausa con motivo**,
   resultado vigente, historial de gestiones y etiquetas.
@@ -249,7 +250,7 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 9. **Promesas**: se marcan vencidas solas al pasar la fecha.
 10. **Tramo**: aviso al 80% una vez por número y mes.
 11. **Retención**: bitácora 90 días, eventos de webhook resueltos 30 días.
-12. **Respaldos**: cada 24 h, verificados al crearse.
+12. **Respaldos**: cada 24 h, cifrados, verificados al crearse y subidos a Cloudflare R2 cuando está configurado.
 
 ---
 
@@ -257,9 +258,9 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 
 - Contraseñas con **bcrypt**; sesiones en cookie `httpOnly`, revocables.
 - **2FA** TOTP por cuenta.
-- **Cifrado en reposo** de teléfonos, mensajes, notas, montos, variables,
-  payloads y **correos de acceso**, con AES-256-GCM e índices ciegos para buscar
-  sin tener el dato en claro.
+- **Cifrado en reposo** de teléfonos, **nombres de contacto**, mensajes, notas,
+  montos, variables, payloads y **correos de acceso**, con AES-256-GCM e índices
+  ciegos para buscar sin tener el dato en claro.
 - **Webhooks** firmados y cola con reintentos.
 - **CSRF** por origen; CORS restringido; cabeceras con Helmet.
 - **Archivos** fuera del alcance del servidor web, servidos solo con sesión y
@@ -269,18 +270,20 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 
 ---
 
-## 6. Límites que conviene saber (y no prometer)
+## 6. Límites y matices que conviene saber
 
 - Solo números de **México**.
 - La **ventana de 24 horas** es de WhatsApp, no de la app.
-- No hay **botones ni listas** como mensaje libre fuera de la ventana; dentro de
-  la ventana hay **botones** (hasta 3), no listas desplegables.
-- No se **programan campañas** por fecha; se envían ya, con pausa y reanudación.
+- Fuera de la ventana de 24 horas solo se inicia con una **plantilla aprobada**
+  (que puede traer botones). Dentro de la ventana se envían **botones** (hasta
+  3); las **listas desplegables** todavía no se envían desde el panel.
+- **Sí se programan campañas** por fecha y hora, además de enviarse ya, con pausa y reanudación.
 - No hay **permisos por número**: todos los agentes ven todos los números.
 - El **tramo** y el costo son una **estimación**, no la factura de Meta.
 - Los **archivos que envía el cliente** caducan en Meta (~30 días).
-- Los **nombres de contacto** siguen en claro (la búsqueda por texto depende de
-  ellos); teléfonos, mensajes y correos ya están cifrados.
+- Los **nombres de contacto** están cifrados; por eso la búsqueda es por
+  **nombre completo** o **teléfono completo**, no por fragmento. Teléfonos,
+  mensajes, notas, montos y correos también están cifrados.
 - **Una instancia**: no hay multi-servidor.
 - El **consumo de WhatsApp** lo cobra Meta directamente a la empresa.
 

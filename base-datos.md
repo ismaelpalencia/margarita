@@ -8,6 +8,12 @@
 
 **Modelo conceptual congelado para MVP**
 
+> **Documento histórico.** Describe el modelo con el que arrancó el MVP. El
+> esquema real, con los campos que se agregaron después (resultados de
+> gestión, cifrado, reglas de botón, campañas programadas, opt-in formal y
+> nombres cifrados), es [`prisma/schema.prisma`](prisma/schema.prisma). Si hay
+> diferencia, manda el esquema.
+
 ---
 
 # 1. Enfoque general

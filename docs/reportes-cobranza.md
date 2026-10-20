@@ -138,10 +138,9 @@ Por qué derivar en lugar de escribir: si el sistema marcara "incumplida" a medi
 
 - **Marcar «sin contestación» al pasar el umbral** sin que nadie lo apriete: hoy
   la lista de intentos se revisa a mano.
-- **Agenda de llamadas**: la llamada pedida ya es una tarea con su tiempo de
-  espera, pero no se programa a una hora ni recuerda sola.
-- **Contador del tramo de mensajes gratis por número** (fase 5 de
-  [`plan-interactivos.md`](plan-interactivos.md)).
+- **Recordatorio de la agenda**: la llamada ya se agenda con fecha y hora y las
+  citas de hoy suben al principio; falta que avise sola (notificación o
+  recordatorio al deudor).
 - **Prueba contra Meta real**: el circuito del botón está probado con payloads
   sintéticos; falta el toque de un botón de verdad, y para eso está
   [`pruebas-meta.md`](pruebas-meta.md).

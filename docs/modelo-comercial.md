@@ -12,13 +12,14 @@ La estrategia cambió: en lugar de competir como "panel general de WhatsApp"
 cumplimiento, intentos sin respuesta y reportes que el jefe de cobranza lleva a
 la junta.
 
-Lo que se vende es **un paquete y un extra**:
+Lo que se vende son **dos paquetes de instalación y una mensualidad**:
 
 1. **La instalación** (pago único, **incluye el primer mes**): el panel
    operativo con el módulo de cobranza, funcionando en producción, con
-   usuarios ilimitados. La página pública (`/`) muestra el precio de la
-   promoción (`INSTALL_PRICE_PROMO`), el de lista (`INSTALL_PRICE`) y la
-   vigencia (`INSTALL_PROMO_LABEL`).
+   usuarios ilimitados. La página pública (`margaritaapp.org`, sitio estático
+   aparte) muestra el precio de la promoción (`INSTALL_PRICE_PROMO`), el de
+   lista (`INSTALL_PRICE`) y la vigencia (`INSTALL_PROMO_LABEL`). La raíz de
+   una instalación de cliente manda al inicio de sesión, no a la oferta.
 2. **La mensualidad** (`INSTALL_MONTHLY_PRICE`, $699): del segundo mes en
    adelante, **mes a mes y sin mínimo obligatorio**. El primer mes es un
    **piloto pagado**: al día 30 el cliente decide si sigue, sin penalización.
@@ -40,8 +41,9 @@ listos y lo que no se debe prometer— y sirve también como guion de la primera
 conversación.
 
 **Para cobrar:** [`facturacion.md`](facturacion.md) junta los precios vigentes,
-el mínimo de tres meses por contrato, las fechas de la promoción, el ciclo de
-cobro mes a mes y las frases que ya funcionan con los clientes.
+las condiciones del piloto de 30 días, los compromisos opcionales, las fechas
+de la promoción, el ciclo de cobro mes a mes y las frases que ya funcionan con
+los clientes.
 
 **Para mandar propuestas** ya está: la página pública explica qué hace la
 herramienta, la guía de Meta explica el trámite (y ofrece hacerlo nosotros) y
@@ -178,14 +180,14 @@ Lo que todavía no está listo, en orden de impacto:
 
 1. **Automatizar el alta de la WABA con Embedded Signup** (ser Tech Provider de Meta). Elimina el paso más difícil para el cliente, pero cambia el rol del proveedor y agrega obligaciones formales.
 2. **Panel de control de instalaciones**, si algún día hay muchos clientes: versiones, estado, renovaciones. Hoy se cubre con una hoja de cálculo.
-3. **Sacar el respaldo del servidor**: la copia automática ya existe y se puede descargar, pero nadie la mueve a un lugar externo. Para el cliente conviene ofrecerlo como parte del servicio (o activar los respaldos del proveedor).
+3. **Probar la restauración desde R2**: la copia automática ya se sube cifrada al bucket y los adjuntos se copian también; lo que falta es ensayar una restauración desde R2 en un entorno limpio.
 
 Lo que ya se cerró (2026-10-15):
 
 - **Módulo de cobranza**: resultado de gestión con historial, promesas con monto y fecha compromiso (cifrados), promesa vencida automática, intentos sin contestación calculados, marcado en bloque y reportes con exportación. Además, control de sesiones (cierre por inactividad, tope de dispositivos y revocación) y landing y guía de Meta orientadas a cobranza.
-- **Respaldos automáticos con restauración probada**: copia completa de la base cada 24 h, cifrada, verificada al crearse y con retención; se crea y descarga desde el panel y se restaura con un comando. Se probó restaurando datos borrados a propósito.
+- **Respaldos automáticos con restauración probada**: copia completa de la base cada 24 h, cifrada, verificada al crearse, con retención y subida a Cloudflare R2 cuando está configurado; se crea y descarga desde el panel y se restaura con un comando. Se probó restaurando datos borrados a propósito.
 - **Varios administradores y recuperación de contraseñas**: el cliente puede tener más de un admin (con la regla de nunca quedarse sin ninguno activo), restablecer contraseñas desde el panel con cambio obligatorio al entrar, cambiar la propia desde «Mi cuenta», y recuperar el acceso por consola si nadie puede entrar.
 - **Alta en minutos**: `railway.json` deja build, migraciones, arranque y healthcheck configurados; la app toma `APP_URL` del dominio de Railway y la raíz manda al asistente `/setup` mientras la instalación no esté configurada. Publicar la plantilla toma 15 minutos una sola vez (ver [`plantilla-railway.md`](plantilla-railway.md)).
 
-- **Cifrado en reposo.** Teléfonos, notas, contenido de los mensajes, payloads de Meta, eventos de webhook, variables de campaña, números de la WABA, correos de acceso y bitácora se guardan cifrados con AES-256-GCM (`ENCRYPTION_KEY`); teléfono y correo se buscan por índice ciego. Conviene decir con precisión qué queda fuera, porque un área de sistemas lo va a preguntar: el disco (archivos de PostgreSQL y adjuntos) no está cifrado, y **los nombres de contacto siguen en claro** porque la búsqueda por texto del panel depende de ellos. En una instalación que ya traía datos en claro, se cifran con `npm run db:encrypt-data`.
+- **Cifrado en reposo.** Teléfonos, **nombres de contacto**, notas, contenido de los mensajes, payloads de Meta, eventos de webhook, variables de campaña, números de la WABA, correos de acceso y bitácora se guardan cifrados con AES-256-GCM (`ENCRYPTION_KEY`); teléfono, nombre completo y correo se buscan por índice ciego. Conviene decir con precisión qué queda fuera, porque un área de sistemas lo va a preguntar: el disco (archivos de PostgreSQL y adjuntos) no lleva el cifrado de la aplicación —R2 cifra en reposo a nivel de infraestructura—, y la búsqueda por nombre o teléfono es **exacta**, no por coincidencia parcial. En una instalación que ya traía datos en claro, se cifran con `npm run db:encrypt-data`.
 - **Baja automática (STOP) y límites diarios.** Si un cliente escribe `STOP`, el sistema lo da de baja al instante y deja de escribirle, incluso en campañas; reactivarlo es una decisión explícita que queda auditada. El consentimiento (opt-in) se registra por contacto y las campañas avisan cuántos destinatarios no lo tienen. Los mensajes manuales por agente tienen tope diario aplicado de verdad.

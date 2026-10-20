@@ -88,7 +88,8 @@ Lo que conviene capturar desde el principio:
 - **Etiquetas** (`cartera`, `vencido`, `convenio`…): sirven para filtrar y para
   elegir destinatarios de una campaña.
 - **Consentimiento (opt-in)**: la fecha en que la persona aceptó recibir
-  mensajes. Es lo que te protege ante Meta y ante una queja.
+  mensajes, **por qué canal** y **quién lo capturó**. Es lo que te protege ante
+  Meta y ante una queja.
 - **Notas**: contexto que no debe ir al cliente.
 
 **Bajas.** Si el cliente escribe `BAJA` o `STOP`, la app lo da de baja al
@@ -96,10 +97,10 @@ instante y deja de enviarle todo, incluso si estaba en una campaña en curso. Si
 la pide por teléfono o en el mostrador, se marca a mano en su ficha. Reactivar
 a alguien es una decisión explícita y queda auditada.
 
-**Búsqueda.** Por **nombre** busca en cualquier parte del texto; por
-**teléfono** hay que escribir el número completo (10 dígitos). No hay búsqueda
-parcial de teléfono porque el número está cifrado en la base: es el precio de
-que un volcado de la base no lo exponga.
+**Búsqueda.** Por **nombre** hay que escribir el nombre completo; por
+**teléfono**, el número completo (10 dígitos). No hay búsqueda parcial porque
+nombre y teléfono están cifrados en la base: es el precio de que un volcado de
+la base no los exponga.
 
 **Pausa.** Si el cliente dice que no reconoce la deuda, pon la cuenta en
 **pausa** desde su ficha: no recibe mensajes ni campañas hasta que alguien la
@@ -166,7 +167,9 @@ se usa para saber qué tocó el deudor.
    columna de teléfono. Puedes usar columnas del archivo como variables.
 3. Revisa la vista previa: cuántos van, cuántos están dados de baja y cuántos no
    tienen consentimiento registrado.
-4. Enviar. El envío corre **en cola**, por lotes y con una pausa entre mensajes
+4. Enviar ahora o **programar** para una fecha y hora (zona de la empresa). La
+   campaña programada queda en estado `PROGRAMADA` y el planificador la arranca
+   solo; el envío corre **en cola**, por lotes y con una pausa entre mensajes
    para no chocar con los límites de Meta.
 
 **El Excel, sin adivinar.** Al elegir la plantilla, la página te dice **qué
@@ -277,15 +280,17 @@ pelear con los acentos.
 ## 11. Operación: lo que conviene revisar
 
 - **Admin → Sistema**: checklist de configuración y tarjetas de seguridad.
-- **`/health`** (sin sesión): base, cola, worker, si Meta está entregando
-  webhooks y qué variables faltan.
+- **`/health`** (sin sesión): en producción devuelve solo el estado; con
+  `?token=` (variable `HEALTH_TOKEN`) muestra base, cola, worker, si Meta está
+  entregando webhooks y qué variables faltan.
 - **Admin → Logs**: qué pasó y por qué. Los campos que parecen credenciales se
   redactan solos.
 - **Admin → Logs → Webhooks recibidos**: lo último que mandó Meta, tal cual. Es
   la pantalla para comprobar el identificador de un botón o para reportar un
   caso con el evento completo.
-- **Admin → Respaldos**: copia automática diaria (comprimida y cifrada) y
-  descarga manual en JSON. Al terminar el contrato, el borrado total elimina
+- **Admin → Respaldos**: copia automática diaria (comprimida y cifrada), copia
+  en Cloudflare R2 cuando está configurado y descarga manual en JSON. Al
+  terminar el contrato, el borrado total elimina
   mensajes, contactos, campañas, usuarios, credenciales y archivos, y deja
   constancia en la bitácora.
 
@@ -300,9 +305,9 @@ Para no prometer de más:
 - No crea plantillas en Meta: las plantillas se aprueban allá.
 - No cobra ni concilia pagos: «pagado» es una anotación operativa.
 - Solo funciona con **números de México**.
-- No programa campañas por fecha y hora (se envían ya, con pausa y reanudación).
-- No manda botones ni listas **dentro** de la ventana de 24 horas; sí plantillas
-  con botones.
+- Dentro de la ventana de 24 horas **sí** manda botones (hasta 3); las **listas
+  desplegables** todavía no se envían desde el panel. Las plantillas con botones
+  también se envían.
 - No restringe qué números ve cada agente: con varios números, todos ven todos.
 - Los archivos que envía el cliente caducan en Meta a los ~30 días si nadie los
   abrió antes.

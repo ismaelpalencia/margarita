@@ -40,7 +40,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Contactos: crear, editar, buscar, etiquetar y desactivar, con consentimiento (opt-in), bajas y filtro de "solo bajas".
 - Etiquetas: crear, editar y desactivar.
 - Equipo: crear **administradores y agentes**, cambiar el rol, activar o desactivar y **restablecer contraseñas**. Nunca se puede dejar la instalación sin un administrador activo. Los agentes tienen permisos y **límite diario** de mensajes manuales aplicado de verdad, con el uso de hoy a la vista.
-- Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo), búsqueda por nombre o teléfono, filtros por estado, asignación y no leídos, y contador de pendientes por hilo y en el encabezado.
+- Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo), búsqueda por nombre completo o teléfono completo, filtros por estado, asignación y no leídos, y contador de pendientes por hilo y en el encabezado.
 - Respuestas rápidas: textos guardados que se insertan con un clic (con `{nombre}` y `{telefono}` del contacto), editables en Admin → Respuestas.
 - Bajas automáticas: si el cliente escribe `STOP`, el contacto queda dado de baja y deja de recibir mensajes y campañas; reactivarlo es una decisión explícita y queda auditada.
 - Resultado de la gestión (cobranza): marca en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota, desde el hilo, la ficha del contacto o en bloque desde la lista. Cada marcado deja historial con quién y cuándo.
@@ -55,7 +55,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Salud de la cuenta: los avisos de Meta sobre plantillas (aprobada, rechazada, pausada) y sobre la calidad de los números se procesan y quedan en la bitácora, con nivel de error cuando exigen atención.
 - Logs: auditoría filtrable de webhook, Meta, campañas, **envíos de mensajes**, conversaciones y usuarios. Cada envío manual queda registrado como `MESSAGE_SENT` y cada fallo como `MESSAGE_FAILED`, con el motivo de Meta traducido al español.
 - Estado del sistema: checklist de configuración (workspace, WhatsApp, plantillas, contactos, agentes).
-- Roadmap: qué está dentro de V1 y qué se posterga a V2.
+- Guía del producto: qué hace la herramienta, el día en tres pasos, lo que no hace y los accesos a la guía de uso, la de plantillas y soporte.
 
 ### Panel de agente
 
@@ -270,6 +270,10 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `ALERT_WEBHOOK_URL` | No | Endpoint (Slack, Discord, Google Chat) que recibe avisos de error |
 | `ALERT_COOLDOWN_MINUTES` | No | Enfriamiento entre avisos repetidos. Default `10` |
 | `MEDIA_STORAGE_DIR` | Producción | Carpeta donde se guardan los archivos de los clientes. En Railway debe apuntar a un Volume. Default `uploads/media` |
+| `R2_ACCOUNT_ID` | Opcional | Cuenta de Cloudflare R2. Si se define, respaldos y adjuntos se copian al bucket |
+| `R2_BUCKET` | Opcional | Nombre del bucket (en esta instalación, `margarita-backup`). Debe ser privado |
+| `R2_ACCESS_KEY_ID` | Opcional | Llave de API de R2 con permiso *Object Read & Write* sobre ese bucket |
+| `R2_SECRET_ACCESS_KEY` | Opcional | Secreto de esa llave de R2 |
 | `MEDIA_MAX_BYTES` | No | Tamaño máximo que se descarga de Meta. Default `26214400` (25 MB) |
 | `GRAPH_BASE_URL` | Solo pruebas | Base de la Graph API; vacío usa `https://graph.facebook.com` |
 | `OPT_OUT_KEYWORDS` | No | Palabras que dan de baja a un contacto al escribirlas (separadas por coma). Default `STOP` |
@@ -280,10 +284,13 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `SUPPORT_EMAIL` | Comercial | Correo de contacto alterno |
 | `SETUP_SERVICE_PRICE` | Comercial | Precio del acompañamiento con Meta (`se cotiza aparte` por omisión) |
 | `INSTALL_PRICE` | Comercial | Precio de lista de la instalación (`$4,900.00 MXN`) |
-| `INSTALL_PRICE_PROMO` | Comercial | Precio de la oferta de lanzamiento (`$2,500.00 MXN`) |
-| `INSTALL_PROMO_LABEL` | Comercial | Texto de la oferta (`Oferta de lanzamiento: primeros 3 clientes`) |
-| `INSTALL_MONTHLY_PRICE` | Comercial | Mensualidad (`$900.00 MXN`) |
+| `INSTALL_PRICE_PROMO` | Comercial | Paquete B, instalación + primer mes sin conexión con Meta (`$2,500.00 MXN`) |
+| `INSTALL_PRICE_WITH_META` | Comercial | Paquete A, instalación + primer mes + conexión con Meta (`$3,500.00 MXN`). Acepta también el alias `SETUP_BUNDLE_PRICE` |
+| `INSTALL_PROMO_LABEL` | Comercial | Texto de la oferta (`Precio de instalación vigente`) |
+| `INSTALL_MONTHLY_PRICE` | Comercial | Mensualidad mes a mes (`$699.00 MXN`); el primer mes va incluido y es el piloto de 30 días |
 | `INSTALL_MONTHLY_LIST_PRICE` | Comercial | Mensualidad a precio de lista (`$1,490.00 MXN`) |
+| `MONTHLY_3` / `MONTHLY_6` / `MONTHLY_12` | Comercial | Compromisos **opcionales**: `$649`, `$599` y `$549` al mes |
+| `PILOT_DAYS` | Comercial | Duración del piloto pagado. Default `30` |
 | `INSTALL_PROMO_UNTIL` | Comercial | Hasta cuándo vale la oferta (`2026-12-31`); después, la página deja de anunciarla sola |
 | `SUPPORT_WHATSAPP_DISPLAY` | Comercial | El número como se muestra en la página (`55 3878 3682`) |
 | `BACKUP_ENABLED` | No | Respaldo automático de la base. Default `true` |
@@ -325,8 +332,8 @@ Cifra en la base, campo por campo, lo que puede hacer daño si alguien obtiene u
 | Dónde | Qué se cifra |
 | --- | --- |
 | `WhatsAppAccount` | `accessToken` y `verifyToken` |
-| `Contact` | `phone` y `notes` (el teléfono se busca por `phoneHash`) |
-| `Message` | `body`, `mediaFilename`, `metaPayload`, `metaResponse` |
+| `Contact` | `phone`, `notes`, `customName`, `profileName` y `outcomeAmount` (teléfono y nombre se buscan por sus índices ciegos) |
+| `Message` | `body`, `mediaFilename`, `metaPayload`, `metaResponse`, `replyTitle` |
 | `CampaignRecipient` | `phone` y `variables` |
 | `WhatsAppNumber` | `phoneNumber` |
 | `Log` | `payload` |
@@ -336,9 +343,9 @@ Cifra en la base, campo por campo, lo que puede hacer daño si alguien obtiene u
 
 El cifrado y el descifrado son transparentes: los servicios y las vistas siguen trabajando con valores normales, así que nada del panel cambió.
 
-Hay dos campos que no se pueden comparar por coincidencia parcial porque están cifrados y se buscan con un índice ciego (HMAC-SHA256 con esta misma llave): el **teléfono del contacto** (`Contact.phoneHash`) y el **correo de acceso del usuario** (`User.emailHash`). El índice conserva la unicidad y la búsqueda exacta. Por eso en Contactos hay que escribir el número completo; el correo se resuelve solo (el inicio de sesión traduce el correo completo a su índice) y una consulta por partes falla con explicación.
+Hay tres campos que no se pueden comparar por coincidencia parcial porque están cifrados y se buscan con un índice ciego (HMAC-SHA256 con esta misma llave): el **teléfono del contacto** (`Contact.phoneHash`), el **nombre del contacto** (`Contact.nameHash`) y el **correo de acceso del usuario** (`User.emailHash`). El índice conserva la unicidad y la búsqueda exacta. Por eso en Contactos hay que escribir el nombre completo o el número completo; el correo se resuelve solo (el inicio de sesión traduce el correo completo a su índice) y una consulta por partes falla con explicación.
 
-**Lo que queda sin cifrar:** los nombres de contacto (`profileName`, `customName`), porque la búsqueda por texto del panel depende de ellos; también los adjuntos en disco y los archivos de PostgreSQL. Está anotado como pendiente en [`docs/alcance-produccion.md`](docs/alcance-produccion.md).
+**Lo que queda sin cifrar:** los adjuntos (en disco y en R2, donde la infraestructura cifra en reposo, no la app), los archivos de PostgreSQL y los nombres de los usuarios del equipo y de la empresa, que no son datos de los deudores. Los datos de los contactos —nombre, teléfono, mensajes, notas, montos y correo de acceso— ya van cifrados.
 
 No tiene nada que ver con las contraseñas de los usuarios: esas se guardan con bcrypt, que es de una sola vía y no necesita llave.
 
@@ -407,7 +414,7 @@ El trabajo de integración sí necesita la base: se declara con `services:` y su
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
-| GET | `/` | Landing pública |
+| GET | `/` | Landing pública en la instalación sin `PRODUCT_DOMAIN`; con dominio de producto, manda al acceso |
 | GET | `/como-empezar` | Guía de inicio |
 | GET | `/health` | Healthcheck (`200` con `status: healthy`) |
 | GET | `/auth/login` | Formulario de acceso |
@@ -468,7 +475,7 @@ El trabajo de integración sí necesita la base: se declara con `services:` y su
 | POST | `/admin/backup/snapshot/:archivo/verify` | Verifica que la copia se puede leer y descifrar |
 | POST | `/admin/backup/purge` | Elimina todos los datos de la instalación (requiere el identificador) |
 | GET | `/admin/system` | Checklist de configuración |
-| GET | `/admin/roadmap` | Alcance V1 vs V2 |
+| GET | `/admin/guia` | Guía del producto para el equipo del cliente |
 
 ### Agente (`/agent`, requiere rol `AGENT`)
 
@@ -518,7 +525,7 @@ Endpoints: `GET` y `POST /webhooks/meta/whatsapp`.
 
 - `messages`: se resuelve la cuenta por `phone_number_id`, se hace upsert del contacto, se crea o reabre la conversación, se guarda el mensaje (deduplicado por `wamid`) y se asigna agente si no tiene.
 - `statuses`: se actualizan `sent`, `delivered`, `read` y `failed` tanto en el mensaje como en el destinatario de campaña, incluyendo el código y mensaje de error de Meta.
-- Tipos de entrada soportados: texto, imagen, video, audio, documento e interactivos (estos últimos se guardan de forma genérica).
+- Tipos de entrada soportados: texto, imagen, video, audio, documento e interactivos. De un interactivo se guardan el identificador y el texto de la opción elegida (botón de plantilla, `button_reply` o `list_reply`), y ese identificador puede disparar una regla que registre un resultado, pause la cuenta o dé de baja al contacto.
 
 **Idempotencia.** Cada mensaje entrante se identifica por `wamid`; si Meta reintenta, no se duplica.
 
@@ -608,7 +615,7 @@ El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay **208 pruebas unitarias** y **41 de integración** contra PostgreSQL (estas últimas corren en CI con una base desechable), y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, verificación en dos pasos (desafío sin sesión, código válido y rescate por administrador), cifrado en reposo de todos los campos sensibles (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas, **restauración de un respaldo probada borrando datos a propósito** y **alta de una instalación vacía recorriendo el asistente como un cliente nuevo**.
+Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay **252 pruebas unitarias en 39 archivos** y una **suite de integración** contra PostgreSQL (esta última corre en CI con una base desechable), y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, verificación en dos pasos (desafío sin sesión, código válido y rescate por administrador), cifrado en reposo de todos los campos sensibles —incluidos nombres y correos— (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas, **restauración de un respaldo probada borrando datos a propósito** y **alta de una instalación vacía recorriendo el asistente como un cliente nuevo**.
 
 Lo que se cerró en el sprint de endurecimiento:
 
@@ -617,7 +624,13 @@ Lo que se cerró en el sprint de endurecimiento:
 - Exclusión del webhook del rate limit global, con límite propio.
 - Actualizaciones en vivo en las bandejas con socket.io.
 - Credenciales de Meta cifradas con AES-256-GCM y editables desde el panel.
-- Cifrado en reposo de teléfonos, notas, mensajes, payloads, variables de campaña y bitácora, con índice ciego para buscar el teléfono sin guardarlo en claro.
+- Cifrado en reposo de teléfonos, **nombres**, notas, mensajes, payloads, variables de campaña, correos y bitácora, con índices ciegos para buscar por teléfono, nombre completo o correo sin guardarlos en claro.
+- Campañas programadas por fecha y hora, con el planificador arrancándolas solo.
+- Respuestas de botón (y de lista) interpretadas, con reglas que registran un resultado, pausan la cuenta o dan de baja.
+- Envío de botones dentro de la ventana de 24 horas (hasta 3) y plantillas con variables de encabezado, cuerpo y URL del botón.
+- Contador del tramo de mensajes gratis por número, con alerta al 80% y costo estimado.
+- Opt-in formal con fecha, canal y autor.
+- Respaldos y adjuntos copiados a Cloudflare R2 además del Volume local.
 - Baja automática por palabra clave (`OPT_OUT_KEYWORDS`, por defecto `STOP`), con bloqueo de envíos y reactivación auditada.
 - Límite diario de mensajes manuales aplicado, calculado sobre los envíos reales (las notas internas no cuentan).
 - Respuestas rápidas, contador de no leídos y filtros y búsqueda en la bandeja.
@@ -631,18 +644,14 @@ Lo que se cerró en el sprint de endurecimiento:
 
 Pendientes conocidos, en orden de impacto:
 
-1. **Cifrar los nombres de contacto**: `profileName` y `customName` siguen en claro porque la búsqueda por texto del panel depende de ellos. Cifrarlos obliga a pasar esa búsqueda a coincidencia exacta con índice ciego.
-1. **Variables fuera del cuerpo**: las campañas resuelven las variables del componente `BODY`. Las de encabezado o de botones con URL todavía no se llenan.
-2. **Normalización de teléfonos**: el normalizador asume México con prefijo `521`. Conviene contrastarlo contra el formato que Meta acepta hoy y, si el negocio crece fuera del país, generalizarlo.
-3. **Respuestas de botones e interactivos**: se registran de forma genérica, sin interpretar la opción elegida, y todavía no se pueden enviar botones ni listas.
-4. **Baja con otras palabras**: solo se detecta la palabra clave al inicio del mensaje; el resto se marca a mano desde la ficha del contacto.
-5. **Registro formal del opt-in**: hoy se guarda la fecha del consentimiento, no quién lo dio ni por qué canal.
-6. **Programación de campañas**: se pueden pausar y cancelar, pero no agendar por fecha y hora.
-7. **No leídos por persona**: el contador es del hilo, no de cada usuario.
-8. **Respaldos fuera del servidor**: la copia automática vive en el mismo lugar que la base; nadie la saca de ahí sola. Conviene descargarla periódicamente (o activar también los respaldos del proveedor) y probar una restauración.
-9. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
+1. **Listas desplegables**: los botones ya se envían dentro de la ventana de 24 horas (hasta 3) y sus respuestas se interpretan; las listas todavía no se pueden enviar desde el panel.
+2. **Normalización de teléfonos**: el normalizador asume México con prefijo `521`. Si el negocio crece fuera del país, hay que generalizarlo.
+3. **Baja con otras palabras**: solo se detecta la palabra clave al inicio del mensaje; el resto se marca a mano desde la ficha del contacto.
+4. **No leídos por persona**: el contador es del hilo, no de cada usuario.
+5. **Restauración desde R2**: los respaldos se suben cifrados al bucket, pero restaurar directamente desde R2 en un entorno limpio todavía se hace a mano.
+6. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
 
-Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArgarita.md`](MArgarita.md) y visibles en `/admin/roadmap`.
+El límite vigente, con su explicación, está en [`docs/alcance-produccion.md`](docs/alcance-produccion.md). El panel muestra la guía del producto en `/admin/guia`.
 
 ---
 
@@ -650,19 +659,19 @@ Las funcionalidades descartadas a propósito de V1 están documentadas en [`MArg
 
 | Documento | Contenido |
 | --- | --- |
-| [`MArgarita.md`](MArgarita.md) | Documento de producto: alcance, roles, reglas de negocio y roadmap V1/V2 |
+| [`MArgarita.md`](MArgarita.md) | Especificación original del producto: alcance, roles y reglas de diseño (histórico) |
 | [`base-datos.md`](base-datos.md) | Diseño de la base de datos entidad por entidad |
 | [`docs/deploy-railway.md`](docs/deploy-railway.md) | Guía de despliegue en Railway |
 | [`docs/plantilla-railway.md`](docs/plantilla-railway.md) | Publicar la plantilla para dar de alta clientes en minutos |
-| [`docs/roadmap-v2.md`](docs/roadmap-v2.md) | Plan detallado de los siguientes sprints: multimedia, interactivos y campañas |
+| [`docs/roadmap-v2.md`](docs/roadmap-v2.md) | Histórico de sprints: qué se hizo, cómo se verificó y qué se sabía en cada uno |
 | [`docs/marca.md`](docs/marca.md) | El símbolo, la paleta y el tono: cómo se ve Margarita y cómo se regenera |
 | [`docs/propuesta-comercial.md`](docs/propuesta-comercial.md) | Plantilla de propuesta: alcance, precios, qué no incluye y tiempos |
-| [`docs/facturacion.md`](docs/facturacion.md) | Reglas de cobro y facturación: precios, mínimo de tres meses, fechas de la promoción y qué decirle al cliente |
+| [`docs/facturacion.md`](docs/facturacion.md) | Reglas de cobro y facturación: paquetes A/B, mensualidad, piloto de 30 días, fechas de la promoción y qué decirle al cliente |
 | [`docs/dolores-y-posts.md`](docs/dolores-y-posts.md) | Material para vender: el dolor del bloqueo, los otros siete dolores, mitos, posts listos y lo que no se debe prometer |
 | [`landing/`](landing/README.md) | La página de venta como sitio estático, para subir aparte (`npm run landing:build`) |
 | [`docs/dominios.md`](docs/dominios.md) | Cómo conectar el dominio de una operación, dónde vive la landing y qué comprobar después |
 | [`docs/plan-interactivos.md`](docs/plan-interactivos.md) | Cómo entrar en dos sprints a la evolución de botones e interacciones: alcance, bloqueante de Meta, decisiones y mapa técnico |
-| [`nuevo_roadmap.md`](nuevo_roadmap.md) | Especificación completa de botones, plantillas interactivas, contador del tramo y llamadas (documento de trabajo) |
+| [`nuevo_roadmap.md`](nuevo_roadmap.md) | Documento de trabajo original de botones, plantillas interactivas, tramo y llamadas (histórico) |
 | [`docs/alcance-produccion.md`](docs/alcance-produccion.md) | Alcance actual, límites, seguridad y responsabilidades para uso en producción |
 | [`docs/multinumero.md`](docs/multinumero.md) | Diseño del multinúmero: modelo, migración, uso y pendientes |
 | [`docs/aviso-privacidad.md`](docs/aviso-privacidad.md) | Aviso de privacidad para revisar y publicar (la versión pública vive en `/aviso-de-privacidad`) |

@@ -1,8 +1,8 @@
 # Cloudflare: qué configurar y para qué
 
-Guía para dejar Cloudflare haciendo lo que le toca hoy (DNS, sitio estático,
-protección) y lo que tocará después (archivos y respaldos en R2). Está pensada
-para hacerse una vez por cuenta.
+Guía para dejar Cloudflare haciendo lo que le toca hoy: DNS, sitio estático,
+protección y el bucket R2 de archivos y respaldos. Está pensada para hacerse
+una vez por cuenta.
 
 ---
 
@@ -12,7 +12,7 @@ para hacerse una vez por cuenta.
 | --- | --- | --- |
 | **DNS** | Dominio y subdominios | Ya en uso |
 | **Pages** | La landing estática (`landing/`) | Ya en uso |
-| **R2** | Archivos de conversaciones y respaldos | Por implementar (necesita bucket y token) |
+| **R2** | Archivos de conversaciones y respaldos | En uso (bucket `margarita-backup`) |
 | **WAF y límites** | Freno de abuso en el borde | Opcional; requiere proxy naranja |
 | **Web Analytics** | Métricas de la landing sin cookies | Recomendado |
 | **Turnstile** | Captcha invisible en el acceso | Opcional |
@@ -52,13 +52,14 @@ probar WebSockets y certificado de origen; no se hace el día de un alta.
 
 ## 4. R2 (respaldos; archivos en el siguiente paso)
 
-**Hoy**: los **respaldos** se suben cifrados a `backups/` en cuanto las cuatro
-variables existen. Los **archivos de las conversaciones** siguen en disco
-(`MEDIA_STORAGE_DIR`) hasta que se implemente el adaptador de medios.
+**Hoy**: en cuanto las cuatro variables existen, los **respaldos** se suben
+cifrados a `backups/` y los **archivos de las conversaciones** se copian a
+`media/`. El disco (`MEDIA_STORAGE_DIR`) sigue siendo la caché local: la app
+lee primero de ahí y, si el archivo ya no está, lo trae de R2.
 
 ### Crear el bucket
 
-1. **R2 → Create bucket** → nombre `margarita-media` (uno por entorno).
+1. **R2 → Create bucket** → nombre `margarita-backup` (uno por entorno).
 2. Región automática.
 3. **No** lo hagas público: los archivos se sirven por la app, que valida la
    sesión y el permiso sobre la conversación.
@@ -71,7 +72,7 @@ variables existen. Los **archivos de las conversaciones** siguen en disco
 
 ```
 R2_ACCOUNT_ID=...
-R2_BUCKET=margarita-media
+R2_BUCKET=margarita-backup
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
 ```
@@ -79,18 +80,11 @@ R2_SECRET_ACCESS_KEY=...
 El endpoint S3 es
 `https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com`.
 
-### CORS (cuando se implemente la subida directa)
+### CORS (no hace falta)
 
-```json
-[
-  {
-    "AllowedOrigins": ["https://*.margaritaapp.org"],
-    "AllowedMethods": ["PUT", "GET"],
-    "AllowedHeaders": ["*"],
-    "MaxAgeSeconds": 3600
-  }
-]
-```
+El navegador nunca habla con R2: la app sube y descarga con sus credenciales y
+sirve el archivo después de validar la sesión y el permiso sobre la
+conversación. No configures CORS ni hagas público el bucket.
 
 ---
 
@@ -118,13 +112,16 @@ Cloudflare inyecta el script en Pages; no usa cookies.
 
 ---
 
-## 7. Qué me pasas para seguir
+## 7. Cómo comprobar que quedó
 
-Para implementar R2 en la app (archivos y respaldos) necesito:
+1. En Railway, las cuatro variables `R2_*` apuntan al bucket
+   `margarita-backup`.
+2. Admin → Sistema muestra el resumen de R2 con objetos, tamaño y fecha del
+   último.
+3. Crea un respaldo a mano desde Admin → Respaldos y comprueba que aparece en
+   R2 bajo `backups/`.
+4. Abre una conversación con un adjunto y verifica que el archivo se ve; la app
+   lo tendrá en la caché local y también en `media/` del bucket.
 
-1. El **nombre del bucket**.
-2. Un **token con permiso de escritura** (las cuatro variables de arriba).
-3. Confirmación de si quieres **subida directa** del navegador a R2 (evita el
-   límite de 100 MB de Cloudflare) o pasar todo por Railway.
-
-> Los secretos van en **Variables de Railway**, nunca en el repositorio.
+> Los secretos van en **Variables de Railway**, nunca en el repositorio, y el
+> bucket se queda privado.
