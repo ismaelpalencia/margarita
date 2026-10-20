@@ -59,21 +59,6 @@ export class AdminSystemController {
             status,
             version: appConfig.version,
             commit: appConfig.commit,
-            /**
-             * Los datos de cobro que el operador necesita al facturar. Salen de
-             * las mismas variables que la página pública, así que no se pueden
-             * contradecir.
-             */
-            billing: {
-                installPromo: appConfig.installPricePromo,
-                installList: appConfig.installPrice,
-                monthly: appConfig.installMonthlyPrice,
-                meta: appConfig.setupServicePrice,
-                monthlyList: appConfig.installMonthlyListPrice,
-                promoLabel: appConfig.installPromoLabel,
-                email: appConfig.supportEmail,
-                whatsapp: appConfig.supportWhatsappDisplay
-            },
             formatDateTimeMX
             ,
             r2: await r2Summary(),
