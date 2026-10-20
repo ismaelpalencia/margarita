@@ -130,6 +130,10 @@ function rewriteLinks(html: string) {
         .replace(/href="\/docs\//g, 'href="docs/')
         .replace(/href="(css\/style\.css)"/g, `href="$1${assetTag}"`)
         .replace(
+            /href="(css\/landing-2026\.css)"/g,
+            `href="$1${assetTag}"`
+        )
+        .replace(
             /href="\/(favicon|apple-touch|android-chrome|site\.webmanifest)([^"]*)"/g,
             `href="$1$2${assetTag}"`
         )
@@ -205,6 +209,10 @@ function build() {
 
     /** El CSS compilado y los archivos de marca. */
     copy(path.join(PUBLIC, "css", "style.css"), path.join(OUT, "css", "style.css"));
+    copy(
+        path.join(PUBLIC, "css", "landing-2026.css"),
+        path.join(OUT, "css", "landing-2026.css")
+    );
 
     /**
      * El aviso de carga. Es el mismo archivo que usa el panel: aquí queda con

@@ -13,10 +13,11 @@ python3 scripts/export-brand-assets.py
 
 ## Qué hay en cada carpeta
 
-### `sello/` — el símbolo en círculo
+### `sello/` — el símbolo moderno
 
-El sello verde con la flor y la cara. Es la marca de la app: favicon, ícono de
-la pestaña, avatar de WhatsApp y de redes.
+El sello cuadrado redondeado verde profundo, con la flor blanca, el centro
+amarillo y la cara. Es la marca de la app: favicon, ícono de la pestaña, avatar
+de WhatsApp y de redes.
 
 | Archivo | Para qué |
 | --- | --- |
@@ -57,7 +58,7 @@ de un documento.
 
 **Espacio libre.** Deja alrededor del logo, como mínimo, el ancho del pétalo
 central de la flor (aproximadamente un cuarto del alto del símbolo). Nada de
-texto pegado al borde del círculo.
+texto pegado al borde del sello.
 
 **Tamaño mínimo.** El sello no baja de **24 px** de alto; el logotipo, de
 **120 px** de ancho. Abajo de eso la cara se pierde.
@@ -70,7 +71,8 @@ logotipo blanco.
 
 - No estirar ni aplastar: siempre proporcional.
 - No cambiarle el color a la flor ni al sello.
-- No ponerle sombras, contornos ni degradados.
+- No ponerle sombras, contornos ni degradados **dentro del archivo**. En la
+  interfaz se puede usar una sombra de elevación discreta sobre el sello.
 - No girarlo (la cara queda de cabeza).
 - No usar el logotipo a una sola tinta que no sea la versión blanca ya
   preparada.
@@ -81,7 +83,8 @@ logotipo blanco.
 
 | Uso | Hex |
 | --- | --- |
-| Verde principal (sello, botones) | `#17865a` |
+| Verde profundo (sello) | `#0c5b4c` |
+| Verde principal (botones) | `#17865a` |
 | Verde oscuro (texto del logotipo) | `#0f4632` |
 | Verde claro (fondos suaves) | `#eefbf3` |
 | Amarillo del centro (acentos) | `#fbbe1f` |

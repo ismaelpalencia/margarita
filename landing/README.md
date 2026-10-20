@@ -25,6 +25,14 @@ relativas: funciona igual en un dominio propio o dentro de una carpeta.
 La guía completa —dominio de la operación, variables, DNS y comprobaciones—
 está en [`../docs/dominios.md`](../docs/dominios.md).
 
+## Maqueta de rediseño 2026
+
+La propuesta visual nueva está en
+[`../mockups/landing-2026/`](../mockups/landing-2026/): HTML y CSS puro, sin
+JavaScript ni Tailwind. Vive fuera de esta carpeta porque `landing:build` borra
+todo lo que no venga de las plantillas; cuando se apruebe, se integra a
+`src/views/pages/home/` y al generador.
+
 ## Cómo subirlo
 
 Cualquier hosting estático sirve. Dos caminos cómodos:

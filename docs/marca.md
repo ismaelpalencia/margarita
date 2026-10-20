@@ -7,15 +7,18 @@ verde, un amarillo y unas cuantas reglas.
 
 ## 1. El símbolo
 
-Una **margarita de un solo color**: ocho pétalos redondos, centro sólido y una
-carita tallada en hueco. Plana, sin sombras ni degradados, como los símbolos de
-Ollama o GitHub.
+Una **margarita de ocho pétalos redondos, centro sólido y una carita tallada en
+hueco**. La versión actual la presenta dentro de un **sello cuadrado de esquinas
+redondeadas**: verde profundo, flor blanca y centro amarillo. Sigue siendo plana,
+sin sombras ni degradados dentro del archivo, como los símbolos de Ollama o
+GitHub.
 
-- El color es el verde de la marca (`#17865a`), en la flor y en el círculo. Nada
-  de amarillo en el símbolo: el amarillo queda para destacar precios y
-  promociones.
-- La carita va recortada de verdad (transparente), no pintada de blanco, así que
-  el símbolo funciona igual sobre fondo claro y oscuro.
+- El sello usa el verde profundo de la marca (`#0c5b4c`), la flor va en blanco y
+  el centro en el amarillo (`#fbbe1f`). Es el único lugar donde el amarillo
+  aparece dentro del símbolo: sirve para que la cara se lea incluso a tamaño de
+  pestaña.
+- La carita va tallada en el color del sello (o transparente en la flor sola),
+  no pintada de blanco, así que conserva el gesto en todos los tamaños.
 - A 16 px (la pestaña) lo que se reconoce es la silueta de la flor; la carita se
   aprecia a partir de unos 32 px.
 
@@ -23,18 +26,18 @@ Ollama o GitHub.
 
 | Variante | Cómo se ve | Dónde se usa |
 | --- | --- | --- |
-| `sello-hojas` | Círculo verde con la flor en blanco y **dos hojas** en la base | **Es la de la aplicación** (ícono, favicon, acceso, encabezado) |
+| `sello-moderno` | Cuadrado redondeado verde, flor blanca y centro amarillo | **Es la de la aplicación** (ícono, favicon, acceso, encabezado) |
+| `sello-hojas` | Círculo verde con la flor en blanco y **dos hojas** en la base | Alternativa amable, ya no es la principal |
 | `sello` | Igual, sin las hojas: todo verde y blanco | La versión más limpia, si algún día se necesita |
 | `sello-sol` | Sello con el centro de la flor en amarillo | Alternativa con el acento de color |
 | `sello-anillo` | Sello con un aro fino por dentro del borde | Alternativa corporativa |
 | `flor` | La flor sola, sin caja | El símbolo suelto: encabezados, volantes, presentaciones |
 | `hueco` | La flor con el centro vacío (aro) | La más sobria; pierde la carita |
 
-El detalle que se eligió fueron las **dos hojas en la base**, con la nervadura
-tallada: dan a entender que es una margarita cortada y no una flor genérica, y
-a tamaño de pestaña se funden con la flor (no ensucian). Las hojas se dibujan
-después de los pétalos —como son del mismo color, el traslape no se nota— para
-que la nervadura no quede tapada.
+La versión elegida para 2026 es el **sello moderno**: conserva la flor y la
+carita, pero cambia el círculo por un cuadrado redondeado que se lee mejor junto
+al wordmark y en una interfaz SaaS. Las variantes con hojas y con aro quedan como
+alternativas de marca, no como el ícono principal.
 
 La hoja para elegir (o confirmar) está en `marketing/logo-opciones.png` y se
 regenera con `python3 scripts/generate-logo-options.py`. Cambiar de variante es

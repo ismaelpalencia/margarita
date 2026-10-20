@@ -27,9 +27,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Símbolo de Margarita")
     parser.add_argument(
         "--variant",
-        default="sello-hojas",
+        default="sello-moderno",
         choices=list(brand_lib.VARIANTS),
         help=(
+            "sello-moderno: cuadrado redondeado con flor blanca y centro amarillo · "
             "sello: círculo con la flor en negativo · sello-sol: con el centro amarillo · "
             "sello-hojas: con dos hojas · sello-anillo: con un aro · flor: solo la flor · "
             "hueco: flor con el centro vacío"

@@ -39,10 +39,11 @@ def main():
     draw = ImageDraw.Draw(image)
 
     options = [
-        ("sello (base)", "sello"),
-        ("D · centro amarillo", "sello-sol"),
-        ("E · con hojas  ✓ elegida", "sello-hojas"),
-        ("F · con aro", "sello-anillo"),
+        ("A · sello moderno · actual", "sello-moderno"),
+        ("B · sello base", "sello"),
+        ("C · centro amarillo", "sello-sol"),
+        ("D · con hojas", "sello-hojas"),
+        ("E · con aro", "sello-anillo"),
     ]
 
     column_width = WIDTH // len(options)
@@ -50,7 +51,7 @@ def main():
     draw.text((60, TITLE_Y), "Margarita · opciones de símbolo", font=load_font(44), fill=GREEN_DARK)
     draw.text(
         (60, TITLE_Y + 58),
-        "Elegida: E · con hojas. El tamaño real de la pestaña es el más chico de la fila de en medio.",
+        "Actual: A · sello moderno. El tamaño real de la pestaña es el más chico de la fila de en medio.",
         font=load_font(24, bold=False),
         fill=SLATE_500,
     )
@@ -58,11 +59,12 @@ def main():
     for index, (label, variant) in enumerate(options):
         left = index * column_width
         center = left + column_width // 2
+        label_font = load_font(18)
 
         draw.text(
-            (center - draw.textlength(label, font=load_font(30)) / 2, HEAD_Y),
+            (center - draw.textlength(label, font=label_font) / 2, HEAD_Y),
             label,
-            font=load_font(30),
+            font=label_font,
             fill=GREEN_DARK,
         )
 
@@ -70,7 +72,8 @@ def main():
         small = [draw_icon(size, variant) for size in (64, 48, 32, 16)]
         mark = draw_icon(150, variant)
         mark_dark = draw_icon(150, variant)
-        word = wordmark(96, variant)
+        word = wordmark(72, variant)
+        word.thumbnail((240, 72), Image.LANCZOS)
 
         image.paste(big, (center - 100, ROW_LIGHT_Y), big)
 
@@ -101,10 +104,11 @@ def main():
             )
 
     notes = [
-        "sello (base): verde y blanco, sin más.",
-        "D · centro amarillo: el centro en el amarillo de la marca. La que más se reconoce a tamaño de pestaña.",
-        "E · con hojas: dos hojas en la base, como flor cortada. La más amable.",
-        "F · con aro: un aro fino por dentro del borde. La más sobria.",
+        "A · sello moderno: cuadrado redondeado verde profundo, flor blanca y centro amarillo. Conserva la cara.",
+        "B · sello base: círculo verde y blanco, sin más.",
+        "C · centro amarillo: el centro en el amarillo de la marca.",
+        "D · con hojas: dos hojas en la base, como flor cortada.",
+        "E · con aro: un aro fino por dentro del borde.",
     ]
 
     y = HEIGHT - 172

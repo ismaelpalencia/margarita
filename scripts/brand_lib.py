@@ -37,6 +37,7 @@ GREEN = (23, 134, 90)  # margarita-600: acción y símbolo
 GREEN_DARK = (15, 70, 50)  # margarita-900: texto de marca
 GREEN_800 = (16, 87, 60)  # margarita-800: fondos del volante
 GREEN_900 = (15, 70, 50)
+GREEN_TILE = (12, 91, 76)  # sello moderno: verde profundo del tile
 SUN_400 = (251, 190, 31)  # sol-400: solo para destacar
 INK = (14, 43, 34)
 WHITE = (255, 255, 255)
@@ -64,6 +65,7 @@ SMILE_FROM = 22
 SMILE_TO = 158
 
 BADGE_MARGIN_RATIO = 0.0  # el sello llega al borde
+TILE_RADIUS_RATIO = 0.235  # esquinas del sello moderno
 SUPERSAMPLE = 4
 
 BRAND_DIR = os.path.join("src", "public", "brand", "img")
@@ -141,6 +143,11 @@ def leaf_points(angle_deg, distance=None, long=None, short=None, steps=72):
             contour.append(point(along, side * half))
 
     return contour
+
+
+def hex_color(rgb):
+    """Color RGB a notación hexadecimal para los SVG."""
+    return "#%02x%02x%02x" % rgb
 
 
 def mapper(big, glyph_scale=1.0, shift_y=0.0):
@@ -338,6 +345,78 @@ def daisy_badge(
     return image.resize((size, size), Image.LANCZOS)
 
 
+def daisy_tile(
+    size,
+    background=GREEN_TILE,
+    glyph=WHITE,
+    core=SUN_400,
+    face=True,
+    glyph_scale=0.8,
+):
+    """
+    Sello moderno: cuadrado redondeado, flor blanca, centro amarillo y carita.
+
+    Es la evolución del sello circular. Conserva la silueta y la cara, pero se
+    lee como un icono de producto actual y funciona mejor junto a un wordmark.
+    Sigue siendo plano: sin sombras ni degradados dentro del archivo.
+    """
+    big = size * SUPERSAMPLE
+    to_pixels, scale = mapper(big, glyph_scale)
+    image = Image.new("RGBA", (big, big), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+
+    radius = max(1, round(big * TILE_RADIUS_RATIO))
+    draw.rounded_rectangle(
+        (0, 0, big - 1, big - 1),
+        radius=radius,
+        fill=background + (255,),
+    )
+
+    def box(radius_value):
+        top_left = to_pixels(CENTER - radius_value, CENTER - radius_value)
+        bottom_right = to_pixels(CENTER + radius_value, CENTER + radius_value)
+        return (top_left[0], top_left[1], bottom_right[0], bottom_right[1])
+
+    for index in range(PETAL_COUNT):
+        angle = 360 / PETAL_COUNT * index
+        draw.polygon(
+            [to_pixels(x, y) for x, y in petal_points(angle)],
+            fill=glyph + (255,),
+        )
+
+    draw.ellipse(box(CORE_RADIUS), fill=core + (255,))
+
+    if face:
+        carved = background + (255,)
+
+        for side in (-1, 1):
+            x = CENTER + side * EYE_DX
+            y = CENTER + EYE_DY
+            top_left = to_pixels(x - EYE_RX, y - EYE_RY)
+            bottom_right = to_pixels(x + EYE_RX, y + EYE_RY)
+            draw.ellipse(
+                (top_left[0], top_left[1], bottom_right[0], bottom_right[1]),
+                fill=carved,
+            )
+
+        smile_top_left = to_pixels(SMILE_BOX[0], SMILE_BOX[1])
+        smile_bottom_right = to_pixels(SMILE_BOX[2], SMILE_BOX[3])
+        draw.arc(
+            (
+                smile_top_left[0],
+                smile_top_left[1],
+                smile_bottom_right[0],
+                smile_bottom_right[1],
+            ),
+            start=SMILE_FROM,
+            end=SMILE_TO,
+            fill=carved,
+            width=max(2, round(SMILE_WIDTH * scale)),
+        )
+
+    return image.resize((size, size), Image.LANCZOS)
+
+
 def load_font(size, bold=True):
     """Tipografía del sistema, con respaldo si falta la primera opción."""
     candidates = [
@@ -377,6 +456,25 @@ def glyph_svg(variant="flor"):
         f'\n  <path d="M {CENTER - 90:.0f} {CENTER + 58:.0f} A 104 104 0 0 0 {CENTER + 90:.0f} {CENTER + 58:.0f}"'
         f' fill="none" stroke="#000" stroke-width="{SMILE_WIDTH}" stroke-linecap="round"/>'
     )
+
+    if variant == "sello-moderno":
+        radius = round(CANVAS * TILE_RADIUS_RATIO)
+        tile = (
+            f'  <rect width="{CANVAS}" height="{CANVAS}" rx="{radius}" '
+            f'fill="{hex_color(GREEN_TILE)}"/>'
+        )
+        face_tile = face.replace(
+            'fill="#000"', f'fill="{hex_color(GREEN_TILE)}"'
+        ).replace('stroke="#000"', f'stroke="{hex_color(GREEN_TILE)}"')
+        body = (
+            tile
+            + "\n"
+            + "\n".join(petal.replace('fill="currentColor"', 'fill="#fff"') for petal in petals)
+            + f'\n  <circle cx="{CENTER:.0f}" cy="{CENTER:.0f}" r="{CORE_RADIUS}" fill="{hex_color(SUN_400)}"/>'
+            + "\n"
+            + face_tile
+        )
+        return _svg_document(body)
 
     if variant == "sello":
         body = (
@@ -431,7 +529,7 @@ def _svg_document(body, defs=""):
 """
 
 
-def wordmark(height, variant="sello-hojas"):
+def wordmark(height, variant="sello-moderno"):
     """Símbolo + nombre, para los encabezados. Usa el mismo símbolo que el ícono."""
     icon = draw_icon(height, variant)
     font = load_font(round(height * 0.56))
@@ -455,11 +553,22 @@ def wordmark(height, variant="sello-hojas"):
     return image
 
 
-VARIANTS = ("sello", "sello-sol", "sello-hojas", "sello-anillo", "flor", "hueco")
+VARIANTS = (
+    "sello-moderno",
+    "sello",
+    "sello-sol",
+    "sello-hojas",
+    "sello-anillo",
+    "flor",
+    "hueco",
+)
 
 
-def draw_icon(size, variant="sello-hojas"):
+def draw_icon(size, variant="sello-moderno"):
     """El símbolo como se usa en la aplicación, según la variante pedida."""
+    if variant == "sello-moderno":
+        return daisy_tile(size)
+
     if variant == "sello":
         return daisy_badge(size)
 
@@ -480,7 +589,7 @@ def draw_icon(size, variant="sello-hojas"):
     return daisy_glyph(size, GREEN, face=True)
 
 
-def write_app_assets(variant="sello-hojas"):
+def write_app_assets(variant="sello-moderno"):
     """Escribe los archivos que usa la aplicación."""
     os.makedirs(BRAND_DIR, exist_ok=True)
 
