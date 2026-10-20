@@ -87,7 +87,7 @@ Todos con rango de fechas, filtros por persona, número, estado y etiqueta, y bo
 | 2 | **Promesas**: monto, cuántas, agrupadas en vencidas, de hoy y de esta semana | Saber a quién hay que escribirle hoy |
 | 3 | **Resultado por campaña**: de N destinatarios, cuántos contestaron, cuántos prometieron y cuántos pagaron | Medir si la campaña sirvió |
 | 4 | **Sin contestación tras X intentos** | La lista de trabajo del día, exportable y marcable en bloque |
-| 5 | **Detalle exportable**: una fila por gestión y una fila por cliente con su estado vigente | La "cartera" para trabajar en Excel |
+| 5 | **Detalle exportable**: una fila por gestión y una fila por cliente con su estado vigente, incluyendo el número emisor | La "cartera" para trabajar en Excel |
 | 6 | **Tarjetas del día** en el dashboard: gestiones de hoy, promesas por vencer, clientes sin resultado | Vista de entrada al panel |
 
 ### 3.5 Fases

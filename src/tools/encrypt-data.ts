@@ -10,7 +10,7 @@ import {
     isEncrypted,
     isEncryptedJson
 } from "../utils/crypto";
-import { normalizeMexicanPhone } from "../utils/phone";
+import { normalizePhone } from "../utils/phone";
 import { normalizeEmail } from "../utils/email";
 
 /**
@@ -106,7 +106,7 @@ export async function encryptExistingData() {
                     let phone = contact.phone;
 
                     try {
-                        phone = normalizeMexicanPhone(contact.phone);
+                        phone = normalizePhone(contact.phone);
                     } catch {
                         /** Números antiguos con otro formato se dejan igual. */
                     }
@@ -119,7 +119,7 @@ export async function encryptExistingData() {
                     let phone = contact.phone;
 
                     try {
-                        phone = normalizeMexicanPhone(contact.phone);
+                        phone = normalizePhone(contact.phone);
                     } catch {
                         /** Igual que arriba. */
                     }

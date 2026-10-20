@@ -1,7 +1,7 @@
 import { logger } from "../config/logger";
 import { prisma } from "../config/prisma";
 import { blindIndex } from "../utils/crypto";
-import { normalizeMexicanPhone } from "../utils/phone";
+import { normalizePhone } from "../utils/phone";
 
 /**
  * Marca temporal que la migración deja en `Contact.phoneHash`.
@@ -48,7 +48,7 @@ export async function backfillPhoneHashes(): Promise<number> {
         let phone = contact.phone;
 
         try {
-            phone = normalizeMexicanPhone(contact.phone);
+            phone = normalizePhone(contact.phone);
         } catch {
             /** Se conserva el valor tal cual: puede ser un número antiguo. */
         }

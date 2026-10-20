@@ -38,6 +38,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Varios números por cuenta: agregar, editar, activar o desactivar números de la misma WABA, y elegir el **número activo** en el encabezado para trabajar desde él.
 - Plantillas: sincronizar las aprobadas desde Meta y verlas con su estado real.
 - Contactos: crear, editar, buscar, etiquetar y desactivar, con consentimiento (opt-in), bajas y filtro de "solo bajas".
+- Teléfonos de México con 10 dígitos e internacionales con `+` y lada; el número se guarda normalizado para WhatsApp.
 - Etiquetas: crear, editar y desactivar.
 - Equipo: crear **administradores y agentes**, cambiar el rol, activar o desactivar y **restablecer contraseñas**. Nunca se puede dejar la instalación sin un administrador activo. Los agentes tienen permisos y **límite diario** de mensajes manuales aplicado de verdad, con el uso de hoy a la vista.
 - Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo), búsqueda por nombre completo o teléfono completo, filtros por estado, asignación y no leídos, y contador de pendientes por hilo y en el encabezado.
@@ -645,11 +646,10 @@ Lo que se cerró en el sprint de endurecimiento:
 Pendientes conocidos, en orden de impacto:
 
 1. **Listas desplegables**: los botones ya se envían dentro de la ventana de 24 horas (hasta 3) y sus respuestas se interpretan; las listas todavía no se pueden enviar desde el panel.
-2. **Normalización de teléfonos**: el normalizador asume México con prefijo `521`. Si el negocio crece fuera del país, hay que generalizarlo.
-3. **Baja con otras palabras**: solo se detecta la palabra clave al inicio del mensaje; el resto se marca a mano desde la ficha del contacto.
-4. **No leídos por persona**: el contador es del hilo, no de cada usuario.
-5. **Restauración desde R2**: los respaldos se suben cifrados al bucket, pero restaurar directamente desde R2 en un entorno limpio todavía se hace a mano.
-6. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
+2. **Baja con otras palabras**: solo se detecta la palabra clave al inicio del mensaje; el resto se marca a mano desde la ficha del contacto.
+3. **No leídos por persona**: el contador es del hilo, no de cada usuario.
+4. **Restauración desde R2**: los respaldos se suben cifrados al bucket, pero restaurar directamente desde R2 en un entorno limpio todavía se hace a mano.
+5. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
 
 El límite vigente, con su explicación, está en [`docs/alcance-produccion.md`](docs/alcance-produccion.md). El panel muestra la guía del producto en `/admin/guia`.
 

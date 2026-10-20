@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { blindIndex } from "./crypto";
 import { normalizeName } from "../config/prisma-encryption";
-import { isValidMexicanPhone, normalizeMexicanPhone } from "./phone";
+import { isValidPhone, normalizePhone } from "./phone";
 
 /**
  * Condiciones de búsqueda de contactos por texto.
@@ -26,9 +26,9 @@ export function contactSearchOr(search: string): Prisma.ContactWhereInput[] {
         }
     ];
 
-    if (isValidMexicanPhone(term)) {
+    if (isValidPhone(term)) {
         conditions.push({
-            phoneHash: blindIndex(normalizeMexicanPhone(term))
+            phoneHash: blindIndex(normalizePhone(term))
         });
     }
 

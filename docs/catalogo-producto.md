@@ -31,7 +31,7 @@ resultado alimenta la lista de trabajo del día siguiente.
 | Roles | `ADMIN` (todo) y `AGENT` (solo sus conversaciones) |
 | Números | Los que tenga la cuenta de WhatsApp Business; uno activo a la vez en el panel |
 | Idiomas | Interfaz en español; plantillas en `es_MX` u otro idioma configurado en Meta |
-| Cobertura | Números de **México** |
+| Cobertura | **México** con 10 dígitos e internacional con `+` y lada |
 
 ---
 
@@ -106,8 +106,8 @@ resultado alimenta la lista de trabajo del día siguiente.
 - Lista con **nombre, teléfono, resultado, intentos, etiquetas y notas**.
 - Filtros: etiqueta, resultado, **solo bajas**, **promesas vencidas**, **sin
   resultado**, **nunca respondió**, intentos mínimos y búsqueda por nombre.
-- La búsqueda es **exacta**: nombre completo o teléfono completo (10 dígitos),
-  porque ambos campos están cifrados.
+- La búsqueda es **exacta**: nombre completo o teléfono completo (10 dígitos en
+  México o con `+` y lada fuera del país), porque ambos campos están cifrados.
 - Selección múltiple para **marcar resultado en bloque**.
 - Ficha del contacto: datos, consentimiento, baja, **pausa con motivo**,
   resultado vigente, historial de gestiones y etiquetas.
@@ -272,7 +272,8 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 
 ## 6. Límites y matices que conviene saber
 
-- Solo números de **México**.
+- En México se capturan 10 dígitos; para otro país, el número completo con `+`
+  y lada. Meta valida que el número exista y pueda recibir mensajes.
 - La **ventana de 24 horas** es de WhatsApp, no de la app.
 - Fuera de la ventana de 24 horas solo se inicia con una **plantilla aprobada**
   (que puede traer botones). Dentro de la ventana se envían **botones** (hasta
@@ -362,6 +363,7 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 
 - «Manda mensajes ilimitados» (WhatsApp cobra el consumo y tiene límites).
 - «Responde solo» (no es un chatbot).
-- «Se conecta a cualquier país» (hoy solo México).
+- «Se conecta a cualquier país» sin decir que el número debe existir y estar
+  habilitado en Meta.
 - «Es un CRM» (no maneja ventas ni facturación).
 - «Cero riesgo de bloqueo» (la calidad del número depende del uso y de Meta).

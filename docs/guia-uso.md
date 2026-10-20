@@ -98,7 +98,8 @@ la pide por teléfono o en el mostrador, se marca a mano en su ficha. Reactivar
 a alguien es una decisión explícita y queda auditada.
 
 **Búsqueda.** Por **nombre** hay que escribir el nombre completo; por
-**teléfono**, el número completo (10 dígitos). No hay búsqueda parcial porque
+**teléfono**, el número completo (10 dígitos en México o con `+` y lada fuera
+de México). No hay búsqueda parcial porque
 nombre y teléfono están cifrados en la base: es el precio de que un volcado de
 la base no los exponga.
 
@@ -304,7 +305,8 @@ Para no prometer de más:
 - No responde sola ni es un chatbot.
 - No crea plantillas en Meta: las plantillas se aprueban allá.
 - No cobra ni concilia pagos: «pagado» es una anotación operativa.
-- Solo funciona con **números de México**.
+- En México se capturan **10 dígitos**; para otro país, el número completo con
+  `+` y lada. Meta valida que el número exista y pueda recibir mensajes.
 - Dentro de la ventana de 24 horas **sí** manda botones (hasta 3); las **listas
   desplegables** todavía no se envían desde el panel. Las plantillas con botones
   también se envían.
@@ -347,7 +349,7 @@ Para no prometer de más:
 | «Ventana cerrada» al responder | Pasaron 24 horas: usa una plantilla aprobada |
 | Una campaña no se crea | Plantilla no aprobada, o reclasificada como marketing |
 | El cliente no recibe nada | Está dado de baja, en pausa o sin consentimiento |
-| No puedo buscar por teléfono | Escribe el número completo de 10 dígitos |
+| No puedo buscar por teléfono | Escribe el número completo: 10 dígitos en México o con `+` y lada para otro país |
 | La sesión se cerró sola | Pasó el tiempo de inactividad o alguien cerró las sesiones desde **Sesiones** |
 | Olvidé la contraseña | Pídele a un administrador que la restablezca en **Equipo** |
 | «Cargando…» y no avanza | Recarga; si sigue, revisa `/health` y los logs |

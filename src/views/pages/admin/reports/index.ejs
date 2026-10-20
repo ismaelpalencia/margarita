@@ -83,7 +83,7 @@
         <form
             action="/admin/reports"
             method="GET"
-            class="mb-6 grid gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:grid-cols-3 lg:grid-cols-6"
+            class="mb-6 grid gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 md:grid-cols-3 lg:grid-cols-7"
         >
             <input type="hidden" name="vista" value="<%= view %>" />
 
@@ -143,6 +143,20 @@
                 </select>
             </label>
 
+            <% if (view === "gestiones" || view === "detalle" || view === "tendencias") { %>
+                <label class="block">
+                    <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Número</span>
+                    <select name="numberId" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                        <option value="">Todos</option>
+                        <% numbers.forEach((number) => { %>
+                            <option value="<%= number.id %>" <% if (filters.numberId === number.id) { %> selected <% } %>>
+                                <%= number.displayName || number.phoneNumber %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </label>
+            <% } %>
+
             <div class="flex items-end gap-2">
                 <button class="flex-1 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
                     Aplicar
@@ -152,7 +166,7 @@
 
         <div class="mb-4 flex flex-wrap items-center gap-3">
             <a
-                href="/admin/reports/export?vista=<%= view %>&from=<%= filters.from %>&to=<%= filters.to %>&userId=<%= filters.userId %>&campaignId=<%= filters.campaignId %>&tagId=<%= filters.tagId %>"
+                href="/admin/reports/export?vista=<%= view %>&from=<%= filters.from %>&to=<%= filters.to %>&userId=<%= filters.userId %>&campaignId=<%= filters.campaignId %>&tagId=<%= filters.tagId %>&numberId=<%= filters.numberId %>"
                 class="rounded-xl bg-margarita-600 px-4 py-2 text-sm font-semibold text-white hover:bg-margarita-700"
             >
                 Descargar CSV
@@ -266,6 +280,7 @@
                         <tr>
                             <th class="px-5 py-4">Contacto</th>
                             <th class="px-5 py-4">Teléfono</th>
+                            <th class="px-5 py-4">Número</th>
                             <th class="px-5 py-4">Resultado</th>
                             <th class="px-5 py-4">Monto</th>
                             <th class="px-5 py-4">Compromiso</th>
@@ -277,7 +292,7 @@
                     <tbody class="divide-y divide-slate-100">
                         <% if (promises.items.length === 0) { %>
                             <tr>
-                                <td colspan="7" class="px-5 py-8 text-center text-slate-500">
+                                <td colspan="8" class="px-5 py-8 text-center text-slate-500">
                                     No hay promesas ni convenios vigentes.
                                 </td>
                             </tr>
@@ -294,6 +309,7 @@
                                     </a>
                                 </td>
                                 <td class="px-5 py-4 text-slate-600"><%= item.contactPhone %></td>
+                                <td class="px-5 py-4 text-slate-600"><%= item.numberLabel || "—" %></td>
                                 <td class="px-5 py-4 text-slate-600"><%= outcomeLabels[item.type] %></td>
                                 <td class="px-5 py-4 font-semibold text-slate-800">
                                     <%= item.amount === null ? "—" : formatAmount(item.amount) %>
@@ -399,6 +415,7 @@
                             <tr>
                                 <th class="px-5 py-3">Contacto</th>
                                 <th class="px-5 py-3">Teléfono</th>
+                                <th class="px-5 py-3">Número</th>
                                 <th class="px-5 py-3">Lo pidió</th>
                                 <th class="px-5 py-3">Esperando</th>
                                 <th class="px-5 py-3">Cita</th>
@@ -421,6 +438,10 @@
 
                                     <td class="px-5 py-3 text-slate-600">
                                         <%= item.contactPhone %>
+                                    </td>
+
+                                    <td class="px-5 py-3 text-slate-600">
+                                        <%= item.numberLabel || "—" %>
                                     </td>
 
                                     <td class="px-5 py-3 text-slate-600">
@@ -752,6 +773,7 @@
                             <th class="px-5 py-4">Fecha</th>
                             <th class="px-5 py-4">Contacto</th>
                             <th class="px-5 py-4">Teléfono</th>
+                            <th class="px-5 py-4">Número</th>
                             <th class="px-5 py-4">Resultado</th>
                             <th class="px-5 py-4">Monto</th>
                             <th class="px-5 py-4">Compromiso</th>
@@ -763,7 +785,7 @@
                     <tbody class="divide-y divide-slate-100">
                         <% if (gestiones.rows.length === 0) { %>
                             <tr>
-                                <td colspan="8" class="px-5 py-8 text-center text-slate-500">
+                                <td colspan="9" class="px-5 py-8 text-center text-slate-500">
                                     Sin gestiones en el periodo.
                                 </td>
                             </tr>
@@ -781,6 +803,7 @@
                                     </a>
                                 </td>
                                 <td class="px-5 py-4 text-slate-600"><%= row.contactPhone %></td>
+                                <td class="px-5 py-4 text-slate-600"><%= row.numberLabel || "—" %></td>
                                 <td class="px-5 py-4 text-slate-600">
                                     <%= outcomeLabels[row.type] %>
                                     <%= row.source === "BULK" ? " (bloque)" : "" %>

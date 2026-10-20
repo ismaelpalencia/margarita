@@ -42,7 +42,8 @@ function readFilters(req: Request, range: {
         toLabel: range.toLabel,
         userId: text("userId") || undefined,
         campaignId: text("campaignId") || undefined,
-        tagId: text("tagId") || undefined
+        tagId: text("tagId") || undefined,
+        numberId: text("numberId") || undefined
     };
 }
 
@@ -153,7 +154,11 @@ export class AdminReportsController {
                         ? req.query.campaignId
                         : "",
                 tagId:
-                    typeof req.query.tagId === "string" ? req.query.tagId : ""
+                    typeof req.query.tagId === "string" ? req.query.tagId : "",
+                numberId:
+                    typeof req.query.numberId === "string"
+                        ? req.query.numberId
+                        : ""
             },
             formatDateTimeMX,
             formatWaitingTime,
@@ -182,6 +187,7 @@ export class AdminReportsController {
                 "fecha",
                 "contacto",
                 "telefono",
+                "numero",
                 "resultado",
                 "monto",
                 "fecha_compromiso",
@@ -194,6 +200,7 @@ export class AdminReportsController {
                 fecha: formatDateTimeMX(row.createdAt),
                 contacto: row.contactName,
                 telefono: row.contactPhone,
+                numero: row.numberLabel ?? "",
                 resultado: OUTCOME_LABELS[row.type],
                 monto: row.amount ?? "",
                 fecha_compromiso: row.dueAt
@@ -216,6 +223,7 @@ export class AdminReportsController {
             columns = [
                 "contacto",
                 "telefono",
+                "numero",
                 "resultado",
                 "monto",
                 "fecha_compromiso",
@@ -226,6 +234,7 @@ export class AdminReportsController {
             rows = pending.items.map((item) => ({
                 contacto: item.contactName,
                 telefono: item.contactPhone,
+                numero: item.numberLabel ?? "",
                 resultado: OUTCOME_LABELS[item.type],
                 monto: item.amount ?? "",
                 fecha_compromiso: formatDateTimeMX(item.dueAt),

@@ -10,7 +10,7 @@ import {
     CreateContactInput,
     UpdateContactInput
 } from "../validations/contact.validation";
-import { contactPhoneFields, normalizeMexicanPhone } from "../utils/phone";
+import { contactPhoneFields, normalizePhone } from "../utils/phone";
 
 type ListContactsParams = {
     workspaceId: string;
@@ -130,7 +130,7 @@ export class ContactService {
     }
 
     static async createContact(workspaceId: string, input: CreateContactInput) {
-        const phone = normalizeMexicanPhone(input.phone);
+        const phone = normalizePhone(input.phone);
         const phoneFields = contactPhoneFields(phone);
 
         const validTagIds = await this.getValidTagIds(workspaceId, input.tagIds);

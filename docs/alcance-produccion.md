@@ -41,8 +41,8 @@ Sí, como **instalación por empresa** en Railway: el alta de un cliente nuevo t
 
 Lo que **no** está en el producto y no se debe prometer: **listas desplegables**
 desde el panel (los botones sí se envían dentro de la ventana y sus respuestas
-sí se interpretan), recordatorios automáticos de la agenda de llamadas, números
-fuera de México, permisos por número y multi-instancia.
+sí se interpretan), recordatorios automáticos de la agenda de llamadas,
+permisos por número y multi-instancia.
 
 ### Cómo está repartido el producto entre dominios
 
@@ -97,7 +97,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Equipo**: crear administradores y agentes, cambiar el rol, activar o desactivar y restablecer contraseñas. La instalación nunca se queda sin un administrador activo: el sistema bloquea degradar o desactivar al último (y el botón aparece deshabilitado). Al desactivar a alguien se cierran sus sesiones.
 - **Contactos**: crear, editar, buscar por **nombre completo o teléfono completo**, filtrar por etiqueta y por bajas, registrar el consentimiento (opt-in), marcar la baja a mano y desactivar.
 - **Resultado de la gestión (cobranza)**: marcar en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota. Se marca desde el hilo, desde la ficha del contacto y en bloque desde la lista. Cada marcado deja historial con quién y cuándo.
-- **Reportes**: gestiones del periodo por resultado, persona y día; promesas vigentes con lo vencido arriba, cumplimiento (a tiempo, tarde, sin pago) y prometido contra pagado; lista de clientes sin contestación tras X intentos; y detalle exportable a CSV. Con filtros por fecha, persona, campaña y etiqueta.
+- **Reportes**: gestiones del periodo por resultado, persona y día; promesas vigentes con lo vencido arriba, cumplimiento (a tiempo, tarde, sin pago) y prometido contra pagado; lista de clientes sin contestación tras X intentos; y detalle exportable a CSV. **Cada fila muestra el número emisor** (nombre y teléfono) cuando la gestión salió de un hilo, y se puede filtrar por fecha, persona, campaña, etiqueta y número.
 - **Lista de trabajo del día**: una pantalla que pone **arriba de todo las llamadas pedidas** —el cliente que tocó el botón— y debajo lo vencido, lo que vence hoy, lo de esta semana y los clientes sin contestar, en orden de urgencia, con acceso directo a la ficha.
 - **Llamadas pedidas, como tarea**: el toque de «quiero que me llame un asesor» ya no se queda solo en el registro: aparece en **Reportes → Hoy** con **cuánto lleva esperando** el deudor (en palabras: «hace 3 horas»), la hora en que lo pidió, si lo pidió **fuera del horario** permitido (8:00 a 21:00) y si salió del **botón** o lo marcó el equipo. Se despacha con un clic —**«No contestó»**— o abriendo la ficha para registrar promesa, convenio o pago, y **sale de la lista sola** en cuanto se registra otro resultado. En el hilo y en la ficha, el panel del resultado avisa que hay una llamada pendiente y cuánto lleva esperando.
 - **Agenda de llamadas**: desde la misma lista se le pone **fecha y hora** a la llamada, en la zona de la empresa. Las citas de hoy o vencidas suben al principio y se marcan «Toca ahora»; las futuras se ordenan por hora y luego van las que no tienen cita. La cita se puede quitar y se borra sola si el cliente pasa a otro resultado (pagó, no le interesa…).
@@ -182,7 +182,7 @@ de prometer algo:
 
 | Límite | Detalle |
 | --- | --- |
-| **Solo México** | El normalizador de teléfonos asume números mexicanos y agrega el prefijo `521`. Números de otros países se rechazan. |
+| **Teléfonos internacionales** | En México, 10 dígitos se normalizan al formato de WhatsApp (`521…`). Para otro país hay que capturar el número completo con `+` y lada (E.164); no se adivina la lada. Meta sigue siendo quien valida que el número exista y pueda recibir mensajes. |
 | **Archivos con caducidad** | Meta conserva lo que envían los clientes alrededor de 30 días. Un archivo que nadie abrió en ese plazo ya no se puede recuperar; el hilo lo avisa en lugar de fallar. |
 | **Botones sí, listas no** | Dentro de la ventana de 24 horas ya se mandan **mensajes con hasta 3 botones** (con validación de límites antes de llamar a Meta, y con la respuesta del cliente interpretada como cualquier botón). Las **listas** desplegables todavía no se envían desde el panel; se construirán encima de la misma ruta. |
 | **Plantillas reclasificadas a marketing** | Meta puede reclasificar una plantilla de cobranza como marketing si el texto suena promocional, y entonces cuesta varias veces más. La herramienta lo avisa (lista de plantillas) y lo bloquea (campañas), pero **la redacción es responsabilidad de quien la crea**: al crear plantillas, el encabezado admite **exactamente una** variable y la URL del botón **una sola, al final**. |
@@ -198,7 +198,7 @@ de prometer algo:
 | **Adjuntos: disco y R2** | Fotos, audios y documentos se guardan en disco (caché) y, si Cloudflare R2 está configurado, **se copian al bucket**. Al abrirlos, la app los busca en disco y, si ya no están (despliegue nuevo), los trae de R2. Sin R2, el Volume sigue siendo obligatorio. Los archivos **no llevan el cifrado de la aplicación**; R2 cifra en reposo a nivel de infraestructura. |
 | **Límite de peticiones** | El cupo del panel es **por persona** (300 cada 15 minutos, `PANEL_RATE_LIMIT_MAX`), no por IP: quince agentes en la misma oficina no se estorban entre sí, y el 429 dice cuántos minutos esperar. Queda un tope de borde por IP (`EDGE_RATE_LIMIT_MAX`, 3,000) solo contra abuso evidente. |
 | **Una réplica** | El tiempo real y la cola funcionan en una sola instancia. Con varias haría falta el adaptador de Redis. |
-| **Búsqueda exacta** | Teléfono y nombre están cifrados: se busca por número completo (10 dígitos) o por nombre completo; la coincidencia parcial no es posible. |
+| **Búsqueda exacta** | Teléfono y nombre están cifrados: se busca por número completo (10 dígitos en México o con `+` y lada internacional) o por nombre completo; la coincidencia parcial no es posible. |
 | **Búsqueda de correo solo exacta** | El correo del usuario está cifrado y se resuelve con índice ciego: el inicio de sesión funciona igual y el correo se ve en el panel, pero una consulta por partes del correo falla con explicación en lugar de devolver resultados. En la práctica el panel no tiene buscador de usuarios. |
 | **Un pago reportado no es un pago** | «Ya pagué» es una declaración del deudor: entra como *reportado, por confirmar* y **no** suma a la recuperación hasta que alguien lo confirme marcando pagado. |
 | **"Pagado" no es conciliación** | Marcar pagado es una anotación operativa: la herramienta no comprueba que el dinero entró, no maneja pagos parciales ni saldos. Los reportes de monto son de promesas y pagos registrados, no un estado de cuenta. |

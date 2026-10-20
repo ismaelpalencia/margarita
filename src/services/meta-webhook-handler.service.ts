@@ -22,7 +22,7 @@ import {
     MetaWebhookValue,
     MetaWebhookStatus
 } from "../types/meta-webhook";
-import { contactPhoneFields, normalizeMexicanPhone } from "../utils/phone";
+import { contactPhoneFields, normalizePhone } from "../utils/phone";
 import { describeMetaError } from "../utils/meta-error";
 import { matchesOptOutKeyword } from "../utils/opt-out";
 import { emitToWorkspace } from "../sockets";
@@ -200,7 +200,7 @@ export class MetaWebhookHandlerService {
             return;
         }
 
-        const normalizedPhone = normalizeMexicanPhone(message.from);
+        const normalizedPhone = normalizePhone(message.from);
         const phoneFields = contactPhoneFields(normalizedPhone);
 
         const contact = await prisma.contact.upsert({

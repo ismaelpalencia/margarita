@@ -46,6 +46,8 @@ export type OutcomeRow = {
     contactId: string;
     contactName: string;
     contactPhone: string;
+    numberId: string | null;
+    numberLabel: string | null;
     userName: string | null;
     conversationId: string | null;
 };
@@ -54,6 +56,8 @@ export type PromiseItem = {
     contactId: string;
     contactName: string;
     contactPhone: string;
+    numberId: string | null;
+    numberLabel: string | null;
     type: ContactOutcomeType;
     amount: number | null;
     dueAt: Date;
@@ -73,6 +77,8 @@ export type CallRequestItem = {
     contactId: string;
     contactName: string;
     contactPhone: string;
+    numberId: string | null;
+    numberLabel: string | null;
     /** Cuándo lo pidió (el toque del botón o el marcado a mano). */
     requestedAt: Date;
     /** Horas que lleva esperando, para poder priorizar. */
@@ -95,6 +101,19 @@ export type CallRequestItem = {
 
 /** Cuántas filas como máximo se cargan para calcular un reporte. */
 const MAX_REPORT_ROWS = 5000;
+
+function numberLabel(number: {
+    displayName: string | null;
+    phoneNumber: string;
+} | null): string | null {
+    if (!number) {
+        return null;
+    }
+
+    return number.displayName
+        ? `${number.displayName} · ${number.phoneNumber}`
+        : number.phoneNumber;
+}
 
 /**
  * Reportes de gestión (cobranza).
@@ -208,6 +227,17 @@ export class ReportService {
                     select: {
                         name: true
                     }
+                },
+                conversation: {
+                    select: {
+                        whatsappNumber: {
+                            select: {
+                                id: true,
+                                displayName: true,
+                                phoneNumber: true
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -227,6 +257,10 @@ export class ReportService {
                 row.contact.profileName ||
                 row.contact.phone,
             contactPhone: row.contact.phone,
+            numberId: row.conversation?.whatsappNumber.id ?? null,
+            numberLabel: numberLabel(
+                row.conversation?.whatsappNumber ?? null
+            ),
             userName: row.createdBy?.name ?? null,
             conversationId: row.conversationId
         }));
@@ -314,7 +348,20 @@ export class ReportService {
                 outcomes: {
                     orderBy: { createdAt: "desc" },
                     take: 1,
-                    select: { source: true }
+                    select: {
+                        source: true,
+                        conversation: {
+                            select: {
+                                whatsappNumber: {
+                                    select: {
+                                        id: true,
+                                        displayName: true,
+                                        phoneNumber: true
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             },
             orderBy: { outcomeAt: "asc" },
@@ -333,6 +380,11 @@ export class ReportService {
                 contactName:
                     contact.customName || contact.profileName || contact.phone,
                 contactPhone: contact.phone,
+                numberId:
+                    contact.outcomes[0]?.conversation?.whatsappNumber.id ?? null,
+                numberLabel: numberLabel(
+                    contact.outcomes[0]?.conversation?.whatsappNumber ?? null
+                ),
                 requestedAt,
                 hoursWaiting: Math.max(
                     0,
@@ -416,7 +468,18 @@ export class ReportService {
                     orderBy: { createdAt: "desc" },
                     take: 1,
                     select: {
-                        createdBy: { select: { name: true } }
+                        createdBy: { select: { name: true } },
+                        conversation: {
+                            select: {
+                                whatsappNumber: {
+                                    select: {
+                                        id: true,
+                                        displayName: true,
+                                        phoneNumber: true
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -431,6 +494,11 @@ export class ReportService {
             contactName:
                 contact.customName || contact.profileName || contact.phone,
             contactPhone: contact.phone,
+            numberId:
+                contact.outcomes[0]?.conversation?.whatsappNumber.id ?? null,
+            numberLabel: numberLabel(
+                contact.outcomes[0]?.conversation?.whatsappNumber ?? null
+            ),
             type: contact.outcomeType as ContactOutcomeType,
             amount: parseAmount(contact.outcomeAmount),
             dueAt: contact.outcomeDueAt as Date,

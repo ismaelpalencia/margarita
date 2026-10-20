@@ -8,7 +8,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
-import { contactPhoneFields, normalizeMexicanPhone } from "../utils/phone";
+import { contactPhoneFields, normalizePhone } from "../utils/phone";
 import {
     normalizeHeaderKey,
     resolveVariableSpecs
@@ -112,7 +112,7 @@ export class ExcelCampaignService {
             }
 
             try {
-                const phone = normalizeMexicanPhone(rawPhone);
+                const phone = normalizePhone(rawPhone);
 
                 if (seenPhones.has(phone)) {
                     duplicateCount++;
