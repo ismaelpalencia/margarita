@@ -5,222 +5,256 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Plantillas | Margarita</title>
     <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
-
     <%- include("../../../partials/brand-head") %>
 </head>
 
-<body class="min-h-screen bg-slate-100">
-    <header class="border-b bg-white">
-        <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div>
-                <a href="/admin/dashboard" class="flex items-center gap-3">
-                    <img
-                        src="/brand/img/margarita-icon-64.png"
-                        alt="Margarita"
-                        class="h-9 w-9"
-                    />
+<body class="min-h-screen bg-slate-50 text-slate-900">
+    <header class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <a href="/admin/dashboard" class="flex items-center gap-3">
+                <img src="/brand/img/margarita-icon-64.png" alt="Margarita" class="h-10 w-10" />
+                <span>
+                    <span class="block text-base font-black leading-tight">Margarita</span>
+                    <span class="block text-xs font-medium text-slate-500">Plantillas de cobranza</span>
+                </span>
+            </a>
 
-                    <span class="min-w-0">
-                        <span class="block text-base font-black leading-tight text-slate-900">
-                            Margarita
-                        </span>
-
-                        <span class="block text-xs font-medium text-slate-500">
-                            Plantillas
-                        </span>
-                    </span>
-                </a>
-            </div>
-
-            <nav class="no-scrollbar -mx-4 flex items-center gap-3 overflow-x-auto whitespace-nowrap px-4 sm:mx-0 sm:flex-wrap sm:overflow-x-visible sm:px-0">
-                <a href="/admin/dashboard" class="text-sm font-medium text-slate-700">
-                    Dashboard
-                </a>
-
-                <a href="/admin/users" class="text-sm font-medium text-slate-700">
-                    Agentes
-                </a>
-
-                <a href="/admin/contacts" class="text-sm font-medium text-slate-700">
-                    Contactos
-                </a>
-
-                <a href="/admin/tags" class="text-sm font-medium text-slate-700">
-                    Etiquetas
-                </a>
-
-                <a href="/admin/whatsapp" class="text-sm font-medium text-slate-700">
-                    WhatsApp
-                </a>
-
-                <a href="/admin/templates" class="text-sm font-medium text-margarita-700">
-                    Plantillas
-                </a>
-
-                <a href="/admin/conversations" class="text-sm font-medium text-slate-700">
-                    Conversaciones
-                </a>
-
+            <nav class="no-scrollbar flex items-center gap-2 overflow-x-auto whitespace-nowrap text-sm sm:flex-wrap">
+                <a href="/admin/dashboard" class="rounded-lg px-3 py-2 font-semibold text-slate-600 hover:bg-slate-100">Dashboard</a>
+                <a href="/admin/users" class="rounded-lg px-3 py-2 font-semibold text-slate-600 hover:bg-slate-100">Agentes</a>
+                <a href="/admin/contacts" class="rounded-lg px-3 py-2 font-semibold text-slate-600 hover:bg-slate-100">Contactos</a>
+                <a href="/admin/whatsapp" class="rounded-lg px-3 py-2 font-semibold text-slate-600 hover:bg-slate-100">WhatsApp</a>
+                <a href="/admin/templates" aria-current="page" class="rounded-lg bg-margarita-50 px-3 py-2 font-bold text-margarita-700">Plantillas</a>
+                <a href="/admin/conversations" class="rounded-lg px-3 py-2 font-semibold text-slate-600 hover:bg-slate-100">Conversaciones</a>
                 <form action="/auth/logout" method="POST">
-                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
-                        Cerrar sesión
-                    </button>
+                    <button class="rounded-xl bg-slate-900 px-4 py-2 font-semibold text-white">Cerrar sesión</button>
                 </form>
             </nav>
         </div>
     </header>
 
-    <main class="mx-auto max-w-6xl px-6 py-8">
-        <section class="mb-6 flex items-center justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-slate-800">
-                    Plantillas
-                </h2>
-
-                <p class="mt-1 text-slate-500">
-                    Sincroniza y revisa las plantillas disponibles desde Meta.
-                </p>
-            </div>
-
-            <form action="/admin/templates/sync" method="POST">
-                <button class="rounded-xl bg-margarita-600 px-4 py-3 text-sm font-semibold text-white hover:bg-margarita-700">
-                    Sincronizar desde Meta
-                </button>
-            </form>
-        </section>
-
+    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <% if (success === "sync") { %>
-            <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
-                Plantillas sincronizadas correctamente.
+            <div class="mb-5 rounded-xl border border-margarita-200 bg-margarita-50 px-4 py-3 text-sm font-semibold text-margarita-800" role="status">
+                Plantillas de Meta sincronizadas correctamente.
             </div>
         <% } %>
-
         <% if (error === "sync") { %>
-            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-                No se pudieron sincronizar las plantillas. Revisa tus credenciales de Meta y los logs.
+            <div class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+                No se pudieron sincronizar las plantillas. Revisa la configuración de WhatsApp y los logs.
             </div>
         <% } %>
 
-        <section class="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-5">
-            <h3 class="font-bold text-blue-900">
-                Importante
-            </h3>
-
-            <p class="mt-2 text-sm text-blue-900">
-                Margarita V1 no crea plantillas. Las plantillas deben crearse y aprobarse desde Meta Business Suite.
-                Aquí solo se sincronizan para usarlas después en mensajes manuales y campañas.
-            </p>
+        <section class="mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-margarita-800 via-margarita-700 to-margarita-600 px-6 py-8 text-white shadow-sm sm:px-9 sm:py-10">
+            <div class="max-w-3xl">
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-white/75">Biblioteca para equipos de cobranza</p>
+                <h1 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">¿No sabes qué plantilla crear?</h1>
+                <p class="mt-4 max-w-2xl text-sm leading-6 text-white/90 sm:text-base">
+                    Usa estas ideas como punto de partida para primer contacto, recordatorios y promesas de pago. Adáptalas a tu operación y crea la versión final en Meta.
+                </p>
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <a href="#biblioteca" class="rounded-xl bg-white px-5 py-3 text-sm font-black text-margarita-800 hover:bg-margarita-50">Explorar ideas</a>
+                    <a href="#mis-plantillas" class="rounded-xl border border-white/40 px-5 py-3 text-sm font-bold text-white hover:bg-white/10">Ver mis plantillas de Meta</a>
+                </div>
+            </div>
         </section>
 
-        <section class="overflow-x-auto rounded-2xl bg-white shadow">
-            <table class="w-full text-left text-sm tabla-plantillas">
-                <thead class="bg-slate-50 text-slate-500">
-                    <tr>
-                        <th class="px-5 py-4">Nombre</th>
-                        <th class="px-5 py-4">Idioma</th>
-                        <th class="px-5 py-4">Categoría</th>
-                        <th class="px-5 py-4">Estado</th>
-                        <th class="px-5 py-4">Última sincronización</th>
-                    </tr>
-                </thead>
+        <section class="mb-10 rounded-2xl border border-amber-300 bg-amber-50 p-5 sm:p-6">
+            <div class="flex gap-3">
+                <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-200 font-black text-amber-900" aria-hidden="true">!</span>
+                <div>
+                    <h2 class="font-black text-amber-950">Son ideas de Margarita; ninguna está aprobada por Meta.</h2>
+                    <p class="mt-1 text-sm leading-6 text-amber-900">
+                        Copia la ficha, revísala y crea la plantilla en tu cuenta de Meta. Meta decide su aprobación y categoría final. Después, usa “Sincronizar desde Meta” para traerla al panel. No la envíes a clientes hasta que aparezca aprobada.
+                    </p>
+                </div>
+            </div>
+        </section>
 
-                <tbody class="divide-y divide-slate-100">
-                    <% if (templates.length === 0) { %>
-                        <tr>
-                            <td colspan="5" class="px-5 py-8 text-center text-slate-500">
-                                Todavía no hay plantillas sincronizadas.
-                            </td>
-                        </tr>
-                    <% } %>
+        <section id="biblioteca" class="scroll-mt-6">
+            <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-widest text-margarita-700">Ideas listas para adaptar</p>
+                    <h2 class="mt-1 text-2xl font-black tracking-tight">Biblioteca de cobranza</h2>
+                    <p class="mt-1 max-w-2xl text-sm text-slate-600">Cada ficha incluye el momento de uso, variables compatibles con Margarita y botones de respuesta sugeridos.</p>
+                </div>
+                <label class="block sm:w-72">
+                    <span class="sr-only">Buscar ideas de plantilla</span>
+                    <input id="template-library-search" type="search" placeholder="Buscar: promesa, pago…" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100" />
+                </label>
+            </div>
 
-                    <% templates.forEach((template) => { %>
-                        <tr>
-                            <td class="px-5 py-4">
-                                <div class="font-medium text-slate-800">
-                                    <%= template.name %>
+            <div id="template-library-grid" class="grid gap-5 lg:grid-cols-2">
+                <% templateIdeas.forEach((idea) => { %>
+                    <article class="template-library-card flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" data-search="<%= `${idea.name} ${idea.scenario} ${idea.whenToUse} ${idea.body} ${idea.buttons.join(" ")}`.toLocaleLowerCase("es-MX") %>">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <span class="inline-flex rounded-full bg-margarita-50 px-3 py-1 text-xs font-bold text-margarita-800"><%= idea.scenario %></span>
+                                <h3 class="mt-3 text-xl font-black tracking-tight"><%= idea.name %></h3>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-bold text-slate-700">
+                                <img src="/brand/img/margarita-icon-64.png" alt="" class="h-4 w-4" />
+                                Plantilla hecha por Margarita
+                            </span>
+                        </div>
+
+                        <p class="mt-3 text-sm leading-6 text-slate-600"><%= idea.whenToUse %></p>
+
+                        <div class="mt-4 rounded-xl bg-[#eaf7ef] p-4">
+                            <p class="mb-2 text-[11px] font-black uppercase tracking-wider text-emerald-800">Vista previa del mensaje</p>
+                            <p class="whitespace-pre-line text-sm leading-6 text-slate-800"><%= idea.body %></p>
+                        </div>
+
+                        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <h4 class="text-xs font-black uppercase tracking-wide text-slate-500">Variables para personalizar</h4>
+                                <ul class="mt-2 space-y-2">
+                                    <% idea.variables.forEach((variable) => { %>
+                                        <li class="text-xs leading-5 text-slate-600">
+                                            <code class="rounded bg-slate-100 px-1.5 py-0.5 font-bold text-slate-800"><%= variable.token %></code>
+                                            <%= variable.meaning %>
+                                            <span class="block pl-1 text-slate-400">Ejemplo: <%= variable.example %></span>
+                                        </li>
+                                    <% }) %>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-black uppercase tracking-wide text-slate-500">Botones sugeridos</h4>
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    <% idea.buttons.forEach((button) => { %>
+                                        <span class="rounded-full border border-margarita-200 bg-margarita-50 px-2.5 py-1 text-xs font-semibold text-margarita-800"><%= button %></span>
+                                    <% }) %>
                                 </div>
+                                <p class="mt-2 text-xs leading-5 text-slate-500">Configura las respuestas en Admin → Botones para que Margarita registre lo que el cliente elija.</p>
+                            </div>
+                        </div>
 
-                                <% if (template.metaTemplateId) { %>
-                                    <div class="mt-1 text-xs text-slate-400">
-                                        ID: <%= template.metaTemplateId %>
-                                    </div>
-                                <% } %>
-                            </td>
+                        <% if (idea.caution) { %>
+                            <p class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900"><strong>Ten en cuenta:</strong> <%= idea.caution %></p>
+                        <% } %>
 
-                            <td class="px-5 py-4 text-slate-600">
-                                <%= template.language %>
-                            </td>
+                        <div class="mt-5 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
+                            <span class="text-xs font-semibold text-slate-500">Categoría sugerida: Utilidad*</span>
+                            <button type="button" data-copy-target="template-idea-<%= idea.id %>" class="ml-auto rounded-xl bg-margarita-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-margarita-800">Copiar ficha para Meta</button>
+                        </div>
+                        <pre id="template-idea-<%= idea.id %>" class="sr-only"><%= formatTemplateLibraryIdea(idea) %></pre>
+                    </article>
+                <% }) %>
+                <p id="template-library-empty" class="hidden rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 lg:col-span-2">No encontramos ideas con esa búsqueda.</p>
+            </div>
 
-                            <td class="px-5 py-4 text-slate-600">
-                                <%
-                                    /**
-                                     * Meta reclasifica a marketing las plantillas
-                                     * que huelen a promoción, y ahí el mensaje
-                                     * cuesta varias veces más. Se avisa aquí, que
-                                     * es donde se revisan, y no cuando llega la
-                                     * factura.
-                                     */
-                                    const shape = templateVariableShape(template.components);
-                                    const tieneBotones = shape.url > 0 || shape.header > 0;
-                                    const esMarketing =
-                                        (template.category || "").toUpperCase() === "MARKETING";
-                                %>
+            <p class="mt-4 text-xs leading-5 text-slate-500">*La categoría es una sugerencia. Meta puede reclasificar la plantilla. Revisa la normativa aplicable, el consentimiento de contacto y la información que tu organización está autorizada a compartir.</p>
+        </section>
 
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <span><%= template.category || "—" %></span>
+        <section class="my-10 rounded-2xl border border-margarita-200 bg-white p-5 shadow-sm sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+            <div class="flex items-start gap-3">
+                <img src="/brand/img/margarita-icon-64.png" alt="Margarita" class="h-10 w-10 shrink-0" />
+                <div>
+                    <h2 class="font-black">¿Tienes una plantilla que compartir?</h2>
+                    <p class="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+                        Cuéntanos cuál te ha funcionado. La revisaremos y, si la aprobamos para la biblioteca, la publicaremos como una idea de la comunidad. No envíes nombres, teléfonos, saldos ni datos de clientes.
+                    </p>
+                </div>
+            </div>
+            <a href="<%= shareTemplateUrl %>" target="_blank" rel="noopener noreferrer" class="mt-4 inline-flex shrink-0 items-center justify-center rounded-xl bg-[#128c4a] px-5 py-3 text-sm font-black text-white hover:bg-[#0e743d] sm:mt-0">
+                Compartir por WhatsApp
+                <span class="ml-2 text-white/80">55 3878 3682</span>
+            </a>
+        </section>
 
-                                    <% if (tieneBotones) { %>
-                                        <span
-                                            class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600"
-                                            title="Encabezado con variable y/o botón con enlace"
-                                        >
-                                            con botones
-                                        </span>
-                                    <% } %>
+        <section id="mis-plantillas" class="scroll-mt-6">
+            <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-widest text-slate-500">Tu cuenta de WhatsApp</p>
+                    <h2 class="mt-1 text-2xl font-black tracking-tight">Mis plantillas de Meta</h2>
+                    <p class="mt-1 text-sm text-slate-600">Solo las plantillas sincronizadas desde Meta aparecen aquí y pueden usarse según su estado.</p>
+                </div>
+                <form action="/admin/templates/sync" method="POST">
+                    <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-700">Sincronizar desde Meta</button>
+                </form>
+            </div>
 
-                                    <% if (esMarketing) { %>
-                                        <span
-                                            class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800"
-                                            title="Meta la clasificó como marketing: cuesta más por mensaje. Revisa que el texto sea transaccional."
-                                        >
-                                            marketing
-                                        </span>
-                                    <% } %>
-                                </div>
-                            </td>
-
-                            <td class="px-5 py-4">
-                                <% if (template.status === "APPROVED") { %>
-                                    <span class="rounded-full bg-margarita-100 px-3 py-1 text-xs font-semibold text-margarita-700">
-                                        Aprobada
-                                    </span>
-                                <% } else if (template.status === "REJECTED") { %>
-                                    <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-                                        Rechazada
-                                    </span>
-                                <% } else if (template.status === "PENDING") { %>
-                                    <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-                                        Pendiente
-                                    </span>
-                                <% } else { %>
-                                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                                        <%= template.status %>
-                                    </span>
-                                <% } %>
-                            </td>
-
-                            <td class="px-5 py-4 text-slate-600">
-                                <% if (template.lastSyncedAt) { %>
-                                    <%= template.lastSyncedAt.toLocaleString("es-MX") %>
-                                <% } else { %>
-                                    —
-                                <% } %>
-                            </td>
+            <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <table class="w-full min-w-[760px] text-left text-sm">
+                    <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                        <tr>
+                            <th class="px-5 py-4">Nombre</th>
+                            <th class="px-5 py-4">Idioma</th>
+                            <th class="px-5 py-4">Categoría</th>
+                            <th class="px-5 py-4">Estado en Meta</th>
+                            <th class="px-5 py-4">Última sincronización</th>
                         </tr>
-                    <% }) %>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <% if (templates.length === 0) { %>
+                            <tr>
+                                <td colspan="5" class="px-5 py-10 text-center">
+                                    <p class="font-bold text-slate-700">Todavía no hay plantillas sincronizadas.</p>
+                                    <p class="mt-1 text-sm text-slate-500">Elige una idea de arriba, créala en Meta y vuelve a sincronizar cuando esté lista.</p>
+                                </td>
+                            </tr>
+                        <% } %>
+                        <% templates.forEach((template) => { %>
+                            <tr>
+                                <td class="px-5 py-4">
+                                    <div class="font-bold text-slate-800"><%= template.name %></div>
+                                    <% if (template.metaTemplateId) { %><div class="mt-1 text-xs text-slate-400">ID: <%= template.metaTemplateId %></div><% } %>
+                                </td>
+                                <td class="px-5 py-4 text-slate-600"><%= template.language %></td>
+                                <td class="px-5 py-4">
+                                    <%
+                                        const shape = templateVariableShape(template.components);
+                                        const tieneBotones = shape.url > 0 || shape.header > 0;
+                                        const esMarketing = (template.category || "").toUpperCase() === "MARKETING";
+                                    %>
+                                    <span class="text-slate-700"><%= template.category || "—" %></span>
+                                    <% if (tieneBotones) { %><span class="ml-2 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">con variables/botón URL</span><% } %>
+                                    <% if (esMarketing) { %><span class="ml-2 rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-800">marketing</span><% } %>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <% if (template.status === "APPROVED") { %>
+                                        <span class="rounded-full bg-margarita-100 px-3 py-1 text-xs font-bold text-margarita-800">Aprobada</span>
+                                    <% } else if (template.status === "REJECTED") { %>
+                                        <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">Rechazada</span>
+                                    <% } else if (template.status === "PENDING") { %>
+                                        <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">Pendiente</span>
+                                    <% } else if (template.status === "PAUSED" || template.status === "DISABLED") { %>
+                                        <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700"><%= template.status === "PAUSED" ? "Pausada" : "Deshabilitada" %></span>
+                                    <% } else { %>
+                                        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700"><%= template.status %></span>
+                                    <% } %>
+                                </td>
+                                <td class="px-5 py-4 text-slate-600"><%= template.lastSyncedAt ? template.lastSyncedAt.toLocaleString("es-MX") : "—" %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
         </section>
     </main>
+
+    <script src="/js/copy.js"></script>
+    <script>
+        (function () {
+            var input = document.getElementById("template-library-search");
+            var cards = Array.prototype.slice.call(document.querySelectorAll(".template-library-card"));
+            var empty = document.getElementById("template-library-empty");
+
+            if (!input) return;
+
+            input.addEventListener("input", function () {
+                var query = input.value.trim().toLocaleLowerCase("es-MX");
+                var visible = 0;
+
+                cards.forEach(function (card) {
+                    var matches = (card.getAttribute("data-search") || "").indexOf(query) !== -1;
+                    card.classList.toggle("hidden", !matches);
+                    if (matches) visible += 1;
+                });
+
+                if (empty) empty.classList.toggle("hidden", visible !== 0);
+            });
+        })();
+    </script>
 </body>
 </html>
