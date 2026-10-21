@@ -11,10 +11,10 @@
         ["La lista del día", "Un tablero que pone primero a quien pidió llamada, luego las promesas vencidas y al final los que no han contestado. Con la hora de la cita."],
         ["Campañas con plantillas", "Envía a contactos o a un Excel con variables por destinatario. En cola, con pausa, reanudación y reintento de fallidos."],
         ["Botones que se entienden", "Cuando el deudor toca un botón, la app registra el resultado sola y puede pausar la cuenta o darla de baja."],
-        ["Plantillas que cuestan menos", "Sincroniza las plantillas de Meta, avisa de las rechazadas y bloquea las que Meta reclasificó como marketing."],
+        ["Control de plantillas y costos", "Sincroniza las plantillas de Meta, avisa de las rechazadas o reclasificadas como marketing y bloquea estas últimas en campañas."],
         ["Tramo y costo", "Cuántos mensajes de servicio lleva cada número del tramo mensual, con alerta al 80% y costo estimado de plantillas."],
         ["Equipo y permisos", "Usuarios ilimitados, roles de administrador y agente, tope diario de envío manual y verificación en dos pasos."],
-        ["Datos protegidos", "Teléfonos, mensajes y correos cifrados en la base, respaldos diarios y bitácora de lo importante."]
+        ["Datos protegidos", "Teléfonos, mensajes y correos cifrados en la base, respaldos diarios cifrados y bitácora de lo importante. El respaldo externo requiere configurar R2 o descargarlo."]
     ];
 
     const preguntas = [
@@ -23,6 +23,7 @@
         ["¿Cuántos usuarios puedo dar de alta?", "Los que necesites. No cobramos por agente ni por número de WhatsApp."],
         ["¿Puedo cancelar cuando quiera?", "Sí. El primer mes es un piloto pagado: al día 30 decides si sigues, sin penalización. Si no continúas, te llevas tu respaldo y se borra la instalación a petición. Los compromisos de 3, 6 o 12 meses son opcionales y solo sirven para bajar la mensualidad."],
         ["¿Sirve para números fuera de México?", "Sí. En México puedes capturar 10 dígitos; para otro país usa el número completo con + y lada internacional."],
+        ["¿Puedo enviar listas interactivas?", "Todavía no desde el panel. Sí puedes enviar hasta tres botones cuando la ventana de 24 horas está abierta; fuera de ella necesitas una plantilla aprobada."],
         ["¿Necesito instalar algo?", "No. Se usa desde el navegador, en computadora y celular."]
     ];
 %>
@@ -64,8 +65,8 @@
                 <p class="mt-6 text-lg leading-8 text-slate-600">
                     Margarita opera la API oficial de WhatsApp para cobranza: envía
                     plantillas, atiende conversaciones y registra <strong>en qué quedó
-                    cada cliente</strong>. Al día siguiente te dice a quién escribirle
-                    o llamarle primero.
+                    cada cliente</strong>. En el panel priorizas a quién escribirle o
+                    llamarle según las solicitudes y resultados registrados.
                 </p>
 
                 <div class="mt-8 flex flex-wrap gap-3">
@@ -124,7 +125,7 @@
             </p>
 
             <h2 class="mt-2 max-w-3xl text-3xl font-black text-slate-950">
-                Todo lo que necesitas para cobrar, en un solo panel.
+                Herramientas para operar la cobranza por WhatsApp, en un solo panel.
             </h2>
 
             <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -249,7 +250,8 @@
 
                     <p class="text-sm text-slate-300">
                         Usuarios ilimitados, actualizaciones, soporte en horario hábil
-                        y respaldos diarios.
+                        y respaldos diarios cifrados. La copia fuera del servidor requiere
+                        configurar R2 o descargarla a otro lugar seguro.
                     </p>
                 </div>
 

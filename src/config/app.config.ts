@@ -7,6 +7,21 @@ import { parseOptOutKeywords } from "../utils/opt-out";
 
 dotenv.config();
 
+const runtimeEnvironment = process.env.NODE_ENV || "development";
+const configuredJwtSecret = process.env.JWT_SECRET?.trim() || "";
+const developmentJwtSecret = "dev_secret_change_me";
+
+if (
+    runtimeEnvironment === "production" &&
+    (configuredJwtSecret.length < 32 ||
+        configuredJwtSecret === developmentJwtSecret)
+) {
+    throw new Error(
+        "JWT_SECRET debe estar configurado en producción con al menos 32 caracteres aleatorios. " +
+            "Genéralo con `npm run secrets:generate`."
+    );
+}
+
 /**
  * URL pública de la instalación.
  *
@@ -134,10 +149,10 @@ export const appConfig = {
     appUrl: appUrl.url,
     productDomains,
     port: Number(process.env.PORT) || 3000,
-    env: process.env.NODE_ENV || "development",
+    env: runtimeEnvironment,
     timezone: process.env.TIMEZONE || "America/Mexico_City",
 
-    jwtSecret: process.env.JWT_SECRET || "dev_secret_change_me",
+    jwtSecret: configuredJwtSecret || developmentJwtSecret,
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
     cookieName: process.env.COOKIE_NAME || "margarita_token",
 

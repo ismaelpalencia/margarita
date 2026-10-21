@@ -89,7 +89,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://margarita:margarita@localhost:5432/margarita
       ENCRYPTION_KEY: clave-de-integracion-para-ci-1234567890
-      JWT_SECRET: secreto-de-integracion-para-ci
+      JWT_SECRET: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
       META_APP_SECRET: 0123456789abcdef0123456789abcdef
       NODE_ENV: production
       # Las pruebas destructivas (alta desde cero y restauración de respaldo)

@@ -16,8 +16,8 @@ import { normalizeEmail } from "../utils/email";
 /**
  * Cifra los datos que quedaron guardados en claro antes del cifrado en
  * reposo: teléfonos, notas, contenido de mensajes, payloads de Meta,
- * eventos de webhook, variables de campaña, números de la WABA, bitácora
- * y credenciales.
+ * eventos de webhook, variables de campaña, números de la WABA, mensaje y
+ * payload de bitácora, y credenciales.
  *
  * Es idempotente: se puede ejecutar varias veces y solo toca lo que sigue
  * en claro. La aplicación no necesita estar detenida; lo único que no debe
@@ -248,16 +248,26 @@ export async function encryptExistingData() {
                     skip,
                     take,
                     orderBy: ORDER_BY_ID,
-                    select: { id: true, payload: true }
+                    select: { id: true, message: true, payload: true }
                 }),
             async (log) => {
-                if (log.payload === null || isEncryptedJson(log.payload)) {
+                const data: { message?: string; payload?: string } = {};
+
+                if (log.message && !isEncrypted(log.message)) {
+                    data.message = encryptSecret(log.message);
+                }
+
+                if (log.payload !== null && !isEncryptedJson(log.payload)) {
+                    data.payload = encryptJson(log.payload);
+                }
+
+                if (Object.keys(data).length === 0) {
                     return false;
                 }
 
                 await prisma.log.update({
                     where: { id: log.id },
-                    data: { payload: encryptJson(log.payload) }
+                    data
                 });
 
                 return true;
@@ -265,7 +275,7 @@ export async function encryptExistingData() {
         );
 
         report.push(
-            `Bitácora: ${logs.scanned} registros revisados, ${logs.updated} cifrados.`
+            `Bitácora (mensaje y payload): ${logs.scanned} registros revisados, ${logs.updated} cifrados.`
         );
 
         const quickReplies = await forEachPage(
