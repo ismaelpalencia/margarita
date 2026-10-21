@@ -40,7 +40,7 @@ import {
     buildMediaMessagePayload,
     classifyUpload
 } from "../utils/media-message";
-import { emitToWorkspace } from "../sockets";
+import { emitToWorkspaceAndUsers } from "../sockets";
 import { LogService } from "./log.service";
 import { SendPolicyService } from "./send-policy.service";
 import { uploadMediaToMeta } from "./media.service";
@@ -627,29 +627,34 @@ export class MessageService {
             });
         }
 
-        emitToWorkspace(workspaceId, "conversation:message", {
-            conversationId: conversation.id,
-            assignedUserId: conversation.assignedUserId,
-            contact: {
-                id: conversation.contact.id,
-                name:
-                    conversation.contact.customName ||
-                    conversation.contact.profileName ||
-                    conversation.contact.phone,
-                phone: conversation.contact.phone
-            },
-            message: {
-                id: message.id,
-                wamid: message.wamid,
-                direction: message.direction,
-                type: message.type,
-                status: message.status,
-                source: message.source,
-                isInternalNote: Boolean(message.isInternalNote),
-                body: message.body,
-                createdAt: message.createdAt.toISOString()
+        emitToWorkspaceAndUsers(
+            workspaceId,
+            [conversation.assignedUserId],
+            "conversation:message",
+            {
+                conversationId: conversation.id,
+                assignedUserId: conversation.assignedUserId,
+                contact: {
+                    id: conversation.contact.id,
+                    name:
+                        conversation.contact.customName ||
+                        conversation.contact.profileName ||
+                        conversation.contact.phone,
+                    phone: conversation.contact.phone
+                },
+                message: {
+                    id: message.id,
+                    wamid: message.wamid,
+                    direction: message.direction,
+                    type: message.type,
+                    status: message.status,
+                    source: message.source,
+                    isInternalNote: Boolean(message.isInternalNote),
+                    body: message.body,
+                    createdAt: message.createdAt.toISOString()
+                }
             }
-        });
+        );
     }
     /**
      * Autoriza una acción sobre el hilo: el admin puede con cualquier

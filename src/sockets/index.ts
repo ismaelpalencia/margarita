@@ -36,6 +36,10 @@ function workspaceRoom(workspaceId: string): string {
     return `workspace:${workspaceId}`;
 }
 
+function userRoom(userId: string): string {
+    return `user:${userId}`;
+}
+
 function parseCookies(cookieHeader: string | undefined): Map<string, string> {
     const cookies = new Map<string, string>();
 
@@ -131,7 +135,11 @@ export function initSocket(server: HttpServer): SocketServer {
             return;
         }
 
-        socket.join(workspaceRoom(user.workspaceId));
+        if (user.role === UserRole.ADMIN) {
+            socket.join(workspaceRoom(user.workspaceId));
+        } else {
+            socket.join(userRoom(user.id));
+        }
 
         logger.debug(
             {
@@ -156,4 +164,27 @@ export function emitToWorkspace(
     }
 
     io.to(workspaceRoom(workspaceId)).emit(event, payload);
+}
+
+/**
+ * Send conversation data to workspace administrators and only the agents
+ * whose access is affected by the conversation. Agent filtering must happen
+ * on the server; browser-side filtering does not protect event payloads.
+ */
+export function emitToWorkspaceAndUsers(
+    workspaceId: string,
+    userIds: Array<string | null | undefined>,
+    event: string,
+    payload: unknown
+) {
+    if (!io) {
+        return;
+    }
+
+    const rooms = [
+        workspaceRoom(workspaceId),
+        ...new Set(userIds.filter((id): id is string => Boolean(id)).map(userRoom))
+    ];
+
+    io.to(rooms).emit(event, payload);
 }

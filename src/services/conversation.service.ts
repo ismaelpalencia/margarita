@@ -11,7 +11,7 @@ import {
 
 import { prisma } from "../config/prisma";
 import { contactSearchOr } from "../utils/contact-search";
-import { emitToWorkspace } from "../sockets";
+import { emitToWorkspaceAndUsers } from "../sockets";
 import { describeMetaError } from "../utils/meta-error";
 import { LogService } from "./log.service";
 
@@ -550,12 +550,17 @@ export class ConversationService {
         }
     });
 
-    emitToWorkspace(workspaceId, "conversation:assigned", {
-        conversationId: conversation.id,
-        assignedUserId: agent ? agent.id : null,
-        agentName: agent ? agent.name : null,
-        reason: "MANUAL"
-    });
+    emitToWorkspaceAndUsers(
+        workspaceId,
+        [conversation.assignedUserId, agent?.id],
+        "conversation:assigned",
+        {
+            conversationId: conversation.id,
+            assignedUserId: agent ? agent.id : null,
+            agentName: agent ? agent.name : null,
+            reason: "MANUAL"
+        }
+    );
 
     return updatedConversation;
 }

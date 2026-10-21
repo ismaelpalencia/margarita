@@ -8,7 +8,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
-import { emitToWorkspace } from "../sockets";
+import { emitToWorkspaceAndUsers } from "../sockets";
 import { LogService } from "./log.service";
 
 type AssignLeastBusyParams = {
@@ -121,12 +121,17 @@ export class AssignmentService {
             }
         });
 
-        emitToWorkspace(params.workspaceId, "conversation:assigned", {
-            conversationId: conversation.id,
-            assignedUserId: selectedAgent.id,
-            agentName: selectedAgent.name,
-            reason: "AUTO_LEAST_BUSY"
-        });
+        emitToWorkspaceAndUsers(
+            params.workspaceId,
+            [selectedAgent.id],
+            "conversation:assigned",
+            {
+                conversationId: conversation.id,
+                assignedUserId: selectedAgent.id,
+                agentName: selectedAgent.name,
+                reason: "AUTO_LEAST_BUSY"
+            }
+        );
 
         return updatedConversation;
     }

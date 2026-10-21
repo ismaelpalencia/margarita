@@ -25,7 +25,7 @@ import {
 import { contactPhoneFields, normalizePhone } from "../utils/phone";
 import { describeMetaError } from "../utils/meta-error";
 import { matchesOptOutKeyword } from "../utils/opt-out";
-import { emitToWorkspace } from "../sockets";
+import { emitToWorkspaceAndUsers } from "../sockets";
 import { AssignmentService } from "./assignment.service";
 import { LogService } from "./log.service";
 import { prefetchMedia } from "./media.service";
@@ -331,28 +331,33 @@ export class MetaWebhookHandlerService {
             body: parsed.body
         });
 
-        emitToWorkspace(workspaceId, "conversation:message", {
-            conversationId: conversation.id,
-            assignedUserId: finalConversation.assignedUserId,
-            contactOptedOut: optedOut,
-            contact: {
-                id: contact.id,
-                name:
-                    contact.customName || contact.profileName || contact.phone,
-                phone: contact.phone
-            },
-            whatsappNumberId,
-            message: {
-                id: savedMessage.id,
-                wamid: savedMessage.wamid,
-                direction: savedMessage.direction,
-                type: savedMessage.type,
-                status: savedMessage.status,
-                source: savedMessage.source,
-                body: savedMessage.body,
-                createdAt: savedMessage.createdAt.toISOString()
+        emitToWorkspaceAndUsers(
+            workspaceId,
+            [finalConversation.assignedUserId],
+            "conversation:message",
+            {
+                conversationId: conversation.id,
+                assignedUserId: finalConversation.assignedUserId,
+                contactOptedOut: optedOut,
+                contact: {
+                    id: contact.id,
+                    name:
+                        contact.customName || contact.profileName || contact.phone,
+                    phone: contact.phone
+                },
+                whatsappNumberId,
+                message: {
+                    id: savedMessage.id,
+                    wamid: savedMessage.wamid,
+                    direction: savedMessage.direction,
+                    type: savedMessage.type,
+                    status: savedMessage.status,
+                    source: savedMessage.source,
+                    body: savedMessage.body,
+                    createdAt: savedMessage.createdAt.toISOString()
+                }
             }
-        });
+        );
 
         /**
          * Las imágenes se descargan de inmediato (son livianas y casi
@@ -606,6 +611,13 @@ export class MetaWebhookHandlerService {
         const existingMessage = await prisma.message.findUnique({
             where: {
                 wamid: status.id
+            },
+            include: {
+                conversation: {
+                    select: {
+                        assignedUserId: true
+                    }
+                }
             }
         });
 
@@ -635,12 +647,17 @@ export class MetaWebhookHandlerService {
             }
         });
 
-        emitToWorkspace(workspaceId, "message:status", {
-            conversationId: updatedMessage.conversationId,
-            messageId: updatedMessage.id,
-            wamid: updatedMessage.wamid,
-            status: updatedMessage.status
-        });
+        emitToWorkspaceAndUsers(
+            workspaceId,
+            [existingMessage.conversation.assignedUserId],
+            "message:status",
+            {
+                conversationId: updatedMessage.conversationId,
+                messageId: updatedMessage.id,
+                wamid: updatedMessage.wamid,
+                status: updatedMessage.status
+            }
+        );
 
         const campaignRecipientStatus =
             this.mapMetaStatusToCampaignRecipientStatus(status.status);
