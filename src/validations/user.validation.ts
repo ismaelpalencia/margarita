@@ -39,7 +39,7 @@ export const createUserSchema = z.object({
     email: emailField,
     password: passwordSchema,
     role: z.nativeEnum(UserRole, {
-        errorMap: () => ({ message: "Elige un rol válido." })
+        error: "Elige un rol válido."
     }),
     canSendManualMessages: permissionField,
     manualMessageLimit: limitField
@@ -50,7 +50,7 @@ export type CreateUserInput = z.infer<typeof createUserSchema>;
 export const updateUserSchema = z.object({
     name: nameField,
     role: z.nativeEnum(UserRole, {
-        errorMap: () => ({ message: "Elige un rol válido." })
+        error: "Elige un rol válido."
     }),
     canSendManualMessages: permissionField,
     manualMessageLimit: limitField

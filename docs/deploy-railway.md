@@ -392,7 +392,7 @@ en R2.
 
 | Síntoma | Causa | Solución |
 | --- | --- | --- |
-| `Prisma only supports Node.js versions 20.19+, 22.12+, 24.0+` | El build arrancó con Node 18 | Agrega `NIXPACKS_NODE_VERSION=22.12.0` y redeploya |
+| `Prisma only supports Node.js versions 20.19+, 22.12+, 24.0+` | El build arrancó con Node 18 | Agrega `NIXPACKS_NODE_VERSION=22.23.4` y redeploya |
 | `EBUSY: ... node_modules/.cache` | Hay un Build Command con `npm ci` además de Nixpacks | Vacía el Build Command; nunca pongas `npm ci` ahí |
 | `tsc: not found` o `tailwindcss: not found` | Se instaló sin devDependencies | No sobrescribas la instalación de `nixpacks.toml`; mantén `--include=dev` |
 | `DATABASE_URL no está definido` | Falta la variable o la referencia al plugin | Revisa Variables y que el servicio Postgres se llame igual que la referencia |

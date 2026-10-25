@@ -89,14 +89,14 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 
 | Capa | Tecnología |
 | --- | --- |
-| Runtime | Node.js 22 (Prisma 7 requiere 20.19 o superior) |
+| Runtime | Node.js 22.23.4 LTS (Prisma 7 requiere Node.js 20.19+, 22.12+ o 24+) |
 | Lenguaje | TypeScript 5 (CommonJS, `strict`) |
 | Servidor | Express 4 |
 | Vistas | EJS renderizado en servidor |
 | Estilos | Tailwind CSS 4 (CLI, compilado a `src/public/css/style.css`) |
 | Tiempo real | Socket.IO 4 |
 | Base de datos | PostgreSQL |
-| ORM | Prisma 7 con `@prisma/adapter-pg` |
+| ORM | Prisma 7.10.1 con `@prisma/adapter-pg` |
 | Validación | Zod |
 | Auth | JWT en cookie httpOnly + tabla `UserSession` revocable |
 | Integración | WhatsApp Business Cloud API (Graph API) vía Axios |
@@ -168,7 +168,7 @@ webhook de status → DELIVERED / READ / FAILED
 
 ## 4. Requisitos
 
-- Node.js 22 (mínimo 20.19 por Prisma 7)
+- Node.js 22.23.4 LTS (Prisma 7 requiere 20.19+, 22.12+ o 24+)
 - npm
 - PostgreSQL 14 o superior
 - Una app de Meta con WhatsApp Business Cloud API: `App Secret`, token de acceso, `Phone Number ID`, `Business Account ID` y número de teléfono
@@ -594,10 +594,10 @@ La guía completa paso a paso está en [`docs/deploy-railway.md`](docs/deploy-ra
 | Start command | `npm start` |
 | Healthcheck | `/health` |
 | Puerto | **No definas `PORT`**: Railway la inyecta y la app escucha ahí |
-| Node | 22 (Prisma 7 no instala en Node 18) |
+| Node | 22.23.4 LTS (Prisma 7 no instala en Node 18) |
 | Variables clave | `DATABASE_URL` (referencia al plugin de Postgres), `NODE_ENV=production`, `JWT_SECRET`, `ENCRYPTION_KEY` y `META_APP_SECRET`. `APP_URL` va vacía con dominio de Railway y es obligatoria con dominio propio |
 
-Los cinco tropiezos más comunes: que el build use **Node 18** y Prisma 7 se niegue a instalar (se resuelve con `NIXPACKS_NODE_VERSION=22.12.0` en el servicio; el repo ya declara `engines`, `.nvmrc` y `nixpacks.toml`), dejar un **Build Command** en el servicio que duplique la instalación (`EBUSY` al borrar `node_modules`), dejar `APP_URL` apuntando a localhost (rompe CORS y el socket), olvidar `META_APP_SECRET` (el webhook responde 401 en producción) y olvidar `ENCRYPTION_KEY` (nada se cifra en la base).
+Los cinco tropiezos más comunes: que el build use **Node 18** y Prisma 7 se niegue a instalar (se resuelve con `NIXPACKS_NODE_VERSION=22.23.4` en el servicio; el repo ya la declara en `engines`, `.nvmrc` y `nixpacks.toml`), dejar un **Build Command** en el servicio que duplique la instalación (`EBUSY` al borrar `node_modules`), dejar `APP_URL` apuntando a localhost (rompe CORS y el socket), olvidar `META_APP_SECRET` (el webhook responde 401 en producción) y olvidar `ENCRYPTION_KEY` (nada se cifra en la base).
 
 El proyecto usa migraciones versionadas. Lo más simple es dejar que Railway las aplique dentro del contenedor, sin exponer la base ni copiar credenciales: `railway.json` ya trae el Pre-deploy Command `node dist/tools/deploy-migrations.js`. Ese script detecta el estado de la base y resuelve los tres casos (base nueva, base existente sin historial y base ya baselinada) de forma idempotente; no lo dupliques en el panel.
 

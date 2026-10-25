@@ -16,7 +16,7 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 
 | Pieza | Qué hace |
 | --- | --- |
-| `package.json` → `engines` | Declara Node **20.19+/22.12+**: Prisma 7 se niega a instalar en Node 18. Es lo que Nixpacks lee para elegir la versión, junto con `.nvmrc`. |
+| `package.json` → `engines` | Acepta las ramas parcheadas **22.23.4 LTS, 24.22.1 LTS y 26.12.1+**. Nixpacks lee esta restricción junto con `.nvmrc`. |
 | `nixpacks.toml` | Instala con `npm install --include=dev` (ver abajo por qué no `npm ci`) y compila con `npm run build`. |
 | `preDeployCommand` | `node dist/tools/deploy-migrations.js` — aplica las migraciones antes de levantar la app, resolviendo el caso de una base nueva, una con tablas y una ya versionada. |
 | `startCommand` | `npm start` |
@@ -38,7 +38,7 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 
 | Variable | Valor | Por qué |
 | --- | --- | --- |
-| `NIXPACKS_NODE_VERSION` | `22.12.0` | Fija la versión de Node en el build. El repo ya la declara, pero aquí es explícita y no hay sorpresas. |
+| `NIXPACKS_NODE_VERSION` | `22.23.4` | Fija la versión LTS parcheada de Node en el build. El repo ya la declara, pero aquí es explícita y no hay sorpresas. |
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` | Referencia al plugin; la plantilla la resuelve sola. |
 | `NODE_ENV` | `production` | Cookies seguras y menos ruido en los logs. |
 | `JWT_SECRET` | `${{secret(64)}}` | Lo genera Railway por instalación. |
@@ -106,7 +106,7 @@ Por la misma razón, la instalación del repositorio usa `npm install` y no `npm
 
 | Síntoma | Causa | Solución |
 | --- | --- | --- |
-| **`Prisma only supports Node.js versions 20.19+, 22.12+, 24.0+`** | El build arrancó con Node 18 (el instalador de Nixpacks corre antes que cualquier comando de build) | Agrega la variable de servicio `NIXPACKS_NODE_VERSION=22.12.0` y vuelve a desplegar. El repo ya declara `engines` y `.nvmrc`; la variable es el cinturón. |
+| **`Prisma only supports Node.js versions 20.19+, 22.12+, 24.0+`** | El build arrancó con Node 18 (el instalador de Nixpacks corre antes que cualquier comando de build) | Agrega la variable de servicio `NIXPACKS_NODE_VERSION=22.23.4` y vuelve a desplegar. El repo ya declara `engines` y `.nvmrc`; la variable es el cinturón. |
 | **`EBUSY: resource busy or locked, rmdir '/app/node_modules/.cache'`** | El Build Command del servicio ejecuta un `npm ci` **además** de la instalación de `nixpacks.toml`: corre dos veces y el segundo borra lo que el primero instaló | Vacía el Build Command del servicio (Settings → Build) y vuelve a desplegar. La instalación ya la hace `nixpacks.toml` con `npm install`. |
 | El build falla por TypeScript | Se instaló sin devDependencies (`NODE_ENV=production`) | `nixpacks.toml` ya lo resuelve; si lo tocas, mantén `--include=dev`. |
 | El log del build muestra un `npm ci` pelón y nada más | El servicio tiene un **Build Command** propio en el panel que ignora lo del repo | Bórralo (Settings → Build). Si el panel exige un valor, usa solo `npm run build`; nunca `npm ci`. |

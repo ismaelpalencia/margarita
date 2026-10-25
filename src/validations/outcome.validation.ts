@@ -22,7 +22,7 @@ const optionalDate = z
 
 export const markOutcomeSchema = z.object({
     type: z.nativeEnum(ContactOutcomeType, {
-        errorMap: () => ({ message: "Selecciona un resultado." })
+        error: "Selecciona un resultado."
     }),
     note: optionalText(500),
     amount: optionalText(30),
