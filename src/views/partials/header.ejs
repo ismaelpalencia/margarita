@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<%#
+    `themeLock` deja una página en claro aunque el navegador prefiera oscuro.
+    Se usa en las páginas de venta y en los textos legales, que se diseñaron
+    con la paleta clara y no tienen interruptor de tema.
+%>
+<html lang="es"<%= typeof themeLock !== "undefined" && themeLock ? ' data-theme-lock="light"' : "" %>>
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

@@ -26,6 +26,8 @@
                 <a href="/admin/whatsapp" class="rounded-lg px-3 py-2 font-semibold text-slate-600 hover:bg-slate-100">WhatsApp</a>
                 <a href="/admin/templates" aria-current="page" class="rounded-lg bg-margarita-50 px-3 py-2 font-bold text-margarita-700">Plantillas</a>
                 <a href="/admin/conversations" class="rounded-lg px-3 py-2 font-semibold text-slate-600 hover:bg-slate-100">Conversaciones</a>
+                <%- include("../../../partials/theme-toggle") %>
+
                 <form action="/auth/logout" method="POST">
                     <button class="rounded-xl bg-slate-900 px-4 py-2 font-semibold text-white">Cerrar sesión</button>
                 </form>

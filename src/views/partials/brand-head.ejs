@@ -10,6 +10,39 @@
 %>
 
 <%#
+    Tema oscuro, antes de pintar el cuerpo.
+
+    Se aplica aquí y no en `theme.js` porque este script corre antes de que
+    exista el `<body>`: si esperáramos al archivo externo, la primera pantalla
+    aparecería en blanco y luego cambiaría. La regla es la misma que usa
+    `theme.js`: preferencia guardada, y si no hay, la del sistema.
+%>
+<script>
+    (function () {
+        try {
+            var locked =
+                document.documentElement.getAttribute("data-theme-lock") === "light";
+
+            var stored = window.localStorage.getItem("marga-theme");
+            var dark =
+                !locked &&
+                (stored === "dark" ||
+                    (stored !== "light" &&
+                        window.matchMedia &&
+                        window.matchMedia("(prefers-color-scheme: dark)").matches));
+
+            if (dark) {
+                document.documentElement.classList.add("dark");
+            }
+
+            document.documentElement.style.colorScheme = dark ? "dark" : "light";
+        } catch (error) {
+            /* Sin almacenamiento disponible se queda en claro. */
+        }
+    })();
+</script>
+
+<%#
     Encabezado de marca compartido por todas las vistas.
     Se incluye dentro del <head> de cada página.
 %>
@@ -161,3 +194,4 @@
 </script>
 
 <script src="<%= `/js/loading.js${assetTag}` %>" defer></script>
+<script src="<%= `/js/theme.js${assetTag}` %>" defer></script>

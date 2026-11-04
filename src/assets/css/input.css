@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/**
+ * El tema oscuro se activa con la clase `dark` en `<html>`, no con la
+ * preferencia del sistema directamente: el usuario puede forzarlo desde el
+ * interruptor del encabezado y la elección se guarda en el navegador.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @source "../../views/**/*.ejs";
 @source "../../**/*.ts";
 /**
@@ -338,4 +345,332 @@
     [data-marga-loading="true"]::after {
         animation: none;
     }
+}
+
+/* ==========================================================================
+   Tema oscuro
+   --------------------------------------------------------------------------
+   Las vistas están escritas con utilidades claras (`bg-white`, `text-slate-900`,
+   `ring-slate-200`). En lugar de duplicar cada pantalla con variantes `dark:`,
+   aquí se remapean esas utilidades cuando `<html>` lleva la clase `dark`.
+
+   Estas reglas van fuera de `@layer`, así que ganan a las utilidades de
+   Tailwind sin pelear por especificidad. El cambio es solo visual: ningún dato,
+   consulta ni permiso depende del tema.
+   ========================================================================== */
+
+html.dark {
+    color-scheme: dark;
+    scrollbar-color: #334155 #0b1220;
+}
+
+html.dark body {
+    background-color: #0b1220;
+    color: #e2e8f0;
+}
+
+/* Superficies */
+html.dark .bg-white {
+    background-color: #0f172a;
+}
+
+html.dark .bg-white\/90 {
+    background-color: rgb(15 23 42 / 0.92);
+}
+
+html.dark .bg-white\/80 {
+    background-color: rgb(15 23 42 / 0.84);
+}
+
+html.dark .bg-white\/75 {
+    background-color: rgb(15 23 42 / 0.8);
+}
+
+html.dark .bg-white\/10 {
+    background-color: rgb(255 255 255 / 0.08);
+}
+
+html.dark .bg-black\/5 {
+    background-color: rgb(255 255 255 / 0.06);
+}
+
+html.dark .bg-slate-50 {
+    background-color: #172033;
+}
+
+html.dark .bg-slate-100 {
+    background-color: #111c2e;
+}
+
+html.dark .bg-slate-200 {
+    background-color: #334155;
+}
+
+html.dark .bg-slate-300 {
+    background-color: #475569;
+}
+
+html.dark .bg-slate-900 {
+    background-color: #1e293b;
+}
+
+html.dark .bg-margarita-50 {
+    background-color: #0d2a20;
+}
+
+html.dark .bg-margarita-100 {
+    background-color: #123a2c;
+}
+
+html.dark .bg-red-50 {
+    background-color: #2a1416;
+}
+
+html.dark .bg-red-100 {
+    background-color: #3b1a1d;
+}
+
+html.dark .bg-amber-50 {
+    background-color: #2a2110;
+}
+
+html.dark .bg-amber-100 {
+    background-color: #3a2c12;
+}
+
+html.dark .bg-sky-50 {
+    background-color: #0c2431;
+}
+
+html.dark .bg-blue-50 {
+    background-color: #10243f;
+}
+
+/* Texto */
+html.dark .text-slate-950 {
+    color: #f8fafc;
+}
+
+html.dark .text-slate-900 {
+    color: #f1f5f9;
+}
+
+html.dark .text-slate-800 {
+    color: #e2e8f0;
+}
+
+html.dark .text-slate-700 {
+    color: #cbd5e1;
+}
+
+html.dark .text-slate-600 {
+    color: #a8b6c9;
+}
+
+html.dark .text-slate-500 {
+    color: #94a3b8;
+}
+
+html.dark .text-slate-400 {
+    color: #94a3b8;
+}
+
+html.dark .text-margarita-900,
+html.dark .text-margarita-800 {
+    color: #b0eac9;
+}
+
+html.dark .text-margarita-700,
+html.dark .text-margarita-600 {
+    color: #7cd9a8;
+}
+
+html.dark .text-red-800 {
+    color: #fecaca;
+}
+
+html.dark .text-red-700 {
+    color: #fca5a5;
+}
+
+html.dark .text-red-600 {
+    color: #f87171;
+}
+
+html.dark .text-amber-900,
+html.dark .text-amber-800 {
+    color: #fde68a;
+}
+
+html.dark .text-amber-700 {
+    color: #fcd34d;
+}
+
+html.dark .text-sky-700 {
+    color: #7dd3fc;
+}
+
+html.dark .text-blue-700 {
+    color: #93c5fd;
+}
+
+html.dark .text-orange-700 {
+    color: #fdba74;
+}
+
+/* Bordes y anillos */
+html.dark .border-slate-100 {
+    border-color: #1e293b;
+}
+
+html.dark .border-slate-200 {
+    border-color: #243247;
+}
+
+html.dark .border-slate-300 {
+    border-color: #334155;
+}
+
+html.dark .border-margarita-100 {
+    border-color: #14532d;
+}
+
+html.dark .border-margarita-200 {
+    border-color: #166534;
+}
+
+html.dark .border-red-100,
+html.dark .border-red-200 {
+    border-color: #7f1d1d;
+}
+
+html.dark .border-amber-100,
+html.dark .border-amber-200 {
+    border-color: #78350f;
+}
+
+html.dark .ring-slate-200 {
+    --tw-ring-color: #243247;
+}
+
+html.dark .ring-slate-300 {
+    --tw-ring-color: #334155;
+}
+
+html.dark .ring-margarita-100 {
+    --tw-ring-color: #14532d;
+}
+
+html.dark .ring-margarita-200 {
+    --tw-ring-color: #166534;
+}
+
+html.dark .ring-amber-100,
+html.dark .ring-amber-200 {
+    --tw-ring-color: #78350f;
+}
+
+html.dark .ring-red-100,
+html.dark .ring-red-200 {
+    --tw-ring-color: #7f1d1d;
+}
+
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #1e293b;
+}
+
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #243247;
+}
+
+/* Estados de interacción */
+html.dark .hover\:bg-slate-50:hover {
+    background-color: #172033;
+}
+
+html.dark .hover\:bg-slate-100:hover {
+    background-color: #1e293b;
+}
+
+html.dark .hover\:bg-slate-200:hover {
+    background-color: #334155;
+}
+
+html.dark .hover\:bg-slate-800:hover {
+    background-color: #334155;
+}
+
+html.dark .hover\:bg-margarita-50:hover {
+    background-color: #0d2a20;
+}
+
+html.dark .hover\:bg-margarita-100:hover {
+    background-color: #123a2c;
+}
+
+html.dark .hover\:text-slate-700:hover {
+    color: #cbd5e1;
+}
+
+html.dark .hover\:text-margarita-700:hover {
+    color: #7cd9a8;
+}
+
+html.dark .hover\:text-margarita-800:hover {
+    color: #b0eac9;
+}
+
+html.dark .focus\:ring-margarita-100:focus {
+    --tw-ring-color: rgb(31 160 106 / 0.35);
+}
+
+/* Formularios */
+html.dark input,
+html.dark textarea,
+html.dark select {
+    color-scheme: dark;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+    color: #64748b;
+}
+
+/* Degradados de las pantallas de acceso */
+html.dark .from-margarita-50 {
+    --tw-gradient-from: #0d2a20;
+}
+
+html.dark .via-slate-100 {
+    --tw-gradient-via: #0b1220;
+}
+
+html.dark .to-white {
+    --tw-gradient-to: #0f172a;
+}
+
+/* Capas de carga y cambio de pantalla */
+html.dark #marga-boot {
+    background: #0b1220;
+}
+
+html.dark #marga-boot .marga-boot__text {
+    color: #b0eac9;
+}
+
+html.dark .marga-overlay {
+    background: rgb(11 18 32 / 0.9);
+}
+
+/* Interruptor de tema */
+.theme-toggle [data-theme-icon="sun"] {
+    display: none;
+}
+
+html.dark .theme-toggle [data-theme-icon="sun"] {
+    display: block;
+}
+
+html.dark .theme-toggle [data-theme-icon="moon"] {
+    display: none;
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es">
+
+<html lang="es" data-theme-lock=&#34;light&#34;>
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,6 +8,32 @@
     <title>Guía de uso - Margarita</title>
 
     
+
+
+<script>
+    (function () {
+        try {
+            var locked =
+                document.documentElement.getAttribute("data-theme-lock") === "light";
+
+            var stored = window.localStorage.getItem("marga-theme");
+            var dark =
+                !locked &&
+                (stored === "dark" ||
+                    (stored !== "light" &&
+                        window.matchMedia &&
+                        window.matchMedia("(prefers-color-scheme: dark)").matches));
+
+            if (dark) {
+                document.documentElement.classList.add("dark");
+            }
+
+            document.documentElement.style.colorScheme = dark ? "dark" : "light";
+        } catch (error) {
+            /* Sin almacenamiento disponible se queda en claro. */
+        }
+    })();
+</script>
 
 
 <meta name="theme-color" content="#0c5b4c" />
@@ -144,6 +171,7 @@
 </script>
 
 <script src="js/loading.js?v=1.0.0" defer></script>
+<script src="js/theme.js?v=1.0.0" defer></script>
 
 
     <link rel="stylesheet" href="css/style.css?v=1.0.0" />

@@ -10,7 +10,11 @@
 </head>
 
 <body class="min-h-screen bg-slate-100">
-    <main class="flex min-h-screen items-center justify-center px-6">
+    <main class="relative flex min-h-screen items-center justify-center px-6">
+        <div class="absolute right-4 top-4">
+            <%- include("../../partials/theme-toggle") %>
+        </div>
+
         <section class="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-xl">
             <h1 class="text-3xl font-bold text-red-600">403</h1>
 

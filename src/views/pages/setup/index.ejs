@@ -1,6 +1,10 @@
 <%- include("../../partials/header", { title: "Configurar instalación - Margarita" }) %>
 
-<main class="flex min-h-screen items-center justify-center bg-gradient-to-br from-margarita-50 via-slate-100 to-white px-4 py-10">
+<main class="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-margarita-50 via-slate-100 to-white px-4 py-10">
+    <div class="absolute right-4 top-4">
+        <%- include("../../partials/theme-toggle") %>
+    </div>
+
     <section class="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-200">
         <div class="bg-slate-950 px-8 py-7 text-white">
             <div class="flex items-center gap-3">

@@ -142,7 +142,7 @@ function rewriteLinks(html: string) {
          * sello aparece al cambiar de página, igual que dentro del panel.
          */
         .replace(/src="\/js\//g, 'src="js/')
-        .replace(/src="(js\/loading\.js)"/g, `src="$1${assetTag}"`)
+        .replace(/src="(js\/(?:loading|theme)\.js)"/g, `src="$1${assetTag}"`)
         /**
          * El sello del aviso de carga se toma de este `meta`: en el sitio
          * estático la ruta tiene que ser relativa, igual que el resto.
@@ -221,6 +221,16 @@ function build() {
     copy(
         path.join(PUBLIC, "js", "loading.js"),
         path.join(OUT, "js", "loading.js")
+    );
+
+    /**
+     * El interruptor de tema viaja con las páginas que usan la hoja del panel.
+     * Las de venta y los textos legales llevan `data-theme-lock="light"`, así
+     * que el archivo no las cambia de color; solo evita un 404.
+     */
+    copy(
+        path.join(PUBLIC, "js", "theme.js"),
+        path.join(OUT, "js", "theme.js")
     );
 
     /** La propuesta en PDF, para el botón «Descargar» de la página. */

@@ -45,6 +45,8 @@
                 <a href="/admin/templates" class="text-sm font-medium text-slate-700">Plantillas</a>
                 <a href="/admin/conversations" class="text-sm font-medium text-margarita-700">Conversaciones</a>
 
+                <%- include("../../../partials/theme-toggle") %>
+
                 <form action="/auth/logout" method="POST">
                     <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
                         Cerrar sesión
