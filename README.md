@@ -691,7 +691,7 @@ El límite vigente, con su explicación, está en [`docs/alcance-produccion.md`]
 | [`docs/modelo-comercial.md`](docs/modelo-comercial.md) | Runbook de alta por cliente, actualización de instalaciones, cierre de contrato y paquete legal |
 | [`docs/guia-meta.md`](docs/guia-meta.md) | Guía de conexión con Meta para el cliente (versión publicada en `/como-empezar`) |
 | [`docs/reportes-cobranza.md`](docs/reportes-cobranza.md) | Diseño del módulo de resultados de gestión y reportes de cobranza |
-| [`docs/ia-respuestas.md`](docs/ia-respuestas.md) | Propuesta de IA para sugerir y automatizar respuestas, y de perfiles para otros giros |
+| [`docs/ia-respuestas.md`](docs/ia-respuestas.md) | IA de respuestas: fase 1 implementada (solo sugerencias), operación con DeepSeek y camino a la fase 2 |
 | [`docs/demanda-workana.md`](docs/demanda-workana.md) | Qué pide el mercado en Workana, qué cubre Margarita y cómo volverlo una oferta vendible |
 | [`docs/decision-runtime.md`](docs/decision-runtime.md) | Por qué se mantiene Node y cuándo se justificaría extraer un servicio en Go |
 | [`prisma/schema.prisma`](prisma/schema.prisma) | Esquema real de la base de datos |
