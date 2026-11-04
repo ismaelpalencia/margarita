@@ -4,6 +4,7 @@ import { AdminConversationsController } from "../controllers/admin-conversations
 import { AiConversationController } from "../controllers/ai-conversation.controller";
 import { AiSuggestionController } from "../controllers/ai-suggestion.controller";
 import { OutcomeController } from "../controllers/outcome.controller";
+import { requireCollectionsModule } from "../middlewares/workspace-profile.middleware";
 import { mediaUploadSingle } from "../middlewares/upload.middleware";
 
 const router = Router();
@@ -24,6 +25,7 @@ router.post("/:id/messages/free-text", AdminConversationsController.sendFreeText
 router.post("/:id/messages/interactive", AdminConversationsController.sendInteractiveMessage);
 router.post(
     "/:id/outcome",
+    requireCollectionsModule,
     OutcomeController.markFromConversation({
         basePath: "/admin/conversations",
         forAgent: false

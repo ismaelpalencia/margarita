@@ -1,3 +1,4 @@
+import { WorkspaceProfile } from "@prisma/client";
 import { z } from "zod";
 
 import { passwordSchema } from "./password.validation";
@@ -28,7 +29,16 @@ export const setupSchema = z.object({
         .trim()
         .email("Ingresa un correo válido.")
         .toLowerCase(),
-    adminPassword: passwordSchema
+    adminPassword: passwordSchema,
+    /**
+     * Giro con el que nace la instalación. El asistente lo pregunta para que
+     * una empresa comercial no arranque con pantallas de cobranza que no usa.
+     */
+    profile: z
+        .nativeEnum(WorkspaceProfile, {
+            message: "Elige un giro válido."
+        })
+        .default(WorkspaceProfile.GENERICO)
 });
 
 export type SetupInput = z.infer<typeof setupSchema>;

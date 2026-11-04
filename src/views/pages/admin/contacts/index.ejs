@@ -114,6 +114,7 @@
                 <% }) %>
             </select>
 
+            <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
             <select
                 name="resultado"
                 class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
@@ -126,6 +127,7 @@
                     </option>
                 <% }) %>
             </select>
+            <% } %>
 
             <input
                 type="number"
@@ -153,6 +155,7 @@
                     Solo bajas
                 </label>
 
+                <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
                 <label class="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-700">
                     <input
                         type="checkbox"
@@ -176,6 +179,7 @@
 
                     Sin resultado
                 </label>
+                <% } %>
 
                 <label class="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-700">
                     <input
@@ -209,8 +213,11 @@
              * checkboxes de la tabla lo referencian con `form=`, porque
              * meter la tabla dentro de un form anidaría los formularios que
              * ya tiene cada fila (abrir conversación, desactivar…).
+             *
+             * Solo existe con el módulo de cobranza encendido.
              */
         %>
+        <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
         <form
             id="bulk-outcomes"
             action="/admin/contacts/outcomes/bulk"
@@ -277,17 +284,22 @@
                 Aplicar a los seleccionados
             </button>
         </form>
+        <% } %>
 
         <section class="overflow-x-auto rounded-2xl bg-white shadow">
             <table class="w-full text-left text-sm">
                 <thead class="bg-slate-50 text-slate-500">
                     <tr>
+                        <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
                         <th class="px-3 py-4 md:px-5">
                             <span class="sr-only">Seleccionar</span>
                         </th>
+                        <% } %>
                         <th class="px-3 py-4 md:px-5">Nombre</th>
                         <th class="hidden px-3 py-4 md:table-cell md:px-5">Teléfono</th>
+                        <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
                         <th class="px-3 py-4 md:px-5">Resultado</th>
+                        <% } %>
                         <th class="hidden px-3 py-4 md:table-cell md:px-5">Intentos</th>
                         <th class="hidden px-3 py-4 md:table-cell md:px-5">Etiquetas</th>
                         <th class="hidden px-3 py-4 md:table-cell md:px-5">Notas</th>
@@ -298,7 +310,7 @@
                 <tbody class="divide-y divide-slate-100">
                     <% if (contacts.length === 0) { %>
                         <tr>
-                            <td colspan="8" class="px-5 py-8 text-center text-slate-500">
+                            <td colspan="<%= (typeof collectionsEnabled === "undefined" || collectionsEnabled) ? 8 : 6 %>" class="px-5 py-8 text-center text-slate-500">
                                 No hay contactos para mostrar.
                             </td>
                         </tr>
@@ -313,6 +325,7 @@
                             const late = daysLate(contact);
                         %>
                         <tr>
+                            <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
                             <td class="px-3 py-4 md:px-5">
                                 <input
                                     type="checkbox"
@@ -322,6 +335,7 @@
                                     class="h-4 w-4 rounded border-slate-300"
                                 />
                             </td>
+                            <% } %>
 
                             <td class="px-3 py-4 md:px-5">
                                 <div class="flex items-center gap-2">
@@ -366,6 +380,7 @@
                                 <%= contact.phone %>
                             </td>
 
+                            <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
                             <td class="px-3 py-4 md:px-5">
                                 <% if (contact.outcomeType) { %>
                                     <span class="rounded-full px-2 py-0.5 text-[11px] font-bold <%= outcomeBadgeClasses[contact.outcomeType] %>">
@@ -387,6 +402,7 @@
                                     <span class="text-slate-400">—</span>
                                 <% } %>
                             </td>
+                            <% } %>
 
                             <td class="hidden px-5 py-4 text-slate-600 md:table-cell">
                                 <span class="<%= contactAttempts.attempts >= 3 ? 'font-bold text-amber-700' : '' %>">

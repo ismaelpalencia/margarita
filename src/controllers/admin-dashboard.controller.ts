@@ -12,7 +12,8 @@ export class AdminDashboardController {
         return res.render("pages/admin/dashboard", {
             user: req.user,
             dashboard,
-            activeNumber: req.activeNumber || null
+            activeNumber: req.activeNumber || null,
+            error: req.query.error || null
         });
     }
 }

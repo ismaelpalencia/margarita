@@ -1,10 +1,64 @@
-import { LogLevel, LogModule } from "@prisma/client";
+import { LogLevel, LogModule, WorkspaceProfile } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
 import { deleteWorkspaceMedia } from "./media-storage.service";
 import { LogService } from "./log.service";
 
 export class WorkspaceService {
+    /** Giro con el que opera la instalación. */
+    static async getProfile(workspaceId: string) {
+        const workspace = await prisma.workspace.findUnique({
+            where: { id: workspaceId },
+            select: { id: true, name: true, slug: true, profile: true }
+        });
+
+        if (!workspace) {
+            throw new Error("Instalación no encontrada.");
+        }
+
+        return workspace;
+    }
+
+    /**
+     * Cambia el giro de la instalación.
+     *
+     * No toca contactos, conversaciones, campañas, resultados ni historial:
+     * solo enciende o apaga el módulo de cobranza en la interfaz. Volver a
+     * COBRANZA deja todo como estaba.
+     */
+    static async updateProfile(
+        workspaceId: string,
+        profile: WorkspaceProfile,
+        userId: string
+    ) {
+        const workspace = await this.getProfile(workspaceId);
+
+        if (workspace.profile === profile) {
+            return workspace;
+        }
+
+        const updated = await prisma.workspace.update({
+            where: { id: workspaceId },
+            data: { profile }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.SYSTEM,
+            action: "WORKSPACE_PROFILE_CHANGED",
+            message: "Se cambió el giro de la instalación.",
+            payload: {
+                workspaceId,
+                userId,
+                from: workspace.profile,
+                to: profile
+            }
+        });
+
+        return updated;
+    }
+
     /** Cuánta información hay, para que el borrado no sea a ciegas. */
     static async getDataSummary(workspaceId: string) {
         const [workspace, contacts, conversations, messages, campaigns, templates, users] =

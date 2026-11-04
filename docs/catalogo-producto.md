@@ -10,9 +10,11 @@ con qué palabras) y **los guiones de video** (qué grabar y en qué orden).
 
 ## 1. En una frase
 
-Margarita opera la **WhatsApp Business Cloud API de Meta** para cobranza: envía
-plantillas, atiende conversaciones, registra **en qué quedó cada cliente** y te
-dice **a quién escribirle o llamarle hoy**.
+Margarita opera la **WhatsApp Business Cloud API de Meta**: envía plantillas,
+atiende conversaciones y, con el **giro de cobranza encendido**, registra **en
+qué quedó cada cliente** y te dice **a quién escribirle o llamarle hoy**. El
+mismo binario opera comercio, servicios o un giro genérico con ese módulo
+apagado; no hay dos versiones del producto.
 
 **No es**: un CRM, un chatbot general, un sistema de facturación ni una
 herramienta de mensajería masiva sin control. La IA puede redactar borradores
@@ -227,8 +229,9 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 - **Logs**: filtros por nivel y módulo, con el detalle de cada evento.
 - **Webhooks recibidos**: los últimos 20 eventos tal como los mandó Meta, con
   botón para copiarlos.
-- **Sistema**: checklist de configuración, cifrado, firma, cola, respaldos y
-  **almacenamiento de archivos** (si es un volumen persistente).
+- **Sistema**: checklist de configuración, cifrado, firma, cola, respaldos,
+  **almacenamiento de archivos** (si es un volumen persistente) y el
+  **giro de la operación** (cobranza, comercio, servicios o genérico).
 - **Respaldos**: copia automática diaria cifrada, descarga manual y borrado total
   al cerrar contrato.
 - **Sesiones**: dispositivos, IP y cierre remoto.

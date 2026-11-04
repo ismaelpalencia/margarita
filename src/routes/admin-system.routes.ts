@@ -5,6 +5,8 @@ import { AdminSystemController } from "../controllers/admin-system.controller";
 const router = Router();
 
 router.get("/", AdminSystemController.index);
+/** Interruptor de giro: enciende o apaga el módulo de cobranza. */
+router.post("/profile", AdminSystemController.updateProfile);
 /** Prueba de R2 desde el panel: sube, lee y borra un archivo diminuto. */
 router.get("/r2", AdminSystemController.testR2);
 

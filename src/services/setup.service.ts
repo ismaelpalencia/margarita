@@ -1,5 +1,12 @@
 import bcrypt from "bcrypt";
-import { LogLevel, LogModule, UserRole, UserStatus, WorkspaceStatus } from "@prisma/client";
+import {
+    LogLevel,
+    LogModule,
+    UserRole,
+    UserStatus,
+    WorkspaceProfile,
+    WorkspaceStatus
+} from "@prisma/client";
 
 import { prisma } from "../config/prisma";
 import { LogService } from "./log.service";
@@ -11,6 +18,8 @@ export type CreateWorkspaceInput = {
     adminName: string;
     adminEmail: string;
     adminPassword: string;
+    /** Giro con el que arranca la instalación. */
+    profile?: WorkspaceProfile;
 };
 
 /**
@@ -44,6 +53,7 @@ export class SetupService {
                 name: input.workspaceName,
                 slug: input.workspaceSlug,
                 status: WorkspaceStatus.ACTIVE,
+                profile: input.profile ?? WorkspaceProfile.COBRANZA,
                 settings: {
                     create: {}
                 }

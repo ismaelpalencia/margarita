@@ -21,6 +21,7 @@ import adminSystemRoutes from "./admin-system.routes";
 import adminGuideRoutes from "./admin-guide.routes";
 import adminBackupRoutes from "./admin-backup.routes";
 import { activeNumberMiddleware } from "../middlewares/active-number.middleware";
+import { workspaceProfileMiddleware } from "../middlewares/workspace-profile.middleware";
 import { ActiveNumberController } from "../controllers/active-number.controller";
 import { panelRateLimiter } from "../middlewares/panel-rate-limit.middleware";
 
@@ -29,6 +30,8 @@ const router = Router();
 
 router.use(authMiddleware);
 router.use(requireRole(UserRole.ADMIN));
+/** El giro de la instalación decide qué módulos se muestran. */
+router.use(workspaceProfileMiddleware);
 router.use(activeNumberMiddleware);
 /** Cupo por persona: quince agentes en la misma oficina no se estorban. */
 router.use(panelRateLimiter);

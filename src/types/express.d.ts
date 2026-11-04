@@ -1,5 +1,5 @@
 import { AuthUser } from "./auth";
-import { WhatsAppNumber } from "@prisma/client";
+import { WhatsAppNumber, WorkspaceProfile } from "@prisma/client";
 
 declare global {
     namespace Express {
@@ -9,6 +9,8 @@ declare global {
             rawBody?: string;
             /** Número con el que está trabajando el usuario en esta sesión. */
             activeNumber?: WhatsAppNumber | null;
+            /** Giro de la instalación, resuelto por `workspaceProfileMiddleware`. */
+            workspaceProfile?: WorkspaceProfile;
         }
     }
 }

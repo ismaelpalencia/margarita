@@ -2,7 +2,8 @@ import {
     ContactOutcomeType,
     LogLevel,
     LogModule,
-    ReplyEffect
+    ReplyEffect,
+    WorkspaceProfile
 } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
@@ -196,6 +197,21 @@ export class InteractiveReplyService {
         replyTitle?: string | null;
     }): Promise<AppliedReplyRule | null> {
         const { workspaceId, contactId } = params;
+
+        /**
+         * Las reglas traducen un botón a un resultado de cobranza. Si la
+         * instalación opera con otro giro, el módulo está apagado: no se
+         * escriben resultados ocultos ni se pausa o da de baja a nadie por
+         * una regla que el equipo no ve.
+         */
+        const workspace = await prisma.workspace.findUnique({
+            where: { id: workspaceId },
+            select: { profile: true }
+        });
+
+        if (workspace?.profile !== WorkspaceProfile.COBRANZA) {
+            return null;
+        }
 
         const rule =
             (await prisma.interactiveReplyRule.findFirst({

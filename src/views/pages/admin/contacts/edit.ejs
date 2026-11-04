@@ -169,6 +169,7 @@
             <% } %>
         </section>
 
+        <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
         <% if (success === "outcome") { %>
             <div class="mb-6 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
                 Resultado de la gestión guardado.
@@ -246,6 +247,7 @@
                     <% }) %>
                 </div>
             </section>
+        <% } %>
         <% } %>
 
         <section class="rounded-2xl bg-white p-6 shadow">

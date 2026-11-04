@@ -55,10 +55,12 @@ que el giro sea configuración**. Concretamente:
   `promesa/compromiso`.
 - **Módulos opcionales** por perfil: resultados de gestión, promesas, montos y
   reportes de cobranza se ocultan si el perfil no los usa. El código sigue ahí;
-  solo no se muestra.
+  solo no se muestra. **Implementado (2026-11-04):** el interruptor está en
+  **Admin → Sistema → Giro de la operación**, se elige también en el asistente
+  de alta y apagarlo no borra datos ni bloquea la bandeja.
 - **Playbooks**: prompt inicial, preguntas frecuentes y campañas sugeridas por
   giro. Cobranza es el playbook 1; comercio y servicios son configuración, no
-  una segunda app.
+  una segunda app. **Pendiente.**
 
 Esto deja la puerta abierta a la versión comercial sin perder la instalación de
 cobranza que ya está en producción. Si la investigación de mercado termina
@@ -605,7 +607,7 @@ de la expectativa del usuario.
 | **1. Sugerencias** | Proveedor + `AiSuggestion` + bandeja + consola de prueba. Nada sale solo. **Implementada (2026-11-03).** | Un agente ve un borrador, lo usa y el mensaje sale como manual; apagar la IA no cambia nada. |
 | **2. Automático acotado** | Cola, worker, política de decisión, base de conocimiento, envío `AUTOMATIC`, pausa por conversación, límites, presupuesto y handoff. **Implementada (2026-11-04).** | Con `AI_PROVIDER=mock`: responde una FAQ, no responde a un contacto dado de baja, no responde fuera de ventana, respeta los límites y entrega a persona ante una queja. |
 | **3. Conocimiento semántico y herramientas** | Embeddings en memoria, consultar estado de pedido, agendar cita. | Una pregunta con sinónimos encuentra la entrada correcta; una herramienta falla de forma segura. |
-| **4. Perfiles de operación** | `Workspace.profile`, etiquetas por giro, módulos opcionales y playbooks. | Un workspace de comercio ve «cliente/pedido» y no ve promesas ni montos; cobranza sigue igual. |
+| **4. Perfiles de operación** | `Workspace.profile` con interruptor en Sistema; módulos de cobranza ocultos para los demás giros. **Interruptor implementado (2026-11-04).** Quedan etiquetas por giro y playbooks. | Un workspace de comercio ve «cliente/pedido» y no ve promesas ni montos; cobranza sigue igual. |
 | **5. Producto comercial** | Segunda landing y paquete de venta según la investigación de mercado. | Se puede dar de alta un cliente de otro giro con el mismo binario. |
 
 Cada fase conserva la anterior: el modo sugerencia sigue disponible en todas.

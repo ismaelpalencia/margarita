@@ -1,10 +1,17 @@
 import { Request, Response } from "express";
 
 import { SystemStatusService } from "../services/system-status.service";
+import { WorkspaceService } from "../services/workspace.service";
 import { appConfig } from "../config/app.config";
 import { formatDateTimeMX } from "../utils/date";
 import { probeObjectStorage } from "../services/object-storage.service";
 import { storageSummary, StorageSummary } from "../services/object-storage.service";
+import {
+    WORKSPACE_PROFILE_DESCRIPTIONS,
+    WORKSPACE_PROFILE_LABELS,
+    WORKSPACE_PROFILES,
+    parseWorkspaceProfile
+} from "../utils/workspace-profile";
 
 /**
  * El listado del bucket se cachea cinco minutos: no cambia cada segundo y
@@ -59,10 +66,40 @@ export class AdminSystemController {
             status,
             version: appConfig.version,
             commit: appConfig.commit,
-            formatDateTimeMX
-            ,
+            formatDateTimeMX,
             r2: await r2Summary(),
-            humanBytes
+            humanBytes,
+            profiles: WORKSPACE_PROFILES,
+            profileLabels: WORKSPACE_PROFILE_LABELS,
+            profileDescriptions: WORKSPACE_PROFILE_DESCRIPTIONS,
+            success: req.query.success || null,
+            error: req.query.error || null
         });
+    }
+
+    /**
+     * Cambia el giro de la instalación desde el panel.
+     *
+     * Es un interruptor, no una migración: los datos de cobranza se quedan
+     * guardados y solo se ocultan las pantallas que no aplican al giro nuevo.
+     */
+    static async updateProfile(req: Request, res: Response) {
+        const profile = parseWorkspaceProfile(req.body?.profile);
+
+        if (!profile) {
+            return res.redirect("/admin/system?error=profile");
+        }
+
+        try {
+            await WorkspaceService.updateProfile(
+                req.user!.workspaceId,
+                profile,
+                req.user!.id
+            );
+        } catch {
+            return res.redirect("/admin/system?error=profile");
+        }
+
+        return res.redirect("/admin/system?success=profile");
     }
 }

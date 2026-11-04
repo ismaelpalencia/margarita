@@ -68,6 +68,14 @@
             </div>
         </section>
 
+        <% if (typeof error !== "undefined" && error === "cobranza_desactivada") { %>
+            <div class="mb-6 rounded-xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+                El módulo de cobranza está apagado para esta instalación.
+                Puedes encenderlo en <a href="/admin/system" class="underline">Sistema → Giro de la operación</a>.
+            </div>
+        <% } %>
+
+        <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
         <section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-margarita-200">
                 <p class="text-sm font-medium text-margarita-700">
@@ -120,6 +128,7 @@
                 </p>
             </a>
         </section>
+        <% } %>
 
         <section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">

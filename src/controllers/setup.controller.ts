@@ -7,6 +7,47 @@ import {
     storageStatus
 } from "../services/storage-status.service";
 import { setupSchema } from "../validations/setup.validation";
+import {
+    WORKSPACE_PROFILE_DESCRIPTIONS,
+    WORKSPACE_PROFILE_LABELS,
+    WORKSPACE_PROFILES
+} from "../utils/workspace-profile";
+
+type SetupValues = {
+    workspaceName: string;
+    workspaceSlug: string;
+    adminName: string;
+    adminEmail: string;
+    profile: string;
+};
+
+/**
+ * Datos que necesita el formulario en cualquier salida (alta, error de
+ * validación o falta de Volume), para no repetir la lista de giros.
+ */
+function setupLocals(values: SetupValues, error: string | null) {
+    return {
+        appName: appConfig.name,
+        values,
+        error,
+        profiles: WORKSPACE_PROFILES,
+        profileLabels: WORKSPACE_PROFILE_LABELS,
+        profileDescriptions: WORKSPACE_PROFILE_DESCRIPTIONS
+    };
+}
+
+function valuesFromBody(req: Request): SetupValues {
+    const text = (name: string, fallback = "") =>
+        typeof req.body?.[name] === "string" ? req.body[name] : fallback;
+
+    return {
+        workspaceName: text("workspaceName"),
+        workspaceSlug: text("workspaceSlug"),
+        adminName: text("adminName"),
+        adminEmail: text("adminEmail"),
+        profile: text("profile", "GENERICO")
+    };
+}
 
 /**
  * Asistente de alta de una instalación nueva.
@@ -21,16 +62,19 @@ export class SetupController {
             return res.redirect("/auth/login");
         }
 
-        return res.render("pages/setup/index", {
-            appName: appConfig.name,
-            values: {
-                workspaceName: appConfig.name,
-                workspaceSlug: "",
-                adminName: "",
-                adminEmail: ""
-            },
-            error: null
-        });
+        return res.render(
+            "pages/setup/index",
+            setupLocals(
+                {
+                    workspaceName: appConfig.name,
+                    workspaceSlug: "",
+                    adminName: "",
+                    adminEmail: "",
+                    profile: "GENERICO"
+                },
+                null
+            )
+        );
     }
 
     static async submit(req: Request, res: Response) {
@@ -46,45 +90,30 @@ export class SetupController {
         if (storageBlocksSetup()) {
             const storage = storageStatus();
 
-            return res.status(409).render("pages/setup/index", {
-                appName: appConfig.name,
-                values: {
-                    workspaceName:
-                        typeof req.body?.workspaceName === "string"
-                            ? req.body.workspaceName
-                            : appConfig.name,
-                    workspaceSlug:
-                        typeof req.body?.workspaceSlug === "string"
-                            ? req.body.workspaceSlug
-                            : "",
-                    adminName:
-                        typeof req.body?.adminName === "string"
-                            ? req.body.adminName
-                            : "",
-                    adminEmail:
-                        typeof req.body?.adminEmail === "string"
-                            ? req.body.adminEmail
-                            : ""
-                },
-                error:
-                    "Antes de activar la instalación, monta un Volume y apunta MEDIA_STORAGE_DIR a una carpeta dentro de él. " +
-                    `${storage.message} `
-            });
+            return res
+                .status(409)
+                .render(
+                    "pages/setup/index",
+                    setupLocals(
+                        valuesFromBody(req),
+                        "Antes de activar la instalación, monta un Volume y apunta MEDIA_STORAGE_DIR a una carpeta dentro de él. " +
+                            `${storage.message} `
+                    )
+                );
         }
 
         const parsed = setupSchema.safeParse(req.body);
 
         if (!parsed.success) {
-            return res.status(400).render("pages/setup/index", {
-                appName: appConfig.name,
-                values: {
-                    workspaceName: req.body?.workspaceName || "",
-                    workspaceSlug: req.body?.workspaceSlug || "",
-                    adminName: req.body?.adminName || "",
-                    adminEmail: req.body?.adminEmail || ""
-                },
-                error: parsed.error.issues[0]?.message || "Datos inválidos."
-            });
+            return res
+                .status(400)
+                .render(
+                    "pages/setup/index",
+                    setupLocals(
+                        valuesFromBody(req),
+                        parsed.error.issues[0]?.message || "Datos inválidos."
+                    )
+                );
         }
 
         try {
@@ -94,19 +123,23 @@ export class SetupController {
                 `/auth/login?success=setup&email=${encodeURIComponent(result.adminEmail)}`
             );
         } catch (error) {
-            return res.status(400).render("pages/setup/index", {
-                appName: appConfig.name,
-                values: {
-                    workspaceName: parsed.data.workspaceName,
-                    workspaceSlug: parsed.data.workspaceSlug,
-                    adminName: parsed.data.adminName,
-                    adminEmail: parsed.data.adminEmail
-                },
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "No se pudo crear la instalación."
-            });
+            return res
+                .status(400)
+                .render(
+                    "pages/setup/index",
+                    setupLocals(
+                        {
+                            workspaceName: parsed.data.workspaceName,
+                            workspaceSlug: parsed.data.workspaceSlug,
+                            adminName: parsed.data.adminName,
+                            adminEmail: parsed.data.adminEmail,
+                            profile: parsed.data.profile
+                        },
+                        error instanceof Error
+                            ? error.message
+                            : "No se pudo crear la instalación."
+                    )
+                );
         }
     }
 }

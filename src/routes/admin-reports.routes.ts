@@ -1,8 +1,12 @@
 import { Router } from "express";
 
 import { AdminReportsController } from "../controllers/admin-reports.controller";
+import { requireCollectionsModule } from "../middlewares/workspace-profile.middleware";
 
 const router = Router();
+
+/** Reportes de gestiones, promesas y montos: solo con cobranza encendida. */
+router.use(requireCollectionsModule);
 
 router.get("/", AdminReportsController.index);
 router.get("/export", AdminReportsController.export);

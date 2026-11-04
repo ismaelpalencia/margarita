@@ -72,6 +72,29 @@
                     </p>
                 </div>
 
+                <div class="sm:col-span-2">
+                    <label class="mb-1 block text-sm font-semibold text-slate-700">
+                        ¿Para qué se usa esta instalación?
+                    </label>
+
+                    <select
+                        name="profile"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                    >
+                        <% profiles.forEach((profile) => { %>
+                            <option value="<%= profile %>" <%= values.profile === profile ? "selected" : "" %>>
+                                <%= profileLabels[profile] %> — <%= profileDescriptions[profile] %>
+                            </option>
+                        <% }) %>
+                    </select>
+
+                    <p class="mt-1 text-xs text-slate-500">
+                        Elige <strong>Cobranza</strong> solo si vas a registrar
+                        promesas, montos y resultados de gestión. Puedes cambiarlo
+                        después en Sistema, sin borrar datos.
+                    </p>
+                </div>
+
                 <div>
                     <label class="mb-1 block text-sm font-semibold text-slate-700">
                         Tu nombre

@@ -15,7 +15,7 @@
                 <img src="/brand/img/margarita-icon-64.png" alt="Margarita" class="h-10 w-10" />
                 <span>
                     <span class="block text-base font-black leading-tight">Margarita</span>
-                    <span class="block text-xs font-medium text-slate-500">Plantillas de cobranza</span>
+                    <span class="block text-xs font-medium text-slate-500"><%= (typeof collectionsEnabled !== "undefined" && collectionsEnabled) ? "Plantillas de cobranza" : "Plantillas" %></span>
                 </span>
             </a>
 
@@ -47,10 +47,11 @@
 
         <section class="mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-margarita-800 via-margarita-700 to-margarita-600 px-6 py-8 text-white shadow-sm sm:px-9 sm:py-10">
             <div class="max-w-3xl">
-                <p class="text-xs font-black uppercase tracking-[0.18em] text-white/75">Biblioteca para equipos de cobranza</p>
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-white/75"><%= (typeof collectionsEnabled !== "undefined" && collectionsEnabled) ? "Biblioteca para equipos de cobranza" : "Biblioteca de ideas para WhatsApp" %></p>
                 <h1 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">¿No sabes qué plantilla crear?</h1>
                 <p class="mt-4 max-w-2xl text-sm leading-6 text-white/90 sm:text-base">
-                    Usa estas ideas como punto de partida para primer contacto, recordatorios y promesas de pago. Adáptalas a tu operación y crea la versión final en Meta.
+                    <%= (typeof collectionsEnabled !== "undefined" && collectionsEnabled) ? "Usa estas ideas como punto de partida para primer contacto, recordatorios y promesas de pago." : "Usa estas ideas como punto de partida para primer contacto, seguimiento y avisos." %>
+                    Adáptalas a tu operación y crea la versión final en Meta.
                 </p>
                 <div class="mt-6 flex flex-wrap gap-3">
                     <a href="#biblioteca" class="rounded-xl bg-white px-5 py-3 text-sm font-black text-margarita-800 hover:bg-margarita-50">Explorar ideas</a>
@@ -75,12 +76,12 @@
             <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p class="text-xs font-black uppercase tracking-widest text-margarita-700">Ideas listas para adaptar</p>
-                    <h2 class="mt-1 text-2xl font-black tracking-tight">Biblioteca de cobranza</h2>
+                    <h2 class="mt-1 text-2xl font-black tracking-tight"><%= (typeof collectionsEnabled !== "undefined" && collectionsEnabled) ? "Biblioteca de cobranza" : "Biblioteca de ideas" %></h2>
                     <p class="mt-1 max-w-2xl text-sm text-slate-600">Cada ficha incluye el momento de uso, variables compatibles con Margarita y botones de respuesta sugeridos.</p>
                 </div>
                 <label class="block sm:w-72">
                     <span class="sr-only">Buscar ideas de plantilla</span>
-                    <input id="template-library-search" type="search" placeholder="Buscar: promesa, pago…" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100" />
+                    <input id="template-library-search" type="search" placeholder="<%= (typeof collectionsEnabled !== "undefined" && collectionsEnabled) ? "Buscar: promesa, pago…" : "Buscar por nombre o situación…" %>" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100" />
                 </label>
             </div>
 

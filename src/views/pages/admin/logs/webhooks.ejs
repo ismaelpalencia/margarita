@@ -16,9 +16,8 @@
 
                 <p class="mt-2 max-w-3xl text-slate-600">
                     Lo que Meta mandó, <strong>tal cual llegó</strong>. Sirve para
-                    dos cosas: comprobar qué identificador trae un botón cuando el
-                    deudor lo toca, y copiar el evento completo cuando hay que
-                    reportar un caso.
+                    comprobar qué identificador trae una respuesta interactiva y
+                    copiar el evento completo cuando hay que reportar un caso.
                 </p>
             </div>
 
@@ -29,15 +28,17 @@
 
         <div class="mb-6 rounded-2xl bg-white p-5 text-sm text-slate-600 shadow-sm ring-1 ring-slate-200">
             <p>
-                <strong>Cómo usarlo con un botón.</strong> Manda la plantilla a un
+                <strong>Cómo usarlo con una respuesta interactiva.</strong> Manda la plantilla a un
                 número de prueba, tócala y recarga esta pantalla: aparece un
                 evento nuevo con <code class="rounded bg-slate-100 px-1">button</code>
                 (el botón de una plantilla),
                 <code class="rounded bg-slate-100 px-1">button_reply</code> o
                 <code class="rounded bg-slate-100 px-1">list_reply</code>. Copia
-                el evento con el botón y pégalo donde te lo pidan; de ahí sale el
-                identificador con el que se crea la regla en
+                el evento completo cuando necesites el identificador que mandó Meta.
+                <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
+                De ahí sale el identificador con el que se crea la regla en
                 <a href="/admin/replies" class="font-semibold text-margarita-700 underline">Botones</a>.
+                <% } %>
             </p>
 
             <p class="mt-2 text-xs text-slate-500">

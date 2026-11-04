@@ -6,7 +6,7 @@ Para la parte comercial y los videos, el inventario completo —pantalla por
 pantalla, con reglas, atajos, flujos y guiones— está en
 [`catalogo-producto.md`](catalogo-producto.md).
 
-Última revisión: 2026-11-04 (fase 2 de IA: respuesta automática acotada con pausa por conversación, límites, presupuesto y entrega a personas; el modo por defecto sigue siendo sugerencias y `AI_ENABLED=false`).
+Última revisión: 2026-11-04 (fase 2 de IA: respuesta automática acotada con pausa por conversación, límites, presupuesto y entrega a personas; el modo por defecto sigue siendo sugerencias y `AI_ENABLED=false`). Mismo día: el módulo de cobranza se puede apagar por giro desde **Sistema**, sin borrar datos.
 
 > **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
 > **Paquete A $3,500.00 MXN** (instalación, primer mes y conexión con Meta) o
@@ -86,6 +86,31 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 | Base de datos | PostgreSQL |
 | Alojamiento probado | Railway |
 
+### Giro de la operación y módulo de cobranza
+
+Cada instalación declara un **giro** en `Workspace.profile`:
+
+| Perfil | Qué muestra |
+| --- | --- |
+| `COBRANZA` | Todo: resultados de gestión, promesas, montos, reportes y respuestas de botón. |
+| `COMERCIO` | Bandeja, campañas, contactos, etiquetas, plantillas, IA y administración. Sin módulo de cobranza. |
+| `SERVICIOS` | Igual que comercio, con el vocabulario de servicios en la operación. |
+| `GENERICO` | Bandeja y operación de WhatsApp sin un giro definido. Sin módulo de cobranza. |
+
+El giro se cambia en **Admin → Sistema → Giro de la operación** y también se
+elige al crear una instalación desde el asistente. Es un **interruptor, no una
+migración**:
+
+- Apagar cobranza **no borra** contactos, conversaciones, resultados, montos ni
+  historial. Solo oculta los paneles, enlaces y reportes de cobranza y bloquea
+  sus rutas directas.
+- Al volver a `COBRANZA`, todo aparece otra vez, con los datos que ya estaban.
+- Las reglas de botones que traducen una respuesta a un resultado **no se
+  aplican** mientras el módulo está apagado: no se escriben resultados ocultos
+  ni se pausa o da de baja a nadie por una regla que el equipo no ve.
+- El cambio queda en la bitácora como `WORKSPACE_PROFILE_CHANGED`, con el perfil
+  anterior, el nuevo y quién lo hizo.
+
 ---
 
 ## 2. Qué puede hacer hoy
@@ -97,7 +122,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Agentes**: crear, editar, activar o desactivar, con permiso de envío manual y límite configurable.
 - **Equipo**: crear administradores y agentes, cambiar el rol, activar o desactivar y restablecer contraseñas. La instalación nunca se queda sin un administrador activo: el sistema bloquea degradar o desactivar al último (y el botón aparece deshabilitado). Al desactivar a alguien se cierran sus sesiones.
 - **Contactos**: crear, editar, buscar por **nombre completo o teléfono completo**, filtrar por etiqueta y por bajas, registrar el consentimiento (opt-in), marcar la baja a mano y desactivar.
-- **Resultado de la gestión (cobranza)**: marcar en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota. Se marca desde el hilo, desde la ficha del contacto y en bloque desde la lista. Cada marcado deja historial con quién y cuándo.
+- **Resultado de la gestión (cobranza)**: marcar en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota. Se marca desde el hilo, desde la ficha del contacto y en bloque desde la lista. Cada marcado deja historial con quién y cuándo. **Solo con el giro `COBRANZA` encendido.**
 - **Reportes**: gestiones del periodo por resultado, persona y día; promesas vigentes con lo vencido arriba, cumplimiento (a tiempo, tarde, sin pago) y prometido contra pagado; lista de clientes sin contestación tras X intentos; y detalle exportable a CSV. **Cada fila muestra el número emisor** (nombre y teléfono) cuando la gestión salió de un hilo, y se puede filtrar por fecha, persona, campaña, etiqueta y número.
 - **Lista de trabajo del día**: una pantalla que pone **arriba de todo las llamadas pedidas** —el cliente que tocó el botón— y debajo lo vencido, lo que vence hoy, lo de esta semana y los clientes sin contestar, en orden de urgencia, con acceso directo a la ficha.
 - **Llamadas pedidas, como tarea**: el toque de «quiero que me llame un asesor» ya no se queda solo en el registro: aparece en **Reportes → Hoy** con **cuánto lleva esperando** el deudor (en palabras: «hace 3 horas»), la hora en que lo pidió, si lo pidió **fuera del horario** permitido (8:00 a 21:00) y si salió del **botón** o lo marcó el equipo. Se despacha con un clic —**«No contestó»**— o abriendo la ficha para registrar promesa, convenio o pago, y **sale de la lista sola** en cuanto se registra otro resultado. En el hilo y en la ficha, el panel del resultado avisa que hay una llamada pendiente y cuánto lleva esperando.
@@ -131,7 +156,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Enviar botones dentro de la ventana de 24 horas**: desde el hilo (admin y agente) se manda un mensaje con **hasta 3 botones** de 20 caracteres. Los límites de Meta se validan antes de llamarla —texto de 1,024, pie de 60 y botones únicos— y la respuesta del cliente entra al mismo circuito de reglas que un botón de plantilla.
 - **Plantillas con botones**: se envían —desde el hilo y en **campañas**— resolviendo las **tres variables** que admite Meta: una en el encabezado, las del cuerpo y una al final de la URL de un botón. El formulario muestra solo los campos que la plantilla pide, para no mandar un componente de más (que Meta rechaza), y los valores quedan guardados **por destinatario** (con `{nombre}`, `{telefono}` y columnas del Excel).
 - **Aviso de plantilla reclasificada**: si Meta marca una plantilla como **marketing** (cuesta varias veces más por mensaje), la lista de plantillas lo advierte y una campaña **no se crea** con ella, con el motivo a la vista.
-- **Respuestas que se traducen solas**: cada botón se mapea a un resultado de gestión en **Admin → Botones** (por el identificador que manda Meta o por el texto del botón, como respaldo). Al tocar, la respuesta **registra el resultado sin intervención del agente**, con tres efectos posibles: nada, **pausar la cuenta** o **dar de baja**. Los mapeos recomendados para cobranza se crean de un clic y no pisan lo que ya se editó.
+- **Respuestas que se traducen solas**: cada botón se mapea a un resultado de gestión en **Admin → Botones** (por el identificador que manda Meta o por el texto del botón, como respaldo). Al tocar, la respuesta **registra el resultado sin intervención del agente**, con tres efectos posibles: nada, **pausar la cuenta** o **dar de baja**. Los mapeos recomendados para cobranza se crean de un clic y no pisan lo que ya se editó. **Solo con el giro `COBRANZA` encendido.**
   - **«Ya pagué» no marca pagado**: entra como **pago reportado, por confirmar**, y los reportes lo cuentan aparte de la recuperación.
   - **«No reconozco la deuda»**: deja el contacto **en pausa** (no se le escribe, ni en campañas) y el incidente queda en la bitácora **con nivel de error**, que es lo que dispara las alertas.
   - **«No quiero ser contactado»**: registra la baja el mismo día, sin depender de la palabra clave.

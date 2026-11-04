@@ -25,6 +25,74 @@
             </p>
         </div>
 
+        <% if (success === "profile") { %>
+            <div class="mb-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                Giro actualizado. Los módulos del panel ya reflejan el cambio.
+            </div>
+        <% } %>
+
+        <% if (error === "profile") { %>
+            <div class="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                No se pudo guardar el giro. Elige una opción válida e intenta de nuevo.
+            </div>
+        <% } %>
+
+        <section class="mb-8 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                <div class="max-w-2xl">
+                    <p class="text-sm font-semibold uppercase tracking-wide text-margarita-600">
+                        Giro de la operación
+                    </p>
+
+                    <h2 class="mt-1 text-xl font-black text-slate-900">
+                        ¿Para qué se usa esta instalación?
+                    </h2>
+
+                    <p class="mt-2 text-sm text-slate-600">
+                        El módulo de cobranza agrega resultados de gestión,
+                        promesas, montos, reportes y respuestas de botón. Si lo
+                        apagas, esos datos <strong>no se borran</strong>: solo
+                        dejan de mostrarse y puedes volver a encenderlo cuando
+                        quieras.
+                    </p>
+                </div>
+
+                <span class="inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-bold <%= status.workspace?.profile === "COBRANZA" ? 'bg-margarita-50 text-margarita-800 ring-1 ring-margarita-200' : 'bg-slate-100 text-slate-600 ring-1 ring-slate-200' %>">
+                    <%= profileLabels[status.workspace?.profile || "COBRANZA"] %>
+                </span>
+            </div>
+
+            <form action="/admin/system/profile" method="POST" class="mt-5 space-y-3">
+                <div class="grid gap-3 md:grid-cols-2">
+                    <% profiles.forEach((profile) => { %>
+                        <label class="flex cursor-pointer gap-3 rounded-xl border border-slate-200 p-4 hover:border-margarita-300">
+                            <input
+                                type="radio"
+                                name="profile"
+                                value="<%= profile %>"
+                                class="mt-1 h-4 w-4"
+                                <%= (status.workspace?.profile || "COBRANZA") === profile ? "checked" : "" %>
+                            />
+
+                            <span>
+                                <span class="block text-sm font-bold text-slate-800">
+                                    <%= profileLabels[profile] %>
+                                </span>
+
+                                <span class="mt-1 block text-xs text-slate-500">
+                                    <%= profileDescriptions[profile] %>
+                                </span>
+                            </span>
+                        </label>
+                    <% }) %>
+                </div>
+
+                <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                    Guardar giro
+                </button>
+            </form>
+        </section>
+
         <section class="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                 <p class="text-sm text-slate-500">WhatsApp</p>

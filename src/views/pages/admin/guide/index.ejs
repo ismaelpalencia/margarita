@@ -14,9 +14,16 @@
             </h1>
 
             <p class="mt-2 max-w-3xl text-slate-600">
+                <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
                 La idea en una frase: <strong>cada conversación termina en un
                 resultado</strong>, y cada resultado alimenta la lista de trabajo del
                 día siguiente. Todo lo demás está para que eso sea fácil de sostener.
+                <% } else { %>
+                La idea en una frase: <strong>cada conversación se atiende y se
+                cierra en el panel</strong>, con campañas, plantillas y un equipo
+                que ve lo mismo. Todo lo demás está para que eso sea fácil de
+                sostener.
+                <% } %>
             </p>
         </div>
 
@@ -30,6 +37,7 @@
                 </p>
             </div>
 
+            <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
             <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                 <p class="font-bold text-slate-900">Resultado de cada gestión</p>
                 <p class="mt-1 text-sm text-slate-600">
@@ -47,6 +55,7 @@
                     vencidas, las de hoy y los clientes sin contestar.
                 </p>
             </div>
+            <% } %>
 
             <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                 <p class="font-bold text-slate-900">Campañas con plantillas</p>
@@ -56,14 +65,16 @@
                 </p>
             </div>
 
+            <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
             <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                 <p class="font-bold text-slate-900">Botones que se entienden solos</p>
                 <p class="mt-1 text-sm text-slate-600">
-                    Cuando el deudor toca un botón, la app registra el resultado y,
+                    Cuando el cliente toca un botón, la app registra el resultado y,
                     si hace falta, pausa la cuenta o da de baja. Se configura en
                     <strong>Botones</strong>.
                 </p>
             </div>
+            <% } %>
 
             <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                 <p class="font-bold text-slate-900">Tramo y costo</p>
@@ -75,6 +86,7 @@
             </div>
         </section>
 
+        <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
         <section class="mb-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <h2 class="font-bold text-slate-900">El día, en tres pasos</h2>
 
@@ -96,6 +108,7 @@
                 </li>
             </ol>
         </section>
+        <% } %>
 
         <section class="mb-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <h2 class="font-bold text-slate-900">Lo que no hace</h2>
@@ -104,7 +117,9 @@
                 <li>No es un CRM: no maneja ventas, embudos ni facturación.</li>
                 <li>No responde de todo: la IA automática solo cubre lo que está en tu base de conocimiento y, si duda, pasa el hilo a una persona.</li>
                 <li>No crea plantillas en Meta: se aprueban allá.</li>
+                <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
                 <li>No cobra ni concilia pagos: «pagado» es una anotación operativa.</li>
+                <% } %>
                 <li>El consumo de WhatsApp lo cobra Meta directamente a la empresa.</li>
             </ul>
         </section>

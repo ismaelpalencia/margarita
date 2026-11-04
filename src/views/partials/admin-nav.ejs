@@ -55,7 +55,18 @@
              * en fila para pantallas grandes y dentro de un menú plegable en el
              * celular. Antes eran diecisiete enlaces que se envolvían y
              * empujaban el contenido media pantalla hacia abajo.
+             *
+             * Reportes y Botones pertenecen al módulo de cobranza. Si la
+             * instalación opera con otro giro se ocultan, pero las rutas
+             * siguen existiendo para cuando se vuelva a encender.
              */
+            const collectionsOn =
+                typeof collectionsEnabled !== "undefined"
+                    ? collectionsEnabled
+                    : true;
+
+            const moduleLinks = ["/admin/reports", "/admin/replies"];
+
             const navLinks = [
                 { href: "/admin/dashboard", label: "Dashboard" },
                 { href: "/admin/conversations", label: "Conversaciones", badge: unreadTotal || 0 },
@@ -75,7 +86,7 @@
                 { href: "/admin/backup", label: "Respaldos" },
                 { href: "/admin/sessions", label: "Sesiones" },
                 { href: "/account/password", label: "Mi cuenta" }
-            ];
+            ].filter((link) => collectionsOn || !moduleLinks.includes(link.href));
         %>
 
         <nav class="hidden items-center gap-2 text-sm lg:flex lg:flex-wrap">

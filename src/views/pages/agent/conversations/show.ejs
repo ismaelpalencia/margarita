@@ -291,6 +291,7 @@
         </section>
 
         <aside class="space-y-4 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+            <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
             <%- include("../../../partials/outcome-panel", {
                 contact: conversation.contact,
                 actionUrl: `/agent/conversations/${conversation.id}/outcome`,
@@ -304,6 +305,7 @@
                 formatAmount,
                 formatWaitingTime
             }) %>
+            <% } %>
 
             <%- include("../../../partials/conversation-tools", {
                 conversation,
