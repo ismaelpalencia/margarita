@@ -325,6 +325,21 @@ export const appConfig = {
         process.env.INSTALL_SAVING_WITH_META?.trim() || "$1,400.00 MXN",
     installSavingBasic:
         process.env.INSTALL_SAVING_BASIC?.trim() || "$2,400.00 MXN",
+    /**
+     * Complemento de IA. Se suma al paquete base; no lo sustituye.
+     *
+     * Aprobado el 2026-11-04. Los importes viven aquí para que la página
+     * pública y la facturación no puedan decir cosas distintas.
+     */
+    aiEssentialInstallPrice:
+        process.env.AI_ESSENTIAL_INSTALL_PRICE?.trim() ||
+        "+$1,500.00 MXN",
+    aiEssentialMonthlyPrice:
+        process.env.AI_ESSENTIAL_MONTHLY_PRICE?.trim() || "+$299.00 MXN",
+    aiSupportInstallPrice:
+        process.env.AI_SUPPORT_INSTALL_PRICE?.trim() || "+$3,000.00 MXN",
+    aiSupportMonthlyPrice:
+        process.env.AI_SUPPORT_MONTHLY_PRICE?.trim() || "+$599.00 MXN",
     pilotDays: Number(process.env.PILOT_DAYS) || 30,
 
 

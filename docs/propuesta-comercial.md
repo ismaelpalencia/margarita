@@ -95,7 +95,17 @@ pagado**.
 | Compromiso 6 meses | $599.00 MXN al mes | Opcional |
 | Compromiso 12 meses | $549.00 MXN al mes | Opcional |
 | Consumo de WhatsApp | Lo cobra Meta | Directo a la empresa |
+| **IA Esencial · instalación** | **+$1,500.00 MXN** | Una vez; se suma al paquete base |
+| **IA Esencial · mensualidad** | **+$299.00 MXN al mes** | Del segundo mes en adelante |
+| **IA Soporte · instalación** | **+$3,000.00 MXN** | Una vez; se suma al paquete base |
+| **IA Soporte · mensualidad** | **+$599.00 MXN al mes** | Del segundo mes en adelante |
+| Consumo de IA | Aparte, con presupuesto | Se ve en Admin → IA |
 | Migración de cartera | [PRECIO O INCLUIDA] | Una vez |
+
+**El complemento de IA es opcional.** IA Esencial incluye sugerencias, base de
+conocimiento, handoff y pausa por conversación. IA Soporte agrega respuesta
+automática acotada para FAQ, límites y presupuesto. La captura de leads y las
+rutas a recursos se cotizan aparte mientras se cierra esa fase.
 
 **El piloto de 30 días.** El primer mes está incluido en la instalación y se
 trata como piloto: **al día 30 el cliente decide si continúa**, sin penalización.

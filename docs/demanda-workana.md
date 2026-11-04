@@ -165,21 +165,22 @@ ofrece y la que sostiene el precio.
 | Capacitación de 2 horas y guía escrita | Contenido y redacción de la base de conocimiento |
 | Piloto de 30 días | Soporte 24/7 |
 
-### Precio: hipótesis a validar, no precio vigente
+### Precio aprobado (2026-11-04)
 
 > **Regla del repo:** los precios los gobiernan
 > [`alcance-produccion.md`](alcance-produccion.md) y las variables
-> `INSTALL_*` / `SETUP_*`. Nada de lo siguiente se publica hasta que se apruebe y
-> se actualice primero ese documento, `facturacion.md` y la landing **en el mismo
-> cambio**.
-
-Punto de partida para discutir:
+> `INSTALL_*` / `SETUP_*`. Este precio ya se aprobó y se actualizó en
+> `alcance-produccion.md`, `facturacion.md`, las variables y la página `/ia` en
+> el mismo cambio.
 
 | Nivel | Instalación (una vez) | Mensualidad | Para quién |
 | --- | --- | --- | --- |
 | **Base** (lo de hoy, sin IA) | $3,500 MXN | $699 MXN | Cobranza y operación actual |
 | **IA Esencial** (sugerencias + KB + handoff) | +$1,500 MXN | +$299 MXN | Quien quiere control total y medir calidad |
-| **IA Soporte** (automático acotado + leads + rutas) | +$3,000 MXN | +$599 MXN | Quien quiere liberar tiempo de verdad |
+| **IA Soporte** (automático acotado) | +$3,000 MXN | +$599 MXN | Quien quiere liberar tiempo de verdad |
+
+La captura de leads y las rutas a recursos **no** están incluidas todavía: se
+cotizan aparte mientras se cierra esa fase.
 
 **Por qué sube el precio y por qué sigue siendo barato para el cliente:**
 
@@ -278,7 +279,7 @@ todos los días; la siguiente tanda se atiende con demo y con producto.
 | **Prometer «alto volumen»** sin medirlo | Publicar un número medido y honesto; el segmento no necesita millones. |
 | **Datos personales y proveedor de IA** | Aviso de privacidad, acuerdo de tratamiento, proveedor declarado, cifrado de textos generados. |
 | **Demo con cobranza a un prospecto de comercio** | Segundo workspace `COMERCIO` como demo; el de cobranza se usa solo como caso de volumen y control. |
-| **Precio IA sin aprobar** | No publicar hasta actualizar `alcance-produccion.md`, `facturacion.md`, variables y landing en el mismo cambio. |
+| **Precio IA sin aprobar** | **Resuelto (2026-11-04):** aprobado y actualizado en `alcance-produccion.md`, `facturacion.md`, variables y la página `/ia` en el mismo cambio. |
 
 Decisiones que faltan:
 

@@ -7,13 +7,17 @@ está en [`propuesta-comercial.md`](propuesta-comercial.md).
 
 ---
 
-## 1. Precios vigentes (revisión del 19 de octubre de 2026)
+## 1. Precios vigentes (revisión del 4 de noviembre de 2026)
 
 | Concepto | Precio | Cuándo se cobra |
 | --- | --- | --- |
 | **Paquete A · Llave en mano** | **$3,500.00 MXN** | Una vez, al firmar: instalación, **primer mes** y conexión completa con Meta |
 | **Paquete B · Ya tengo Meta** | **$2,500.00 MXN** | Una vez, al firmar: instalación y **primer mes** |
 | **Mensualidad** (mes a mes) | **$699.00 MXN** | Del segundo mes en adelante, mes adelantado |
+| **IA Esencial · instalación** | **+$1,500.00 MXN** | Una vez, al firmar; se suma al paquete base |
+| **IA Esencial · mensualidad** | **+$299.00 MXN** | Del segundo mes en adelante, junto con la mensualidad base |
+| **IA Soporte · instalación** | **+$3,000.00 MXN** | Una vez, al firmar; se suma al paquete base |
+| **IA Soporte · mensualidad** | **+$599.00 MXN** | Del segundo mes en adelante, junto con la mensualidad base |
 | Compromiso 3 meses (opcional) | $649.00 MXN al mes | Baja la mensualidad; se firma solo si el cliente lo elige |
 | Compromiso 6 meses (opcional) | $599.00 MXN al mes | Igual |
 | Compromiso 12 meses (opcional) | $549.00 MXN al mes | Igual |
@@ -23,7 +27,19 @@ está en [`propuesta-comercial.md`](propuesta-comercial.md).
 
 Todos los precios son **más IVA**. El **consumo de WhatsApp** (conversaciones y
 plantillas) lo cobra Meta directo al cliente, con su método de pago; no está
-incluido en ninguno de estos importes.
+incluido en ninguno de estos importes. El **consumo del modelo de IA** se cobra
+aparte, con el presupuesto mensual que el cliente ve en Admin → IA; no se
+revende por mensaje.
+
+**Qué incluye cada nivel de IA (alcance vigente):**
+
+| Nivel | Incluye |
+| --- | --- |
+| **IA Esencial** | IA en sugerencias, base de conocimiento de hasta 30 entradas, handoff con motivo, pausa por conversación, panel de IA por hilo y métricas de aceptación. |
+| **IA Soporte** | Todo lo de Esencial, más respuesta automática acotada para FAQ, límites por día y por hilo, presupuesto mensual y entrega automática ante duda, queja o falta de conocimiento. |
+
+La captura de leads y las rutas a recursos **se cotizan aparte** mientras se
+cierra esa fase. No se publican como incluidas en el nivel Soporte.
 
 ## 2. Las tres reglas que no se negocian
 
@@ -73,6 +89,9 @@ incluido en ninguno de estos importes.
   $549. Es opcional; no hace falta firmar plazo para empezar.»
 - «Los mensajes de WhatsApp los cobra Meta directo a tu cuenta. Nosotros no
   cobramos por mensaje: nuestra factura es por la herramienta.»
+- «La IA se agrega al paquete: Esencial son +$1,500 de instalación y +$299 al
+  mes; Soporte, +$3,000 y +$599. El consumo del modelo va aparte, con un
+  presupuesto mensual que tú ves en el panel.»
 - «Si no quieres hacer el trámite de Meta, lo hacemos nosotros dentro del
   Paquete A; si tu cuenta ya está lista, te ahorras esa parte con el B.»
 - Si pide descuento: **no bajar la mensualidad fuera de la tabla**. Ofrecer un

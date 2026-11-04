@@ -100,6 +100,10 @@ function locals(title: string) {
         monthlyCommit12: appConfig.monthlyCommit12,
         installSavingWithMeta: appConfig.installSavingWithMeta,
         installSavingBasic: appConfig.installSavingBasic,
+        aiEssentialInstallPrice: appConfig.aiEssentialInstallPrice,
+        aiEssentialMonthlyPrice: appConfig.aiEssentialMonthlyPrice,
+        aiSupportInstallPrice: appConfig.aiSupportInstallPrice,
+        aiSupportMonthlyPrice: appConfig.aiSupportMonthlyPrice,
         pilotDays: appConfig.pilotDays,
         installMonthlyPrice: appConfig.installMonthlyPrice,
         installMonthlyListPrice: appConfig.installMonthlyListPrice

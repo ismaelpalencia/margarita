@@ -6,7 +6,7 @@ Para la parte comercial y los videos, el inventario completo —pantalla por
 pantalla, con reglas, atajos, flujos y guiones— está en
 [`catalogo-producto.md`](catalogo-producto.md).
 
-Última revisión: 2026-11-04 (fase 2 de IA: respuesta automática acotada con pausa por conversación, límites, presupuesto y entrega a personas; el modo por defecto sigue siendo sugerencias y `AI_ENABLED=false`). Mismo día: el módulo de cobranza se puede apagar por giro desde **Sistema**, sin borrar datos.
+Última revisión: 2026-11-04 (fase 2 de IA: respuesta automática acotada con pausa por conversación, límites, presupuesto y entrega a personas; el modo por defecto sigue siendo sugerencias y `AI_ENABLED=false`). Mismo día: el módulo de cobranza se puede apagar por giro desde **Sistema**, sin borrar datos; se aprobó el complemento de IA y se publicó en `/ia`; cada conversación muestra su panel de IA.
 
 > **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
 > **Paquete A $3,500.00 MXN** (instalación, primer mes y conexión con Meta) o
@@ -19,6 +19,17 @@ pantalla, con reglas, atajos, flujos y guiones— está en
 > número y método de pago); si no la tiene, la conexión se **cotiza aparte**.
 > La oferta se anuncia hasta el **31 de diciembre de 2026** y la página deja de
 > mostrarla sola al pasar esa fecha (`INSTALL_PROMO_UNTIL`).
+>
+> **Complemento de IA (aprobado el 2026-11-04).** Se suma al paquete base; no
+> lo sustituye. **IA Esencial: +$1,500.00 MXN de instalación y +$299.00 MXN al
+> mes.** Incluye IA en sugerencias, base de conocimiento de hasta 30 entradas,
+> handoff con motivo, pausa por conversación, panel de IA por hilo y métricas de
+> aceptación. **IA Soporte: +$3,000.00 MXN de instalación y +$599.00 MXN al
+> mes.** Incluye todo lo anterior más respuesta automática acotada para FAQ,
+> límites por día y por hilo, presupuesto mensual y entrega automática ante
+> duda, queja o falta de conocimiento. La captura de leads y las rutas a
+> recursos se cotizan aparte mientras se cierra esa fase. El piloto de 30 días
+> aplica igual: al día 30 el cliente decide si continúa.
 >
 > La propuesta y la facturación usan estos números y la página pública los
 > muestra. El panel **no** muestra precios: es información del operador. Si
