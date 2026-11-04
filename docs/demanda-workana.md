@@ -86,9 +86,9 @@ La demanda es real y repetida; el **formato de venta** es lo que hay que cambiar
 | --- | --- | --- |
 | Conexión con WhatsApp Business API | **Hecho y en producción**: webhook firmado, cola, reintentos, ventana de 24 h, plantillas, control de ritmo | Nada |
 | Bandeja con personas reales | **Hecho**: asignación por carga, no leídos, historial, sockets | Nada |
-| Responder consultas frecuentes con IA | **Implementado en fase 1**: proveedor DeepSeek, base de conocimiento, borradores por mensaje | Envío automático (fase 2) y envío del sistema |
-| **Autorización / control de lo que responde** | **Implementado en fase 1**: modo sugerencia, tarjeta con confianza y motivo, descartar y reemplazo al responder una persona | Handoff automático y pausa por conversación (fase 2) |
-| Entregar a una persona cuando hace falta | **Parcial**: `AssignmentService` asigna al menos cargado y el borrador marca cuándo conviene entregar | Reglas de escalado por intención, confianza y queja |
+| Responder consultas frecuentes con IA | **Hecho**: proveedor DeepSeek, base de conocimiento, borradores por mensaje y **respuesta automática acotada** con límites y presupuesto | Medir aceptación y ampliar la base de conocimiento |
+| **Autorización / control de lo que responde** | **Hecho**: modo sugerencia con tarjeta de confianza, modo automático acotado, pausa por conversación y auto-pausa al responder una persona | Panel de métricas por conversación |
+| Entregar a una persona cuando hace falta | **Implementado**: `AssignmentService` asigna al menos cargado y el automático entrega ante duda, queja, baja confianza o falta de conocimiento | Reglas de escalado más finas por intención |
 | Calificar leads | **Parcial**: etiquetas, campos de contacto, resultados | Captura guiada de datos (nombre, interés, intención) sin formularios rígidos |
 | Dirigir a recursos / procesos | **Parcial**: botones interactivos y enlaces | Catálogo de recursos y rutas configurables |
 | Flujos de conversación intuitivos | **Parcial**: botones inteligentes con reglas | Constructor visual; **no** construirlo en la primera fase |
@@ -116,10 +116,10 @@ producto real.
 
 ## 4. Qué significa «demandable» (seis condiciones)
 
-1. **La función del titular existe y se ve en tres minutos.** Hoy la app dice
-   literalmente «no es un chatbot» ([`catalogo-producto.md`](catalogo-producto.md),
-   §9). Sin IA respondiendo, ninguna de las cuatro publicaciones se puede
-   atender sin prometer de más.
+1. **La función del titular existe y se ve en tres minutos.** Ya existe: la IA
+   responde sola lo frecuente y entrega a una persona cuando duda
+   ([`ia-respuestas.md`](ia-respuestas.md)). Falta mostrarlo en la landing y en
+   un video corto, sin prometer más de lo que hace.
 2. **Se instala sin que el cliente toque infraestructura.** Ya casi: Railway,
    guías y alta. Falta un formulario de onboarding y un checklist de una página.
 3. **Tiene un precio que se explica en una línea.** Hoy el precio está atado a

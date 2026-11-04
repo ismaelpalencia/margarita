@@ -136,6 +136,7 @@ export class AgentConversationsController {
                     ? aiSuggestion
                     : null,
             aiConfidenceMin: aiSettings.confidenceMin,
+            aiSettings,
             aiDraftBody,
             outcomeAttempts: attempts.get(conversation.contactId) ?? {
                 attempts: 0,

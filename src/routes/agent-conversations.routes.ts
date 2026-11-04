@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { AgentConversationsController } from "../controllers/agent-conversations.controller";
+import { AiConversationController } from "../controllers/ai-conversation.controller";
 import { AiSuggestionController } from "../controllers/ai-suggestion.controller";
 import { OutcomeController } from "../controllers/outcome.controller";
 import { mediaUploadSingle } from "../middlewares/upload.middleware";
@@ -35,6 +36,15 @@ router.post(
 router.post(
     "/:id/ai/:suggestionId/discard",
     AiSuggestionController.discard("/agent/conversations")
+);
+/** Interruptor de la IA automática en este hilo. */
+router.post(
+    "/:id/ai-pause",
+    AiConversationController.pause("/agent/conversations")
+);
+router.post(
+    "/:id/ai-resume",
+    AiConversationController.resume("/agent/conversations")
 );
 
 export default router;

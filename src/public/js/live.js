@@ -150,6 +150,14 @@
             bubble.appendChild(noteLabel);
         }
 
+        if (message.source === "AUTOMATIC" && message.aiSuggestionId) {
+            var aiLabel = document.createElement("p");
+            aiLabel.className =
+                "mb-1 text-[10px] font-bold uppercase tracking-wide opacity-80";
+            aiLabel.textContent = "IA automática";
+            bubble.appendChild(aiLabel);
+        }
+
         if (hasMedia) {
             bubble.appendChild(buildMediaElement(message));
         }
@@ -353,6 +361,27 @@
             }, 300);
         }
     }
+
+    /**
+     * La pausa, la reactivación y la entrega a una persona cambian los
+     * controles del encabezado. Se recarga el hilo para no mostrar un botón
+     * que ya no aplica.
+     */
+    [
+        "conversation:ai-paused",
+        "conversation:ai-resumed",
+        "conversation:ai-handoff"
+    ].forEach(function (eventName) {
+        socket.on(eventName, function (payload) {
+            if (
+                page === "conversation" &&
+                payload &&
+                payload.conversationId === conversationId
+            ) {
+                window.location.reload();
+            }
+        });
+    });
 
     socket.on("conversation:message", function (payload) {
         if (!payload || !payload.message) {

@@ -439,7 +439,16 @@ export const appConfig = {
             Number(process.env.AI_WORKER_INTERVAL_MS) || 3000,
         maxAttempts: Number(process.env.AI_MAX_ATTEMPTS) || 2,
         maxTokens: Number(process.env.AI_MAX_TOKENS) || 400,
-        temperature: Number(process.env.AI_TEMPERATURE) || 0.3
+        temperature: Number(process.env.AI_TEMPERATURE) || 0.3,
+        /**
+         * Precio de referencia en USD por millón de tokens. Se usa solo para
+         * estimar el costo en Admin → IA y para el presupuesto mensual; el
+         * cobro real lo hace el proveedor.
+         */
+        priceInputPerMillion:
+            Number(process.env.AI_PRICE_INPUT_PER_MILLION) || 0.27,
+        priceOutputPerMillion:
+            Number(process.env.AI_PRICE_OUTPUT_PER_MILLION) || 1.1
     }
 };
 

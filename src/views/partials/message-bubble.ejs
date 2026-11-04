@@ -13,6 +13,7 @@
     const showBody = body !== "" && !(hasMedia && isPlaceholder);
     const deleted = Boolean(message.deletedAt);
     const isNote = Boolean(message.isInternalNote);
+    const isAutomatic = message.source === "AUTOMATIC" && Boolean(message.aiSuggestionId);
 
     /**
      * Respuesta de un botón o de una lista. Se muestra como etiqueta —lo que la
@@ -78,6 +79,12 @@
         <% if (isNote) { %>
             <p class="mb-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
                 Nota interna · solo la ve el equipo
+            </p>
+        <% } %>
+
+        <% if (isAutomatic) { %>
+            <p class="mb-1 text-[10px] font-bold uppercase tracking-wide opacity-80">
+                IA automática
             </p>
         <% } %>
 

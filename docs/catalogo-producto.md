@@ -14,9 +14,10 @@ Margarita opera la **WhatsApp Business Cloud API de Meta** para cobranza: envía
 plantillas, atiende conversaciones, registra **en qué quedó cada cliente** y te
 dice **a quién escribirle o llamarle hoy**.
 
-**No es**: un CRM, un chatbot, un sistema de facturación ni una herramienta de
-mensajería masiva sin control. La IA de la fase 1 **no responde sola**: redacta
-borradores que una persona revisa y envía.
+**No es**: un CRM, un chatbot general, un sistema de facturación ni una
+herramienta de mensajería masiva sin control. La IA puede redactar borradores
+o responder sola **solo** preguntas cubiertas por la base de conocimiento,
+dentro de límites y entregando a una persona cuando duda.
 
 **La promesa central**: cada conversación termina en un resultado; cada
 resultado alimenta la lista de trabajo del día siguiente.
@@ -233,23 +234,29 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 - **Sesiones**: dispositivos, IP y cierre remoto.
 - **Guía**: resumen de qué hace la herramienta, con enlaces a las guías públicas.
 
-### 3.16 IA de respuestas (fase 1: solo sugerencias)
+### 3.16 IA de respuestas (sugerencias y automático acotado)
 
-- **Admin → IA**: interruptor por workspace, modo sugerencia, tono, idioma,
-  umbral de confianza, contexto del negocio y palabras que obligan a entregar
-  la conversación a una persona.
+- **Admin → IA**: interruptor por workspace, modo apagado / sugerencias /
+  automático acotado, tono, idioma, umbral de confianza, contexto del negocio,
+  límites (por día y por conversación), presupuesto mensual y palabras que
+  obligan a entregar la conversación a una persona.
 - **Base de conocimiento**: pregunta, respuesta, palabras clave y prioridad.
-  Es la única fuente de la que la IA puede responder; si el dato no está, el
-  borrador lo marca para que lo tome una persona.
+  Es la única fuente de la que la IA puede responder; si el dato no está, no
+  inventa: entrega el hilo a una persona.
 - **Consola de prueba**: escribe una pregunta y ve qué respondería, qué
   entradas usó, el modelo y la latencia. No guarda nada ni toca un hilo real.
-- **En la bandeja**: tarjeta con el borrador, la confianza y el motivo.
-  **Usar borrador** lo copia al compositor; **Descartar** lo quita. Nada se
-  envía solo.
-- **Consumo**: borradores generados, usados, editados, descartados, tasa de
-  aceptación, llamadas y tokens de los últimos 30 días.
-- **Apagado por defecto**: `AI_ENABLED=false`. Sin llave o apagada, la
-  herramienta funciona igual que antes.
+- **En la bandeja**: en sugerencias, tarjeta con el borrador, la confianza y el
+  motivo (**Usar borrador** lo copia al compositor; **Descartar** lo quita). En
+  automático, el mensaje sale solo si se cumplen todas las compuertas y queda
+  marcado como «IA automática».
+- **Control humano**: pausa y reactivación por conversación; responder a mano
+  pausa la IA sola. Si duda, asigna al agente con menos carga y registra el
+  motivo.
+- **Consumo**: borradores, usados, editados, descartados, enviados solos,
+  entregados a persona, costo estimado, tasa de aceptación, llamadas y tokens
+  de los últimos 30 días.
+- **Apagado por defecto**: `AI_ENABLED=false` y modo `SUGGEST`. Sin llave o
+  apagada, la herramienta funciona igual que antes.
 - **Proveedor**: DeepSeek por defecto; cualquier API compatible con OpenAI
   cambiando variables. `AI_PROVIDER=mock` para pruebas sin red.
 
@@ -381,14 +388,16 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 - «Cada conversación queda con su resultado y su historial».
 - «Una lista diaria que prioriza llamadas pedidas y promesas vencidas».
 - «Los datos van cifrados y con respaldos diarios».
-- «La IA redacta borradores y tu equipo decide qué se envía» (fase 1).
+- «La IA responde lo frecuente y tu equipo lo importante» (automático acotado,
+  con límites y entrega a personas).
+- «La IA redacta borradores y tu equipo decide qué se envía» (modo sugerencia).
 - «Se instala en minutos y el equipo entra desde el navegador».
 
 **No se puede decir**
 
 - «Manda mensajes ilimitados» (WhatsApp cobra el consumo y tiene límites).
-- «Responde solo» (en la fase 1 la IA solo sugiere; el envío automático no está
-  disponible).
+- «Responde solo cualquier cosa» (solo cubre lo que está en la base de
+  conocimiento, dentro de límites y con entrega a una persona cuando duda).
 - «Se conecta a cualquier país» sin decir que el número debe existir y estar
   habilitado en Meta.
 - «Es un CRM» (no maneja ventas ni facturación).

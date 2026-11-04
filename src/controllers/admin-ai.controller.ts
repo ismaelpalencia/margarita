@@ -28,7 +28,10 @@ const EMPTY_STATS = {
     calls: 0,
     promptTokens: 0,
     completionTokens: 0,
-    superseded: 0
+    superseded: 0,
+    autoSent: 0,
+    handoffs: 0,
+    costMicros: 0
 };
 
 export class AdminAiController {
@@ -107,6 +110,8 @@ export class AdminAiController {
                     language: parsed.data.language,
                     confidenceMin: parsed.data.confidenceMin,
                     maxRepliesPerDay: parsed.data.maxRepliesPerDay,
+                    maxRepliesPerThread: parsed.data.maxRepliesPerThread,
+                    monthlyBudgetCents: parsed.data.monthlyBudgetCents,
                     handoffKeywords: splitKeywords(parsed.data.handoffKeywords),
                     model: parsed.data.model
                 }
@@ -122,6 +127,9 @@ export class AdminAiController {
                     enabled: parsed.data.enabled,
                     mode: parsed.data.mode,
                     confidenceMin: parsed.data.confidenceMin,
+                    maxRepliesPerDay: parsed.data.maxRepliesPerDay,
+                    maxRepliesPerThread: parsed.data.maxRepliesPerThread,
+                    monthlyBudgetCents: parsed.data.monthlyBudgetCents,
                     model: parsed.data.model || null
                 }
             });

@@ -19,9 +19,12 @@
             </h2>
 
             <p class="mt-1 max-w-3xl text-slate-500">
-                La IA redacta un borrador y una persona decide. Nada se envía
-                solo: al usarlo, el texto se copia al compositor de la
-                conversación para revisarlo y mandarlo.
+                Elige cómo trabaja la IA. En <strong>sugerencias</strong>,
+                redacta un borrador y una persona decide. En
+                <strong>automático acotado</strong>, responde sola solo cuando
+                la pregunta está cubierta por la base de conocimiento y se
+                cumplen los límites; si duda, entrega el hilo a una persona.
+                Nada se activa sin marcar la casilla del workspace.
             </p>
         </section>
 
@@ -118,7 +121,7 @@
 
                 <dl class="mt-3 space-y-2 text-sm">
                     <div class="flex items-center justify-between">
-                        <dt class="text-slate-500">Borradores</dt>
+                        <dt class="text-slate-500">Generadas</dt>
                         <dd class="font-semibold text-slate-800"><%= stats.total %></dd>
                     </div>
                     <div class="flex items-center justify-between">
@@ -140,6 +143,20 @@
                     <div class="flex items-center justify-between">
                         <dt class="text-slate-500">Reemplazados</dt>
                         <dd class="font-semibold text-slate-500"><%= stats.superseded %></dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Enviados solos</dt>
+                        <dd class="font-semibold text-margarita-700"><%= stats.autoSent %></dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Entregados a persona</dt>
+                        <dd class="font-semibold text-amber-700"><%= stats.handoffs %></dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Costo estimado</dt>
+                        <dd class="font-semibold text-slate-800">
+                            $<%= (stats.costMicros / 1000000).toFixed(4) %>
+                        </dd>
                     </div>
                     <div class="flex items-center justify-between border-t border-slate-100 pt-2">
                         <dt class="text-slate-500">Aceptación</dt>
@@ -173,9 +190,10 @@
                     />
 
                     <span class="text-sm text-slate-700">
-                        <span class="font-semibold">Generar borradores en este workspace.</span>
+                        <span class="font-semibold">Activar la IA en este workspace.</span>
                         Requiere además <span class="font-mono">AI_ENABLED=true</span>
-                        en la instalación.
+                        en la instalación. El modo de abajo decide si solo
+                        redacta o si también responde dentro de los límites.
                     </span>
                 </label>
 
@@ -192,13 +210,19 @@
                             <option value="OFF" <%= settings.mode === "OFF" ? "selected" : "" %>>
                                 Apagada
                             </option>
-                            <option value="SUGGEST" <%= settings.mode !== "OFF" ? "selected" : "" %>>
-                                Sugerencias (fase 1)
+                            <option value="SUGGEST" <%= settings.mode === "SUGGEST" ? "selected" : "" %>>
+                                Sugerencias (borrador con control humano)
+                            </option>
+                            <option value="AUTO" <%= settings.mode === "AUTO" ? "selected" : "" %>>
+                                Automático acotado (solo preguntas cubiertas)
                             </option>
                         </select>
 
                         <p class="mt-2 text-xs text-slate-500">
-                            El envío automático todavía no está disponible.
+                            El automático solo responde si la intención está en
+                            la base de conocimiento, la confianza alcanza el
+                            mínimo y quedan límites y presupuesto. Si duda,
+                            entrega la conversación a una persona.
                         </p>
                     </div>
 
@@ -268,7 +292,7 @@
 
                     <div>
                         <label class="mb-1 block text-sm font-medium text-slate-700">
-                            Límite diario (fase 2)
+                            Límite de respuestas automáticas por día
                         </label>
 
                         <input
@@ -281,7 +305,47 @@
                         />
 
                         <p class="mt-2 text-xs text-slate-500">
-                            Reservado para cuando la IA pueda responder sola.
+                            0 apaga el envío automático sin cambiar de modo.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">
+                            Límite por conversación
+                        </label>
+
+                        <input
+                            type="number"
+                            name="maxRepliesPerThread"
+                            value="<%= settings.maxRepliesPerThread %>"
+                            min="0"
+                            max="50"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+
+                        <p class="mt-2 text-xs text-slate-500">
+                            Respuestas automáticas acumuladas en un mismo hilo
+                            antes de entregarlo a una persona.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">
+                            Presupuesto mensual (centavos de USD)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="monthlyBudgetCents"
+                            value="<%= settings.monthlyBudgetCents %>"
+                            min="0"
+                            max="1000000"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+
+                        <p class="mt-2 text-xs text-slate-500">
+                            500 = $5.00 USD al mes. Al agotarse, el automático
+                            deja de responder; las sugerencias siguen.
                         </p>
                     </div>
                 </div>
@@ -431,9 +495,9 @@
             </h3>
 
             <p class="mt-1 max-w-3xl text-sm text-slate-500">
-                Es la única fuente de la que la IA puede responder. Si un dato
-                no está aquí, el borrador lo marca para que lo tome una
-                persona.
+                Es la única fuente de la que la IA puede responder. En modo
+                automático, si la pregunta no está aquí, no inventa: entrega
+                el hilo a una persona.
             </p>
 
             <form action="/admin/ai/knowledge" method="POST" class="mt-4 space-y-3 rounded-xl bg-slate-50 p-4">

@@ -1,9 +1,11 @@
 # IA para responder y automatizar conversaciones
 
-Propuesta técnica y estado de implementación. **Estado: fase 1 implementada
-(2026-11-03): solo sugerencias, nada sale solo.** Proveedor real por defecto:
-DeepSeek (`deepseek-chat`), con `AI_PROVIDER=mock` para pruebas y CI. El modo
-automático está en el esquema, pero el worker lo trata como apagado.
+Propuesta técnica y estado de implementación. **Estado: fases 1 y 2
+implementadas (2026-11-03 / 2026-11-04).** La fase 1 genera sugerencias con
+control humano; la fase 2 añade respuesta automática **acotada**, con pausa por
+conversación, límites, presupuesto y entrega a una persona. Nada se activa por
+defecto: `AI_ENABLED=false` y el modo inicial es `SUGGEST`. Proveedor real por
+defecto: DeepSeek (`deepseek-chat`), con `AI_PROVIDER=mock` para pruebas y CI.
 
 ---
 
@@ -222,10 +224,14 @@ probado, no dentro del modelo.
 ### Handoff
 
 Cuando se entrega a una persona: se asigna al agente menos cargado (lo que ya
-hace `AssignmentService`), se marca la conversación como prioritaria, se avisa
-por socket y se registra `AI_HANDOFF` con el motivo. Opcionalmente se envía un
-mensaje de puente («te paso con una persona del equipo»), configurable, porque
-también consume ventana y presupuesto.
+hace `AssignmentService`), se guarda `aiHandoffAt`/`aiHandoffReason` en la
+conversación, se avisa por socket (`conversation:ai-handoff`) y se registra
+`AI_HANDOFF` con el motivo. Si la causa es de contenido (duda, queja, falta de
+conocimiento o fallo de envío), la IA también queda en pausa en ese hilo hasta
+que alguien la reactive. Si la causa es capacidad (límite diario o presupuesto),
+solo se avisa y se asigna: la IA puede volver cuando el límite se renueve. El
+mensaje de puente («te paso con una persona del equipo») queda para más
+adelante: también consume ventana y presupuesto.
 
 ---
 
@@ -378,27 +384,30 @@ export type AiCompletionResult = {
 
 ## 9. Modelo de datos implementado
 
-Migración `20261103120000_ia_sugerencias`, sin tocar columnas existentes salvo
-`Workspace.profile` (con `COBRANZA` por defecto):
+Migración `20261103120000_ia_sugerencias` (fase 1) y
+`20261104120000_ia_automatico_acotado` (fase 2). La segunda es aditiva: no
+enciende nada por sí sola.
 
 ```
 enum WorkspaceProfile { COBRANZA COMERCIO SERVICIOS GENERICO }
 enum AiMode { OFF SUGGEST AUTO }
 enum AiJobStatus { PENDING PROCESSING DONE SKIPPED FAILED }
-enum AiSuggestionStatus { PENDING ACCEPTED EDITED DISCARDED SUPERSEDED }
+enum AiSuggestionStatus { PENDING ACCEPTED EDITED DISCARDED SUPERSEDED AUTO_SENT HANDOFF }
 
 model AiSettings {
-  workspaceId        String  @unique
-  enabled            Boolean @default(false)
-  mode               AiMode  @default(SUGGEST)
-  model              String?
-  systemPrompt       String?
-  tone               String?
-  language           String    @default("es-MX")
-  confidenceMin      Float     @default(0.7)
-  maxRepliesPerDay   Int       @default(50)   // reservado para fase 2
-  handoffKeywords    String[]
-  updatedById        String?
+  workspaceId         String  @unique
+  enabled             Boolean @default(false)
+  mode                AiMode  @default(SUGGEST)
+  model               String?
+  systemPrompt        String?
+  tone                String?
+  language            String    @default("es-MX")
+  confidenceMin       Float     @default(0.7)
+  maxRepliesPerDay    Int       @default(50)
+  maxRepliesPerThread Int       @default(5)
+  monthlyBudgetCents  Int       @default(500)   // $5.00 USD
+  handoffKeywords     String[]
+  updatedById         String?
 }
 
 model KnowledgeEntry {
@@ -429,6 +438,7 @@ model AiUsage {
   promptTokens     Int
   completionTokens Int
   latencyMs        Int
+  costMicros       Int @default(0)   // millonésimas de USD
 }
 
 model AiSuggestion {
@@ -445,12 +455,28 @@ model AiSuggestion {
   decidedById    String?
   decidedAt      DateTime?
 }
+
+model Conversation {
+  // …
+  aiPausedAt      DateTime?
+  aiPausedById    String?
+  aiHandoffAt     DateTime?
+  aiHandoffReason String?
+}
+
+model Message {
+  // …
+  aiSuggestionId String? @unique
+  aiModel        String?
+}
 ```
 
 Cambios mínimos en lo existente:
 
 - `Workspace.profile` (con `COBRANZA` por defecto, para no cambiar nada hoy).
 - `LogModule.AI`.
+- `Conversation` gana pausa y motivo de entrega; `Message` gana trazabilidad
+  del envío automático. Nada de esto cambia filas existentes.
 
 Los textos de la IA son datos personales: **`AiSuggestion.body`,
 `AiSuggestion.reason`, `KnowledgeEntry.question`, `KnowledgeEntry.answer` y
@@ -477,6 +503,9 @@ AI_WORKER_INTERVAL_MS=3000
 AI_MAX_ATTEMPTS=2
 AI_MAX_TOKENS=400
 AI_TEMPERATURE=0.3
+# Precio de referencia para estimar costo y presupuesto (USD por millón)
+AI_PRICE_INPUT_PER_MILLION=0.27
+AI_PRICE_OUTPUT_PER_MILLION=1.10
 ```
 
 Regla de oro: **sin `AI_API_KEY` o con `AI_ENABLED=false`, la app funciona
@@ -497,13 +526,16 @@ Operación con DeepSeek:
 
 ### Admin → IA
 
-- Interruptor del workspace y modo (apagado / sugerir). El automático se
-  muestra deshabilitado hasta la fase 2.
+- Interruptor del workspace y modo: **apagado**, **sugerencias** o
+  **automático acotado**.
 - Prompt del negocio, tono, idioma y umbral de confianza.
+- Límites del automático: respuestas por día, por conversación y presupuesto
+  mensual (en centavos de USD). Al agotarse, deja de responder solo.
 - Base de conocimiento: alta, edición, activar/desactivar y prioridad.
 - Consola de prueba: escribir una pregunta y ver qué respondería, sin enviar.
 - Consumo de 30 días: borradores, pendientes, usados, editados, descartados,
-  reemplazados, tasa de aceptación, llamadas y tokens.
+  reemplazados, **enviados solos**, **entregados a persona**, costo estimado,
+  tasa de aceptación, llamadas y tokens.
 
 ### Bandeja (admin y agente)
 
@@ -516,18 +548,19 @@ Operación con DeepSeek:
 - Si una persona responde por su cuenta, los borradores pendientes de ese hilo
   pasan a `SUPERSEDED`: la tarjeta deja de ofrecerse porque la conversación ya
   avanzó.
-- Cuando no hay confianza o el tema no está en la base, la tarjeta recomienda
-  entregar la conversación a una persona.
+- En modo automático, el mensaje que envía la IA se ve con su origen y el hilo
+  muestra si quedó **pausado** o **entregado** a una persona.
+- Botón **Pausar IA / Reactivar** por conversación. Responder a mano pausa la
+  IA automáticamente; no hay que apagar el workspace entero.
 
-**Aún no implementado:** insignia en el historial, pausa por conversación,
-auto-pausa al responder una persona y envío `AUTOMATIC`. Llegan con la fase 2.
+### Consumo en Admin → IA
 
-### Dashboard
+- Respuestas enviadas solas y conversaciones entregadas a una persona.
+- Costo estimado del periodo (micro-USD acumulado).
+- Tasa de aceptación de los borradores del modo sugerencia.
 
-- Conversaciones resueltas sin intervención (fase 2).
-- Entregas a personas por motivo (fase 2).
-- Tiempo medio de primera respuesta (fase 2).
-- Costo por conversación (fase 2; por ahora el consumo se ve en `/admin/ai`).
+El tablero general no cambia: estas métricas viven en `/admin/ai` para no
+mezclar la operación diaria con el consumo del modelo.
 
 ---
 
@@ -570,7 +603,7 @@ de la expectativa del usuario.
 | --- | --- | --- |
 | **0. Diseño** | Este documento, decisiones de proveedor y presupuesto. | Revisado y aprobado. |
 | **1. Sugerencias** | Proveedor + `AiSuggestion` + bandeja + consola de prueba. Nada sale solo. **Implementada (2026-11-03).** | Un agente ve un borrador, lo usa y el mensaje sale como manual; apagar la IA no cambia nada. |
-| **2. Automático acotado** | Cola, worker, política de decisión, base de conocimiento, envío `AUTOMATIC`, límites y handoff. | Con `AI_PROVIDER=mock`: responde una FAQ, no responde a un contacto dado de baja, no responde fuera de ventana y entrega a persona ante una queja. |
+| **2. Automático acotado** | Cola, worker, política de decisión, base de conocimiento, envío `AUTOMATIC`, pausa por conversación, límites, presupuesto y handoff. **Implementada (2026-11-04).** | Con `AI_PROVIDER=mock`: responde una FAQ, no responde a un contacto dado de baja, no responde fuera de ventana, respeta los límites y entrega a persona ante una queja. |
 | **3. Conocimiento semántico y herramientas** | Embeddings en memoria, consultar estado de pedido, agendar cita. | Una pregunta con sinónimos encuentra la entrada correcta; una herramienta falla de forma segura. |
 | **4. Perfiles de operación** | `Workspace.profile`, etiquetas por giro, módulos opcionales y playbooks. | Un workspace de comercio ve «cliente/pedido» y no ve promesas ni montos; cobranza sigue igual. |
 | **5. Producto comercial** | Segunda landing y paquete de venta según la investigación de mercado. | Se puede dar de alta un cliente de otro giro con el mismo binario. |
@@ -610,8 +643,10 @@ con perfil `COMERCIO`, cargar su base de conocimiento y comprobar que la misma
 tubería responde sin cambiar código. El perfil solo cambia etiquetas, prompt y
 módulos visibles.
 
-**Fuera del piloto:** envío automático, audio, herramientas, multiusuario
-avanzado, multi-tenant, facturación y reescritura del stack.
+**Fuera del piloto:** audio, herramientas, multiusuario avanzado, multi-tenant,
+facturación y reescritura del stack. El envío automático acotado ya está
+implementado, pero se enciende después de cerrar las métricas del piloto de
+sugerencias.
 
 ---
 
@@ -619,12 +654,16 @@ avanzado, multi-tenant, facturación y reescritura del stack.
 
 - **Unitarias:** política de decisión (responder / omitir / escalar), armado de
   contexto, saneador de salida, presupuesto, debounce, umbral de confianza.
-  En la fase 1 están cubiertos `decision`, `prompt` y `knowledge` en
-  `src/services/ai/*.test.ts`.
+  Cubiertos en `src/services/ai/decision.test.ts`, `prompt.test.ts`,
+  `knowledge.test.ts`, `auto-reply.test.ts` y `pricing.test.ts`.
 - **Proveedor mock:** `AI_PROVIDER=mock` con respuestas fijas por caso.
-- **Integración:** webhook firmado → `AiReplyJob` → worker → mensaje saliente
-  con `source: AUTOMATIC`; y los casos negativos (baja, ventana cerrada, IA
-  apagada, límite alcanzado, persona tomó el control).
+- **Integración (base real):** pausa y reactivación por conversación, contadores
+  de respuestas y costo, idempotencia del envío por `aiSuggestionId`, negativa
+  ante baja o pausa y entrega al agente menos cargado. Cubierto en
+  `tests/integration/ai-auto-reply.integration.test.ts`.
+- **Camino completo del worker:** se valida en el piloto con
+  `AI_PROVIDER=mock`; las compuertas están cubiertas por pruebas puras para no
+  depender de la Graph API en CI.
 - **Sin red en CI:** el proveedor mock es obligatorio; ninguna prueba depende
   de un servicio externo.
 - **Regresión:** con `AI_ENABLED=false` la suite actual debe seguir en verde sin

@@ -10,6 +10,8 @@ export type ResolvedAiSettings = {
     language: string;
     confidenceMin: number;
     maxRepliesPerDay: number;
+    maxRepliesPerThread: number;
+    monthlyBudgetCents: number;
     handoffKeywords: string[];
     model: string | null;
 };
@@ -22,6 +24,8 @@ export type SaveAiSettingsInput = {
     language: string;
     confidenceMin: number;
     maxRepliesPerDay: number;
+    maxRepliesPerThread: number;
+    monthlyBudgetCents: number;
     handoffKeywords: string[];
     model: string;
 };
@@ -43,6 +47,8 @@ export class AiSettingsService {
             language: "es-MX",
             confidenceMin: 0.7,
             maxRepliesPerDay: 50,
+            maxRepliesPerThread: 5,
+            monthlyBudgetCents: 500,
             handoffKeywords: [],
             model: null
         };
@@ -65,6 +71,8 @@ export class AiSettingsService {
             language: row.language,
             confidenceMin: row.confidenceMin,
             maxRepliesPerDay: row.maxRepliesPerDay,
+            maxRepliesPerThread: row.maxRepliesPerThread,
+            monthlyBudgetCents: row.monthlyBudgetCents,
             handoffKeywords: row.handoffKeywords,
             model: row.model
         };
@@ -83,6 +91,8 @@ export class AiSettingsService {
             language: input.language,
             confidenceMin: input.confidenceMin,
             maxRepliesPerDay: input.maxRepliesPerDay,
+            maxRepliesPerThread: input.maxRepliesPerThread,
+            monthlyBudgetCents: input.monthlyBudgetCents,
             handoffKeywords: input.handoffKeywords,
             model: input.model || null,
             updatedById: userId

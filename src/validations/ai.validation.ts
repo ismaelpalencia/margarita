@@ -18,6 +18,8 @@ export const aiSettingsSchema = z.object({
     language: z.string().trim().min(2).max(10).default("es-MX"),
     confidenceMin: z.coerce.number().min(0).max(1).default(0.7),
     maxRepliesPerDay: z.coerce.number().int().min(0).max(1000).default(50),
+    maxRepliesPerThread: z.coerce.number().int().min(0).max(50).default(5),
+    monthlyBudgetCents: z.coerce.number().int().min(0).max(1000000).default(500),
     handoffKeywords: z.string().trim().max(500).optional().default(""),
     model: z.string().trim().max(80).optional().default("")
 });

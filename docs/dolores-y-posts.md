@@ -211,7 +211,7 @@ es lo que más pesa en una conversación de venta.
 | «La API es solo para empresas grandes» | Desde que se puede conectar una cuenta de WhatsApp Business, cualquier negocio con cartera la puede usar. |
 | «Con la API los mensajes son gratis» | No: **Meta cobra el consumo** (por conversación o por mensaje, según categoría y tarifa vigente para México), con tu método de pago. Margarita no cobra por mensaje. |
 | «Necesito un CRM para esto» | No: para cobrar hace falta control de **conversaciones y resultados**, no un CRM. Margarita no administra ventas ni embudos, y no lo pretende. |
-| «La API responde sola y contesta a los clientes» | No: no es un chatbot. Responde tu equipo. La herramienta ordena el trabajo y evita que se pierda un cliente en el camino. |
+| «La API responde sola y contesta a los clientes» | Solo si tú lo activas y solo para preguntas que estén en tu base de conocimiento, con umbral, límites y presupuesto; si duda, entrega la conversación a una persona. |
 
 ---
 
@@ -305,7 +305,9 @@ Publicar esto desprotegido cuesta clientes enojados y reputación:
 - **«Puedes mandar a quien sea.»** No: sin consentimiento, la calidad baja y los
   reportes llegan. La base es el opt-in y las bajas respetadas.
 - **«Los mensajes son gratis.»** No: los cobra Meta, directo al cliente.
-- **«La herramienta contesta sola.»** No es un chatbot.
+- **«La herramienta contesta sola.»** Solo lo que está en la base de
+  conocimiento y dentro de límites; si duda o hay una queja, pasa el hilo a una
+  persona. No negocia montos, plazos ni condiciones.
 - **Funciones que no existen** (todo esto está fuera del producto): botones y
   listas interactivas, programar campañas por fecha, variables en el encabezado
   de la plantilla, números de otros países, permisos por número y varias

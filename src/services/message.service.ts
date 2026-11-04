@@ -43,6 +43,7 @@ import {
 import { emitToWorkspaceAndUsers } from "../sockets";
 import { LogService } from "./log.service";
 import { SendPolicyService } from "./send-policy.service";
+import { AiAutoReplyService } from "./ai/auto-reply.service";
 import { uploadMediaToMeta } from "./media.service";
 import {
     NumberCredentials,
@@ -77,6 +78,18 @@ type SendFreeTextMessageParams = {
     userId: string;
     role: UserRole;
     input: SendFreeTextMessageInput;
+};
+
+/**
+ * Envío del sistema (modo automático acotado). No hay `userId`: no lo manda
+ * una persona, lo manda la decisión registrada en `aiSuggestionId`.
+ */
+type SendAutomaticReplyParams = {
+    workspaceId: string;
+    conversationId: string;
+    body: string;
+    aiSuggestionId: string;
+    aiModel: string | null;
 };
 
 type SendMediaMessageParams = {
@@ -441,6 +454,204 @@ export class MessageService {
     }
 
     /**
+     * Respuesta automática acotada.
+     *
+     * Es el único camino por el que la IA puede mandar un mensaje. Repite
+     * las compuertas críticas antes de tocar la Graph API (ventana, baja,
+     * pausa) porque el trabajo pudo esperar en la cola. La idempotencia la
+     * da `Message.aiSuggestionId` único: reintentar no manda dos veces.
+     */
+    static async sendAutomaticReply(params: SendAutomaticReplyParams) {
+        const conversation = await prisma.conversation.findFirst({
+            where: {
+                id: params.conversationId,
+                workspaceId: params.workspaceId
+            },
+            include: {
+                contact: true
+            }
+        });
+
+        if (!conversation) {
+            throw new Error("Conversación no encontrada.");
+        }
+
+        /** Un reintento del worker devuelve el envío que ya existía. */
+        const alreadySent = await prisma.message.findUnique({
+            where: { aiSuggestionId: params.aiSuggestionId }
+        });
+
+        if (alreadySent) {
+            return alreadySent;
+        }
+
+        if (conversation.status !== ConversationStatus.OPEN) {
+            throw new Error("La conversación está cerrada.");
+        }
+
+        if (conversation.contact.optOutAt || conversation.contact.pausedAt) {
+            throw new Error("El contacto no admite mensajes.");
+        }
+
+        if (conversation.aiPausedAt) {
+            throw new Error("La IA está en pausa en esta conversación.");
+        }
+
+        if (!isConversationWindowOpen(conversation.lastIncomingMessageAt)) {
+            throw new Error(
+                "La ventana de 24 horas está cerrada. No se envía texto libre."
+            );
+        }
+
+        const credentials = await this.getSendingCredentials(conversation);
+        const body = params.body.trim();
+
+        if (body.length === 0) {
+            throw new Error("La respuesta automática está vacía.");
+        }
+
+        const localMessage = await prisma.message.create({
+            data: {
+                workspaceId: params.workspaceId,
+                conversationId: conversation.id,
+                sentByUserId: null,
+                direction: MessageDirection.OUT,
+                type: MessageType.TEXT,
+                status: MessageStatus.SENDING,
+                source: MessageSource.AUTOMATIC,
+                body,
+                aiSuggestionId: params.aiSuggestionId,
+                aiModel: params.aiModel,
+                metaPayload: {
+                    type: "text",
+                    body,
+                    automatic: true
+                }
+            }
+        });
+
+        const payload = {
+            messaging_product: "whatsapp",
+            recipient_type: "individual",
+            to: conversation.contact.phone,
+            type: "text",
+            text: {
+                preview_url: false,
+                body
+            }
+        };
+
+        try {
+            const response = await axios.post(
+                `${appConfig.graphBaseUrl}/${credentials.apiVersion}/${credentials.phoneNumberId}/messages`,
+                payload,
+                {
+                    params: {
+                        access_token: credentials.accessToken
+                    },
+                    timeout: 15000
+                }
+            );
+
+            const wamid =
+                Array.isArray(response.data?.messages) &&
+                response.data.messages[0]?.id
+                    ? String(response.data.messages[0].id)
+                    : null;
+
+            const updatedMessage = await prisma.message.update({
+                where: {
+                    id: localMessage.id
+                },
+                data: {
+                    status: MessageStatus.SENT,
+                    wamid,
+                    metaResponse: response.data
+                }
+            });
+
+            await this.touchConversationAfterOutgoingMessage(
+                conversation.id,
+                updatedMessage.createdAt,
+                conversation.assignedUserId
+            );
+
+            this.emitOutgoingMessage(
+                params.workspaceId,
+                conversation,
+                updatedMessage
+            );
+
+            await LogService.create({
+                workspaceId: params.workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.AI,
+                action: "AI_AUTO_REPLY_SENT",
+                message: "La IA respondió automáticamente dentro de los límites.",
+                payload: {
+                    conversationId: conversation.id,
+                    messageId: updatedMessage.id,
+                    suggestionId: params.aiSuggestionId,
+                    model: params.aiModel
+                }
+            }).catch(() => undefined);
+
+            return updatedMessage;
+        } catch (error) {
+            const errorPayload = axios.isAxiosError(error)
+                ? {
+                      status: error.response?.status,
+                      data: error.response?.data,
+                      message: error.message
+                  }
+                : {
+                      message:
+                          error instanceof Error
+                              ? error.message
+                              : "Error desconocido"
+                  };
+
+            const failedMessage = await prisma.message.update({
+                where: {
+                    id: localMessage.id
+                },
+                data: {
+                    status: MessageStatus.FAILED,
+                    metaResponse: errorPayload
+                }
+            });
+
+            await this.touchConversationAfterOutgoingMessage(
+                conversation.id,
+                failedMessage.createdAt,
+                conversation.assignedUserId
+            );
+
+            this.emitOutgoingMessage(
+                params.workspaceId,
+                conversation,
+                failedMessage
+            );
+
+            await LogService.create({
+                workspaceId: params.workspaceId,
+                level: LogLevel.ERROR,
+                module: LogModule.AI,
+                action: "AI_AUTO_REPLY_FAILED",
+                message: "No se pudo enviar la respuesta automática a Meta.",
+                payload: {
+                    conversationId: conversation.id,
+                    messageId: failedMessage.id,
+                    suggestionId: params.aiSuggestionId,
+                    error: errorPayload
+                }
+            }).catch(() => undefined);
+
+            throw new Error("No se pudo enviar la respuesta automática a Meta.");
+        }
+    }
+
+    /**
      * Mensaje con botones (dentro de la ventana de 24 horas).
      *
      * Es la misma ruta que el texto libre —mismos permisos, mismo tope, misma
@@ -587,12 +798,28 @@ export class MessageService {
             type: MessageType;
             status: MessageStatus;
             source: MessageSource;
+            /** Quién lo mandó, si fue una persona. */
+            sentByUserId?: string | null;
+            /** Enlace con la decisión de IA, si lo envió el modo automático. */
+            aiSuggestionId?: string | null;
             isInternalNote?: boolean;
             body: string | null;
             metaResponse: unknown;
             createdAt: Date;
         }
     ) {
+        /**
+         * Una persona tomó el hilo: la IA deja de responder sola aquí hasta
+         * que alguien la reactive. No aplica a notas internas (no salen).
+         */
+        if (message.source === MessageSource.MANUAL && !message.isInternalNote) {
+            void AiAutoReplyService.pauseAfterHumanReply({
+                workspaceId,
+                conversationId: conversation.id,
+                userId: message.sentByUserId || null
+            });
+        }
+
         /**
          * La nota local nunca se envía a Meta: se avisa a los navegadores
          * pero no tiene sentido auditarla como envío.
@@ -649,6 +876,7 @@ export class MessageService {
                     type: message.type,
                     status: message.status,
                     source: message.source,
+                    aiSuggestionId: message.aiSuggestionId || null,
                     isInternalNote: Boolean(message.isInternalNote),
                     body: message.body,
                     createdAt: message.createdAt.toISOString()

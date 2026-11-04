@@ -1,4 +1,5 @@
 import {
+    AiMode,
     AiSuggestionStatus,
     LogLevel,
     LogModule,
@@ -9,7 +10,14 @@ import {
 import { appConfig } from "../../config/app.config";
 import { prisma } from "../../config/prisma";
 import { LogService } from "../log.service";
-import { decideSuggestion, suggestionSkipLabel, SuggestionSkipReason } from "./decision";
+import { MessageService } from "../message.service";
+import { AiAutoReplyService } from "./auto-reply.service";
+import {
+    decideAutoReply,
+    decideGeneration,
+    suggestionSkipLabel,
+    SuggestionSkipReason
+} from "./decision";
 import { KnowledgeService } from "./knowledge";
 import {
     buildContextMessages,
@@ -18,10 +26,11 @@ import {
     parseModelOutput,
     ParsedAiReply
 } from "./prompt";
+import { estimateCostMicros } from "./pricing";
 import { createAiProvider, isProviderConfigured } from "./provider";
 import { AiSettingsService } from "./settings.service";
 
-/** El trabajo no debe generar borrador. No es un error: es una decisión. */
+/** El trabajo no debe generar respuesta. No es un error: es una decisión. */
 export class SuggestionSkip extends Error {
     readonly reason: SuggestionSkipReason;
 
@@ -40,6 +49,12 @@ export type SuggestionStats = {
     discarded: number;
     /** Borradores que un mensaje más nuevo dejó sin efecto. */
     superseded: number;
+    /** Respuestas que la IA envió sola (modo automático acotado). */
+    autoSent: number;
+    /** Conversaciones que la IA entregó a una persona. */
+    handoffs: number;
+    /** Costo estimado de las llamadas del periodo, en micro-USD. */
+    costMicros: number;
     /** (aceptadas + editadas) / (aceptadas + editadas + descartadas). */
     acceptanceRate: number | null;
     calls: number;
@@ -49,7 +64,8 @@ export type SuggestionStats = {
 
 export class AiSuggestionService {
     /**
-     * Genera el borrador de un trabajo encolado.
+     * Genera la respuesta de un trabajo encolado: borrador en `SUGGEST` o
+     * candidato que se envía/entrega solo en `AUTO`.
      *
      * Lanza `SuggestionSkip` cuando la política dice que no se debe
      * responder; el worker lo registra como omitido, no como fallo.
@@ -103,7 +119,7 @@ export class AiSuggestionService {
             })
         ]);
 
-        const decision = decideSuggestion({
+        const decision = decideGeneration({
             globalEnabled: appConfig.ai.enabled,
             settings: {
                 enabled: settings.enabled,
@@ -115,7 +131,8 @@ export class AiSuggestionService {
             },
             conversation: {
                 status: job.conversation.status,
-                lastIncomingMessageAt: job.conversation.lastIncomingMessageAt
+                lastIncomingMessageAt: job.conversation.lastIncomingMessageAt,
+                aiPausedAt: job.conversation.aiPausedAt
             },
             message: {
                 direction: inbound.direction,
@@ -236,16 +253,27 @@ export class AiSuggestionService {
                 model: completion.model,
                 promptTokens: completion.promptTokens,
                 completionTokens: completion.completionTokens,
-                latencyMs: completion.latencyMs
+                latencyMs: completion.latencyMs,
+                costMicros: estimateCostMicros({
+                    model: completion.model,
+                    promptTokens: completion.promptTokens,
+                    completionTokens: completion.completionTokens
+                })
             }
         });
+
+        const automatic = settings.mode === AiMode.AUTO;
 
         await LogService.create({
             workspaceId: job.workspaceId,
             level: LogLevel.INFO,
             module: LogModule.AI,
-            action: "AI_SUGGESTION_CREATED",
-            message: "La IA generó un borrador de respuesta.",
+            action: automatic
+                ? "AI_AUTO_CANDIDATE_CREATED"
+                : "AI_SUGGESTION_CREATED",
+            message: automatic
+                ? "La IA preparó una respuesta para el modo automático."
+                : "La IA generó un borrador de respuesta.",
             payload: {
                 suggestionId: suggestion.id,
                 conversationId: job.conversationId,
@@ -258,7 +286,257 @@ export class AiSuggestionService {
             }
         });
 
+        if (automatic) {
+            await this.processAutoReply({
+                workspaceId: job.workspaceId,
+                conversationId: job.conversationId,
+                inboundCreatedAt: inbound.createdAt,
+                suggestion,
+                parsed,
+                knowledgeUsed: knowledge.length,
+                settings
+            });
+        }
+
         return suggestion;
+    }
+
+    /**
+     * Segunda mitad del modo automático: aplicar la política con datos
+     * frescos y, según el resultado, enviar o entregar a una persona.
+     *
+     * Un fallo de Meta no se reintenta a ciegas: se convierte en handoff,
+     * porque el cliente ya espera y la persona puede responder.
+     */
+    private static async processAutoReply(params: {
+        workspaceId: string;
+        conversationId: string;
+        inboundCreatedAt: Date;
+        suggestion: { id: string; body: string; confidence: number; handoff: boolean; model: string };
+        parsed: ParsedAiReply;
+        knowledgeUsed: number;
+        settings: Awaited<ReturnType<typeof AiSettingsService.get>>;
+    }) {
+        const [conversation, humanReply, counters] = await Promise.all([
+            prisma.conversation.findFirst({
+                where: {
+                    id: params.conversationId,
+                    workspaceId: params.workspaceId
+                },
+                include: { contact: true }
+            }),
+            prisma.message.findFirst({
+                where: {
+                    conversationId: params.conversationId,
+                    direction: MessageDirection.OUT,
+                    source: MessageSource.MANUAL,
+                    createdAt: { gt: params.inboundCreatedAt }
+                },
+                select: { id: true }
+            }),
+            AiAutoReplyService.countersFor({
+                workspaceId: params.workspaceId,
+                conversationId: params.conversationId
+            })
+        ]);
+
+        if (!conversation) {
+            return;
+        }
+
+        const decision = decideAutoReply({
+            settings: {
+                mode: params.settings.mode,
+                confidenceMin: params.settings.confidenceMin,
+                maxRepliesPerDay: params.settings.maxRepliesPerDay,
+                maxRepliesPerThread: params.settings.maxRepliesPerThread,
+                monthlyBudgetCents: params.settings.monthlyBudgetCents
+            },
+            contact: {
+                optOutAt: conversation.contact.optOutAt,
+                pausedAt: conversation.contact.pausedAt
+            },
+            conversation: {
+                status: conversation.status,
+                lastIncomingMessageAt: conversation.lastIncomingMessageAt,
+                aiPausedAt: conversation.aiPausedAt
+            },
+            humanRepliedAfter: Boolean(humanReply),
+            reply: {
+                body: params.parsed.reply,
+                confidence: params.parsed.confidence,
+                handoff: params.parsed.handoff
+            },
+            knowledgeEntriesUsed: params.knowledgeUsed,
+            usage: counters,
+            now: new Date()
+        });
+
+        if (!decision.send) {
+            await this.registerAutoSkip({
+                workspaceId: params.workspaceId,
+                conversationId: params.conversationId,
+                suggestionId: params.suggestion.id,
+                reason: decision.reason
+            });
+
+            return;
+        }
+
+        try {
+            const message = await MessageService.sendAutomaticReply({
+                workspaceId: params.workspaceId,
+                conversationId: params.conversationId,
+                body: decision.text,
+                aiSuggestionId: params.suggestion.id,
+                aiModel: params.suggestion.model
+            });
+
+            await prisma.aiSuggestion.update({
+                where: { id: params.suggestion.id },
+                data: {
+                    status: AiSuggestionStatus.AUTO_SENT,
+                    decidedAt: new Date()
+                }
+            });
+
+            await LogService.create({
+                workspaceId: params.workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.AI,
+                action: "AI_AUTO_REPLY_COMPLETED",
+                message: "La IA respondió sola y el mensaje salió a WhatsApp.",
+                payload: {
+                    suggestionId: params.suggestion.id,
+                    conversationId: params.conversationId,
+                    messageId: message.id,
+                    confidence: params.parsed.confidence,
+                    intent: params.parsed.intent
+                }
+            }).catch(() => undefined);
+        } catch (error) {
+            /**
+             * No se reintenta: el mensaje no salió. Antes de asignar a una
+             * persona conviene distinguir un fallo real de Meta de una
+             * compuerta que se cerró mientras el trabajo esperaba (una
+             * persona contestó, se pausó la IA, se cerró el hilo o la
+             * ventana). En ese segundo caso no hay nada que entregar.
+             */
+            const fresh = await prisma.conversation.findFirst({
+                where: {
+                    id: params.conversationId,
+                    workspaceId: params.workspaceId
+                },
+                include: { contact: true }
+            });
+
+            const alreadyHandled =
+                !fresh ||
+                fresh.status !== "OPEN" ||
+                Boolean(fresh.aiPausedAt) ||
+                Boolean(fresh.contact.optOutAt) ||
+                Boolean(fresh.contact.pausedAt);
+
+            await prisma.aiSuggestion.update({
+                where: { id: params.suggestion.id },
+                data: {
+                    status: alreadyHandled
+                        ? AiSuggestionStatus.SUPERSEDED
+                        : AiSuggestionStatus.HANDOFF,
+                    decidedAt: new Date()
+                }
+            });
+
+            await LogService.create({
+                workspaceId: params.workspaceId,
+                level: alreadyHandled ? LogLevel.INFO : LogLevel.ERROR,
+                module: LogModule.AI,
+                action: "AI_AUTO_REPLY_SKIPPED",
+                message: alreadyHandled
+                    ? "La respuesta automática ya no aplicaba al momento de enviar."
+                    : "No se pudo enviar la respuesta automática.",
+                payload: {
+                    suggestionId: params.suggestion.id,
+                    conversationId: params.conversationId,
+                    reason: alreadyHandled ? "STATE_CHANGED" : "SEND_FAILED",
+                    error: error instanceof Error ? error.message : null
+                }
+            }).catch(() => undefined);
+
+            if (!alreadyHandled) {
+                await AiAutoReplyService.handoff({
+                    workspaceId: params.workspaceId,
+                    conversationId: params.conversationId,
+                    reason: "SEND_FAILED",
+                    detail: error instanceof Error ? error.message : null
+                });
+            }
+        }
+    }
+
+    /**
+     * Cuando el modo automático no puede responder, deja el resultado
+     * auditado. Solo entrega a una persona cuando hay algo que atender; si
+     * el contacto pidió baja o la ventana está cerrada, no se asigna a nadie.
+     */
+    private static async registerAutoSkip(params: {
+        workspaceId: string;
+        conversationId: string;
+        suggestionId: string;
+        reason: SuggestionSkipReason;
+    }) {
+        const alreadyHandled =
+            params.reason === "HUMAN_REPLIED" ||
+            params.reason === "CONVERSATION_AI_PAUSED";
+        const cannotReply =
+            params.reason === "CONTACT_OPTED_OUT" ||
+            params.reason === "CONTACT_PAUSED" ||
+            params.reason === "CONVERSATION_CLOSED" ||
+            params.reason === "WINDOW_CLOSED" ||
+            params.reason === "MODE_NOT_AUTO";
+        const needsPerson = !alreadyHandled && !cannotReply;
+        /**
+         * Los límites y el presupuesto son capacidad, no contenido: se avisa
+         * a una persona pero no se deja la IA pausada para siempre. El resto
+         * de entregas sí la apartan del hilo hasta que alguien la reactive.
+         */
+        const capacityOnly =
+            params.reason === "DAILY_LIMIT" ||
+            params.reason === "BUDGET_EXCEEDED";
+
+        await prisma.aiSuggestion.update({
+            where: { id: params.suggestionId },
+            data: {
+                status: alreadyHandled
+                    ? AiSuggestionStatus.SUPERSEDED
+                    : needsPerson
+                      ? AiSuggestionStatus.HANDOFF
+                      : AiSuggestionStatus.DISCARDED,
+                decidedAt: new Date()
+            }
+        });
+
+        await LogService.create({
+            workspaceId: params.workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.AI,
+            action: "AI_AUTO_REPLY_SKIPPED",
+            message: "La IA no respondió sola.",
+            payload: {
+                suggestionId: params.suggestionId,
+                conversationId: params.conversationId,
+                reason: params.reason
+            }
+        }).catch(() => undefined);
+
+        if (needsPerson) {
+            await AiAutoReplyService.handoff({
+                workspaceId: params.workspaceId,
+                conversationId: params.conversationId,
+                reason: params.reason,
+                pause: !capacityOnly
+            });
+        }
     }
 
     /**
@@ -512,7 +790,8 @@ export class AiSuggestionService {
                 _count: { _all: true },
                 _sum: {
                     promptTokens: true,
-                    completionTokens: true
+                    completionTokens: true,
+                    costMicros: true
                 }
             })
         ]);
@@ -526,15 +805,27 @@ export class AiSuggestionService {
         const discarded = byStatus.get(AiSuggestionStatus.DISCARDED) || 0;
         const pending = byStatus.get(AiSuggestionStatus.PENDING) || 0;
         const superseded = byStatus.get(AiSuggestionStatus.SUPERSEDED) || 0;
+        const autoSent = byStatus.get(AiSuggestionStatus.AUTO_SENT) || 0;
+        const handoffs = byStatus.get(AiSuggestionStatus.HANDOFF) || 0;
         const decided = accepted + edited + discarded;
 
         return {
-            total: accepted + edited + discarded + pending + superseded,
+            total:
+                accepted +
+                edited +
+                discarded +
+                pending +
+                superseded +
+                autoSent +
+                handoffs,
             pending,
             accepted,
             edited,
             discarded,
             superseded,
+            autoSent,
+            handoffs,
+            costMicros: usage._sum.costMicros || 0,
             acceptanceRate: decided > 0 ? (accepted + edited) / decided : null,
             calls: usage._count._all,
             promptTokens: usage._sum.promptTokens || 0,

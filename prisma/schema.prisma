@@ -195,6 +195,14 @@ enum AiSuggestionStatus {
    * Llegó un mensaje más nuevo y este borrador ya no aplica.
    */
   SUPERSEDED
+  /**
+   * El modo automático acotado la envió sin intervención humana.
+   */
+  AUTO_SENT
+  /**
+   * El modo automático decidió no responder y entregó el hilo a una persona.
+   */
+  HANDOFF
 }
 
 /**
@@ -413,6 +421,7 @@ model User {
   knowledgeEntriesCreated KnowledgeEntry[] @relation("KnowledgeEntryCreatedBy")
 
   assignedConversations Conversation[] @relation("ConversationAssignedUser")
+  aiPausedConversations Conversation[] @relation("ConversationAiPausedBy")
 
   assignmentsMade AssignmentHistory[] @relation("AssignmentAssignedBy")
   assignmentsFrom AssignmentHistory[] @relation("AssignmentFromUser")
@@ -528,6 +537,8 @@ model Contact {
    * documental del operador ante una revisión.
    */
   /**
+   * /**
+   * /**
    * /**
    * /**
    * /** Índice ciego del nombre visible: permite búsqueda exacta sin tenerlo en claro.
@@ -665,6 +676,22 @@ model Conversation {
   assignedUserId String?
   assignedUser   User?   @relation("ConversationAssignedUser", fields: [assignedUserId], references: [id], onDelete: SetNull)
 
+  /**
+   * Pausa de la IA para este hilo. Mientras tenga fecha, el modo automático
+   * no responde: una persona tomó el control. Se activa a mano desde la
+   * bandeja y sola en cuanto alguien del equipo envía un mensaje.
+   */
+  aiPausedAt   DateTime?
+  aiPausedById String?
+  aiPausedBy   User?     @relation("ConversationAiPausedBy", fields: [aiPausedById], references: [id], onDelete: SetNull)
+
+  /**
+   * Última vez que la IA entregó el hilo a una persona y por qué. Sirve para
+   * pintar el aviso en la bandeja y para las métricas de handoff.
+   */
+  aiHandoffAt     DateTime?
+  aiHandoffReason String?
+
   status            ConversationStatus            @default(OPEN)
   operationalStatus ConversationOperationalStatus @default(UNASSIGNED)
   source            ConversationSource
@@ -685,7 +712,7 @@ model Conversation {
   complaints  Complaint[]
 
   /**
-   * Borradores de IA de este hilo (fase 1).
+   * Decisiones de IA de este hilo (borradores y envíos automáticos).
    */
   aiSuggestions AiSuggestion[]
   aiJobs        AiSuggestionJob[]
@@ -720,6 +747,15 @@ model Message {
 
   campaignId String?
   campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  /**
+   * Envío automático de IA: enlaza el mensaje con la decisión que lo originó.
+   * Es único, así que un reintento del worker no puede mandar dos veces la
+   * misma respuesta.
+   */
+  aiSuggestionId String?       @unique
+  aiSuggestion   AiSuggestion? @relation(fields: [aiSuggestionId], references: [id], onDelete: SetNull)
+  aiModel        String?
 
   wamid String? @unique
 
@@ -1057,9 +1093,9 @@ model WebhookEvent {
 
 /**
  * Configuración de la capa de IA por workspace.
- * Nace en **modo sugerencia**: la IA redacta y una persona decide. El modo
- * `AUTO` existe en el esquema para no migrar dos veces, pero la fase 1 lo
- * trata como apagado; activarlo es una decisión de producto posterior.
+ * Nace apagada y en **modo sugerencia**: la IA redacta y una persona decide.
+ * El modo `AUTO` es la respuesta automática acotada: solo envía cuando la
+ * política lo permite y, si duda, entrega el hilo a una persona.
  */
 model AiSettings {
   id          String    @id @default(cuid())
@@ -1083,9 +1119,19 @@ model AiSettings {
   confidenceMin Float @default(0.7)
 
   /**
-   * Reservado para la fase 2 (respeto de límites al responder solo).
+   * Límites del modo automático acotado.
+   * - `maxRepliesPerDay`: respuestas automáticas por workspace y día local.
+   * - `maxRepliesPerThread`: respuestas automáticas acumuladas en un mismo hilo.
    */
-  maxRepliesPerDay Int @default(50)
+  maxRepliesPerDay    Int @default(50)
+  maxRepliesPerThread Int @default(5)
+
+  /**
+   * Presupuesto mensual de IA en centavos de dólar. Al agotarse, el modo
+   * automático deja de responder y entrega a una persona; las sugerencias
+   * siguen funcionando.
+   */
+  monthlyBudgetCents Int @default(500)
 
   /**
    * Palabras que obligan a entregar la conversación a una persona.
@@ -1202,6 +1248,11 @@ model AiSuggestion {
   decidedById String?
   decidedAt   DateTime?
 
+  /**
+   * Mensaje que salió por modo automático (si se envió).
+   */
+  sentMessage Message?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1227,6 +1278,11 @@ model AiUsage {
   promptTokens     Int    @default(0)
   completionTokens Int    @default(0)
   latencyMs        Int    @default(0)
+  /**
+   * Costo estimado de la llamada en millonésimas de dólar (micro-USD), para
+   * no redondear a cero las llamadas baratas. 1 USD = 1,000,000.
+   */
+  costMicros       Int    @default(0)
 
   createdAt DateTime @default(now())
 

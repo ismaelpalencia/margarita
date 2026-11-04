@@ -6,7 +6,7 @@ Para la parte comercial y los videos, el inventario completo —pantalla por
 pantalla, con reglas, atajos, flujos y guiones— está en
 [`catalogo-producto.md`](catalogo-producto.md).
 
-Última revisión: 2026-10-25 (revisión previa al redeploy en Railway: Node 22.23.4 LTS y dependencias de red/subida actualizadas; controles de despliegue, cifrado, Volume y alta inicial documentados como requisitos de salida).
+Última revisión: 2026-11-04 (fase 2 de IA: respuesta automática acotada con pausa por conversación, límites, presupuesto y entrega a personas; el modo por defecto sigue siendo sugerencias y `AI_ENABLED=false`).
 
 > **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
 > **Paquete A $3,500.00 MXN** (instalación, primer mes y conexión con Meta) o
@@ -72,7 +72,7 @@ sirve la landing en su propia raíz, que es lo que hace una instalación sola.
 
 Margarita es una aplicación web para **operar la WhatsApp Business Cloud API de Meta**: enviar campañas con plantillas aprobadas, recibir y atender conversaciones, asignarlas a agentes y seguir el ciclo real de cada mensaje (enviado, entregado, leído, fallido).
 
-**Qué no es:** no es un CRM, no administra ventas, embudos, cotizaciones ni facturación. **Hoy no responde solo**: la IA puede redactar un borrador que una persona revisa y envía. No crea plantillas en Meta.
+**Qué no es:** no es un CRM, no administra ventas, embudos, cotizaciones ni facturación. **La IA no responde de todo**: puede redactar borradores o responder sola preguntas frecuentes que estén en la base de conocimiento, dentro de límites y con entrega a una persona cuando duda. No crea plantillas en Meta.
 
 ### Modelo de despliegue
 
@@ -116,7 +116,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Logs**: auditoría filtrable por nivel y módulo, con el detalle de cada evento, más **Webhooks recibidos** (Admin → Logs → Webhooks): los últimos 20 eventos **tal como los mandó Meta**, con un botón para copiarlos completos. Es la pantalla con la que se comprueba qué identificador trae un botón cuando un deudor lo toca de verdad, sin entrar a la base.
 - **Aviso de carga con la marca**: al cambiar de pantalla y al enviar un formulario aparece el sello de Margarita con un aro girando y «Cargando…». El botón que se envió queda ocupado —con un aro dentro y sin poder tocarse otra vez—, así nadie manda dos veces el mismo mensaje o la misma campaña. Con «reducir movimiento» activado en el sistema, el sello y el aro se quedan quietos y solo avisa el texto.
 - **Respuestas rápidas**: textos guardados que el equipo inserta con un clic, con `{nombre}` y `{telefono}` del contacto.
-- **IA de respuestas (fase 1, solo sugerencias)**: con `AI_ENABLED=true` y una llave de proveedor, cada mensaje entrante puede generar un **borrador** que aparece en la bandeja con su confianza y su motivo. El equipo lo usa —se copia al compositor— o lo descarta; **nada se envía solo**. Admin → IA permite ajustar el tono, el umbral y la base de conocimiento, y probar una pregunta sin tocar una conversación real. Con `AI_ENABLED=false` la herramienta funciona exactamente igual que antes.
+- **IA de respuestas (sugerencias y automático acotado)**: con `AI_ENABLED=true` y una llave de proveedor, cada mensaje entrante puede generar una respuesta. En **sugerencias** aparece como borrador en la bandeja con su confianza y su motivo; el equipo lo usa —se copia al compositor— o lo descarta, y nada se envía solo. En **automático acotado** la IA responde sola **solo** cuando la pregunta está cubierta por la base de conocimiento, la confianza alcanza el mínimo, no hay baja ni pausa, la ventana de 24 horas sigue abierta, no intervino una persona y quedan límites y presupuesto. Si falta cualquiera de esas condiciones, entrega el hilo a una persona en lugar de inventar. Admin → IA permite ajustar modo, tono, umbral, límites, presupuesto y base de conocimiento, y probar una pregunta sin tocar una conversación real. La pausa se puede activar por conversación y se activa sola cuando alguien del equipo responde. Con `AI_ENABLED=false` la herramienta funciona exactamente igual que antes.
 - **Sistema**: checklist de configuración y estado de seguridad, cola y worker.
 - **Guía rápida en el panel**: qué hace la herramienta, el día en tres pasos, lo que **no** hace y los accesos a la guía de uso, la de plantillas y soporte. Sustituyó al «Roadmap», que era información interna y no debía ver el cliente.
 
@@ -126,7 +126,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - Estado operativo: `AVAILABLE`, `BUSY`, `BREAK`, `OFFLINE`. No queda disponible automáticamente al entrar.
 - Cuatro formas de responder: **nota local** (no sale a WhatsApp), **texto libre** dentro de la ventana de 24 horas, **archivos** (imagen, video, audio o documento) dentro de la misma ventana, y **plantilla aprobada** cuando está cerrada.
 - **Respuestas rápidas**: un clic inserta el texto guardado en el compositor, ya con el nombre y el teléfono del contacto.
-- **Borrador de IA**: si el administrador activó la IA, el hilo muestra una tarjeta con el texto propuesto, su confianza y el motivo. **Usar borrador** lo copia al compositor para revisarlo; **Descartar** lo quita. El agente siempre decide qué se envía.
+- **Borrador de IA**: si el administrador activó la IA en modo sugerencia, el hilo muestra una tarjeta con el texto propuesto, su confianza y el motivo. **Usar borrador** lo copia al compositor para revisarlo; **Descartar** lo quita. El agente siempre decide qué se envía. En modo automático, la conversación muestra si la IA respondió sola o si la entregó a una persona, y permite **pausar o reactivar** la IA en ese hilo.
 - **Respuestas de botón y de lista**: cuando el cliente toca un botón o elige de una lista, se guarda **qué opción eligió** (identificador y texto), el hilo lo muestra con su etiqueta y queda en la bitácora. Se entienden las **tres formas** que manda Meta: el botón de una **plantilla** (`type: "button"` con su texto y su payload), el botón de un mensaje interactivo (`button_reply`) y la elección de una lista (`list_reply`). El identificador se guarda en claro porque es con lo que se mapea a un resultado de gestión; el texto va cifrado, como el resto del contenido. El identificador se copia de la burbuja con un clic, que es lo que hace falta para crear su regla.
 - **Enviar botones dentro de la ventana de 24 horas**: desde el hilo (admin y agente) se manda un mensaje con **hasta 3 botones** de 20 caracteres. Los límites de Meta se validan antes de llamarla —texto de 1,024, pie de 60 y botones únicos— y la respuesta del cliente entra al mismo circuito de reglas que un botón de plantilla.
 - **Plantillas con botones**: se envían —desde el hilo y en **campañas**— resolviendo las **tres variables** que admite Meta: una en el encabezado, las del cuerpo y una al final de la URL de un botón. El formulario muestra solo los campos que la plantilla pide, para no mandar un componente de más (que Meta rechaza), y los valores quedan guardados **por destinatario** (con `{nombre}`, `{telefono}` y columnas del Excel).
@@ -165,12 +165,13 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Baja automática (BAJA/STOP)**: si el cliente escribe la palabra clave (por defecto `STOP`, configurable con `OPT_OUT_KEYWORDS`), el contacto queda dado de baja y la herramienta deja de enviarle cualquier mensaje, incluso si estaba en una campaña en curso. La reactivación es una decisión explícita del operador y queda auditada.
 - **Límites de envío manual aplicados**: el permiso `canSendManualMessages` y el tope diario del agente se validan al enviar, con el motivo a la vista. El uso se calcula sobre los mensajes realmente enviados, así que se reinicia solo a medianoche local; las notas internas no cuentan.
 - **Notas internas diferenciadas**: se ven en el panel con su propia etiqueta (y sin palomitas) y nunca salen a WhatsApp.
+- **Respuesta automática acotada**: cuando el workspace está en modo `AUTO`, la IA puede enviar una respuesta de texto por la Graph API sin intervención humana, pero solo si se cumplen **todas** estas condiciones: la pregunta usó al menos una entrada de la base de conocimiento, la confianza supera el umbral, el modelo no marcó handoff, el contacto no está dado de baja ni en pausa, la ventana de 24 horas está abierta, la conversación no está cerrada ni pausada para la IA, no respondió una persona y quedan límites diarios, por hilo y presupuesto mensual. Cada envío queda enlazado a la sugerencia y al modelo (`Message.aiSuggestionId`, `aiModel`), es idempotente por esa relación y se audita como `AI_AUTO_REPLY_SENT`. Si no se cumple una condición, la conversación se entrega al agente con menos carga y se registra el motivo; si la causa es de contenido (duda, queja, falta de conocimiento o fallo de envío), la IA queda además en pausa en ese hilo. Una persona puede **pausar o reactivar** la IA en cualquier hilo; responder a mano la pausa automáticamente.
 - **Defensa contra búsquedas imposibles**: si una consulta intenta filtrar por un campo cifrado (por ejemplo el cuerpo de un mensaje), la herramienta falla con una explicación en lugar de devolver cero filas en silencio.
 - **Salud de la cuenta**: los avisos de Meta sobre plantillas (aprobada, rechazada, pausada, marcada) y sobre la calidad de cada número se procesan, actualizan el estado en el panel y quedan en la bitácora con nivel de error cuando exigen atención.
 
 ### Auditoría y operación
 
-- Bitácora de sistema, auth, usuarios, contactos, campañas, conversaciones, mensajes, webhooks, Meta y cuenta de WhatsApp.
+- Bitácora de sistema, auth, usuarios, contactos, campañas, conversaciones, mensajes, webhooks, Meta, cuenta de WhatsApp e **IA** (borradores, respuestas automáticas, pausas y entregas a personas).
 - Campos que parecen credenciales se redactan antes de guardarse.
 - Retención automática: 90 días de bitácora y 30 días de eventos de webhook ya resueltos.
 - Alertas externas opcionales (Slack, Discord o cualquier webhook) ante errores.
@@ -200,6 +201,7 @@ de prometer algo:
 | **Recuperación de contraseña sin correo** | No hay "envié un enlace a tu correo": la herramienta no manda correos. Se resuelve con dos caminos: **un administrador restablece la contraseña** desde Equipo (y quien la recibe está obligado a cambiarla al entrar), o **desde el servidor** con `npm run admin:reset-password -- --email=…` cuando nadie puede entrar. Si el cliente pierde el acceso a la consola y a todas las cuentas de administrador, la salida es la base de datos. |
 | **Adjuntos: disco y R2** | Fotos, audios y documentos se guardan en disco (caché) y, si Cloudflare R2 está configurado, **se copian al bucket**. Al abrirlos, la app los busca en disco y, si ya no están (despliegue nuevo), los trae de R2. Sin R2, el Volume sigue siendo obligatorio. Los archivos **no llevan el cifrado de la aplicación**; R2 cifra en reposo a nivel de infraestructura. |
 | **Límite de peticiones** | El cupo del panel es **por persona** (300 cada 15 minutos, `PANEL_RATE_LIMIT_MAX`), no por IP: quince agentes en la misma oficina no se estorban entre sí, y el 429 dice cuántos minutos esperar. Queda un tope de borde por IP (`EDGE_RATE_LIMIT_MAX`, 3,000) solo contra abuso evidente. |
+| **La IA automática es acotada** | No es un chatbot general: solo responde preguntas cubiertas por la base de conocimiento, con umbral de confianza, límites diarios y por hilo, presupuesto mensual y ventana de 24 horas. Ante duda, queja o tema sensible entrega a una persona. No negocia montos, plazos ni condiciones. |
 | **Una réplica** | El tiempo real y la cola funcionan en una sola instancia. Con varias haría falta el adaptador de Redis. |
 | **Búsqueda exacta** | Teléfono y nombre están cifrados: se busca por número completo (10 dígitos en México o con `+` y lada internacional) o por nombre completo; la coincidencia parcial no es posible. |
 | **Búsqueda de correo solo exacta** | El correo del usuario está cifrado y se resuelve con índice ciego: el inicio de sesión funciona igual y el correo se ve en el panel, pero una consulta por partes del correo falla con explicación en lugar de devolver resultados. En la práctica el panel no tiene buscador de usuarios. |
@@ -285,13 +287,13 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 
 | Aspecto | Estado |
 | --- | --- |
-| Pruebas automatizadas | 39 archivos de pruebas unitarias (252 casos) + **suite de integración** contra PostgreSQL; las 2 pruebas destructivas solo corren en CI |
+| Pruebas automatizadas | 44 archivos de pruebas unitarias (302 casos) + **suite de integración** contra PostgreSQL (18 archivos, 82 casos); las 2 pruebas destructivas solo corren en CI |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
-| Migraciones | Versionadas en `prisma/migrations`, con veintiuna aplicadas |
+| Migraciones | Versionadas en `prisma/migrations`, con veintitrés aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
 | Entorno de build | Node **22.23.4 LTS** declarado en `package.json` (`engines`) y `.nvmrc`; en Railway se fija además `NIXPACKS_NODE_VERSION=22.23.4`. `nixpacks.toml` instala con `npm install --include=dev` (no `npm ci`: borra `node_modules` y choca con el caché del builder) y compila con `npm run build`. El Build Command del servicio debe quedar vacío para que la instalación no se ejecute dos veces. |
 | Dependencias de producción | El lockfile actual fija Axios 1.20.0, Multer 2.5.0 y Express 4.22.3. El despliegue debe conservar ese lockfile; no hay una validación automatizada de vulnerabilidades en CI todavía. |
-| Verificación de integración | **Automatizada**: un trabajo de CI levanta PostgreSQL, aplica las migraciones y corre la suite contra esa base (`npm run test:integration`). Cubre webhook firmado de punta a punta, cifrado en reposo, campañas, resultados de gestión, respuestas interactivas, llamadas pedidas y el volcado de webhooks, sesiones, contraseñas y respaldos. Dos pruebas destructivas (alta desde cero y restauración) solo corren en CI, donde la base es desechable, con `INTEGRATION_DESTRUCTIVE=1`. |
+| Verificación de integración | **Automatizada**: un trabajo de CI levanta PostgreSQL, aplica las migraciones y corre la suite contra esa base (`npm run test:integration`). Cubre webhook firmado de punta a punta, cifrado en reposo, campañas, resultados de gestión, respuestas interactivas, llamadas pedidas, **IA automática acotada** y el volcado de webhooks, sesiones, contraseñas y respaldos. Dos pruebas destructivas (alta desde cero y restauración) solo corren en CI, donde la base es desechable, con `INTEGRATION_DESTRUCTIVE=1`. |
 | Pruebas de interfaz | **Ninguna automatizada.** Los cambios de layout se verifican a mano (capturas en escritorio y móvil); no hay pruebas de navegador. |
 | Estilo de código | Sin linter ni formateador automático: la consistencia se mantiene a mano. |
 
@@ -308,6 +310,7 @@ Además de las pruebas unitarias, hay una **suite de integración** que corre en
 - **Respuestas interactivas**: un toque de botón y una elección de lista llegan por el webhook firmado, se guardan con su identificador en claro y su texto cifrado en la columna cruda, dejan su registro en la bitácora y un interactivo sin opción reconocible no rompe nada.
 - **Llamadas pedidas (fase 4)**: quien toca el botón aparece en la lista del día con lo que lleva esperando y el origen «El botón»; el atajo **«No contestó»** guarda el resultado y lo saca de la lista; un resultado que no es del atajo —por ejemplo «pagado», que necesita monto y fecha— **se rechaza en lugar de guardarse a la brava**; y el volcado crudo del webhook se ve y se copia desde el panel.
 - **Botón de plantilla**: el toque de un botón que viene dentro de una plantilla (`type: "button"`) se guarda y dispara su regla igual que un interactivo. Se comprobó con el payload exacto que llegó en la primera prueba real contra Meta (2026-10-16), donde el toque quedaba como `[button]` porque el código solo esperaba la forma interactiva.
+- **IA automática acotada**: pausa y reactivación por conversación, contadores de respuestas y costo del mes, idempotencia del envío por `aiSuggestionId`, negativa ante baja o pausa antes de tocar Meta y entrega al agente menos cargado con su motivo. La decisión completa (ventana, confianza, conocimiento, límites y presupuesto) se prueba en las unitarias con la política pura.
 - **Verificación en dos pasos**: con la cuenta protegida, la contraseña correcta **no** abre sesión (devuelve un desafío y no crea ninguna); un código incorrecto no crea sesión y suma un intento fallido; el código correcto abre exactamente una y limpia los intentos; el secreto queda cifrado en la columna cruda; desactivarla exige un código vigente; y un administrador puede apagarla si alguien pierde el teléfono. Se comprobó también que una activación a medias (con la clave generada pero sin confirmar) no bloquea el acceso y se puede descartar.
 
 Los flujos que además se verificaron a mano contra una base real, antes de tener suite:
@@ -359,7 +362,7 @@ Los flujos que además se verificaron a mano contra una base real, antes de tene
 
 **Pendiente de producto.**
 
-1. **IA fase 2**: envío automático acotado, límite diario efectivo, handoff y pausa por conversación. La fase 1 (sugerencias) ya está implementada y documentada en [`ia-respuestas.md`](ia-respuestas.md).
+1. **Piloto de la IA automática acotada**: el código de la fase 2 ya está implementado (envío `AUTOMATIC`, pausa por conversación, límites, presupuesto y handoff). Falta cerrar el piloto de sugerencias y encenderla por workspace con métricas. Ver [`ia-respuestas.md`](ia-respuestas.md).
 2. **Listas desplegables** desde el panel (los botones ya se envían y sus respuestas ya se interpretan).
 3. **Recordatorios de la agenda**: la cita ya existe y se ordena por hora; falta que avise sola.
 4. **Permisos por número** y **repartir campañas entre números** (ver [`multinumero.md`](multinumero.md)).
