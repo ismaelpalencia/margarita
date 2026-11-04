@@ -143,6 +143,7 @@ const ENCRYPTED_FIELDS: Record<string, string[]> = {
     WebhookEvent: ["payload"],
     QuickReply: ["body"],
     ContactOutcome: ["note", "amount"],
+    Complaint: ["description", "resolution"],
     User: ["email", "twoFactorSecret"],
     WhatsAppNumber: ["phoneNumber"],
     WhatsAppAccount: ["accessToken", "verifyToken"]
@@ -310,6 +311,10 @@ const WRITE_RULES: Record<string, WriteRule> = {
      */
     ContactOutcome(data) {
         encryptTextFields(data, ["note", "amount"]);
+    },
+
+    Complaint(data) {
+        encryptTextFields(data, ["description", "resolution"]);
     },
 
     /**

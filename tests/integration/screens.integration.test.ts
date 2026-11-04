@@ -219,7 +219,7 @@ test("las pantallas clave traen su contenido", async () => {
     const { cookie } = await login(fixture.adminEmail, fixture.adminPassword);
 
     const casos: Array<[string, RegExp]> = [
-        ["/", /Cobra por WhatsApp/],
+        ["/", /Cobranza por WhatsApp/],
         ["/", /js\/loading\.js/],
         ["/aviso-de-privacidad", /7 días hábiles/],
         ["/guia", /En esta guía/],

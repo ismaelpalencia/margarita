@@ -6,7 +6,7 @@ Para la parte comercial y los videos, el inventario completo —pantalla por
 pantalla, con reglas, atajos, flujos y guiones— está en
 [`catalogo-producto.md`](catalogo-producto.md).
 
-Última revisión: 2026-10-19 (paquetes A/B con piloto de 30 días, respaldos y adjuntos en Cloudflare R2, nombres de contacto cifrados, dashboard por número activo, opt-in formal con canal y autor, campañas programadas, landing separada por dominio, plantillas con botones, llamadas pedidas y volcado de webhooks).
+Última revisión: 2026-10-25 (revisión previa al redeploy en Railway: Node 22.23.4 LTS y dependencias de red/subida actualizadas; controles de despliegue, cifrado, Volume y alta inicial documentados como requisitos de salida).
 
 > **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
 > **Paquete A $3,500.00 MXN** (instalación, primer mes y conexión con Meta) o
@@ -26,7 +26,7 @@ pantalla, con reglas, atajos, flujos y guiones— está en
 
 ### ¿Se puede ofrecer hoy?
 
-Sí, como **instalación por empresa** en Railway: el alta de un cliente nuevo toma minutos, el producto cubre el ciclo completo de WhatsApp (campañas, bandeja, agentes, cobranza y reportes) y los datos personales que guarda están cifrados en la base. Antes de firmar conviene que el cliente y tú tengan claro lo siguiente:
+Sí, como **instalación por empresa** en Railway, una vez cumplido el checklist de salida de la sección 9. El producto cubre el ciclo completo de WhatsApp (campañas, bandeja, agentes, cobranza y reportes) y cifra los datos personales en la base **cuando `ENCRYPTION_KEY` está configurada**. Antes de firmar conviene que el cliente y tú tengan claro lo siguiente:
 
 | Punto | Estado |
 | --- | --- |
@@ -38,6 +38,7 @@ Sí, como **instalación por empresa** en Railway: el alta de un cliente nuevo t
 | Respaldos fuera del servidor | **Incluido cuando se configura R2.** La copia diaria cifrada se sube a Cloudflare R2 y Admin → Sistema muestra archivos, tamaño y fecha del último. Sin R2, la copia vive en el mismo Volume y alguien tiene que descargarla. |
 | Nombres de los contactos | **Cifrados desde el 2026-10-19**, con índice ciego para buscarlos por nombre completo. Los datos de los deudores (nombre, teléfono, mensajes, notas y montos) y los correos de acceso ya no quedan en claro. El nombre de los usuarios del equipo y el de la empresa no se cifran porque no son datos de los deudores. |
 | Verificación en dos pasos | **Disponible y opcional.** Se activa por cuenta; conviene dejarla puesta en las de administrador (el panel dice cuántas están cubiertas). |
+| Runtime y dependencias | **Actualizados para el redeploy.** La configuración fija Node 22.23.4 LTS y el lockfile fija Axios 1.20.0, Multer 2.5.0 y Express 4.22.3; no se debe desplegar con versiones previas del repositorio. |
 
 Lo que **no** está en el producto y no se debe prometer: **listas desplegables**
 desde el panel (los botones sí se envían dentro de la ventana y sus respuestas
@@ -153,8 +154,8 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Borrado de mensajes**: ocultar un mensaje sin destruirlo (el admin puede verlo y restaurarlo) o borrar todo el hilo definitivamente escribiendo `BORRAR`.
 - **Respaldos**: descarga completa en JSON o exportación por entidad en CSV.
 - **Respaldos automáticos**: cada `BACKUP_INTERVAL_HOURS` (24 por defecto) se guarda una copia completa de la base, comprimida y cifrada con la misma llave de los datos. Si Cloudflare R2 está configurado, **la copia se sube también al bucket** (`backups/…`) y el panel de Sistema muestra cuántos objetos hay, cuánto ocupan y la fecha del último. Cada copia se **verifica al crearse** (se vuelve a leer y descifrar) y se conservan las últimas `BACKUP_KEEP` (7 por defecto). Se pueden crear a mano, descargar y verificar desde Admin → Respaldos, y `/health` reporta la edad del último.
-- **Cifrado en reposo**: los teléfonos, **los nombres de contacto**, las notas, el contenido de los mensajes, los nombres de archivo, los payloads de Meta (incluido el evento crudo del webhook), las variables de campaña, los números de la WABA y la bitácora se guardan cifrados con AES-256-GCM. La aplicación descifra al leer, así que el panel funciona igual; del teléfono se guarda además un índice ciego (`phoneHash`) que conserva la unicidad y la búsqueda exacta sin tener el número en claro.
-- **Alta sin consola**: en una instalación nueva, `/setup` crea la empresa y el usuario administrador desde el navegador, y las credenciales de Meta y el primer número se capturan en Admin → WhatsApp. El asistente se cierra solo cuando la instalación queda configurada.
+- **Cifrado en reposo**: con `ENCRYPTION_KEY` presente, los teléfonos, **los nombres de contacto**, las notas, el contenido de los mensajes, los nombres de archivo, los payloads de Meta (incluido el evento crudo del webhook), las variables de campaña, los números de la WABA y la bitácora se guardan cifrados con AES-256-GCM. La aplicación descifra al leer, así que el panel funciona igual; del teléfono se guarda además un índice ciego (`phoneHash`) que conserva la unicidad y la búsqueda exacta sin tener el número en claro.
+- **Alta sin consola**: en una instalación nueva, `/setup` crea la empresa y el usuario administrador desde el navegador, y las credenciales de Meta y el primer número se capturan en Admin → WhatsApp. El asistente se cierra solo cuando la instalación queda configurada. **No se publica un dominio con una base vacía hasta que el operador esté listo para realizar esta alta**, porque el primer usuario que complete el asistente se vuelve administrador.
 - **Alta en minutos**: el repositorio trae `railway.json` con el build, las migraciones previas al arranque, el comando de arranque y el healthcheck, así que una instalación desde plantilla no requiere configurar nada a mano. Mientras no exista empresa ni administrador, la raíz y el login llevan solos al asistente. Si falta `APP_URL`, se usa el dominio público de Railway. El paso a paso está en [`plantilla-railway.md`](plantilla-railway.md).
 - **Cierre de contrato**: el borrado total elimina mensajes, conversaciones, contactos, campañas, plantillas, usuarios, sesiones, credenciales y archivos, con la confirmación del identificador de la instalación y constancia en la bitácora.
 - **Versión en ejecución**: `/health` y Admin → Sistema reportan la versión y el commit desplegado, para saber qué corre cada instalación.
@@ -216,8 +217,8 @@ de prometer algo:
 | Área | Control |
 | --- | --- |
 | **Webhooks** | Firma `X-Hub-Signature-256` obligatoria, comparada en tiempo constante. Un payload sin firma válida se rechaza con 401. |
-| **Cifrado en reposo** | Los datos personales de los contactos y las credenciales se guardan cifrados con AES-256-GCM: teléfono, **nombre y apodo del contacto**, notas, contenido y nombre de archivo de cada mensaje, payloads de Meta (respuestas, plantillas enviadas y evento crudo del webhook), variables de campaña, número de cada WABA, **correo de acceso de cada usuario** y bitácora. El cifrado y el descifrado son transparentes (extensión de Prisma), así que ninguna consulta del panel ve texto cifrado. Un respaldo o un volcado de la base no muestra conversaciones, teléfonos, nombres de contacto ni correos. |
-| **Credenciales de Meta** | `accessToken` y `verifyToken` cifrados en la base con AES-256-GCM. Sin la variable `ENCRYPTION_KEY` no se pueden leer. |
+| **Cifrado en reposo** | Con `ENCRYPTION_KEY` configurada, los datos personales de los contactos y las credenciales se guardan cifrados con AES-256-GCM: teléfono, **nombre y apodo del contacto**, notas, contenido y nombre de archivo de cada mensaje, payloads de Meta (respuestas, plantillas enviadas y evento crudo del webhook), variables de campaña, número de cada WABA, **correo de acceso de cada usuario** y bitácora. El cifrado y el descifrado son transparentes (extensión de Prisma), así que ninguna consulta del panel ve texto cifrado. Un respaldo o un volcado de la base no muestra conversaciones, teléfonos, nombres de contacto ni correos. |
+| **Credenciales de Meta** | `accessToken` y `verifyToken` se cifran en la base con AES-256-GCM cuando existe `ENCRYPTION_KEY`. La llave es obligatoria para producción: si falta, valores nuevos pueden quedar en claro y una base ya cifrada no se podrá leer correctamente. |
 | **Índices ciegos** | `Contact.phoneHash`, `Contact.nameHash` y `User.emailHash` son HMAC-SHA256 con la llave de cifrado: conservan la unicidad y la búsqueda exacta sin que el valor se pueda recuperar del índice. Son los que sostienen el inicio de sesión, la detección de teléfonos o correos repetidos y la búsqueda por nombre completo. |
 | **Sesiones** | JWT en cookie `httpOnly`, `secure` en producción y `SameSite=Lax`, con registro en base que permite revocarlas. Expiración absoluta de 7 días, **cierre por inactividad** (`SESSION_IDLE_MINUTES`, 12 h por defecto), **tope de dispositivos** por usuario (`SESSION_MAX_ACTIVE`, 3 por defecto: al entrar en uno más se cierra el más viejo) y lista visible con revocación individual o masiva. |
 | **Contraseñas** | Hash con bcrypt (12 rondas). Mínimo 10 caracteres con letras y números, sin contraseñas obvias. Cada persona cambia la suya en «Mi cuenta» (con la actual) y **al cambiarla se cierran las demás sesiones**. Cuando un administrador la restablece, quien la recibe **debe cambiarla antes de operar**: así nadie conserva la contraseña de otro. |
@@ -230,6 +231,7 @@ de prometer algo:
 | **Límite de peticiones** | 300 cada 15 minutos **por usuario** en el panel (configurable), 10 en el login por IP, 1,200 por minuto en el webhook (exento del tope general, igual que el healthcheck). El 429 dice cuánto esperar. |
 | **Cabeceras y CORS** | Helmet activo y CORS restringido al dominio de la aplicación. La política de contenido (CSP) está desactivada para permitir las vistas actuales; se puede habilitar con nonces. |
 | **`/health` mínimo en producción** | Sin `HEALTH_TOKEN`, `/health` solo publica `{ok, status, timestamp}`; el commit, las rutas, la cola y el conteo de administradores se ven con `?token=` o en desarrollo. El healthcheck de Railway sigue funcionando sin token. |
+| **Runtime y dependencias parcheadas** | El despliegue objetivo usa Node **22.23.4 LTS** (`.nvmrc` y `NIXPACKS_NODE_VERSION`); corrige los avisos de seguridad de Node publicados el 2026-10-21, incluidos DNS con NUL, validación TLS de IPs no canónicas y Brotli. El lockfile fija Axios 1.20.0, Multer 2.5.0 y Express 4.22.3. |
 | **Exposición de secretos** | Los tokens nunca se envían al navegador (la vista recibe solo una versión enmascarada) y la bitácora redacta cualquier campo que parezca credencial. |
 | **Acceso a archivos** | Los archivos no son públicos: se sirven por un endpoint que exige sesión y valida que el usuario pueda ver esa conversación. Un agente sin la conversación recibe 404, y los archivos se guardan fuera del alcance del servidor web. |
 | **Borrado con intención** | Ocultar un mensaje es reversible y queda auditado. El borrado definitivo exige escribir `BORRAR` y también queda en la bitácora. La **exportación JSON/CSV** no incluye credenciales de Meta ni hashes de contraseña (los tokens salen enmascarados); la **copia cifrada de la base** sí lleva las tablas completas, pero los campos sensibles van cifrados. |
@@ -249,6 +251,8 @@ Ser explícito aquí es parte del trato:
 6. **No hay rotación automática de secretos** ni caducidad de la `ENCRYPTION_KEY`. Perder esa llave deja ilegibles los campos cifrados, no solo los tokens.
 7. **No hay prueba de penetración.** Los controles están probados con pruebas automatizadas y verificación manual, no con un pentest externo.
 8. **Sin WAF activo en el borde.** Cloudflare administra el DNS; el subdominio de la operación va en modo **DNS only**, así que la protección DDoS/WAF del proveedor no está delante. Activar el proxy requiere probar WebSockets, certificado y subidas grandes.
+9. **El healthcheck no bloquea todos los requisitos de custodia.** Puede responder sano si base y cola están disponibles aunque falte cifrado configurado o el directorio de medios no sea persistente. Antes de habilitar usuarios se revisan explícitamente `checks.encryptionKeyConfigured` y `checks.mediaStoragePersistent` con `HEALTH_TOKEN`.
+10. **El asistente inicial es público mientras la base está vacía.** La ruta `/setup` no pide un secreto de instalación; por eso el operador debe reservar el primer acceso y no exponer el dominio antes de crear al administrador. Añadir un token de instalación es una mejora de seguridad pendiente.
 
 ---
 
@@ -263,6 +267,8 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 - **Calidad del número**: vigilar la calificación en el panel de Meta; los envíos masivos sin consentimiento la degradan.
 - **Calidad por número**: con varios números, cada uno se calienta y se vigila por separado. Un número nuevo arranca en el nivel mínimo de mensajería y necesita su nombre visible aprobado y su registro con PIN antes de enviar.
 - **Custodia de `ENCRYPTION_KEY`**: es la llave de los datos cifrados **y de los índices ciegos**. Si se pierde, los teléfonos, los mensajes, las notas, la bitácora y los correos de acceso dejan de poder leerse, además de los tokens de Meta; y los índices dejan de coincidir, así que nadie podría entrar. Guárdala en un gestor de contraseñas, no solo en las variables del proveedor.
+- **Salida segura a Railway**: fijar `NIXPACKS_NODE_VERSION=22.23.4`, conservar el `package-lock.json` actualizado y confirmar en el log de build que corre Node 22.23.4. No volver a una imagen o lockfile anteriores a la actualización de seguridad del 2026-10-21.
+- **Primer acceso de una instalación nueva**: crear el primer administrador personalmente y solo después compartir el dominio. Mientras PostgreSQL esté vacío, quien complete `/setup` primero toma el rol administrador.
 - **Respaldos de la base de datos**. Cuidado con el respaldo: para restaurarlo y poder leer los datos hace falta la misma `ENCRYPTION_KEY`.
 - **Comprobar el respaldo en R2**: con R2 configurado, la copia diaria se sube cifrada al bucket privado y Admin → Sistema muestra cuántos objetos hay y cuál fue el último. La copia local sigue en el Volume; si R2 no está configurado, alguien tiene que descargar la copia a un lugar externo. Y **probar una restauración** al menos una vez (`npm run db:restore -- --file=… --dry-run` para validar, sin `--dry-run` para restaurar).
 - **Acceso del administrador**: crear un segundo administrador desde Equipo y comprobar que puede entrar; definir quién más tiene acceso y dónde se guarda la contraseña. Con un solo admin, cualquier olvido depende del servidor.
@@ -279,9 +285,10 @@ Hay cosas que la herramienta deja del lado de la empresa porque son decisiones d
 | --- | --- |
 | Pruebas automatizadas | 39 archivos de pruebas unitarias (252 casos) + **suite de integración** contra PostgreSQL; las 2 pruebas destructivas solo corren en CI |
 | Verificación de tipos | `npx tsc --noEmit` limpio |
-| Migraciones | Versionadas en `prisma/migrations`, con veinte aplicadas |
+| Migraciones | Versionadas en `prisma/migrations`, con veintiuna aplicadas |
 | Integración continua | GitHub Actions en cada push: esquema, tipos, pruebas y build |
-| Entorno de build | Node 22 declarado en `package.json` (`engines`) y `.nvmrc`. `nixpacks.toml` instala con `npm install --include=dev` (no `npm ci`: borra `node_modules` y choca con el caché del builder) y compila con `npm run build`. El Build Command del servicio debe quedar vacío para que la instalación no se ejecute dos veces. |
+| Entorno de build | Node **22.23.4 LTS** declarado en `package.json` (`engines`) y `.nvmrc`; en Railway se fija además `NIXPACKS_NODE_VERSION=22.23.4`. `nixpacks.toml` instala con `npm install --include=dev` (no `npm ci`: borra `node_modules` y choca con el caché del builder) y compila con `npm run build`. El Build Command del servicio debe quedar vacío para que la instalación no se ejecute dos veces. |
+| Dependencias de producción | El lockfile actual fija Axios 1.20.0, Multer 2.5.0 y Express 4.22.3. El despliegue debe conservar ese lockfile; no hay una validación automatizada de vulnerabilidades en CI todavía. |
 | Verificación de integración | **Automatizada**: un trabajo de CI levanta PostgreSQL, aplica las migraciones y corre la suite contra esa base (`npm run test:integration`). Cubre webhook firmado de punta a punta, cifrado en reposo, campañas, resultados de gestión, respuestas interactivas, llamadas pedidas y el volcado de webhooks, sesiones, contraseñas y respaldos. Dos pruebas destructivas (alta desde cero y restauración) solo corren en CI, donde la base es desechable, con `INTEGRATION_DESTRUCTIVE=1`. |
 | Pruebas de interfaz | **Ninguna automatizada.** Los cambios de layout se verifican a mano (capturas en escritorio y móvil); no hay pruebas de navegador. |
 | Estilo de código | Sin linter ni formateador automático: la consistencia se mantiene a mano. |
@@ -340,6 +347,8 @@ Los flujos que además se verificaron a mano contra una base real, antes de tene
 | Un solo administrador | Si esa persona falta, la instalación queda sin quien la administre | Crear un segundo administrador desde Equipo; la regla impide quedarse en cero, pero no obliga a tener dos. La recuperación desde el servidor existe (`npm run admin:reset-password`) |
 | Respaldos sin R2 | Si se pierde el Volume (o el proyecto completo), se van la base, los adjuntos y sus copias | Con R2 configurado, cada respaldo se sube cifrado al bucket privado (`margarita-backup`) y los adjuntos se copian también; Admin → Sistema muestra el estado. Sin R2, hay que descargar las copias a un lugar externo |
 | Adjuntos sin Volume | Los archivos enviados se pierden en cada deploy | Configurar `MEDIA_STORAGE_DIR` apuntando a un Volume y verificarlo en el checklist de alta |
+| Base vacía expuesta | Un tercero puede completar `/setup` antes que el operador y quedarse como administrador | No publicar ni compartir el dominio hasta realizar el alta; pendiente protegerla con un token de instalación |
+| Healthcheck verde con custodia incompleta | Railway puede aceptar el despliegue aunque falte `ENCRYPTION_KEY` o el Volume no sea persistente | Comprobar con `HEALTH_TOKEN` los checks de cifrado y almacenamiento antes de habilitar usuarios |
 | Cupo de peticiones compartido | Varios agentes en la misma oficina pueden recibir 429 | Subir el tope o limitar por usuario cuando haya equipo; hoy el acuerdo es operativo |
 
 ---
@@ -357,6 +366,8 @@ Los flujos que además se verificaron a mano contra una base real, antes de tene
 
 1. **Probar una restauración desde R2** en un entorno limpio.
 2. **Prueba real contra Meta** con una plantilla aprobada y su botón tocado; el paso a paso está en [`pruebas-meta.md`](pruebas-meta.md).
+3. **Cerrar los hallazgos del redeploy**: exigir `ENCRYPTION_KEY` al arrancar, hacer que un Volume ausente vuelva no saludable el despliegue y proteger `/setup` con un token de instalación.
+4. **Añadir revisión continua de dependencias** (`npm audit`/Dependabot o equivalente) y una política de actualización de Node LTS.
 
 El histórico de sprints, con lo que ya se entregó y cuándo, está en
 [`roadmap-v2.md`](roadmap-v2.md).
@@ -380,6 +391,17 @@ npx tsc --noEmit
 npm run db:encrypt-data
 ```
 
+### Checklist de salida a Railway
+
+Antes de declarar operativa una instalación nueva o un redeploy, confirmar:
+
+1. El commit contiene `.nvmrc`, `package.json` y `package-lock.json` actuales; el build registra **Node 22.23.4**.
+2. Railway tiene `NODE_ENV=production`, `JWT_SECRET`, `ENCRYPTION_KEY`, `DATABASE_URL`, `META_APP_SECRET`, `MEDIA_STORAGE_DIR=/data/media` y `BACKUP_DIR=/data/backups`; `NIXPACKS_NODE_VERSION=22.23.4` queda fijada explícitamente.
+3. El Volume está montado en `/data`; con `HEALTH_TOKEN`, `checks.mediaStoragePersistent` y `checks.encryptionKeyConfigured` son `true`.
+4. Las migraciones terminan con `[migraciones] Listo. La base quedó al día` y no hay un Build Command adicional en Railway.
+5. Si la base está vacía, el operador completa `/setup` antes de publicar o compartir la URL. Después, crea un segundo administrador y activa 2FA para ambos.
+6. Los logs descargados de Railway no se agregan al repositorio ni se comparten con terceros: pueden contener datos operativos e infraestructura interna.
+
 Para comprobar el reparto de dominios:
 
 ```bash
@@ -399,7 +421,7 @@ npm run landing:build     # deja la carpeta landing/ lista para subir
 En producción, sin `HEALTH_TOKEN`, `/health` solo devuelve `{ok, status,
 timestamp}`; el detalle completo exige el token. En el panel:
 
-- **Admin → Sistema**: checklist de configuración y tarjetas de seguridad (cifrado en reposo, firma, cola, alertas, retención). La tarjeta de cifrado dice cuántos registros quedaron en claro de antes del cifrado, si los hay.
+- **Admin → Sistema**: checklist de configuración y tarjetas de seguridad (cifrado en reposo, firma, cola, alertas, retención y almacenamiento). La tarjeta de cifrado dice cuántos registros quedaron en claro de antes del cifrado, si los hay; antes de habilitar una instalación hay que confirmar ahí cifrado y Volume persistente.
 - **Mi cuenta → Seguridad**: activar o desactivar la verificación en dos pasos de la propia cuenta (la tarjeta de Sistema dice cuántas cuentas y cuántos administradores la tienen puesta).
 - **Admin → WhatsApp**: credenciales de la cuenta, números con su calidad, y cifrado.
 - **Admin → Agentes**: permiso de envío manual, tope diario y cuántos mensajes manuales lleva cada agente hoy.

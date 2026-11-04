@@ -258,7 +258,12 @@ test("cifra el evento crudo del webhook y la bitácora", () => {
     const log = bitacora.data as Record<string, unknown>;
 
     assert.ok(isEncryptedJson(log.payload));
-    assert.equal(log.message, "texto de bitácora");
+    assert.ok(isEncrypted(log.message as string), "la bitácora debe quedar cifrada");
+    assert.equal((log.message as string).includes("texto de bitácora"), false);
+
+    const leidoLog = decryptQueryResult({ message: log.message }) as Record<string, unknown>;
+
+    assert.equal(leidoLog.message, "texto de bitácora");
 });
 
 test("deja intacto el índice ciego que ya viene resuelto", () => {

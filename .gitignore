@@ -9,6 +9,8 @@ dist/
 coverage/
 
 *.log
+# Volcados de logs de Railway: pueden traer datos operativos e IDs internos
+logs_railway/
 
 utils_app.md
 

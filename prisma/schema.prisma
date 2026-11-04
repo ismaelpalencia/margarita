@@ -116,6 +116,33 @@ enum LogModule {
   WEBHOOK
   META
   WHATSAPP_ACCOUNT
+  COMPLAINT
+  COMPLIANCE
+}
+
+enum ComplaintMotive {
+  HOSTIGAMIENTO
+  HORARIO
+  LENGUAJE
+  FRECUENCIA
+  DATOS_PERSONALES
+  MONTO
+  OTRO
+}
+
+enum ComplaintChannel {
+  WHATSAPP
+  LLAMADA
+  CORREO
+  PRESENCIAL
+  OTRO
+}
+
+enum ComplaintStatus {
+  ABIERTA
+  EN_PROCESO
+  CERRADA
+  ESCALADA
 }
 
 enum WebhookEventStatus {
@@ -204,28 +231,35 @@ model InteractiveReplyRule {
 }
 
 model Workspace {
-  id     String          @id @default(cuid())
-  name   String
-  slug   String          @unique
-  status WorkspaceStatus @default(ACTIVE)
+  id                      String          @id @default(cuid())
+  name                    String
+  slug                    String          @unique
+  status                  WorkspaceStatus @default(ACTIVE)
+  legalName               String?
+  rfc                     String?
+  taxRegime               String?
+  authorizedScheduleStart String          @default("08:00")
+  authorizedScheduleEnd   String          @default("21:00")
 
-  settings              WorkspaceSettings?
-  whatsappAccount       WhatsAppAccount?
-  users                 User[]
-  contacts              Contact[]
-  tags                  Tag[]
-  templates             Template[]
-  conversations         Conversation[]
-  campaigns             Campaign[]
-  messages              Message[]
-  logs                  Log[]
-  webhookEvents         WebhookEvent[]
-  quickReplies          QuickReply[]
-  outcomes              ContactOutcome[]
+  settings                 WorkspaceSettings?
+  whatsappAccount          WhatsAppAccount?
+  users                    User[]
+  contacts                 Contact[]
+  tags                     Tag[]
+  templates                Template[]
+  conversations            Conversation[]
+  campaigns                Campaign[]
+  messages                 Message[]
+  logs                     Log[]
+  webhookEvents            WebhookEvent[]
+  quickReplies             QuickReply[]
+  outcomes                 ContactOutcome[]
+  complaints               Complaint[]
+  authorizedContactMethods AuthorizedContactMethod[]
   /**
    * Traducción de las respuestas de botón a resultados de gestión.
    */
-  interactiveReplyRules InteractiveReplyRule[]
+  interactiveReplyRules    InteractiveReplyRule[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -307,11 +341,13 @@ model User {
 
   sessions UserSession[]
 
-  sentMessages Message[]        @relation("MessageSentByUser")
-  campaigns    Campaign[]       @relation("CampaignCreatedBy")
-  quickReplies QuickReply[]     @relation("QuickReplyCreatedBy")
-  outcomes     ContactOutcome[] @relation("ContactOutcomeCreatedBy")
-  contactsOptIn Contact[]       @relation("ContactOptIn")
+  sentMessages     Message[]        @relation("MessageSentByUser")
+  campaigns        Campaign[]       @relation("CampaignCreatedBy")
+  quickReplies     QuickReply[]     @relation("QuickReplyCreatedBy")
+  outcomes         ContactOutcome[] @relation("ContactOutcomeCreatedBy")
+  contactsOptIn    Contact[]        @relation("ContactOptIn")
+  complaintsOpened Complaint[]      @relation("ComplaintOpenedBy")
+  complaintsClosed Complaint[]      @relation("ComplaintClosedBy")
 
   assignedConversations Conversation[] @relation("ConversationAssignedUser")
 
@@ -422,20 +458,22 @@ model Contact {
    * mano) y cuándo pidió la baja. Si `optOutAt` tiene valor, la herramienta
    * no envía nada a ese contacto.
    */
-  optInAt      DateTime?
+  optInAt  DateTime?
   /**
    * Registro formal del consentimiento: por qué canal llegó (formulario,
    * WhatsApp, contrato, importación…) y quién lo capturó. Es la defensa
    * documental del operador ante una revisión.
    */
-  /** Índice ciego del nombre visible: permite búsqueda exacta sin tenerlo en claro. */
-  nameHash          String?
+  /**
+   * /** Índice ciego del nombre visible: permite búsqueda exacta sin tenerlo en claro.
+   */
+  nameHash String?
 
   optInSource       String?
   optInRecordedById String?
-  optInRecordedBy   User?  @relation("ContactOptIn", fields: [optInRecordedById], references: [id], onDelete: SetNull)
-  optOutAt     DateTime?
-  optOutSource String?
+  optInRecordedBy   User?     @relation("ContactOptIn", fields: [optInRecordedById], references: [id], onDelete: SetNull)
+  optOutAt          DateTime?
+  optOutSource      String?
 
   /**
    * Cuenta en revisión: el deudor dijo que no reconoce la deuda (o alguien la
@@ -478,6 +516,7 @@ model Contact {
   conversations      Conversation[]
   campaignRecipients CampaignRecipient[]
   outcomes           ContactOutcome[]
+  complaints         Complaint[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -485,6 +524,8 @@ model Contact {
   @@unique([workspaceId, phoneHash])
   @@index([workspaceId])
   @@index([phoneHash])
+  @@index([workspaceId, nameHash])
+  @@index([pausedAt])
   @@index([optOutAt])
   @@index([outcomeType])
   @@index([outcomeDueAt])
@@ -576,6 +617,7 @@ model Conversation {
   messages    Message[]
   assignments AssignmentHistory[]
   outcomes    ContactOutcome[]
+  complaints  Complaint[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -652,6 +694,7 @@ model Message {
   metaResponse Json?
 
   campaignRecipient CampaignRecipient?
+  complaints        Complaint[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -718,7 +761,9 @@ model Campaign {
   recipients CampaignRecipient[]
   messages   Message[]
 
-  /** Cuándo debe salir sola (UTC). Solo aplica al estado SCHEDULED. */
+  /**
+   * Cuándo debe salir sola (UTC). Solo aplica al estado SCHEDULED.
+   */
   scheduledFor DateTime?
 
   startedAt  DateTime?
@@ -840,6 +885,57 @@ model ContactOutcome {
   @@index([workspaceId, type])
   @@index([workspaceId, dueAt])
   @@index([contactId, createdAt])
+}
+
+model Complaint {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  contactId      String
+  contact        Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  messageId      String?
+  message        Message?      @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  motive      ComplaintMotive
+  channel     ComplaintChannel
+  description String
+  resolution  String?
+  status      ComplaintStatus  @default(ABIERTA)
+
+  openedAt    DateTime  @default(now())
+  openedById  String
+  openedBy    User      @relation("ComplaintOpenedBy", fields: [openedById], references: [id], onDelete: Restrict)
+  closedAt    DateTime?
+  closedById  String?
+  closedBy    User?     @relation("ComplaintClosedBy", fields: [closedById], references: [id], onDelete: SetNull)
+  escalatedAt DateTime?
+  escalatedTo String?
+  evidence    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId, openedAt])
+  @@index([workspaceId, status])
+  @@index([contactId])
+  @@index([conversationId])
+}
+
+model AuthorizedContactMethod {
+  id          String           @id @default(cuid())
+  workspaceId String
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  channel     ComplaintChannel
+  identifier  String
+  label       String?
+  active      Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([workspaceId, active])
 }
 
 model Log {
