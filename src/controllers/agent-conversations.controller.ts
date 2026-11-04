@@ -81,7 +81,8 @@ export class AgentConversationsController {
             quickReplies,
             aiSettings,
             aiSuggestion,
-            aiDraftBody
+            aiDraftBody,
+            aiConversation
         ] = await Promise.all([
             ConversationService.getConversationForAgent(
                 workspaceId,
@@ -107,7 +108,13 @@ export class AgentConversationsController {
                       conversationId,
                       suggestionId: draftId
                   }).catch(() => "")
-                : Promise.resolve("")
+                : Promise.resolve(""),
+            aiOn
+                ? AiSuggestionService.conversationSummary(
+                      workspaceId,
+                      conversationId
+                  ).catch(() => null)
+                : Promise.resolve(null)
         ]);
 
         await ConversationService.markAsRead(
@@ -137,6 +144,7 @@ export class AgentConversationsController {
                     : null,
             aiConfidenceMin: aiSettings.confidenceMin,
             aiSettings,
+            aiConversation,
             aiDraftBody,
             outcomeAttempts: attempts.get(conversation.contactId) ?? {
                 attempts: 0,

@@ -68,9 +68,33 @@ export class HomeController {
         });
     }
 
+    /**
+     * Oferta de IA para soporte y atención: la versión que compite por los
+     * briefs de Workana sin mezclar cobranza. No publica precios de IA
+     * porque todavía no están aprobados en `alcance-produccion.md`.
+     */
+    static async ai(_req: Request, res: Response) {
+        return res.render("pages/home/ia", {
+            title: "Asistente de IA para WhatsApp con control humano - Margarita",
+            ...supportContext()
+        });
+    }
+
     static async howToStart(_req: Request, res: Response) {
         return res.render("pages/home/how-to-start", {
             title: "Cómo empezar - Margarita",
+            ...supportContext()
+        });
+    }
+
+    /**
+     * Alta guiada: la página que se manda al cliente cuando dice «sí».
+     * Reúne lo que tiene que traer, el plan de siete días y el checklist de
+     * cierre, sin precios ni condiciones que ya viven en la propuesta.
+     */
+    static async onboarding(_req: Request, res: Response) {
+        return res.render("pages/home/onboarding", {
+            title: "Alta en 7 días - Margarita",
             ...supportContext()
         });
     }

@@ -1,0 +1,326 @@
+<%- include("../../partials/header", { title, themeLock: true }) %>
+
+<%
+    const contactUrl =
+        supportWhatsappUrl ||
+        (supportEmail ? `mailto:${supportEmail}` : "/");
+
+    const beforeStart = [
+        {
+            title: "Cuenta de Meta Business verificada",
+            text: "La verificación del negocio y el método de pago los controla Meta. Sin eso, la cuenta no puede enviar a volumen.",
+            link: { href: "/como-empezar", label: "Guía de conexión" }
+        },
+        {
+            title: "Número dedicado para WhatsApp Business",
+            text: "Un número que no esté en uso en la app normal de WhatsApp, o que se pueda migrar. Debe quedar registrado con PIN en Meta.",
+            link: { href: "/como-empezar", label: "Paso a paso" }
+        },
+        {
+            title: "Método de pago en Meta",
+            text: "La cuenta de WhatsApp Business cobra el consumo de mensajes aparte de Margarita. Sin método de pago válido no sale ningún mensaje."
+        },
+        {
+            title: "Plantillas iniciales",
+            text: "Las plantillas las aprueba Meta. Conviene tener el texto de las 3 o 4 que se van a usar en el arranque.",
+            link: { href: "/plantillas", label: "Guía de plantillas" }
+        },
+        {
+            title: "De 20 a 30 preguntas frecuentes",
+            text: "Con sus respuestas reales, no con las que «deberían» ser. Es la única fuente de la que la IA puede contestar.",
+            link: { href: "/guia", label: "Cómo se usa la base" }
+        },
+        {
+            title: "Lista del equipo",
+            text: "Quién administra, quiénes atienden y con qué número entran. Cada persona recibe su propia cuenta; no se comparten contraseñas."
+        }
+    ];
+
+    const timeline = [
+        {
+            day: "Día 1",
+            title: "Conexión con Meta",
+            text: "Se carga la app, la WABA, el número y el token permanente. Se verifica el webhook firmado y se manda un mensaje de prueba de punta a punta."
+        },
+        {
+            day: "Día 1",
+            title: "Equipo y números",
+            text: "Se crean administradores y agentes, se activa la verificación en dos pasos y se deja listo el número con el que se atiende."
+        },
+        {
+            day: "Día 2",
+            title: "Plantillas y primeras campañas",
+            text: "Se revisan las plantillas aprobadas, se mapean sus botones y se prueba una campaña pequeña con contactos reales del cliente."
+        },
+        {
+            day: "Días 2–3",
+            title: "Base de conocimiento",
+            text: "Se cargan las 20–30 entradas revisadas con el cliente. Se prueba cada una en la consola de IA sin tocar conversaciones reales."
+        },
+        {
+            day: "Días 4–7",
+            title: "Piloto en sugerencias",
+            text: "La IA redacta y el equipo decide. Se miden aceptación, ediciones y descartes. Nada sale solo."
+        },
+        {
+            day: "Días 8–14",
+            title: "Automático acotado",
+            text: "Si las métricas del piloto lo permiten, la IA contesta sola solo las preguntas cubiertas. Ante duda, queja o falta de conocimiento, entrega a una persona."
+        },
+        {
+            day: "Día 30",
+            title: "Cierre y decisión",
+            text: "Se revisa el informe del piloto y el cliente decide si continúa. Sin penalización y con su respaldo."
+        }
+    ];
+
+    const checklist = [
+        "El número ya recibe y envía por la API.",
+        "El webhook responde y la firma se valida.",
+        "Hay al menos un administrador y un agente activos.",
+        "La verificación en dos pasos está puesta en las cuentas de administrador.",
+        "Las plantillas del arranque están aprobadas por Meta.",
+        "La base de conocimiento tiene 20–30 entradas revisadas.",
+        "La IA está en modo sugerencias durante el piloto.",
+        "El equipo sabe pausar la IA por conversación.",
+        "Los respaldos están configurados y se probó una descarga.",
+        "El cliente tiene su guía de uso y sabe a quién escribir."
+    ];
+%>
+
+<main class="min-h-screen bg-white text-slate-950">
+    <section class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+            <a href="/" class="flex items-center gap-3">
+                <img src="/brand/img/margarita-wordmark-512.png" alt="Margarita" class="h-10 w-auto" />
+            </a>
+
+            <div class="flex items-center gap-3">
+                <a href="/" class="hidden rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 md:inline-flex">
+                    Inicio
+                </a>
+
+                <a href="/auth/login" class="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
+                    Iniciar sesión
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-gradient-to-b from-margarita-50 to-white">
+        <div class="mx-auto max-w-7xl px-6 py-16">
+            <div class="max-w-4xl">
+                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
+                    Alta guiada
+                </p>
+
+                <h1 class="mt-3 text-5xl font-black tracking-tight text-slate-950">
+                    Tu operación de WhatsApp, lista en 7 días.
+                </h1>
+
+                <p class="mt-6 text-lg leading-8 text-slate-600">
+                    Esta página es todo el arranque: qué necesitas traer, qué
+                    configuramos, en qué orden y cómo se comprueba cada paso. Si
+                    algo no está en esta lista, no hace falta para empezar.
+                </p>
+
+                <div class="mt-8 flex flex-wrap gap-3">
+                    <a href="<%= contactUrl %>" class="inline-flex rounded-xl bg-margarita-600 px-6 py-3 text-sm font-black text-white hover:bg-margarita-700">
+                        Agendar el alta
+                    </a>
+
+                    <a href="/como-empezar" class="inline-flex rounded-xl bg-white px-6 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">
+                        Ver la guía de Meta
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-white">
+        <div class="mx-auto max-w-7xl px-6 py-16">
+            <div class="max-w-3xl">
+                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
+                    Antes de empezar
+                </p>
+
+                <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
+                    Lo que necesitas tener a mano.
+                </h2>
+
+                <p class="mt-3 text-slate-600">
+                    La cuenta de Meta y el número son del cliente. Margarita no
+                    puede verificar un negocio ni pagar el consumo de Meta por ti.
+                </p>
+            </div>
+
+            <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <% beforeStart.forEach((item, index) => { %>
+                    <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                        <p class="text-xs font-black text-margarita-700">
+                            <%= String(index + 1).padStart(2, "0") %>
+                        </p>
+
+                        <h3 class="mt-2 font-black text-slate-900">
+                            <%= item.title %>
+                        </h3>
+
+                        <p class="mt-2 text-sm leading-6 text-slate-600">
+                            <%= item.text %>
+                        </p>
+
+                        <% if (item.link) { %>
+                            <a href="<%= item.link.href %>" class="mt-3 inline-flex text-xs font-bold text-margarita-700 hover:text-margarita-800">
+                                <%= item.link.label %> →
+                            </a>
+                        <% } %>
+                    </article>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+
+    <section class="border-y border-slate-200 bg-slate-50">
+        <div class="mx-auto max-w-7xl px-6 py-16">
+            <div class="max-w-3xl">
+                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
+                    El plan
+                </p>
+
+                <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
+                    Siete días, en este orden.
+                </h2>
+
+                <p class="mt-3 text-slate-600">
+                    Los tiempos de Meta —verificación y aprobación de
+                    plantillas— no dependen de nosotros. El resto se puede
+                    comprimir si el cliente tiene todo listo.
+                </p>
+            </div>
+
+            <ol class="mt-8 space-y-3">
+                <% timeline.forEach((item) => { %>
+                    <li class="grid gap-3 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:grid-cols-[120px_1fr]">
+                        <div>
+                            <span class="inline-flex rounded-full bg-margarita-50 px-3 py-1 text-xs font-black text-margarita-700">
+                                <%= item.day %>
+                            </span>
+                        </div>
+
+                        <div>
+                            <h3 class="font-black text-slate-900">
+                                <%= item.title %>
+                            </h3>
+
+                            <p class="mt-1 text-sm leading-6 text-slate-600">
+                                <%= item.text %>
+                            </p>
+                        </div>
+                    </li>
+                <% }) %>
+            </ol>
+        </div>
+    </section>
+
+    <section class="bg-white">
+        <div class="mx-auto grid max-w-7xl gap-8 px-6 py-16 lg:grid-cols-2">
+            <div class="rounded-3xl bg-slate-950 p-8 text-white">
+                <h2 class="text-2xl font-black">
+                    Qué hacemos nosotros
+                </h2>
+
+                <ul class="mt-5 space-y-3 text-sm leading-6 text-slate-300">
+                    <li>• Conectamos la app de Meta, la WABA, el número y el webhook firmado.</li>
+                    <li>• Dejamos el número recibiendo y enviando, con una prueba de punta a punta.</li>
+                    <li>• Cargamos contigo la base de conocimiento y probamos cada entrada.</li>
+                    <li>• Configuramos la IA en sugerencias y te enseñamos a pausarla por conversación.</li>
+                    <li>• Revisamos plantillas, botones, campañas y respaldos.</li>
+                    <li>• Damos una sesión de arranque de 2 horas y la guía escrita.</li>
+                </ul>
+            </div>
+
+            <div class="rounded-3xl bg-margarita-50 p-8 ring-1 ring-margarita-100">
+                <h2 class="text-2xl font-black text-margarita-900">
+                    Qué necesitamos de ti
+                </h2>
+
+                <ul class="mt-5 space-y-3 text-sm leading-6 text-margarita-900">
+                    <li>• La cuenta de Meta verificada y con método de pago.</li>
+                    <li>• El número dedicado y el acceso al portafolio comercial.</li>
+                    <li>• Las respuestas reales a las preguntas frecuentes.</li>
+                    <li>• La lista del equipo que va a atender.</li>
+                    <li>• Una persona con poder de decisión durante el arranque.</li>
+                    <li>• El consentimiento de los contactos que se van a escribir.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="border-t border-slate-200 bg-slate-50">
+        <div class="mx-auto max-w-7xl px-6 py-16">
+            <div class="max-w-3xl">
+                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
+                    Checklist
+                </p>
+
+                <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
+                    Antes de decir «ya está».
+                </h2>
+
+                <p class="mt-3 text-slate-600">
+                    Si alguna casilla queda vacía, el arranque no está terminado.
+                    Esta es la misma lista que se revisa en la sesión de cierre.
+                </p>
+            </div>
+
+            <ul class="mt-8 grid gap-3 md:grid-cols-2">
+                <% checklist.forEach((item) => { %>
+                    <li class="flex items-start gap-3 rounded-2xl bg-white px-5 py-4 text-sm text-slate-700 shadow-sm ring-1 ring-slate-200">
+                        <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-margarita-100 text-xs font-black text-margarita-700" aria-hidden="true">
+                            ✓
+                        </span>
+                        <span><%= item %></span>
+                    </li>
+                <% }) %>
+            </ul>
+
+            <div class="mt-8 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <h3 class="font-black text-slate-900">
+                    Después del arranque
+                </h3>
+
+                <p class="mt-2 text-sm leading-6 text-slate-600">
+                    La operación sigue con la guía de uso, la guía de plantillas y
+                    el panel de IA. Ahí se ve cuántos borradores se usaron, cuántos
+                    se editaron, cuántos se descartaron y cuánto costó la IA.
+                </p>
+
+                <div class="mt-4 flex flex-wrap gap-3 text-sm font-bold">
+                    <a href="/guia" class="text-margarita-700 hover:text-margarita-800">Guía de uso →</a>
+                    <a href="/plantillas" class="text-margarita-700 hover:text-margarita-800">Guía de plantillas →</a>
+                    <a href="/propuesta" class="text-margarita-700 hover:text-margarita-800">Alcance y condiciones →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-slate-950">
+        <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-6 py-14 md:flex-row md:items-center">
+            <div>
+                <h2 class="text-2xl font-black text-white">
+                    ¿Empezamos con tu operación?
+                </h2>
+
+                <p class="mt-2 max-w-2xl text-slate-300">
+                    Escríbenos con el giro de tu negocio y cuántas conversaciones
+                    atiendes al día. Con eso se arma el alta y la base de
+                    conocimiento inicial.
+                </p>
+            </div>
+
+            <a href="<%= contactUrl %>" class="inline-flex shrink-0 rounded-xl bg-margarita-500 px-6 py-3 text-sm font-black text-white hover:bg-margarita-400">
+                Hablar por WhatsApp
+            </a>
+        </div>
+    </section>
+</main>

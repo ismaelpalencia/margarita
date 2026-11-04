@@ -84,6 +84,8 @@ test("ninguna pantalla del panel responde 500", async () => {
     /** Las pantallas de siempre. Si alguna truena, aquí se ve. */
     const pantallas = [
         "/",
+        "/ia",
+        "/onboarding",
         "/como-empezar",
         "/guia",
         "/plantillas",
@@ -222,6 +224,8 @@ test("las pantallas clave traen su contenido", async () => {
     const casos: Array<[string, RegExp]> = [
         ["/", /Cobranza por WhatsApp/],
         ["/", /js\/loading\.js/],
+        ["/ia", /Tu WhatsApp responde, entrega y registra/],
+        ["/onboarding", /Tu operación de WhatsApp, lista en 7 días/],
         ["/aviso-de-privacidad", /7 días hábiles/],
         ["/guia", /En esta guía/],
         ["/plantillas", /Plantillas que se aprueban/],

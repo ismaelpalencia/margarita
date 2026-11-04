@@ -62,6 +62,33 @@ export type SuggestionStats = {
     completionTokens: number;
 };
 
+/**
+ * Lo que pasó con la IA en un hilo concreto.
+ *
+ * Es la vista corta que se enseña dentro de la conversación: cuántas veces
+ * respondió sola, cuántas entregó a una persona y cuánto costó. El detalle
+ * completo, con la base de conocimiento y los ajustes, sigue en Admin → IA.
+ */
+export type ConversationAiSummary = {
+    total: number;
+    pending: number;
+    accepted: number;
+    edited: number;
+    discarded: number;
+    superseded: number;
+    autoSent: number;
+    handoffs: number;
+    costMicros: number;
+    last: {
+        status: AiSuggestionStatus;
+        intent: string | null;
+        confidence: number;
+        handoff: boolean;
+        reason: string | null;
+        createdAt: Date;
+    } | null;
+};
+
 export class AiSuggestionService {
     /**
      * Genera la respuesta de un trabajo encolado: borrador en `SUGGEST` o
@@ -830,6 +857,73 @@ export class AiSuggestionService {
             calls: usage._count._all,
             promptTokens: usage._sum.promptTokens || 0,
             completionTokens: usage._sum.completionTokens || 0
+        };
+    }
+
+    /**
+     * Resumen de IA de un solo hilo, para el panel de la conversación.
+     *
+     * No recibe fecha: el hilo puede durar meses y aquí interesa todo su
+     * historial, no una ventana de 30 días como en la consola de Admin.
+     */
+    static async conversationSummary(
+        workspaceId: string,
+        conversationId: string
+    ): Promise<ConversationAiSummary> {
+        const [grouped, usage, last] = await Promise.all([
+            prisma.aiSuggestion.groupBy({
+                by: ["status"],
+                where: { workspaceId, conversationId },
+                _count: { _all: true }
+            }),
+            prisma.aiUsage.aggregate({
+                where: { workspaceId, conversationId },
+                _sum: { costMicros: true }
+            }),
+            prisma.aiSuggestion.findFirst({
+                where: { workspaceId, conversationId },
+                orderBy: { createdAt: "desc" },
+                select: {
+                    status: true,
+                    intent: true,
+                    confidence: true,
+                    handoff: true,
+                    reason: true,
+                    createdAt: true
+                }
+            })
+        ]);
+
+        const byStatus = new Map(
+            grouped.map((row) => [row.status, row._count._all])
+        );
+
+        const pending = byStatus.get(AiSuggestionStatus.PENDING) || 0;
+        const accepted = byStatus.get(AiSuggestionStatus.ACCEPTED) || 0;
+        const edited = byStatus.get(AiSuggestionStatus.EDITED) || 0;
+        const discarded = byStatus.get(AiSuggestionStatus.DISCARDED) || 0;
+        const superseded = byStatus.get(AiSuggestionStatus.SUPERSEDED) || 0;
+        const autoSent = byStatus.get(AiSuggestionStatus.AUTO_SENT) || 0;
+        const handoffs = byStatus.get(AiSuggestionStatus.HANDOFF) || 0;
+
+        return {
+            total:
+                pending +
+                accepted +
+                edited +
+                discarded +
+                superseded +
+                autoSent +
+                handoffs,
+            pending,
+            accepted,
+            edited,
+            discarded,
+            superseded,
+            autoSent,
+            handoffs,
+            costMicros: usage._sum.costMicros || 0,
+            last: last ?? null
         };
     }
 }

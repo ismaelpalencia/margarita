@@ -554,6 +554,11 @@ Operación con DeepSeek:
   muestra si quedó **pausado** o **entregado** a una persona.
 - Botón **Pausar IA / Reactivar** por conversación. Responder a mano pausa la
   IA automáticamente; no hay que apagar el workspace entero.
+- **Panel de IA del hilo**: modo actual, último resultado (respondió sola,
+  entregó, borrador pendiente, usado, editado o descartado), intención,
+  confianza, motivo del handoff, veces que respondió sola, veces que entregó,
+  borradores aprobados y costo estimado de esa conversación. El enlace a los
+  ajustes solo aparece para administradores.
 
 ### Consumo en Admin → IA
 
@@ -561,8 +566,9 @@ Operación con DeepSeek:
 - Costo estimado del periodo (micro-USD acumulado).
 - Tasa de aceptación de los borradores del modo sugerencia.
 
-El tablero general no cambia: estas métricas viven en `/admin/ai` para no
-mezclar la operación diaria con el consumo del modelo.
+El tablero general vive en `/admin/ai` para no mezclar la operación diaria con
+el consumo del modelo. El resumen por hilo se muestra dentro de la conversación,
+sin exponer la base de conocimiento ni los ajustes a los agentes.
 
 ---
 

@@ -111,7 +111,8 @@ export class AdminConversationsController {
             quickReplies,
             aiSettings,
             aiSuggestion,
-            aiDraftBody
+            aiDraftBody,
+            aiConversation
         ] = await Promise.all([
             ConversationService.getConversationForAdmin(
                 workspaceId,
@@ -138,7 +139,13 @@ export class AdminConversationsController {
                       conversationId,
                       suggestionId: draftId
                   }).catch(() => "")
-                : Promise.resolve("")
+                : Promise.resolve(""),
+            aiOn
+                ? AiSuggestionService.conversationSummary(
+                      workspaceId,
+                      conversationId
+                  ).catch(() => null)
+                : Promise.resolve(null)
         ]);
 
         /** Abrir el hilo quita el aviso de no leídos. */
@@ -170,6 +177,7 @@ export class AdminConversationsController {
                     : null,
             aiConfidenceMin: aiSettings.confidenceMin,
             aiSettings,
+            aiConversation,
             aiDraftBody,
             outcomeAttempts: attempts.get(conversation.contactId) ?? {
                 attempts: 0,

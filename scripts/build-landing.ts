@@ -36,9 +36,19 @@ const PAGES: Array<{ view: string; file: string; title: string }> = [
         title: "Margarita — Cobranza por WhatsApp para equipos"
     },
     {
+        view: "pages/home/ia",
+        file: "ia.html",
+        title: "Asistente de IA para WhatsApp con control humano - Margarita"
+    },
+    {
         view: "pages/home/how-to-start",
         file: "como-empezar.html",
         title: "Cómo empezar - Margarita"
+    },
+    {
+        view: "pages/home/onboarding",
+        file: "onboarding.html",
+        title: "Alta en 7 días - Margarita"
     },
     {
         view: "pages/home/guia",
@@ -114,6 +124,8 @@ function rewriteLinks(html: string) {
 
     return html
         .replace(/href="\/como-empezar"/g, 'href="como-empezar.html"')
+        .replace(/href="\/onboarding"/g, 'href="onboarding.html"')
+        .replace(/href="\/ia"/g, 'href="ia.html"')
         .replace(/href="\/guia"/g, 'href="guia.html"')
         .replace(/href="\/plantillas"/g, 'href="plantillas.html"')
         .replace(/href="\/propuesta"/g, 'href="propuesta.html"')

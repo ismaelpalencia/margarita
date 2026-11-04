@@ -316,6 +316,16 @@
                 templateVariableShape
             }) %>
 
+            <% if ((typeof aiConversation !== "undefined" && aiConversation) || (aiSettings && aiSettings.enabled)) { %>
+                <%- include("../../../partials/ai-conversation-panel", {
+                    aiSettings,
+                    aiConversation,
+                    conversation,
+                    user,
+                    formatDateTimeMX
+                }) %>
+            <% } %>
+
             <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
                 <h3 class="font-bold text-slate-800">
                     Datos

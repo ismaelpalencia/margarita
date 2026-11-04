@@ -118,10 +118,13 @@ producto real.
 
 1. **La función del titular existe y se ve en tres minutos.** Ya existe: la IA
    responde sola lo frecuente y entrega a una persona cuando duda
-   ([`ia-respuestas.md`](ia-respuestas.md)). Falta mostrarlo en la landing y en
-   un video corto, sin prometer más de lo que hace.
-2. **Se instala sin que el cliente toque infraestructura.** Ya casi: Railway,
-   guías y alta. Falta un formulario de onboarding y un checklist de una página.
+   ([`ia-respuestas.md`](ia-respuestas.md)). La página pública `/ia` ya cuenta
+   la promesa «responde, entrega, registra», y cada conversación muestra su
+   panel de IA. Falta grabar el video corto
+   ([`demo-video.md`](demo-video.md)), sin prometer más de lo que hace.
+2. **Se instala sin que el cliente toque infraestructura.** Ya está la página
+   `/onboarding` con lo que hay que traer, el plan de siete días y el checklist
+   de cierre. Falta usarla en un alta real y ajustar lo que falle.
 3. **Tiene un precio que se explica en una línea.** Hoy el precio está atado a
    cobranza y a una promoción que expira el 2026-12-31. La edición IA necesita
    su propio nivel, con su propio argumento.
@@ -216,8 +219,8 @@ escala.
 | **2** | Handoff con motivo y pausa por intervención humana | Es la señal #3 del brief y el diferenciador frente a los 49 bots | Una queja o un «quiero hablar con alguien» entrega la conversación y lo registra |
 | **3** | Automático acotado por confianza + base de conocimiento | Convierte «sugerencia» en «ahorro de tiempo», que es lo que se vende | Responde FAQ, no responde a baja, no responde fuera de ventana, escala si duda |
 | **4** | Captura de leads y rutas a recursos | Cubre la publicación #2 sin construir un CRM | Guarda nombre e interés y envía el recurso configurado |
-| **5** | Segundo workspace con perfil `COMERCIO` | Prueba que el camino genérico es real | Responde con el mismo código y otras etiquetas |
-| **6** | Demo, video y caso del piloto | Sin esto no hay propuesta que compita | Número demo + video de 3 min + métricas |
+| **5** | Segundo workspace con perfil `COMERCIO` | Prueba que el camino genérico es real | Responde con el mismo código y otras etiquetas. **Guía lista** en [`demo-comercio.md`](demo-comercio.md); falta desplegarlo y cargar el contenido. |
+| **6** | Demo, video y caso del piloto | Sin esto no hay propuesta que compita | Número demo + video de 3 min + métricas. **Guion listo** en [`demo-video.md`](demo-video.md); falta grabar y correr el piloto. |
 
 **Explícitamente fuera de orden:** constructor visual de flujos, multi-tenant,
 integraciones a medida y campañas para otros giros. Son las tres trampas que

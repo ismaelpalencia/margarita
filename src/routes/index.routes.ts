@@ -14,6 +14,8 @@ import webhookRoutes from "./webhook.routes";
 const router = Router();
 
 router.get("/", HomeController.index);
+/** Oferta de IA con control humano: la puerta que pide el mercado de soporte. */
+router.get("/ia", HomeController.ai);
 
 router.use("/auth", authRoutes);
 router.use("/admin", adminRoutes);
@@ -27,6 +29,8 @@ router.use("/webhooks", webhookRoutes);
 router.use("/media", authMiddleware, mediaRoutes);
 
 router.get("/como-empezar", HomeController.howToStart);
+/** Alta guiada de una página: qué traer, en qué orden y cómo se comprueba. */
+router.get("/onboarding", HomeController.onboarding);
 /** Manual del equipo: público, para mandarlo por WhatsApp. */
 router.get("/guia", HomeController.guide);
 /** Guía de plantillas: la que se entrega al contratar. */

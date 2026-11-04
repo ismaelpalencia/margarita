@@ -1,0 +1,367 @@
+<%- include("../../partials/header", { title, themeLock: true }) %>
+
+<%
+    const contactUrl =
+        supportWhatsappUrl ||
+        (supportEmail ? `mailto:${supportEmail}` : "/");
+
+    const pillars = [
+        {
+            title: "Responde",
+            text: "Contesta en segundos las preguntas que ya están en tu base de conocimiento. Si la respuesta no está, no inventa: entrega.",
+            detail: "Hasta 30 entradas revisadas contigo"
+        },
+        {
+            title: "Entrega",
+            text: "Ante una duda, una queja, una baja o una conversación sensible, pasa el hilo a una persona con el motivo a la vista.",
+            detail: "Handoff con motivo y prioridad"
+        },
+        {
+            title: "Registra",
+            text: "Cada borrador, respuesta automática y entrega queda en la bitácora. Tú ves qué contestó la IA, qué aprobó tu equipo y cuánto costó.",
+            detail: "Auditoría y métricas por conversación"
+        }
+    ];
+
+    const steps = [
+        {
+            number: "01",
+            title: "Conectamos tu WhatsApp",
+            text: "La API oficial de Meta, el número, el webhook firmado y una prueba de punta a punta. Sin WhatsApp Web ni atajos."
+        },
+        {
+            number: "02",
+            title: "Cargamos tus respuestas",
+            text: "Entre 20 y 30 preguntas frecuentes con sus respuestas reales. Es la única fuente de la que la IA puede contestar."
+        },
+        {
+            number: "03",
+            title: "Elegimos el modo",
+            text: "Empieza en sugerencias: la IA redacta y tu equipo decide. Cuando las métricas lo permiten, se enciende el automático acotado para FAQ."
+        },
+        {
+            number: "04",
+            title: "Medimos y ajustamos",
+            text: "Aceptación, ediciones, descartes, entregas a personas y costo por conversación. Lo que no se mide, no se mejora."
+        }
+    ];
+
+    const faqs = [
+        {
+            q: "¿La IA puede contestar cualquier cosa?",
+            a: "No. Solo responde lo que está en la base de conocimiento, dentro de la ventana de 24 horas de WhatsApp y con la confianza mínima que tú defines. Si falta cualquiera de esas condiciones, entrega la conversación a una persona."
+        },
+        {
+            q: "¿Qué pasa si la IA se equivoca?",
+            a: "En modo sugerencias nada sale sin que tu equipo lo apruebe. En automático acotado, la IA solo responde preguntas cubiertas; ante una duda, una queja o un tema sensible, se detiene y avisa. Además, cualquiera puede pausarla por conversación."
+        },
+        {
+            q: "¿Se lleva mi historial si apago la IA?",
+            a: "No. Apagarla solo deja de generar respuestas. Las conversaciones, los borradores y la base de conocimiento se conservan, y puedes volver a encenderla cuando quieras."
+        },
+        {
+            q: "¿Tengo que cambiar de número?",
+            a: "Se usa un número dedicado de WhatsApp Business. Puede ser uno nuevo o uno que migres; el número tiene que quedar registrado en Meta con su PIN. La cuenta de Meta y su método de pago son del cliente."
+        },
+        {
+            q: "¿Es un SaaS mensual o una instalación?",
+            a: "Hoy es una instalación por empresa: cada operación tiene su propio espacio, su base de datos y su dominio. No es multi-inquilino ni se revende. El alcance y las condiciones se cierran antes de empezar."
+        },
+        {
+            q: "¿Cuánto cuesta?",
+            a: "Depende del tamaño de la operación y del alcance. El precio se define en la demo, con una propuesta fija y por escrito. No se cotiza por mensaje ni se cobra por usuario."
+        }
+    ];
+%>
+
+<main class="min-h-screen bg-white text-slate-950">
+    <section class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+            <a href="/" class="flex items-center gap-3">
+                <img src="/brand/img/margarita-wordmark-512.png" alt="Margarita" class="h-10 w-auto" />
+            </a>
+
+            <div class="flex items-center gap-3">
+                <a href="/onboarding" class="hidden rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 md:inline-flex">
+                    Alta en 7 días
+                </a>
+
+                <a href="/auth/login" class="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
+                    Iniciar sesión
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-gradient-to-b from-margarita-50 to-white">
+        <div class="mx-auto grid max-w-7xl gap-12 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <div>
+                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
+                    Asistente de IA para WhatsApp · Con control humano
+                </p>
+
+                <h1 class="mt-4 text-5xl font-black leading-tight tracking-tight text-slate-950">
+                    Tu WhatsApp responde, entrega y registra.
+                    <span class="text-margarita-700">Tu equipo manda.</span>
+                </h1>
+
+                <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+                    Margarita conecta la API oficial de WhatsApp, contesta lo
+                    frecuente con IA y entrega la conversación a una persona
+                    cuando hace falta. Nada sale sin control y todo queda
+                    auditado.
+                </p>
+
+                <div class="mt-8 flex flex-wrap gap-3">
+                    <a href="<%= contactUrl %>" class="inline-flex rounded-xl bg-margarita-600 px-6 py-3 text-sm font-black text-white hover:bg-margarita-700">
+                        Ver la demo por WhatsApp
+                    </a>
+
+                    <a href="/onboarding" class="inline-flex rounded-xl bg-white px-6 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">
+                        Cómo es el alta
+                    </a>
+                </div>
+
+                <ul class="mt-8 grid gap-3 text-sm font-semibold text-slate-700 sm:grid-cols-3">
+                    <li class="flex items-center gap-2">
+                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-margarita-100 text-xs font-black text-margarita-700" aria-hidden="true">✓</span>
+                        API oficial de Meta
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-margarita-100 text-xs font-black text-margarita-700" aria-hidden="true">✓</span>
+                        Piloto de <%= pilotDays %> días
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-margarita-100 text-xs font-black text-margarita-700" aria-hidden="true">✓</span>
+                        Datos cifrados
+                    </li>
+                </ul>
+            </div>
+
+            <div class="rounded-[2rem] bg-slate-950 p-6 text-white shadow-xl">
+                <p class="text-xs font-black uppercase tracking-wide text-margarita-300">
+                    Así se ve el control
+                </p>
+
+                <div class="mt-4 space-y-3">
+                    <div class="rounded-2xl bg-white/10 p-4">
+                        <p class="text-xs font-bold text-slate-300">Cliente</p>
+                        <p class="mt-1 text-sm">¿Hacen envíos a Monterrey y cuánto cuesta?</p>
+                    </div>
+
+                    <div class="rounded-2xl bg-margarita-500/15 p-4 ring-1 ring-margarita-400/30">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="text-xs font-bold text-margarita-300">IA · borrador</p>
+                            <span class="rounded-full bg-margarita-500 px-2 py-0.5 text-[10px] font-black text-white">92%</span>
+                        </div>
+                        <p class="mt-1 text-sm text-slate-100">
+                            Sí, enviamos a Monterrey. El costo depende del volumen; te paso con una persona para cotizarlo.
+                        </p>
+                        <p class="mt-2 text-[11px] text-slate-400">
+                            Cubierto por la base · listo para que tu equipo lo apruebe
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl bg-amber-500/10 p-4 ring-1 ring-amber-400/30">
+                        <p class="text-xs font-bold text-amber-300">Handoff</p>
+                        <p class="mt-1 text-sm text-amber-50">
+                            La IA entregó la conversación a una persona: la pregunta necesita una cotización.
+                        </p>
+                    </div>
+                </div>
+
+                <p class="mt-4 text-[11px] leading-5 text-slate-400">
+                    Ejemplo ilustrativo. En modo sugerencias, el mensaje no sale
+                    hasta que alguien del equipo lo aprueba.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="border-y border-slate-200 bg-white">
+        <div class="mx-auto max-w-7xl px-6 py-16">
+            <div class="max-w-3xl">
+                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
+                    La promesa
+                </p>
+
+                <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
+                    Responde. Entrega. Registra.
+                </h2>
+
+                <p class="mt-3 text-slate-600">
+                    Tres cosas, una sola herramienta. La tercera es la que casi
+                    nadie ofrece y la que te deja dormir tranquilo.
+                </p>
+            </div>
+
+            <div class="mt-8 grid gap-4 md:grid-cols-3">
+                <% pillars.forEach((pillar) => { %>
+                    <article class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                        <h3 class="text-xl font-black text-slate-900">
+                            <%= pillar.title %>
+                        </h3>
+
+                        <p class="mt-3 text-sm leading-6 text-slate-600">
+                            <%= pillar.text %>
+                        </p>
+
+                        <p class="mt-4 text-xs font-bold text-margarita-700">
+                            <%= pillar.detail %>
+                        </p>
+                    </article>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-slate-50">
+        <div class="mx-auto max-w-7xl px-6 py-16">
+            <div class="max-w-3xl">
+                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
+                    Cómo funciona
+                </p>
+
+                <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
+                    De la conexión a la primera respuesta en días.
+                </h2>
+            </div>
+
+            <ol class="mt-8 grid gap-4 md:grid-cols-2">
+                <% steps.forEach((step) => { %>
+                    <li class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                        <p class="text-xs font-black text-margarita-700">
+                            <%= step.number %>
+                        </p>
+
+                        <h3 class="mt-2 text-lg font-black text-slate-900">
+                            <%= step.title %>
+                        </h3>
+
+                        <p class="mt-2 text-sm leading-6 text-slate-600">
+                            <%= step.text %>
+                        </p>
+                    </li>
+                <% }) %>
+            </ol>
+        </div>
+    </section>
+
+    <section class="border-y border-slate-200 bg-white">
+        <div class="mx-auto grid max-w-7xl gap-8 px-6 py-16 lg:grid-cols-2">
+            <div>
+                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
+                    El control
+                </p>
+
+                <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
+                    La IA propone. Tu equipo autoriza.
+                </h2>
+
+                <p class="mt-3 leading-7 text-slate-600">
+                    No es un chatbot suelto. Es una capa de IA encima de una
+                    bandeja real, con personas, permisos y bitácora. Si la IA
+                    duda, se detiene; si alguien del equipo responde, se pausa
+                    sola en ese hilo.
+                </p>
+
+                <ul class="mt-5 space-y-3 text-sm leading-6 text-slate-700">
+                    <li class="flex gap-2"><span class="text-margarita-700">✓</span> Pausa por conversación, con un clic.</li>
+                    <li class="flex gap-2"><span class="text-margarita-700">✓</span> Modo sugerencias: nada sale sin aprobación.</li>
+                    <li class="flex gap-2"><span class="text-margarita-700">✓</span> Automático solo para preguntas cubiertas.</li>
+                    <li class="flex gap-2"><span class="text-margarita-700">✓</span> Límites diarios, por hilo y presupuesto mensual.</li>
+                    <li class="flex gap-2"><span class="text-margarita-700">✓</span> Entrega con motivo cuando hay queja o duda.</li>
+                    <li class="flex gap-2"><span class="text-margarita-700">✓</span> Bitácora de cada decisión y su costo.</li>
+                </ul>
+            </div>
+
+            <div class="rounded-3xl bg-margarita-50 p-8 ring-1 ring-margarita-100">
+                <h3 class="text-xl font-black text-margarita-900">
+                    Lo que no vas a encontrar aquí
+                </h3>
+
+                <p class="mt-2 text-sm leading-6 text-margarita-800">
+                    Para que la propuesta no se convierta en otra cosa:
+                </p>
+
+                <ul class="mt-4 space-y-2 text-sm leading-6 text-margarita-900">
+                    <li>• Constructor visual de flujos.</li>
+                    <li>• CRM, ERP, facturación o integraciones a medida.</li>
+                    <li>• Campañas masivas para otros giros.</li>
+                    <li>• Multi-tenant o panel de reventa.</li>
+                    <li>• Promesas de «alto volumen» sin medición.</li>
+                </ul>
+
+                <p class="mt-4 text-xs leading-5 text-margarita-800">
+                    Lo que sí incluye: conexión con Meta, bandeja, hasta 30
+                    entradas de conocimiento, sugerencias desde el día 1,
+                    automático acotado para FAQ, handoff, ventana de 24 horas,
+                    bajas, cifrado, bitácora, respaldos, capacitación de 2 horas
+                    y piloto de <%= pilotDays %> días.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-white">
+        <div class="mx-auto max-w-4xl px-6 py-16">
+            <div class="max-w-3xl">
+                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
+                    Preguntas frecuentes
+                </p>
+
+                <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
+                    Antes de la demo.
+                </h2>
+            </div>
+
+            <div class="mt-8 space-y-3">
+                <% faqs.forEach((faq) => { %>
+                    <details class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                        <summary class="cursor-pointer font-black text-slate-900">
+                            <%= faq.q %>
+                        </summary>
+
+                        <p class="mt-3 text-sm leading-6 text-slate-600">
+                            <%= faq.a %>
+                        </p>
+                    </details>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-slate-950">
+        <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-6 py-14 md:flex-row md:items-center">
+            <div>
+                <h2 class="text-2xl font-black text-white">
+                    ¿Quieres verlo con tus propias preguntas?
+                </h2>
+
+                <p class="mt-2 max-w-2xl text-slate-300">
+                    Mándanos tres consultas reales de tu operación y te
+                    mostramos cómo responde, cuándo entrega y qué queda
+                    registrado.
+                </p>
+            </div>
+
+            <a href="<%= contactUrl %>" class="inline-flex shrink-0 rounded-xl bg-margarita-500 px-6 py-3 text-sm font-black text-white hover:bg-margarita-400">
+                Agendar demo
+            </a>
+        </div>
+    </section>
+
+    <footer class="border-t border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
+            <p>© 2026 Margarita. Instalación por empresa sobre la API oficial de WhatsApp.</p>
+
+            <div class="flex flex-wrap gap-4 font-semibold">
+                <a href="/" class="hover:text-margarita-700">Inicio</a>
+                <a href="/onboarding" class="hover:text-margarita-700">Alta en 7 días</a>
+                <a href="/como-empezar" class="hover:text-margarita-700">Guía de conexión</a>
+                <a href="/propuesta" class="hover:text-margarita-700">Alcance</a>
+                <a href="/aviso-de-privacidad" class="hover:text-margarita-700">Privacidad</a>
+            </div>
+        </div>
+    </footer>
+</main>

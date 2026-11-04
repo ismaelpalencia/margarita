@@ -14,6 +14,7 @@ import bcrypt from "bcrypt";
 
 import { prisma } from "../../src/config/prisma";
 import { AiAutoReplyService } from "../../src/services/ai/auto-reply.service";
+import { AiSuggestionService } from "../../src/services/ai/suggestion.service";
 import { MessageService } from "../../src/services/message.service";
 import { emailIndex } from "../../src/utils/email";
 import { contactPhoneFields } from "../../src/utils/phone";
@@ -372,4 +373,88 @@ test("una entrega por capacidad no deja la IA pausada para siempre", async () =>
     assert.equal(stored.aiHandoffReason, "DAILY_LIMIT");
     assert.equal(stored.aiHandoffAt !== null, true);
     assert.equal(stored.aiPausedAt, null);
+});
+
+test("el resumen de IA del hilo cuenta respuestas, entregas y costo", async () => {
+    const { conversation } = await createConversation();
+    const now = Date.now();
+
+    const traces = [
+        {
+            status: AiSuggestionStatus.AUTO_SENT,
+            intent: "HORARIO",
+            handoff: false,
+            createdAt: new Date(now - 2 * 60 * 1000)
+        },
+        {
+            status: AiSuggestionStatus.HANDOFF,
+            intent: "COTIZACION",
+            handoff: true,
+            createdAt: new Date(now - 60 * 1000)
+        },
+        {
+            status: AiSuggestionStatus.PENDING,
+            intent: "ENVIO",
+            handoff: false,
+            createdAt: new Date(now)
+        }
+    ];
+
+    for (const trace of traces) {
+        const inbound = await prisma.message.create({
+            data: {
+                workspaceId: fixture.workspaceId,
+                conversationId: conversation.id,
+                direction: MessageDirection.IN,
+                type: MessageType.TEXT,
+                status: MessageStatus.DELIVERED,
+                source: MessageSource.WEBHOOK,
+                body: "Pregunta de prueba",
+                createdAt: trace.createdAt
+            }
+        });
+
+        await prisma.aiSuggestion.create({
+            data: {
+                workspaceId: fixture.workspaceId,
+                conversationId: conversation.id,
+                inboundMessageId: inbound.id,
+                body: "Respuesta de prueba",
+                confidence: 0.9,
+                intent: trace.intent,
+                handoff: trace.handoff,
+                reason: trace.handoff ? "Necesita una persona." : null,
+                model: "deepseek-chat",
+                status: trace.status,
+                decidedAt: trace.status === AiSuggestionStatus.PENDING ? null : trace.createdAt,
+                createdAt: trace.createdAt
+            }
+        });
+
+        await prisma.aiUsage.create({
+            data: {
+                workspaceId: fixture.workspaceId,
+                conversationId: conversation.id,
+                model: "deepseek-chat",
+                promptTokens: 100,
+                completionTokens: 20,
+                latencyMs: 500,
+                costMicros: 400,
+                createdAt: trace.createdAt
+            }
+        });
+    }
+
+    const summary = await AiSuggestionService.conversationSummary(
+        fixture.workspaceId,
+        conversation.id
+    );
+
+    assert.equal(summary.total, 3);
+    assert.equal(summary.autoSent, 1);
+    assert.equal(summary.handoffs, 1);
+    assert.equal(summary.pending, 1);
+    assert.equal(summary.costMicros, 1200);
+    assert.equal(summary.last?.status, AiSuggestionStatus.PENDING);
+    assert.equal(summary.last?.intent, "ENVIO");
 });
