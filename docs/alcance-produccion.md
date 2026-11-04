@@ -72,7 +72,7 @@ sirve la landing en su propia raíz, que es lo que hace una instalación sola.
 
 Margarita es una aplicación web para **operar la WhatsApp Business Cloud API de Meta**: enviar campañas con plantillas aprobadas, recibir y atender conversaciones, asignarlas a agentes y seguir el ciclo real de cada mensaje (enviado, entregado, leído, fallido).
 
-**Qué no es:** no es un CRM, no administra ventas, embudos, cotizaciones ni facturación. No es un chatbot: no responde solo. No crea plantillas en Meta.
+**Qué no es:** no es un CRM, no administra ventas, embudos, cotizaciones ni facturación. **Hoy no responde solo**: la IA puede redactar un borrador que una persona revisa y envía. No crea plantillas en Meta.
 
 ### Modelo de despliegue
 
@@ -116,6 +116,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - **Logs**: auditoría filtrable por nivel y módulo, con el detalle de cada evento, más **Webhooks recibidos** (Admin → Logs → Webhooks): los últimos 20 eventos **tal como los mandó Meta**, con un botón para copiarlos completos. Es la pantalla con la que se comprueba qué identificador trae un botón cuando un deudor lo toca de verdad, sin entrar a la base.
 - **Aviso de carga con la marca**: al cambiar de pantalla y al enviar un formulario aparece el sello de Margarita con un aro girando y «Cargando…». El botón que se envió queda ocupado —con un aro dentro y sin poder tocarse otra vez—, así nadie manda dos veces el mismo mensaje o la misma campaña. Con «reducir movimiento» activado en el sistema, el sello y el aro se quedan quietos y solo avisa el texto.
 - **Respuestas rápidas**: textos guardados que el equipo inserta con un clic, con `{nombre}` y `{telefono}` del contacto.
+- **IA de respuestas (fase 1, solo sugerencias)**: con `AI_ENABLED=true` y una llave de proveedor, cada mensaje entrante puede generar un **borrador** que aparece en la bandeja con su confianza y su motivo. El equipo lo usa —se copia al compositor— o lo descarta; **nada se envía solo**. Admin → IA permite ajustar el tono, el umbral y la base de conocimiento, y probar una pregunta sin tocar una conversación real. Con `AI_ENABLED=false` la herramienta funciona exactamente igual que antes.
 - **Sistema**: checklist de configuración y estado de seguridad, cola y worker.
 - **Guía rápida en el panel**: qué hace la herramienta, el día en tres pasos, lo que **no** hace y los accesos a la guía de uso, la de plantillas y soporte. Sustituyó al «Roadmap», que era información interna y no debía ver el cliente.
 
@@ -125,6 +126,7 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 - Estado operativo: `AVAILABLE`, `BUSY`, `BREAK`, `OFFLINE`. No queda disponible automáticamente al entrar.
 - Cuatro formas de responder: **nota local** (no sale a WhatsApp), **texto libre** dentro de la ventana de 24 horas, **archivos** (imagen, video, audio o documento) dentro de la misma ventana, y **plantilla aprobada** cuando está cerrada.
 - **Respuestas rápidas**: un clic inserta el texto guardado en el compositor, ya con el nombre y el teléfono del contacto.
+- **Borrador de IA**: si el administrador activó la IA, el hilo muestra una tarjeta con el texto propuesto, su confianza y el motivo. **Usar borrador** lo copia al compositor para revisarlo; **Descartar** lo quita. El agente siempre decide qué se envía.
 - **Respuestas de botón y de lista**: cuando el cliente toca un botón o elige de una lista, se guarda **qué opción eligió** (identificador y texto), el hilo lo muestra con su etiqueta y queda en la bitácora. Se entienden las **tres formas** que manda Meta: el botón de una **plantilla** (`type: "button"` con su texto y su payload), el botón de un mensaje interactivo (`button_reply`) y la elección de una lista (`list_reply`). El identificador se guarda en claro porque es con lo que se mapea a un resultado de gestión; el texto va cifrado, como el resto del contenido. El identificador se copia de la burbuja con un clic, que es lo que hace falta para crear su regla.
 - **Enviar botones dentro de la ventana de 24 horas**: desde el hilo (admin y agente) se manda un mensaje con **hasta 3 botones** de 20 caracteres. Los límites de Meta se validan antes de llamarla —texto de 1,024, pie de 60 y botones únicos— y la respuesta del cliente entra al mismo circuito de reglas que un botón de plantilla.
 - **Plantillas con botones**: se envían —desde el hilo y en **campañas**— resolviendo las **tres variables** que admite Meta: una en el encabezado, las del cuerpo y una al final de la URL de un botón. El formulario muestra solo los campos que la plantilla pide, para no mandar un componente de más (que Meta rechaza), y los valores quedan guardados **por destinatario** (con `{nombre}`, `{telefono}` y columnas del Excel).
@@ -357,10 +359,11 @@ Los flujos que además se verificaron a mano contra una base real, antes de tene
 
 **Pendiente de producto.**
 
-1. **Listas desplegables** desde el panel (los botones ya se envían y sus respuestas ya se interpretan).
-2. **Recordatorios de la agenda**: la cita ya existe y se ordena por hora; falta que avise sola.
-3. **Permisos por número** y **repartir campañas entre números** (ver [`multinumero.md`](multinumero.md)).
-4. **No leídos por persona**, si el equipo crece y molesta que el aviso sea por conversación.
+1. **IA fase 2**: envío automático acotado, límite diario efectivo, handoff y pausa por conversación. La fase 1 (sugerencias) ya está implementada y documentada en [`ia-respuestas.md`](ia-respuestas.md).
+2. **Listas desplegables** desde el panel (los botones ya se envían y sus respuestas ya se interpretan).
+3. **Recordatorios de la agenda**: la cita ya existe y se ordena por hora; falta que avise sola.
+4. **Permisos por número** y **repartir campañas entre números** (ver [`multinumero.md`](multinumero.md)).
+5. **No leídos por persona**, si el equipo crece y molesta que el aviso sea por conversación.
 
 **Pendiente de operación.**
 

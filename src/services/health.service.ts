@@ -4,6 +4,7 @@ import { appConfig } from "../config/app.config";
 import { prisma } from "../config/prisma";
 import { retentionState } from "../jobs/retention.job";
 import { webhookWorkerState } from "../jobs/webhook-worker";
+import { aiSuggestionWorkerState } from "../jobs/ai-suggestion.job";
 import { webhookTelemetry } from "./webhook-telemetry.service";
 import { BackupFileService } from "./backup-file.service";
 import { storageStatus } from "./storage-status.service";
@@ -222,6 +223,22 @@ export class HealthService {
                 webhookEventRetentionDays: appConfig.webhookEventRetentionDays,
                 lastRunAt: retentionState.lastRunAt,
                 lastResult: retentionState.lastResult
+            },
+            /**
+             * Worker de borradores de IA. Con `AI_ENABLED=false` aparece
+             * apagado y no consulta nada: la instalación funciona igual.
+             */
+            ai: {
+                enabled: aiSuggestionWorkerState.enabled,
+                running: aiSuggestionWorkerState.running,
+                lastRunAt: aiSuggestionWorkerState.lastRunAt,
+                lastErrorAt: aiSuggestionWorkerState.lastErrorAt,
+                schemaReady: aiSuggestionWorkerState.schemaReady,
+                missingSchema: aiSuggestionWorkerState.missingSchema,
+                pausedUntil: aiSuggestionWorkerState.pausedUntil,
+                processed: aiSuggestionWorkerState.processed,
+                skipped: aiSuggestionWorkerState.skipped,
+                failed: aiSuggestionWorkerState.failed
             },
             /** Respaldos automáticos: edad del último y si está viejo. */
             backups: backups

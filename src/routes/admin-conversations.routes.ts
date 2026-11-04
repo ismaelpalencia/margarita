@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { AdminConversationsController } from "../controllers/admin-conversations.controller";
+import { AiSuggestionController } from "../controllers/ai-suggestion.controller";
 import { OutcomeController } from "../controllers/outcome.controller";
 import { mediaUploadSingle } from "../middlewares/upload.middleware";
 
@@ -32,6 +33,15 @@ router.post("/:id/close", AdminConversationsController.close);
 router.post("/:id/reopen", AdminConversationsController.reopen);
 router.post("/:id/messages/:messageId/delete", AdminConversationsController.deleteMessage);
 router.post("/:id/messages/:messageId/restore", AdminConversationsController.restoreMessage);
+/** Borradores de IA: usar o descartar. Nunca envían por sí solos. */
+router.post(
+    "/:id/ai/:suggestionId/use",
+    AiSuggestionController.use("/admin/conversations")
+);
+router.post(
+    "/:id/ai/:suggestionId/discard",
+    AiSuggestionController.discard("/admin/conversations")
+);
 router.post("/:id/purge", AdminConversationsController.purge);
 
 export default router;

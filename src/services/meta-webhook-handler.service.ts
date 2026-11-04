@@ -14,6 +14,7 @@ import {
 
 import { prisma } from "../config/prisma";
 import { appConfig } from "../config/app.config";
+import { logger } from "../config/logger";
 import {
     MetaWebhookMessage,
     MetaWebhookPayload,
@@ -32,6 +33,7 @@ import { prefetchMedia } from "./media.service";
 import { WhatsAppNumberService } from "./whatsapp-number.service";
 import { AccountHealthService } from "./account-health.service";
 import { InteractiveReplyService } from "./interactive-reply.service";
+import { enqueueSuggestion } from "./ai/queue.service";
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
@@ -330,6 +332,37 @@ export class MetaWebhookHandlerService {
             alreadyOptedOutAt: contact.optOutAt,
             body: parsed.body
         });
+
+        /**
+         * La IA se encola **después** de la baja: si el cliente escribió
+         * STOP, no se genera ni un borrador. El trabajo corre aparte para no
+         * retrasar el webhook; el worker vuelve a validar la política antes
+         * de llamar al modelo.
+         */
+        if (!optedOut) {
+            try {
+                await enqueueSuggestion({
+                    workspaceId,
+                    conversationId: conversation.id,
+                    inboundMessageId: savedMessage.id,
+                    type: parsed.type,
+                    body: parsed.body,
+                    replyTitle: parsed.replyTitle ?? null
+                });
+            } catch (error) {
+                /** La IA es opcional: un fallo al encolar no pierde el mensaje. */
+                logger.warn(
+                    {
+                        error:
+                            error instanceof Error
+                                ? error.message
+                                : String(error),
+                        conversationId: conversation.id
+                    },
+                    "No se pudo encolar el borrador de IA."
+                );
+            }
+        }
 
         emitToWorkspaceAndUsers(
             workspaceId,

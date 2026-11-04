@@ -479,3 +479,8 @@ Estas no bloquean nada y se priorizan según lo que pida la operación:
 ## Lo que sigue fuera de alcance
 
 Multi-tenant con SuperAdmin, billing, integración con CRM externo, IA o chatbot, y cualquier cosa que compita por tiempo antes de que la operación actual esté sólida.
+
+> **Nota (2026-11-03).** La IA dejó de estar fuera de alcance: se está
+> evaluando como la siguiente capa del producto. La propuesta técnica vive en
+> [`ia-respuestas.md`](ia-respuestas.md). Este documento sigue siendo
+> histórico; el estado vigente está en [`alcance-produccion.md`](alcance-produccion.md).

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IA de respuestas | Margarita</title>
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+
+    <%- include("../../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <section class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">
+                IA de respuestas
+            </h2>
+
+            <p class="mt-1 max-w-3xl text-slate-500">
+                La IA redacta un borrador y una persona decide. Nada se envía
+                solo: al usarlo, el texto se copia al compositor de la
+                conversación para revisarlo y mandarlo.
+            </p>
+        </section>
+
+        <% if (success) { %>
+            <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
+                <% if (success === "settings") { %>
+                    Ajustes de IA guardados.
+                <% } else if (success === "knowledge") { %>
+                    Base de conocimiento actualizada.
+                <% } else { %>
+                    Acción realizada.
+                <% } %>
+            </div>
+        <% } %>
+
+        <% if (error) { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                <% if (error === "validation") { %>
+                    Revisa los datos: hay campos vacíos o fuera de rango.
+                <% } else if (error === "settings") { %>
+                    No se pudieron guardar los ajustes.
+                <% } else if (error === "knowledge") { %>
+                    No se pudo actualizar la base de conocimiento.
+                <% } else if (error === "test") { %>
+                    Escribe una pregunta de prueba válida.
+                <% } else { %>
+                    Ocurrió un error.
+                <% } %>
+            </div>
+        <% } %>
+
+        <% if (!schemaReady) { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                Falta aplicar la migración de IA en esta base. Corre
+                <span class="font-mono">npx prisma migrate deploy</span> y vuelve
+                a cargar la página. Mientras tanto, la herramienta sigue
+                funcionando sin IA.
+            </div>
+        <% } %>
+
+        <section class="mb-6 grid gap-4 lg:grid-cols-3">
+            <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 lg:col-span-2">
+                <h3 class="font-bold text-slate-800">
+                    Estado del proveedor
+                </h3>
+
+                <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                    <div>
+                        <dt class="text-slate-500">Proveedor</dt>
+                        <dd class="font-medium text-slate-800"><%= providerLabel %></dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-slate-500">Interruptor de la instalación</dt>
+                        <dd class="font-medium <%= globalEnabled ? "text-margarita-700" : "text-amber-700" %>">
+                            <%= globalEnabled ? "AI_ENABLED=true" : "AI_ENABLED=false" %>
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-slate-500">Credenciales</dt>
+                        <dd class="font-medium <%= providerReady ? "text-margarita-700" : "text-red-700" %>">
+                            <%= providerReady ? "Configuradas" : "Faltan" %>
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-slate-500">Modelo por defecto</dt>
+                        <dd class="font-medium text-slate-800"><%= defaultModel %></dd>
+                    </div>
+                </dl>
+
+                <% if (!globalEnabled) { %>
+                    <p class="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-800">
+                        La IA está apagada en la instalación
+                        (<span class="font-mono">AI_ENABLED=false</span>). La
+                        consola de prueba funciona igual, pero no se generan
+                        borradores en las conversaciones hasta encenderla.
+                    </p>
+                <% } %>
+
+                <% if (!providerReady) { %>
+                    <p class="mt-4 rounded-xl bg-red-50 px-4 py-3 text-xs text-red-700">
+                        Falta <span class="font-mono">AI_API_KEY</span>. Sin
+                        llave no se puede probar ni generar nada.
+                    </p>
+                <% } %>
+            </article>
+
+            <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <h3 class="font-bold text-slate-800">
+                    Últimos 30 días
+                </h3>
+
+                <dl class="mt-3 space-y-2 text-sm">
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Borradores</dt>
+                        <dd class="font-semibold text-slate-800"><%= stats.total %></dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Pendientes</dt>
+                        <dd class="font-semibold text-slate-800"><%= stats.pending %></dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Usados</dt>
+                        <dd class="font-semibold text-margarita-700"><%= stats.accepted %></dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Editados</dt>
+                        <dd class="font-semibold text-amber-700"><%= stats.edited %></dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Descartados</dt>
+                        <dd class="font-semibold text-slate-500"><%= stats.discarded %></dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Reemplazados</dt>
+                        <dd class="font-semibold text-slate-500"><%= stats.superseded %></dd>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-100 pt-2">
+                        <dt class="text-slate-500">Aceptación</dt>
+                        <dd class="font-bold text-slate-900">
+                            <%= stats.acceptanceRate === null ? "—" : `${Math.round(stats.acceptanceRate * 100)}%` %>
+                        </dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Llamadas / tokens</dt>
+                        <dd class="font-semibold text-slate-800">
+                            <%= stats.calls %> · <%= stats.promptTokens + stats.completionTokens %>
+                        </dd>
+                    </div>
+                </dl>
+            </article>
+        </section>
+
+        <section class="mb-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h3 class="font-bold text-slate-800">
+                Ajustes del workspace
+            </h3>
+
+            <form action="/admin/ai/settings" method="POST" class="mt-4 space-y-5">
+                <label class="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3">
+                    <input
+                        type="checkbox"
+                        name="enabled"
+                        value="true"
+                        class="mt-1 h-4 w-4"
+                        <%= settings.enabled ? "checked" : "" %>
+                    />
+
+                    <span class="text-sm text-slate-700">
+                        <span class="font-semibold">Generar borradores en este workspace.</span>
+                        Requiere además <span class="font-mono">AI_ENABLED=true</span>
+                        en la instalación.
+                    </span>
+                </label>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">
+                            Modo
+                        </label>
+
+                        <select
+                            name="mode"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        >
+                            <option value="OFF" <%= settings.mode === "OFF" ? "selected" : "" %>>
+                                Apagada
+                            </option>
+                            <option value="SUGGEST" <%= settings.mode !== "OFF" ? "selected" : "" %>>
+                                Sugerencias (fase 1)
+                            </option>
+                        </select>
+
+                        <p class="mt-2 text-xs text-slate-500">
+                            El envío automático todavía no está disponible.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">
+                            Modelo (opcional)
+                        </label>
+
+                        <input
+                            name="model"
+                            value="<%= settings.model || "" %>"
+                            placeholder="<%= defaultModel %>"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+
+                        <p class="mt-2 text-xs text-slate-500">
+                            Vacío usa el modelo global de la instalación.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">
+                            Tono
+                        </label>
+
+                        <input
+                            name="tone"
+                            value="<%= settings.tone || "" %>"
+                            placeholder="cercano, claro y breve"
+                            maxlength="80"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">
+                            Idioma
+                        </label>
+
+                        <input
+                            name="language"
+                            value="<%= settings.language %>"
+                            maxlength="10"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">
+                            Confianza mínima
+                        </label>
+
+                        <input
+                            type="number"
+                            name="confidenceMin"
+                            value="<%= settings.confidenceMin %>"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+
+                        <p class="mt-2 text-xs text-slate-500">
+                            Debajo de este valor la bandeja avisa que el borrador es dudoso.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">
+                            Límite diario (fase 2)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="maxRepliesPerDay"
+                            value="<%= settings.maxRepliesPerDay %>"
+                            min="0"
+                            max="1000"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+
+                        <p class="mt-2 text-xs text-slate-500">
+                            Reservado para cuando la IA pueda responder sola.
+                        </p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">
+                        Contexto del negocio
+                    </label>
+
+                    <textarea
+                        name="systemPrompt"
+                        rows="4"
+                        maxlength="4000"
+                        placeholder="Qué hace la empresa, cómo habla y qué no debe prometer."
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                    ><%= settings.systemPrompt || "" %></textarea>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">
+                        Entregar a una persona si el cliente menciona
+                    </label>
+
+                    <input
+                        name="handoffKeywords"
+                        value="<%= settings.handoffKeywords.join(", ") %>"
+                        placeholder="persona, abogado, queja"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                    />
+
+                    <p class="mt-2 text-xs text-slate-500">
+                        Sepáralas con coma. La conversación no se cierra sola:
+                        solo se marca para que la tome una persona.
+                    </p>
+                </div>
+
+                <button class="rounded-xl bg-margarita-600 px-5 py-3 text-sm font-semibold text-white hover:bg-margarita-700">
+                    Guardar ajustes
+                </button>
+            </form>
+        </section>
+
+        <section class="mb-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h3 class="font-bold text-slate-800">
+                Consola de prueba
+            </h3>
+
+            <p class="mt-1 text-sm text-slate-500">
+                Prueba cómo respondería la IA con la base de conocimiento
+                actual. No guarda nada ni toca una conversación real.
+            </p>
+
+            <form action="/admin/ai/test" method="POST" class="mt-4 flex flex-col gap-2 sm:flex-row">
+                <input
+                    name="question"
+                    value="<%= testQuestion || "" %>"
+                    required
+                    maxlength="500"
+                    placeholder="¿Cuál es el horario de atención?"
+                    class="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                />
+
+                <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                    Probar
+                </button>
+            </form>
+
+            <% if (testError) { %>
+                <div class="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                    <%= testError %>
+                </div>
+            <% } %>
+
+            <% if (testResult) { %>
+                <%
+                    const resultConfidence = Math.round(testResult.result.confidence * 100);
+                    const resultClass = testResult.result.handoff
+                        ? "bg-amber-50 text-amber-800 ring-amber-200"
+                        : "bg-margarita-50 text-margarita-700 ring-margarita-200";
+                %>
+
+                <div class="mt-4 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 <%= resultClass %>">
+                            Confianza <%= resultConfidence %>%
+                        </span>
+
+                        <% if (testResult.result.intent) { %>
+                            <span class="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200">
+                                <%= testResult.result.intent %>
+                            </span>
+                        <% } %>
+
+                        <span class="text-xs text-slate-500">
+                            <%= testResult.model %> · <%= testResult.latencyMs %> ms
+                        </span>
+                    </div>
+
+                    <% if (testResult.result.handoff) { %>
+                        <p class="mt-3 text-sm font-semibold text-amber-800">
+                            La IA entregaría la conversación a una persona.
+                        </p>
+                    <% } else { %>
+                        <p class="mt-3 whitespace-pre-wrap text-sm text-slate-800">
+                            <%= testResult.result.reply %>
+                        </p>
+                    <% } %>
+
+                    <% if (testResult.result.reason) { %>
+                        <p class="mt-2 text-xs text-slate-500">
+                            <%= testResult.result.reason %>
+                        </p>
+                    <% } %>
+
+                    <% if (testResult.result.parseFailed) { %>
+                        <p class="mt-2 text-xs font-semibold text-amber-700">
+                            El modelo no respetó el formato JSON; se muestra el texto tal cual.
+                        </p>
+                    <% } %>
+
+                    <div class="mt-3">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Conocimiento usado
+                        </p>
+
+                        <% if (testResult.knowledge.length === 0) { %>
+                            <p class="mt-1 text-xs text-slate-500">
+                                Ninguna entrada coincidió con la pregunta.
+                            </p>
+                        <% } else { %>
+                            <ul class="mt-1 space-y-1 text-xs text-slate-600">
+                                <% testResult.knowledge.forEach((entry) => { %>
+                                    <li>
+                                        · <span class="font-semibold"><%= entry.question %></span>
+                                    </li>
+                                <% }) %>
+                            </ul>
+                        <% } %>
+                    </div>
+                </div>
+            <% } %>
+        </section>
+
+        <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h3 class="font-bold text-slate-800">
+                Base de conocimiento
+            </h3>
+
+            <p class="mt-1 max-w-3xl text-sm text-slate-500">
+                Es la única fuente de la que la IA puede responder. Si un dato
+                no está aquí, el borrador lo marca para que lo tome una
+                persona.
+            </p>
+
+            <form action="/admin/ai/knowledge" method="POST" class="mt-4 space-y-3 rounded-xl bg-slate-50 p-4">
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">
+                            Pregunta
+                        </label>
+
+                        <input
+                            name="question"
+                            required
+                            maxlength="200"
+                            placeholder="¿Cuál es el horario de atención?"
+                            class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">
+                            Palabras clave (separadas por coma)
+                        </label>
+
+                        <input
+                            name="keywords"
+                            maxlength="300"
+                            placeholder="horario, abren, cierran"
+                            class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-xs font-semibold text-slate-600">
+                        Respuesta
+                    </label>
+
+                    <textarea
+                        name="answer"
+                        rows="3"
+                        required
+                        maxlength="4000"
+                        placeholder="Abrimos de lunes a viernes, de 9:00 a 18:00."
+                        class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                    ></textarea>
+                </div>
+
+                <div class="flex flex-wrap items-end gap-3">
+                    <div class="w-28">
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">
+                            Prioridad
+                        </label>
+
+                        <input
+                            type="number"
+                            name="priority"
+                            value="0"
+                            min="0"
+                            max="100"
+                            class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                        />
+                    </div>
+
+                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                        Agregar entrada
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-5 space-y-2">
+                <% if (entries.length === 0) { %>
+                    <p class="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                        Todavía no hay entradas. Sin conocimiento, la IA
+                        entregará casi todo a una persona.
+                    </p>
+                <% } %>
+
+                <% entries.forEach((entry) => { %>
+                    <article class="rounded-xl border border-slate-200 p-4 <%= entry.isActive ? "" : "opacity-60" %>">
+                        <div class="flex flex-wrap items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-slate-800">
+                                    <%= entry.question %>
+                                </p>
+
+                                <p class="mt-1 whitespace-pre-wrap text-sm text-slate-600">
+                                    <%= entry.answer %>
+                                </p>
+                            </div>
+
+                            <div class="flex shrink-0 items-center gap-2">
+                                <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold <%= entry.isActive ? "bg-margarita-50 text-margarita-700" : "bg-slate-100 text-slate-500" %>">
+                                    <%= entry.isActive ? "Activa" : "Inactiva" %>
+                                </span>
+
+                                <a href="/admin/ai/knowledge/<%= entry.id %>" class="text-xs font-semibold text-slate-600 hover:text-slate-900">
+                                    Editar
+                                </a>
+
+                                <form action="/admin/ai/knowledge/<%= entry.id %>/active" method="POST">
+                                    <input type="hidden" name="isActive" value="<%= entry.isActive ? "false" : "true" %>" />
+
+                                    <button class="text-xs font-semibold <%= entry.isActive ? "text-slate-500" : "text-margarita-700" %> hover:underline">
+                                        <%= entry.isActive ? "Desactivar" : "Activar" %>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <% if (entry.keywords.length > 0) { %>
+                            <div class="mt-2 flex flex-wrap gap-1">
+                                <% entry.keywords.forEach((keyword) => { %>
+                                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">
+                                        <%= keyword %>
+                                    </span>
+                                <% }) %>
+                            </div>
+                        <% } %>
+
+                        <% if (entry.priority > 0) { %>
+                            <p class="mt-1 text-[11px] text-slate-400">
+                                Prioridad <%= entry.priority %>
+                            </p>
+                        <% } %>
+                    </article>
+                <% }) %>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

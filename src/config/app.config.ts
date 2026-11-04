@@ -410,6 +410,36 @@ export const appConfig = {
                 path.join(process.cwd(), "uploads", "media"),
             "..",
             "backups"
-        )
+        ),
+
+    /**
+     * Capa de IA (fase 1: sugerencias).
+     *
+     * `AI_ENABLED` es el interruptor maestro de la instalación; cada
+     * workspace además tiene su propio `AiSettings.enabled`. Sin llave o con
+     * el interruptor apagado la app funciona exactamente igual que antes.
+     *
+     * `AI_PROVIDER=mock` existe para pruebas y CI: respuestas deterministas,
+     * sin red. `deepseek` usa su API compatible con OpenAI.
+     */
+    ai: {
+        enabled: process.env.AI_ENABLED === "true",
+        provider: (process.env.AI_PROVIDER || "deepseek").trim().toLowerCase(),
+        baseUrl:
+            process.env.AI_BASE_URL?.trim() || "https://api.deepseek.com",
+        apiKey: process.env.AI_API_KEY?.trim() || "",
+        model: process.env.AI_MODEL?.trim() || "deepseek-chat",
+        timeoutMs: Number(process.env.AI_TIMEOUT_MS) || 20000,
+        maxContextMessages:
+            Number(process.env.AI_MAX_CONTEXT_MESSAGES) || 12,
+        maxKnowledgeEntries:
+            Number(process.env.AI_MAX_KNOWLEDGE_ENTRIES) || 6,
+        debounceSeconds: Number(process.env.AI_DEBOUNCE_SECONDS) || 4,
+        workerIntervalMs:
+            Number(process.env.AI_WORKER_INTERVAL_MS) || 3000,
+        maxAttempts: Number(process.env.AI_MAX_ATTEMPTS) || 2,
+        maxTokens: Number(process.env.AI_MAX_TOKENS) || 400,
+        temperature: Number(process.env.AI_TEMPERATURE) || 0.3
+    }
 };
 

@@ -1,0 +1,293 @@
+import { Request, Response } from "express";
+import { LogLevel, LogModule } from "@prisma/client";
+
+import { appConfig } from "../config/app.config";
+import { aiProviderLabel, isProviderConfigured } from "../services/ai/provider";
+import { AiSettingsService } from "../services/ai/settings.service";
+import { KnowledgeService } from "../services/ai/knowledge";
+import { AiSuggestionService } from "../services/ai/suggestion.service";
+import { LogService } from "../services/log.service";
+import { getRequiredParam } from "../utils/request";
+import {
+    aiSettingsSchema,
+    aiTestSchema,
+    createKnowledgeEntrySchema,
+    splitKeywords,
+    updateKnowledgeEntrySchema
+} from "../validations/ai.validation";
+
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+const EMPTY_STATS = {
+    total: 0,
+    pending: 0,
+    accepted: 0,
+    edited: 0,
+    discarded: 0,
+    acceptanceRate: null as number | null,
+    calls: 0,
+    promptTokens: 0,
+    completionTokens: 0,
+    superseded: 0
+};
+
+export class AdminAiController {
+    private static async loadIndexData(req: Request) {
+        const workspaceId = req.user!.workspaceId;
+
+        try {
+            const [settings, entries, stats] = await Promise.all([
+                AiSettingsService.get(workspaceId),
+                KnowledgeService.list(workspaceId),
+                AiSuggestionService.stats(
+                    workspaceId,
+                    new Date(Date.now() - THIRTY_DAYS_MS)
+                )
+            ]);
+
+            return {
+                settings,
+                entries,
+                stats,
+                providerLabel: aiProviderLabel(),
+                providerReady: isProviderConfigured(),
+                globalEnabled: appConfig.ai.enabled,
+                defaultModel: appConfig.ai.model,
+                schemaReady: true
+            };
+        } catch {
+            /**
+             * Si la migración de IA todavía no se aplicó, la pantalla debe
+             * abrir igual y decirlo, no tumbar el panel de administración.
+             */
+            return {
+                settings: AiSettingsService.defaults(),
+                entries: [],
+                stats: EMPTY_STATS,
+                providerLabel: aiProviderLabel(),
+                providerReady: isProviderConfigured(),
+                globalEnabled: appConfig.ai.enabled,
+                defaultModel: appConfig.ai.model,
+                schemaReady: false
+            };
+        }
+    }
+
+    static async index(req: Request, res: Response) {
+        /** Se nombra la clase a propósito: Express llama al handler sin `this`. */
+        const data = await AdminAiController.loadIndexData(req);
+
+        return res.render("pages/admin/ai/index", {
+            user: req.user,
+            ...data,
+            success: req.query.success || null,
+            error: req.query.error || null,
+            testQuestion: "",
+            testResult: null,
+            testError: null
+        });
+    }
+
+    static async saveSettings(req: Request, res: Response) {
+        const parsed = aiSettingsSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.redirect("/admin/ai?error=validation");
+        }
+
+        try {
+            await AiSettingsService.save(
+                req.user!.workspaceId,
+                req.user!.id,
+                {
+                    enabled: parsed.data.enabled,
+                    mode: parsed.data.mode,
+                    systemPrompt: parsed.data.systemPrompt,
+                    tone: parsed.data.tone,
+                    language: parsed.data.language,
+                    confidenceMin: parsed.data.confidenceMin,
+                    maxRepliesPerDay: parsed.data.maxRepliesPerDay,
+                    handoffKeywords: splitKeywords(parsed.data.handoffKeywords),
+                    model: parsed.data.model
+                }
+            );
+
+            await LogService.create({
+                workspaceId: req.user!.workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.AI,
+                action: "AI_SETTINGS_UPDATED",
+                message: "Se actualizaron los ajustes de IA.",
+                payload: {
+                    enabled: parsed.data.enabled,
+                    mode: parsed.data.mode,
+                    confidenceMin: parsed.data.confidenceMin,
+                    model: parsed.data.model || null
+                }
+            });
+
+            return res.redirect("/admin/ai?success=settings");
+        } catch {
+            return res.redirect("/admin/ai?error=settings");
+        }
+    }
+
+    static async createEntry(req: Request, res: Response) {
+        const parsed = createKnowledgeEntrySchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.redirect("/admin/ai?error=validation");
+        }
+
+        try {
+            const entry = await KnowledgeService.create(
+                req.user!.workspaceId,
+                req.user!.id,
+                {
+                    question: parsed.data.question,
+                    answer: parsed.data.answer,
+                    keywords: splitKeywords(parsed.data.keywords),
+                    priority: parsed.data.priority
+                }
+            );
+
+            await LogService.create({
+                workspaceId: req.user!.workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.AI,
+                action: "AI_KNOWLEDGE_CREATED",
+                message: "Se creó una entrada de la base de conocimiento.",
+                payload: { entryId: entry.id }
+            });
+
+            return res.redirect("/admin/ai?success=knowledge");
+        } catch {
+            return res.redirect("/admin/ai?error=knowledge");
+        }
+    }
+
+    static async showEditEntry(req: Request, res: Response) {
+        const entryId = getRequiredParam(req, "id");
+
+        try {
+            const entry = await KnowledgeService.getById(
+                req.user!.workspaceId,
+                entryId
+            );
+
+            return res.render("pages/admin/ai/edit-entry", {
+                user: req.user,
+                entry,
+                error: null
+            });
+        } catch {
+            return res.redirect("/admin/ai?error=knowledge");
+        }
+    }
+
+    static async updateEntry(req: Request, res: Response) {
+        const entryId = getRequiredParam(req, "id");
+        const parsed = updateKnowledgeEntrySchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            const entry = await KnowledgeService.getById(
+                req.user!.workspaceId,
+                entryId
+            ).catch(() => null);
+
+            if (!entry) {
+                return res.redirect("/admin/ai?error=knowledge");
+            }
+
+            return res.status(400).render("pages/admin/ai/edit-entry", {
+                user: req.user,
+                entry,
+                error: parsed.error.issues[0]?.message || "Datos inválidos."
+            });
+        }
+
+        try {
+            await KnowledgeService.update(
+                req.user!.workspaceId,
+                entryId,
+                {
+                    question: parsed.data.question,
+                    answer: parsed.data.answer,
+                    keywords: splitKeywords(parsed.data.keywords),
+                    priority: parsed.data.priority
+                }
+            );
+
+            await LogService.create({
+                workspaceId: req.user!.workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.AI,
+                action: "AI_KNOWLEDGE_UPDATED",
+                message: "Se actualizó una entrada de la base de conocimiento.",
+                payload: { entryId }
+            });
+
+            return res.redirect("/admin/ai?success=knowledge");
+        } catch {
+            return res.redirect("/admin/ai?error=knowledge");
+        }
+    }
+
+    static async setEntryActive(req: Request, res: Response) {
+        const entryId = getRequiredParam(req, "id");
+        const isActive = req.body?.isActive === "true";
+
+        try {
+            await KnowledgeService.setActive(
+                req.user!.workspaceId,
+                entryId,
+                isActive
+            );
+
+            return res.redirect("/admin/ai?success=knowledge");
+        } catch {
+            return res.redirect("/admin/ai?error=knowledge");
+        }
+    }
+
+    static async test(req: Request, res: Response) {
+        const parsed = aiTestSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.redirect("/admin/ai?error=test");
+        }
+
+        /** Se nombra la clase a propósito: Express llama al handler sin `this`. */
+        const data = await AdminAiController.loadIndexData(req);
+
+        try {
+            const testResult = await AiSuggestionService.preview({
+                workspaceId: req.user!.workspaceId,
+                question: parsed.data.question
+            });
+
+            return res.render("pages/admin/ai/index", {
+                user: req.user,
+                ...data,
+                success: null,
+                error: null,
+                testQuestion: parsed.data.question,
+                testResult,
+                testError: null
+            });
+        } catch (error) {
+            return res.status(400).render("pages/admin/ai/index", {
+                user: req.user,
+                ...data,
+                success: null,
+                error: null,
+                testQuestion: parsed.data.question,
+                testResult: null,
+                testError:
+                    error instanceof Error
+                        ? error.message
+                        : "No se pudo probar la IA."
+            });
+        }
+    }
+}

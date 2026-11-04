@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editar conocimiento | Margarita</title>
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+
+    <%- include("../../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-3xl px-6 py-8">
+        <section class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">
+                Editar entrada de conocimiento
+            </h2>
+
+            <a href="/admin/ai" class="mt-2 inline-block text-sm font-medium text-slate-500 hover:text-slate-700">
+                ← Volver a IA
+            </a>
+        </section>
+
+        <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <% if (error) { %>
+                <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <form action="/admin/ai/knowledge/<%= entry.id %>" method="POST" class="space-y-5">
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">
+                        Pregunta
+                    </label>
+
+                    <input
+                        name="question"
+                        value="<%= entry.question %>"
+                        required
+                        maxlength="200"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                    />
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">
+                        Respuesta
+                    </label>
+
+                    <textarea
+                        name="answer"
+                        rows="5"
+                        required
+                        maxlength="4000"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                    ><%= entry.answer %></textarea>
+
+                    <p class="mt-2 text-xs text-slate-500">
+                        Es lo único que la IA puede afirmar sobre este tema.
+                    </p>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">
+                            Palabras clave
+                        </label>
+
+                        <input
+                            name="keywords"
+                            value="<%= entry.keywords.join(", ") %>"
+                            maxlength="300"
+                            placeholder="horario, abren, cierran"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+
+                        <p class="mt-2 text-xs text-slate-500">
+                            Sepáralas con coma. Ayudan a encontrar la entrada
+                            cuando el cliente usa otras palabras.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">
+                            Prioridad
+                        </label>
+
+                        <input
+                            type="number"
+                            name="priority"
+                            value="<%= entry.priority %>"
+                            min="0"
+                            max="100"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+
+                        <p class="mt-2 text-xs text-slate-500">
+                            Mayor prioridad gana cuando dos entradas empatan.
+                        </p>
+                    </div>
+                </div>
+
+                <button class="w-full rounded-xl bg-margarita-600 px-4 py-3 font-semibold text-white hover:bg-margarita-700">
+                    Guardar cambios
+                </button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

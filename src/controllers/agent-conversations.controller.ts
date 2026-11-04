@@ -1,11 +1,15 @@
 import { Request, Response } from "express";
+import { AiMode } from "@prisma/client";
 
+import { appConfig } from "../config/app.config";
 import { ConversationService } from "../services/conversation.service";
 import { MessageService } from "../services/message.service";
 import { TemplateService } from "../services/template.service";
 import { QuickReplyService } from "../services/quick-reply.service";
 import { ContactOutcomeService } from "../services/contact-outcome.service";
 import { SendPolicyService } from "../services/send-policy.service";
+import { AiSettingsService } from "../services/ai/settings.service";
+import { AiSuggestionService } from "../services/ai/suggestion.service";
 import { startOfTodayIn } from "../utils/date";
 import {
     OUTCOME_BADGE_CLASSES,
@@ -63,15 +67,47 @@ export class AgentConversationsController {
 
     static async show(req: Request, res: Response) {
         const conversationId = getRequiredParam(req, "id");
+        /** Borrador recién aprobado que hay que precargar en el compositor. */
+        const draftId =
+            typeof req.query.ai === "string" ? req.query.ai : "";
+        const workspaceId = req.user!.workspaceId;
 
-        const [conversation, templates, quickReplies] = await Promise.all([
+        /** Sin la capa encendida no se tocan las tablas de IA. */
+        const aiOn = appConfig.ai.enabled;
+
+        const [
+            conversation,
+            templates,
+            quickReplies,
+            aiSettings,
+            aiSuggestion,
+            aiDraftBody
+        ] = await Promise.all([
             ConversationService.getConversationForAgent(
-                req.user!.workspaceId,
+                workspaceId,
                 req.user!.id,
                 conversationId
             ),
-            TemplateService.listApprovedTemplates(req.user!.workspaceId),
-            QuickReplyService.listActive(req.user!.workspaceId)
+            TemplateService.listApprovedTemplates(workspaceId),
+            QuickReplyService.listActive(workspaceId),
+            aiOn
+                ? AiSettingsService.get(workspaceId).catch(() =>
+                      AiSettingsService.defaults()
+                  )
+                : Promise.resolve(AiSettingsService.defaults()),
+            aiOn
+                ? AiSuggestionService.latestPending(
+                      workspaceId,
+                      conversationId
+                  ).catch(() => null)
+                : Promise.resolve(null),
+            aiOn && draftId
+                ? AiSuggestionService.bodyForUse({
+                      workspaceId,
+                      conversationId,
+                      suggestionId: draftId
+                  }).catch(() => "")
+                : Promise.resolve("")
         ]);
 
         await ConversationService.markAsRead(
@@ -92,6 +128,15 @@ export class AgentConversationsController {
             conversation,
             templates,
             quickReplies,
+            /** Solo se muestra la tarjeta si la IA está en modo sugerencia. */
+            aiSuggestion:
+                aiOn &&
+                aiSettings.enabled &&
+                aiSettings.mode === AiMode.SUGGEST
+                    ? aiSuggestion
+                    : null,
+            aiConfidenceMin: aiSettings.confidenceMin,
+            aiDraftBody,
             outcomeAttempts: attempts.get(conversation.contactId) ?? {
                 attempts: 0,
                 hasInbound: false,
@@ -137,6 +182,15 @@ export class AgentConversationsController {
                 role: req.user!.role,
                 input: parsed.data
             });
+
+            /** Métrica de la fase 1: borrador aprobado y luego editado. */
+            if (appConfig.ai.enabled) {
+                await AiSuggestionService.noteManualSend({
+                    workspaceId: req.user!.workspaceId,
+                    conversationId,
+                    body: parsed.data.body
+                });
+            }
 
             return res.redirect(
                 `/agent/conversations/${conversationId}?success=free_text`

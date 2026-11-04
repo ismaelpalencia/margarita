@@ -43,6 +43,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Equipo: crear **administradores y agentes**, cambiar el rol, activar o desactivar y **restablecer contraseñas**. Nunca se puede dejar la instalación sin un administrador activo. Los agentes tienen permisos y **límite diario** de mensajes manuales aplicado de verdad, con el uso de hoy a la vista.
 - Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo), búsqueda por nombre completo o teléfono completo, filtros por estado, asignación y no leídos, y contador de pendientes por hilo y en el encabezado.
 - Respuestas rápidas: textos guardados que se insertan con un clic (con `{nombre}` y `{telefono}` del contacto), editables en Admin → Respuestas.
+- IA de respuestas (fase 1, solo sugerencias): con `AI_ENABLED=true` y una llave de DeepSeek (o cualquier API compatible con OpenAI), cada mensaje entrante puede generar un borrador que aparece en la bandeja con su confianza y su motivo. El equipo lo usa —se copia al compositor— o lo descarta; **nada se envía solo**. Admin → IA permite ajustar tono, umbral, base de conocimiento y probar preguntas sin tocar un hilo real. Con `AI_ENABLED=false` la herramienta funciona igual que antes.
 - Bajas automáticas: si el cliente escribe `STOP`, el contacto queda dado de baja y deja de recibir mensajes y campañas; reactivarlo es una decisión explícita y queda auditada.
 - Resultado de la gestión (cobranza): marca en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota, desde el hilo, la ficha del contacto o en bloque desde la lista. Cada marcado deja historial con quién y cuándo.
 - Reportes: gestiones del periodo por resultado, persona y día; promesas con lo vencido arriba, cumplimiento y prometido contra pagado; clientes sin contestación tras X intentos; y detalle exportable a CSV.
@@ -302,6 +303,18 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `CAMPAIGN_WORKER_INTERVAL_MS` | No | Cada cuánto revisa el worker de campañas. Default `5000` |
 | `CAMPAIGN_BATCH_SIZE` | No | Destinatarios por vuelta del worker. Default `10` |
 | `CAMPAIGN_SEND_INTERVAL_MS` | No | Pausa entre envíos, para no chocar con los límites de Meta. Default `700` |
+| `AI_ENABLED` | No | Interruptor maestro de la IA. Default `false`: sin él, la app funciona igual que antes |
+| `AI_PROVIDER` | No | `deepseek` (default), cualquier API compatible o `mock` para pruebas sin red |
+| `AI_BASE_URL` | No | Base del proveedor. Default `https://api.deepseek.com` |
+| `AI_API_KEY` | Para usar IA | Llave del proveedor. Sin ella no se generan borradores |
+| `AI_MODEL` | No | Modelo. Default `deepseek-chat` |
+| `AI_TIMEOUT_MS` | No | Tiempo máximo de una llamada al modelo. Default `20000` |
+| `AI_DEBOUNCE_SECONDS` | No | Espera para agrupar mensajes seguidos antes de llamar al modelo. Default `4` |
+| `AI_MAX_CONTEXT_MESSAGES` | No | Mensajes previos que se mandan como contexto. Default `12` |
+| `AI_MAX_KNOWLEDGE_ENTRIES` | No | Entradas de conocimiento recuperadas por mensaje. Default `6` |
+| `AI_WORKER_INTERVAL_MS` | No | Cada cuánto revisa la cola el worker de IA. Default `3000` |
+| `AI_MAX_ATTEMPTS` | No | Reintentos de un borrador fallido. Default `2` |
+| `AI_MAX_TOKENS` / `AI_TEMPERATURE` | No | Límite de salida y creatividad del modelo. Default `400` y `0.3` |
 
 Sin `META_APP_SECRET` el webhook no valida el origen: en desarrollo solo registra un aviso, pero **en producción responde 401** y la app deja de recibir mensajes.
 
@@ -678,6 +691,9 @@ El límite vigente, con su explicación, está en [`docs/alcance-produccion.md`]
 | [`docs/modelo-comercial.md`](docs/modelo-comercial.md) | Runbook de alta por cliente, actualización de instalaciones, cierre de contrato y paquete legal |
 | [`docs/guia-meta.md`](docs/guia-meta.md) | Guía de conexión con Meta para el cliente (versión publicada en `/como-empezar`) |
 | [`docs/reportes-cobranza.md`](docs/reportes-cobranza.md) | Diseño del módulo de resultados de gestión y reportes de cobranza |
+| [`docs/ia-respuestas.md`](docs/ia-respuestas.md) | Propuesta de IA para sugerir y automatizar respuestas, y de perfiles para otros giros |
+| [`docs/demanda-workana.md`](docs/demanda-workana.md) | Qué pide el mercado en Workana, qué cubre Margarita y cómo volverlo una oferta vendible |
+| [`docs/decision-runtime.md`](docs/decision-runtime.md) | Por qué se mantiene Node y cuándo se justificaría extraer un servicio en Go |
 | [`prisma/schema.prisma`](prisma/schema.prisma) | Esquema real de la base de datos |
 
 `Reglas_margarita.md` es una copia idéntica de `MArgarita.md`.

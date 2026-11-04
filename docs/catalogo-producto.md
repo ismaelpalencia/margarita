@@ -15,7 +15,8 @@ plantillas, atiende conversaciones, registra **en qué quedó cada cliente** y t
 dice **a quién escribirle o llamarle hoy**.
 
 **No es**: un CRM, un chatbot, un sistema de facturación ni una herramienta de
-mensajería masiva sin control.
+mensajería masiva sin control. La IA de la fase 1 **no responde sola**: redacta
+borradores que una persona revisa y envía.
 
 **La promesa central**: cada conversación termina en un resultado; cada
 resultado alimenta la lista de trabajo del día siguiente.
@@ -232,6 +233,26 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 - **Sesiones**: dispositivos, IP y cierre remoto.
 - **Guía**: resumen de qué hace la herramienta, con enlaces a las guías públicas.
 
+### 3.16 IA de respuestas (fase 1: solo sugerencias)
+
+- **Admin → IA**: interruptor por workspace, modo sugerencia, tono, idioma,
+  umbral de confianza, contexto del negocio y palabras que obligan a entregar
+  la conversación a una persona.
+- **Base de conocimiento**: pregunta, respuesta, palabras clave y prioridad.
+  Es la única fuente de la que la IA puede responder; si el dato no está, el
+  borrador lo marca para que lo tome una persona.
+- **Consola de prueba**: escribe una pregunta y ve qué respondería, qué
+  entradas usó, el modelo y la latencia. No guarda nada ni toca un hilo real.
+- **En la bandeja**: tarjeta con el borrador, la confianza y el motivo.
+  **Usar borrador** lo copia al compositor; **Descartar** lo quita. Nada se
+  envía solo.
+- **Consumo**: borradores generados, usados, editados, descartados, tasa de
+  aceptación, llamadas y tokens de los últimos 30 días.
+- **Apagado por defecto**: `AI_ENABLED=false`. Sin llave o apagada, la
+  herramienta funciona igual que antes.
+- **Proveedor**: DeepSeek por defecto; cualquier API compatible con OpenAI
+  cambiando variables. `AI_PROVIDER=mock` para pruebas sin red.
+
 ---
 
 ## 4. Automatismos (lo que pasa sin que nadie lo toque)
@@ -251,6 +272,9 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 10. **Tramo**: aviso al 80% una vez por número y mes.
 11. **Retención**: bitácora 90 días, eventos de webhook resueltos 30 días.
 12. **Respaldos**: cada 24 h, cifrados, verificados al crearse y subidos a Cloudflare R2 cuando está configurado.
+13. **Borradores de IA** (si está encendida): se generan en segundo plano con
+    debounce y aparecen en la bandeja; **nada se envía sin que una persona lo
+    apruebe**.
 
 ---
 
@@ -357,12 +381,14 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 - «Cada conversación queda con su resultado y su historial».
 - «Una lista diaria que prioriza llamadas pedidas y promesas vencidas».
 - «Los datos van cifrados y con respaldos diarios».
+- «La IA redacta borradores y tu equipo decide qué se envía» (fase 1).
 - «Se instala en minutos y el equipo entra desde el navegador».
 
 **No se puede decir**
 
 - «Manda mensajes ilimitados» (WhatsApp cobra el consumo y tiene límites).
-- «Responde solo» (no es un chatbot).
+- «Responde solo» (en la fase 1 la IA solo sugiere; el envío automático no está
+  disponible).
 - «Se conecta a cualquier país» sin decir que el número debe existir y estar
   habilitado en Meta.
 - «Es un CRM» (no maneja ventas ni facturación).

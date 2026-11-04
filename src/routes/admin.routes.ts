@@ -16,6 +16,7 @@ import adminTemplatesRoutes from "./admin-templates.routes";
 import adminConversationsRoutes from "./admin-conversations.routes";
 import adminLogsRoutes from "./admin-logs.routes";
 import adminCampaignsRoutes from "./admin-campaigns.routes";
+import adminAiRoutes from "./admin-ai.routes";
 import adminSystemRoutes from "./admin-system.routes";
 import adminGuideRoutes from "./admin-guide.routes";
 import adminBackupRoutes from "./admin-backup.routes";
@@ -47,6 +48,8 @@ router.use("/templates", adminTemplatesRoutes);
 router.use("/conversations", adminConversationsRoutes);
 router.use("/logs", adminLogsRoutes);
 router.use("/campaigns", adminCampaignsRoutes);
+/** IA: ajustes, base de conocimiento y consola de prueba. */
+router.use("/ai", adminAiRoutes);
 router.use("/system", adminSystemRoutes);
 /** Guía del producto para el equipo del cliente (antes: roadmap interno). */
 router.use("/guia", adminGuideRoutes);

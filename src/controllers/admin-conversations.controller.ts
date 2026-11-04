@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
+import { AiMode } from "@prisma/client";
 
+import { appConfig } from "../config/app.config";
 import { ConversationService } from "../services/conversation.service";
 import { MessageService } from "../services/message.service";
 import { TemplateService } from "../services/template.service";
@@ -7,6 +9,8 @@ import { UserService } from "../services/user.service";
 import { QuickReplyService } from "../services/quick-reply.service";
 import { ContactOutcomeService } from "../services/contact-outcome.service";
 import { SendPolicyService } from "../services/send-policy.service";
+import { AiSettingsService } from "../services/ai/settings.service";
+import { AiSuggestionService } from "../services/ai/suggestion.service";
 import { monthKeyIn, startOfMonthIn, startOfTodayIn } from "../utils/date";
 import { NumberUsageService } from "../services/number-usage.service";
 import { templateVariableShape } from "../utils/template";
@@ -88,16 +92,53 @@ export class AdminConversationsController {
     static async show(req: Request, res: Response) {
         const conversationId = getRequiredParam(req, "id");
         const includeDeleted = req.query.deleted === "1";
+        /** Borrador recién aprobado que hay que precargar en el compositor. */
+        const draftId =
+            typeof req.query.ai === "string" ? req.query.ai : "";
+        const workspaceId = req.user!.workspaceId;
 
-        const [conversation, agents, templates, quickReplies] = await Promise.all([
+        /**
+         * Las consultas de IA solo se hacen si la instalación tiene la capa
+         * encendida. Así una base sin la migración de IA sigue sirviendo
+         * conversaciones exactamente como antes.
+         */
+        const aiOn = appConfig.ai.enabled;
+
+        const [
+            conversation,
+            agents,
+            templates,
+            quickReplies,
+            aiSettings,
+            aiSuggestion,
+            aiDraftBody
+        ] = await Promise.all([
             ConversationService.getConversationForAdmin(
-                req.user!.workspaceId,
+                workspaceId,
                 conversationId,
                 { includeDeleted }
             ),
-            UserService.listActiveAgents(req.user!.workspaceId),
-            TemplateService.listApprovedTemplates(req.user!.workspaceId),
-            QuickReplyService.listActive(req.user!.workspaceId)
+            UserService.listActiveAgents(workspaceId),
+            TemplateService.listApprovedTemplates(workspaceId),
+            QuickReplyService.listActive(workspaceId),
+            aiOn
+                ? AiSettingsService.get(workspaceId).catch(() =>
+                      AiSettingsService.defaults()
+                  )
+                : Promise.resolve(AiSettingsService.defaults()),
+            aiOn
+                ? AiSuggestionService.latestPending(
+                      workspaceId,
+                      conversationId
+                  ).catch(() => null)
+                : Promise.resolve(null),
+            aiOn && draftId
+                ? AiSuggestionService.bodyForUse({
+                      workspaceId,
+                      conversationId,
+                      suggestionId: draftId
+                  }).catch(() => "")
+                : Promise.resolve("")
         ]);
 
         /** Abrir el hilo quita el aviso de no leídos. */
@@ -120,6 +161,15 @@ export class AdminConversationsController {
             agents,
             templates,
             quickReplies,
+            /** Solo se muestra la tarjeta si la IA está en modo sugerencia. */
+            aiSuggestion:
+                aiOn &&
+                aiSettings.enabled &&
+                aiSettings.mode === AiMode.SUGGEST
+                    ? aiSuggestion
+                    : null,
+            aiConfidenceMin: aiSettings.confidenceMin,
+            aiDraftBody,
             outcomeAttempts: attempts.get(conversation.contactId) ?? {
                 attempts: 0,
                 hasInbound: false,
@@ -166,6 +216,18 @@ export class AdminConversationsController {
                 role: req.user!.role,
                 input: parsed.data
             });
+
+            /**
+             * Métrica de la fase 1: si la persona había aprobado un borrador
+             * y cambió el texto, cuenta como editado. Nunca bloquea el envío.
+             */
+            if (appConfig.ai.enabled) {
+                await AiSuggestionService.noteManualSend({
+                    workspaceId: req.user!.workspaceId,
+                    conversationId,
+                    body: parsed.data.body
+                });
+            }
 
             return res.redirect(
                 `/admin/conversations/${conversationId}?success=free_text`

@@ -146,7 +146,15 @@ const ENCRYPTED_FIELDS: Record<string, string[]> = {
     Complaint: ["description", "resolution"],
     User: ["email", "twoFactorSecret"],
     WhatsAppNumber: ["phoneNumber"],
-    WhatsAppAccount: ["accessToken", "verifyToken"]
+    WhatsAppAccount: ["accessToken", "verifyToken"],
+    /**
+     * La IA trabaja con datos del negocio y de las personas: el prompt, la
+     * base de conocimiento y el texto propuesto se cifran como el resto del
+     * contenido. El índice y el estado quedan en claro porque se filtran.
+     */
+    AiSettings: ["systemPrompt"],
+    KnowledgeEntry: ["question", "answer"],
+    AiSuggestion: ["body", "reason"]
 };
 
 const COMPARISON_OPERATORS = [
@@ -367,6 +375,23 @@ const WRITE_RULES: Record<string, WriteRule> = {
     WhatsAppAccount(data) {
         /** Defensa en profundidad: el servicio ya los cifra antes. */
         encryptTextFields(data, ["accessToken", "verifyToken"]);
+    },
+
+    /**
+     * La IA no debe dejar en claro ni las instrucciones del negocio ni el
+     * conocimiento que se le cargó. `keywords`, `intent` y `status` quedan
+     * en claro porque son índices de trabajo, no contenido.
+     */
+    AiSettings(data) {
+        encryptTextFields(data, ["systemPrompt"]);
+    },
+
+    KnowledgeEntry(data) {
+        encryptTextFields(data, ["question", "answer"]);
+    },
+
+    AiSuggestion(data) {
+        encryptTextFields(data, ["body", "reason"]);
     }
 };
 

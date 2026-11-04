@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { AgentConversationsController } from "../controllers/agent-conversations.controller";
+import { AiSuggestionController } from "../controllers/ai-suggestion.controller";
 import { OutcomeController } from "../controllers/outcome.controller";
 import { mediaUploadSingle } from "../middlewares/upload.middleware";
 
@@ -26,5 +27,14 @@ router.post(
 );
 router.post("/:id/close", AgentConversationsController.close);
 router.post("/:id/messages/:messageId/delete", AgentConversationsController.deleteMessage);
+/** Borradores de IA: usar o descartar. Nunca envían por sí solos. */
+router.post(
+    "/:id/ai/:suggestionId/use",
+    AiSuggestionController.use("/agent/conversations")
+);
+router.post(
+    "/:id/ai/:suggestionId/discard",
+    AiSuggestionController.discard("/agent/conversations")
+);
 
 export default router;

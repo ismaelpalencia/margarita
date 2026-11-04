@@ -11,6 +11,18 @@ enum WorkspaceStatus {
   SUSPENDED
 }
 
+/**
+ * Giro de la operación. No cambia el código: cambia el vocabulario, los
+ * módulos visibles y el playbook con el que se arranca. Cobranza es el
+ * primero; comercio y servicios se atienden con el mismo binario.
+ */
+enum WorkspaceProfile {
+  COBRANZA
+  COMERCIO
+  SERVICIOS
+  GENERICO
+}
+
 enum UserRole {
   ADMIN
   AGENT
@@ -118,6 +130,7 @@ enum LogModule {
   WHATSAPP_ACCOUNT
   COMPLAINT
   COMPLIANCE
+  AI
 }
 
 enum ComplaintMotive {
@@ -150,6 +163,38 @@ enum WebhookEventStatus {
   PROCESSING
   PROCESSED
   FAILED
+}
+
+/**
+ * Cómo se usa la IA en el workspace.
+ * - `OFF`: apagada.
+ * - `SUGGEST`: redacta un borrador y una persona decide (fase 1).
+ * - `AUTO`: responde sola las preguntas que la base de conocimiento cubre
+ * (fase 2; el worker de la fase 1 la trata como apagada).
+ */
+enum AiMode {
+  OFF
+  SUGGEST
+  AUTO
+}
+
+enum AiJobStatus {
+  PENDING
+  PROCESSING
+  DONE
+  SKIPPED
+  FAILED
+}
+
+enum AiSuggestionStatus {
+  PENDING
+  ACCEPTED
+  EDITED
+  DISCARDED
+  /**
+   * Llegó un mensaje más nuevo y este borrador ya no aplica.
+   */
+  SUPERSEDED
 }
 
 /**
@@ -231,15 +276,20 @@ model InteractiveReplyRule {
 }
 
 model Workspace {
-  id                      String          @id @default(cuid())
+  id                      String           @id @default(cuid())
   name                    String
-  slug                    String          @unique
-  status                  WorkspaceStatus @default(ACTIVE)
+  slug                    String           @unique
+  status                  WorkspaceStatus  @default(ACTIVE)
+  /**
+   * Giro con el que se arrancó esta instalación. Hoy solo cambia el matiz
+   * de la interfaz y el playbook; no bifurca el código.
+   */
+  profile                 WorkspaceProfile @default(COBRANZA)
   legalName               String?
   rfc                     String?
   taxRegime               String?
-  authorizedScheduleStart String          @default("08:00")
-  authorizedScheduleEnd   String          @default("21:00")
+  authorizedScheduleStart String           @default("08:00")
+  authorizedScheduleEnd   String           @default("21:00")
 
   settings                 WorkspaceSettings?
   whatsappAccount          WhatsAppAccount?
@@ -260,6 +310,16 @@ model Workspace {
    * Traducción de las respuestas de botón a resultados de gestión.
    */
   interactiveReplyRules    InteractiveReplyRule[]
+
+  /**
+   * Capa de IA. Todo es opcional: sin fila en `AiSettings` la herramienta
+   * funciona igual que antes.
+   */
+  aiSettings       AiSettings?
+  knowledgeEntries KnowledgeEntry[]
+  aiSuggestions    AiSuggestion[]
+  aiJobs           AiSuggestionJob[]
+  aiUsage          AiUsage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -348,6 +408,9 @@ model User {
   contactsOptIn    Contact[]        @relation("ContactOptIn")
   complaintsOpened Complaint[]      @relation("ComplaintOpenedBy")
   complaintsClosed Complaint[]      @relation("ComplaintClosedBy")
+
+  aiSettingsUpdated       AiSettings[]     @relation("AiSettingsUpdatedBy")
+  knowledgeEntriesCreated KnowledgeEntry[] @relation("KnowledgeEntryCreatedBy")
 
   assignedConversations Conversation[] @relation("ConversationAssignedUser")
 
@@ -465,6 +528,8 @@ model Contact {
    * documental del operador ante una revisión.
    */
   /**
+   * /**
+   * /**
    * /** Índice ciego del nombre visible: permite búsqueda exacta sin tenerlo en claro.
    */
   nameHash String?
@@ -618,6 +683,12 @@ model Conversation {
   assignments AssignmentHistory[]
   outcomes    ContactOutcome[]
   complaints  Complaint[]
+
+  /**
+   * Borradores de IA de este hilo (fase 1).
+   */
+  aiSuggestions AiSuggestion[]
+  aiJobs        AiSuggestionJob[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -982,4 +1053,182 @@ model WebhookEvent {
   @@index([status, nextAttemptAt])
   @@index([createdAt])
   @@index([workspaceId])
+}
+
+/**
+ * Configuración de la capa de IA por workspace.
+ * Nace en **modo sugerencia**: la IA redacta y una persona decide. El modo
+ * `AUTO` existe en el esquema para no migrar dos veces, pero la fase 1 lo
+ * trata como apagado; activarlo es una decisión de producto posterior.
+ */
+model AiSettings {
+  id          String    @id @default(cuid())
+  workspaceId String    @unique
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  enabled Boolean @default(false)
+  mode    AiMode  @default(SUGGEST)
+
+  /**
+   * Texto adicional del negocio: qué hace, cómo habla y qué no debe
+   * prometer. Se cifra porque puede describir la operación del cliente.
+   */
+  systemPrompt String?
+  tone         String?
+  language     String  @default("es-MX")
+
+  /**
+   * Debajo de este umbral la interfaz avisa que el borrador es dudoso.
+   */
+  confidenceMin Float @default(0.7)
+
+  /**
+   * Reservado para la fase 2 (respeto de límites al responder solo).
+   */
+  maxRepliesPerDay Int @default(50)
+
+  /**
+   * Palabras que obligan a entregar la conversación a una persona.
+   */
+  handoffKeywords String[] @default([])
+
+  /**
+   * Override del modelo global; vacío usa `AI_MODEL`.
+   */
+  model String?
+
+  updatedById String?
+  updatedBy   User?   @relation("AiSettingsUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+}
+
+/**
+ * Base de conocimiento: la única fuente de la que la IA puede responder.
+ * `question` y `answer` se cifran en reposo; `keywords` queda en claro
+ * porque es lo que se usa para recuperar y no describe a una persona.
+ */
+model KnowledgeEntry {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  question String
+  answer   String
+  keywords String[] @default([])
+  priority Int      @default(0)
+  isActive Boolean  @default(true)
+
+  createdById String?
+  createdBy   User?   @relation("KnowledgeEntryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId, isActive])
+  @@index([workspaceId, priority])
+}
+
+/**
+ * Trabajo de generación. Existe para no llamar al modelo dentro del webhook:
+ * Meta exige un 200 rápido y un modelo puede tardar varios segundos. También
+ * permite reintentos y agrupar ráfagas (debounce).
+ */
+model AiSuggestionJob {
+  id String @id @default(cuid())
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  /**
+   * Mensaje entrante que originó el trabajo. Es único: un reintento del
+   * webhook no genera dos borradores.
+   */
+  inboundMessageId String @unique
+
+  status AiJobStatus @default(PENDING)
+
+  attempts Int      @default(0)
+  runAfter DateTime @default(now())
+
+  skipReason String?
+  error      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, runAfter])
+  @@index([workspaceId])
+  @@index([conversationId])
+}
+
+/**
+ * Borrador que la IA propone para un mensaje entrante. Nunca se envía solo:
+ * una persona lo usa, lo edita o lo descarta.
+ */
+model AiSuggestion {
+  id String @id @default(cuid())
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  inboundMessageId String @unique
+
+  /**
+   * Texto propuesto (cifrado, como cualquier contenido de conversación).
+   */
+  body String
+
+  confidence Float   @default(0)
+  intent     String?
+  handoff    Boolean @default(false)
+  /**
+   * Motivo del modelo para responder o entregar (cifrado).
+   */
+  reason     String?
+  model      String
+
+  status AiSuggestionStatus @default(PENDING)
+
+  decidedById String?
+  decidedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId, createdAt])
+  @@index([conversationId, status])
+  @@index([status])
+}
+
+/**
+ * Consumo de tokens por llamada. Sirve para responder «cuánto cuesta la IA»
+ * con datos y para detectar un workspace que se dispara.
+ */
+model AiUsage {
+  id String @id @default(cuid())
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  conversationId String?
+  suggestionId   String?
+
+  model            String
+  promptTokens     Int    @default(0)
+  completionTokens Int    @default(0)
+  latencyMs        Int    @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([workspaceId, createdAt])
 }

@@ -97,6 +97,7 @@ test("ninguna pantalla del panel responde 500", async () => {
         "/admin/campaigns",
         "/admin/campaigns/create",
         "/admin/quick-replies",
+        "/admin/ai",
         "/admin/replies",
         "/admin/tags",
         "/admin/tags/new",

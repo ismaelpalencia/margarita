@@ -7,6 +7,7 @@ import { startWebhookWorker } from "./webhook-worker";
 import { startCampaignWorker } from "./campaign-worker";
 import { startCampaignScheduler } from "./campaign-scheduler.job";
 import { startBackupJob } from "./backup.job";
+import { startAiSuggestionWorker } from "./ai-suggestion.job";
 
 /**
  * Arranca los procesos de fondo de la aplicación: el worker que
@@ -47,11 +48,13 @@ export async function startBackgroundJobs() {
     startCampaignScheduler();
     const retentionJob = startRetentionJob();
     const backupJob = startBackupJob();
+    const aiSuggestionWorker = startAiSuggestionWorker();
 
     return {
         webhookWorker,
         campaignWorker,
         retentionJob,
-        backupJob
+        backupJob,
+        aiSuggestionWorker
     };
 }
