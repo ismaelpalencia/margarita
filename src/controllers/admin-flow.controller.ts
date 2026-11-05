@@ -5,7 +5,7 @@ import { prisma } from "../config/prisma";
 import { FlowService } from "../services/flow.service";
 import { LogService } from "../services/log.service";
 import { getRequiredParam } from "../utils/request";
-import { FlowButton } from "../utils/flow";
+import { FlowButton, FlowList } from "../utils/flow";
 
 function toStringArray(value: unknown): string[] {
     if (Array.isArray(value)) {
@@ -145,11 +145,13 @@ export class AdminFlowController {
         }
 
         const buttons = (flow.buttons as FlowButton[] | null) ?? [];
+        const list = (flow.list as FlowList | null) ?? null;
 
         return res.render("pages/admin/ai/flow-edit", {
             user: req.user,
             flow,
             buttons,
+            list,
             isList: Boolean(flow.list),
             error: req.query.error || null,
             success: req.query.success || null
@@ -210,6 +212,74 @@ export class AdminFlowController {
             data.buttons = Prisma.DbNull;
         } else if (buttons.length > 0) {
             data.buttons = buttons as unknown as Prisma.InputJsonValue;
+        }
+
+        /** Lista: solo se edita si el flujo ya era de tipo lista. */
+        if (flow.list) {
+            const removeList = req.body?.removeList === "true";
+
+            if (removeList) {
+                data.list = Prisma.DbNull;
+            } else {
+                const buttonLabel = String(req.body?.listButtonLabel || "").trim();
+                const sectionTitle = String(req.body?.listSectionTitle || "").trim();
+                const rowTitles = toStringArray(req.body?.rowTitle).map((title) => title.trim());
+                const rowIds = toStringArray(req.body?.rowId);
+                const rowDescriptions = toStringArray(req.body?.rowDescription).map((description) => description.trim());
+                const rows: FlowList["rows"] = [];
+
+                for (let index = 0; index < rowTitles.length; index += 1) {
+                    const title = rowTitles[index];
+
+                    if (!title) {
+                        continue;
+                    }
+
+                    if (title.length > 24) {
+                        return res.redirect(`/admin/ai/flows/${id}?error=listTitle`);
+                    }
+
+                    const description = rowDescriptions[index] || "";
+
+                    if (description.length > 72) {
+                        return res.redirect(`/admin/ai/flows/${id}?error=listDescription`);
+                    }
+
+                    rows.push({
+                        id: (rowIds[index] || "ROW_" + (index + 1)).trim(),
+                        title,
+                        description: description || undefined
+                    });
+                }
+
+                if (rows.length > 10) {
+                    return res.redirect(`/admin/ai/flows/${id}?error=listCount`);
+                }
+
+                if (rows.length > 0 && !buttonLabel) {
+                    return res.redirect(`/admin/ai/flows/${id}?error=listLabel`);
+                }
+
+                if (buttonLabel.length > 20) {
+                    return res.redirect(`/admin/ai/flows/${id}?error=listLabel`);
+                }
+
+                if (sectionTitle.length > 24) {
+                    return res.redirect(`/admin/ai/flows/${id}?error=listSection`);
+                }
+
+                if (new Set(rows.map((row) => row.id)).size !== rows.length) {
+                    return res.redirect(`/admin/ai/flows/${id}?error=listDuplicate`);
+                }
+
+                if (rows.length > 0) {
+                    data.list = {
+                        buttonLabel,
+                        sectionTitle: sectionTitle || undefined,
+                        rows
+                    } as unknown as Prisma.InputJsonValue;
+                }
+            }
         }
 
         await prisma.flow.update({

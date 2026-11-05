@@ -183,12 +183,25 @@ export class FlowService {
         }
 
         try {
+            /** Si las listas están apagadas, el flujo sale como texto. */
+            const workspace = await prisma.workspace.findUnique({
+                where: { id: params.workspaceId },
+                select: { interactiveListsEnabled: true }
+            });
+            const listEnabled = Boolean(workspace?.interactiveListsEnabled);
+            const list = listEnabled
+                ? ((flow.list as FlowList | null) ?? null)
+                : null;
+            const buttons = list
+                ? null
+                : ((flow.buttons as FlowButton[] | null) ?? null);
+
             const message = await MessageService.sendFlowReply({
                 workspaceId: params.workspaceId,
                 conversationId: params.conversationId,
                 body: flow.reply,
-                buttons: (flow.buttons as FlowButton[] | null) ?? null,
-                list: (flow.list as FlowList | null) ?? null
+                buttons,
+                list
             });
 
             await LogService.create({

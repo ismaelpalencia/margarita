@@ -673,3 +673,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - La asignación sigue la cadena AVAILABLE → BUSY → admin → sin asignar; un agente OFFLINE no recibe.
 
 ---
+
+## Listas editables en flujos
+
+- El editor de flujos ahora edita listas: texto del botón, título de sección y hasta 10 filas (título 24, descripción 72).
+- Se puede quitar la lista para responder solo texto.
+- Si `interactiveListsEnabled` está apagado, el flujo de lista se envía como texto (no se llama a Meta con lista).
+- Validaciones de longitud/IDs y auditoría FLOW_UPDATED.
+
+---
