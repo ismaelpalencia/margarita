@@ -7,7 +7,7 @@
 > tu empresa. Aplica a México (Ley Federal de Protección de Datos Personales en
 > Posesión de los Particulares).
 
-Última actualización: 16 de octubre de 2026.
+Última actualización: 5 de noviembre de 2026.
 
 ## 1. Quién es el responsable
 
@@ -107,7 +107,14 @@ herramienta que usa nuestro equipo:
 | Sesión | Mantener abierta la sesión de quien atiende las conversaciones |
 | Número activo | Recordar con qué número de la empresa se está trabajando |
 
-No usamos cookies de publicidad ni de seguimiento, ni compartimos información con
+En el **sitio público margaritaapp.org** usamos el **pixel de Meta
+(Facebook)** para medir campañas y mostrar anuncios a personas que ya visitaron
+el sitio. El pixel registra páginas vistas, el clic en los botones de WhatsApp,
+la IP y datos del navegador; no accede a los mensajes de WhatsApp ni a los datos
+de la cuenta. Puedes limitarlo desde la configuración de anuncios de Meta o
+desde tu navegador. Más información: política de privacidad de Meta.
+
+No usamos cookies de publicidad dentro de la aplicación ni vendemos datos a
 redes publicitarias.
 
 ## 8. Tus derechos (ARCO)
