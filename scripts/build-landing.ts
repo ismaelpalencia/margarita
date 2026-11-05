@@ -149,7 +149,7 @@ const demoUrl = process.env.DEMO_URL?.trim() || demoApiBase + "/demo";
 
 /** Pixel de Meta para los anuncios; vacío = no se renderiza. */
 const metaPixelId = (
-    process.env.META_PIXEL_ID || "2253115132222921"
+    process.env.META_PIXEL_ID || "1602536605246770"
 ).trim();
 const whatsappText =
     process.env.SUPPORT_WHATSAPP_TEXT?.trim() ||
