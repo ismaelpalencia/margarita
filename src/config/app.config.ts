@@ -166,6 +166,14 @@ export const appConfig = {
     aiMaxMonthlyBudgetCents: optionalLimit(
         process.env.AI_MAX_MONTHLY_BUDGET_CENTS
     ),
+    /** Tope mensual real de respuestas automáticas (1,500 / 4,000 del plan). */
+    aiMonthlyRepliesLimit: optionalLimit(
+        process.env.AI_MONTHLY_REPLIES_LIMIT
+    ),
+    /** Tope diario de generaciones de sugerencia (costo de tokens). */
+    aiMaxSuggestionsPerDay: optionalLimit(
+        process.env.AI_MAX_SUGGESTIONS_PER_DAY
+    ),
     aiLimitsLocked:
         process.env.AI_LIMITS_LOCKED === "true" ||
         Boolean(process.env.AI_MAX_REPLIES_PER_DAY?.trim()) ||

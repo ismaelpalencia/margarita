@@ -13,6 +13,8 @@ export type ResolvedAiSettings = {
     maxRepliesPerDay: number;
     maxRepliesPerThread: number;
     monthlyBudgetCents: number;
+    /** Tope mensual del plan; null = sin tope. */
+    monthlyRepliesLimit: number | null;
     handoffKeywords: string[];
     model: string | null;
     /** El techo lo puso el operador desde Railway: no se edita en el panel. */
@@ -78,6 +80,7 @@ export class AiSettingsService {
             maxRepliesPerDay: cap(50, appConfig.aiMaxRepliesPerDay),
             maxRepliesPerThread: cap(5, appConfig.aiMaxRepliesPerThread),
             monthlyBudgetCents: cap(500, appConfig.aiMaxMonthlyBudgetCents),
+            monthlyRepliesLimit: appConfig.aiMonthlyRepliesLimit,
             handoffKeywords: [],
             model: null,
             ...this.locks()
@@ -109,6 +112,7 @@ export class AiSettingsService {
                 row.monthlyBudgetCents,
                 appConfig.aiMaxMonthlyBudgetCents
             ),
+            monthlyRepliesLimit: appConfig.aiMonthlyRepliesLimit,
             handoffKeywords: row.handoffKeywords,
             model: row.model,
             ...this.locks()

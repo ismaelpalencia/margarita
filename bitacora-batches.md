@@ -571,3 +571,17 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - tsc OK, 343 unit, 101 integración.
 
 ---
+
+## Tope mensual real y tope de sugerencias
+
+- `AI_MONTHLY_REPLIES_LIMIT`: tope mensual de respuestas automáticas (1,500 / 4,000 del plan). Se cuenta sobre mensajes `AUTOMATIC` con `aiSuggestionId` desde el inicio del mes en la zona del workspace; `decideAutoReply` corta con `MONTHLY_LIMIT`.
+- `AI_MAX_SUGGESTIONS_PER_DAY`: tope diario de sugerencias generadas; `SuggestionService.generateForJob` corta con `SUGGESTION_LIMIT` antes de llamar al modelo.
+- La pantalla Admin → IA muestra «Respuestas de IA este mes: X de N» y «Sugerencias hoy: X de N» (se oculta con `AI_LIMITS_HIDDEN`).
+- Sin migración: los contadores se derivan de `Message` y `AiSuggestion`.
+- Pruebas nuevas: tope mensual corta y sin tope sigue.
+
+### Gates
+
+- tsc OK, 345 unit, 101 integración.
+
+---

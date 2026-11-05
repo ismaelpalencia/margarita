@@ -34,6 +34,8 @@ import {
 } from "../../utils/language";
 import { createAiProvider, isProviderConfigured } from "./provider";
 import { AiSettingsService } from "./settings.service";
+import { SendPolicyService } from "../send-policy.service";
+import { startOfTodayIn } from "../../utils/date";
 
 /** El trabajo no debe generar respuesta. No es un error: es una decisión. */
 export class SuggestionSkip extends Error {
@@ -128,6 +130,21 @@ export class AiSuggestionService {
         }
 
         const settings = await AiSettingsService.get(job.workspaceId);
+
+        /** Tope diario de sugerencias: protege el costo de tokens. */
+        if (appConfig.aiMaxSuggestionsPerDay !== null) {
+            const timezone = await SendPolicyService.timezoneFor(job.workspaceId);
+            const suggestionsToday = await prisma.aiSuggestion.count({
+                where: {
+                    workspaceId: job.workspaceId,
+                    createdAt: { gte: startOfTodayIn(timezone) }
+                }
+            });
+
+            if (suggestionsToday >= appConfig.aiMaxSuggestionsPerDay) {
+                throw new SuggestionSkip("SUGGESTION_LIMIT");
+            }
+        }
 
         const [newerInbound, humanReply] = await Promise.all([
             prisma.message.findFirst({
@@ -408,7 +425,8 @@ export class AiSuggestionService {
                 confidenceMin: params.settings.confidenceMin,
                 maxRepliesPerDay: params.settings.maxRepliesPerDay,
                 maxRepliesPerThread: params.settings.maxRepliesPerThread,
-                monthlyBudgetCents: params.settings.monthlyBudgetCents
+                monthlyBudgetCents: params.settings.monthlyBudgetCents,
+                monthlyRepliesLimit: params.settings.monthlyRepliesLimit
             },
             contact: {
                 optOutAt: conversation.contact.optOutAt,

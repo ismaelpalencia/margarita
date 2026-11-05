@@ -378,6 +378,18 @@
                             <% } %>
                         </p>
                     </div>
+
+                    <div class="rounded-xl bg-slate-50 px-4 py-3 text-xs text-slate-600 ring-1 ring-slate-200 sm:col-span-2">
+                        Respuestas de IA este mes:
+                        <strong><%= monthlyRepliesUsed %></strong>
+                        <% if (settings.monthlyRepliesLimit !== null) { %>
+                            de <%= settings.monthlyRepliesLimit %>
+                        <% } %>.
+                        <% if (aiMaxSuggestionsPerDay !== null) { %>
+                            Sugerencias hoy: <strong><%= suggestionsToday %></strong>
+                            de <%= aiMaxSuggestionsPerDay %>.
+                        <% } %>
+                    </div>
                     <% } %>
                 </div>
 

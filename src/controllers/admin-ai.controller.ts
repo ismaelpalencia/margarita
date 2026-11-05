@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
-import { LogLevel, LogModule } from "@prisma/client";
+import {
+    LogLevel,
+    LogModule,
+    MessageDirection,
+    MessageSource
+} from "@prisma/client";
 
 import { appConfig } from "../config/app.config";
 import { prisma } from "../config/prisma";
@@ -8,7 +13,9 @@ import { AiSettingsService } from "../services/ai/settings.service";
 import { KnowledgeService } from "../services/ai/knowledge";
 import { AiSuggestionService } from "../services/ai/suggestion.service";
 import { LogService } from "../services/log.service";
+import { SendPolicyService } from "../services/send-policy.service";
 import { getRequiredParam } from "../utils/request";
+import { startOfMonthIn, startOfTodayIn } from "../utils/date";
 import {
     aiSettingsSchema,
     aiTestSchema,
@@ -40,19 +47,40 @@ export class AdminAiController {
         const workspaceId = req.user!.workspaceId;
 
         try {
-            const [settings, entries, stats] = await Promise.all([
-                AiSettingsService.get(workspaceId),
-                KnowledgeService.list(workspaceId),
-                AiSuggestionService.stats(
-                    workspaceId,
-                    new Date(Date.now() - THIRTY_DAYS_MS)
-                )
-            ]);
+            const timezone = await SendPolicyService.timezoneFor(workspaceId);
+
+            const [settings, entries, stats, monthlyRepliesUsed, suggestionsToday] =
+                await Promise.all([
+                    AiSettingsService.get(workspaceId),
+                    KnowledgeService.list(workspaceId),
+                    AiSuggestionService.stats(
+                        workspaceId,
+                        new Date(Date.now() - THIRTY_DAYS_MS)
+                    ),
+                    prisma.message.count({
+                        where: {
+                            workspaceId,
+                            direction: MessageDirection.OUT,
+                            source: MessageSource.AUTOMATIC,
+                            aiSuggestionId: { not: null },
+                            createdAt: { gte: startOfMonthIn(timezone) }
+                        }
+                    }),
+                    prisma.aiSuggestion.count({
+                        where: {
+                            workspaceId,
+                            createdAt: { gte: startOfTodayIn(timezone) }
+                        }
+                    })
+                ]);
 
             return {
                 settings,
                 entries,
                 stats,
+                monthlyRepliesUsed,
+                suggestionsToday,
+                aiMaxSuggestionsPerDay: appConfig.aiMaxSuggestionsPerDay,
                 providerLabel: aiProviderLabel(),
                 providerReady: isProviderConfigured(),
                 globalEnabled: appConfig.ai.enabled,
@@ -68,6 +96,9 @@ export class AdminAiController {
                 settings: AiSettingsService.defaults(),
                 entries: [],
                 stats: EMPTY_STATS,
+                monthlyRepliesUsed: 0,
+                suggestionsToday: 0,
+                aiMaxSuggestionsPerDay: appConfig.aiMaxSuggestionsPerDay,
                 providerLabel: aiProviderLabel(),
                 providerReady: isProviderConfigured(),
                 globalEnabled: appConfig.ai.enabled,

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { decideAutoReply, AutoReplyDecisionInput } from "./decision";
+import test from "node:test";
 
 function baseInput(
     overrides: Partial<AutoReplyDecisionInput> = {}
@@ -12,7 +13,8 @@ function baseInput(
             confidenceMin: 0.7,
             maxRepliesPerDay: 50,
             maxRepliesPerThread: 5,
-            monthlyBudgetCents: 500
+            monthlyBudgetCents: 500,
+            monthlyRepliesLimit: null
         },
         contact: { optOutAt: null, pausedAt: null },
         conversation: {
@@ -30,6 +32,7 @@ function baseInput(
         usage: {
             repliesToday: 0,
             repliesInThread: 0,
+            repliesThisMonth: 0,
             spentMicrosThisMonth: 0
         },
         now: new Date("2026-01-01T12:05:00Z"),
@@ -201,5 +204,28 @@ describe("decideAutoReply", () => {
             ),
             { send: false, reason: "BUDGET_EXCEEDED" }
         );
+    });
+});
+
+
+test("el tope mensual del plan corta el envío automático", () => {
+    const input = baseInput();
+    input.settings.monthlyRepliesLimit = 1500;
+    input.usage.repliesThisMonth = 1500;
+
+    assert.deepEqual(decideAutoReply(input), {
+        send: false,
+        reason: "MONTHLY_LIMIT"
+    });
+});
+
+test("sin tope mensual el envío sigue", () => {
+    const input = baseInput();
+    input.settings.monthlyRepliesLimit = null;
+    input.usage.repliesThisMonth = 999999;
+
+    assert.deepEqual(decideAutoReply(input), {
+        send: true,
+        text: "Abrimos de 9:00 a 18:00."
     });
 });

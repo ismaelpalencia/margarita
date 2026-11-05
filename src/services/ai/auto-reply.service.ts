@@ -15,6 +15,7 @@ import { SendPolicyService } from "../send-policy.service";
 export type AutoReplyCounters = {
     repliesToday: number;
     repliesInThread: number;
+    repliesThisMonth: number;
     spentMicrosThisMonth: number;
 };
 
@@ -156,7 +157,8 @@ export class AiAutoReplyService {
     }): Promise<AutoReplyCounters> {
         const timezone = await SendPolicyService.timezoneFor(params.workspaceId);
 
-        const [repliesToday, repliesInThread, usage] = await Promise.all([
+        const [repliesToday, repliesInThread, repliesThisMonth, usage] =
+            await Promise.all([
             prisma.message.count({
                 where: {
                     workspaceId: params.workspaceId,
@@ -174,6 +176,15 @@ export class AiAutoReplyService {
                     aiSuggestionId: { not: null }
                 }
             }),
+            prisma.message.count({
+                where: {
+                    workspaceId: params.workspaceId,
+                    direction: MessageDirection.OUT,
+                    source: MessageSource.AUTOMATIC,
+                    aiSuggestionId: { not: null },
+                    createdAt: { gte: startOfMonthIn(timezone) }
+                }
+            }),
             prisma.aiUsage.aggregate({
                 where: {
                     workspaceId: params.workspaceId,
@@ -186,6 +197,7 @@ export class AiAutoReplyService {
         return {
             repliesToday,
             repliesInThread,
+            repliesThisMonth,
             spentMicrosThisMonth: usage._sum.costMicros || 0
         };
     }

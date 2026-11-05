@@ -31,6 +31,8 @@ export type SuggestionSkipReason =
     | "EMPTY_REPLY"
     | "DAILY_LIMIT"
     | "THREAD_LIMIT"
+    | "MONTHLY_LIMIT"
+    | "SUGGESTION_LIMIT"
     | "BUDGET_EXCEEDED";
 
 export type SuggestionDecisionInput = {
@@ -74,6 +76,8 @@ export type AutoReplyDecisionInput = {
         maxRepliesPerDay: number;
         maxRepliesPerThread: number;
         monthlyBudgetCents: number;
+        /** Tope mensual del plan; null = sin tope. */
+        monthlyRepliesLimit: number | null;
     };
     contact: {
         optOutAt: Date | null;
@@ -96,6 +100,7 @@ export type AutoReplyDecisionInput = {
     usage: {
         repliesToday: number;
         repliesInThread: number;
+        repliesThisMonth: number;
         spentMicrosThisMonth: number;
     };
     now: Date;
@@ -274,6 +279,13 @@ export function decideAutoReply(
         return { send: false, reason: "THREAD_LIMIT" };
     }
 
+    if (
+        input.settings.monthlyRepliesLimit !== null &&
+        input.usage.repliesThisMonth >= input.settings.monthlyRepliesLimit
+    ) {
+        return { send: false, reason: "MONTHLY_LIMIT" };
+    }
+
     const budgetMicros =
         Math.max(0, input.settings.monthlyBudgetCents) * MICROS_PER_CENT;
 
@@ -306,6 +318,8 @@ const REASON_LABELS: Record<SuggestionSkipReason, string> = {
     EMPTY_REPLY: "La IA no devolvió una respuesta utilizable.",
     DAILY_LIMIT: "Se alcanzó el límite diario de respuestas automáticas.",
     THREAD_LIMIT: "Se alcanzó el límite de respuestas automáticas en este hilo.",
+    MONTHLY_LIMIT: "Se alcanzó el límite mensual de respuestas de IA del plan.",
+    SUGGESTION_LIMIT: "Se alcanzó el tope diario de sugerencias de IA.",
     BUDGET_EXCEEDED: "Se agotó el presupuesto mensual de IA."
 };
 

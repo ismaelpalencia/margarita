@@ -78,7 +78,7 @@ La app **no tiene un campo `plan` ni bloquea el modo `AUTO` según el plan**. Lo
 
 Así el cliente no puede subir su límite por encima de lo contratado aunque tenga acceso de administrador.
 
-Las respuestas de IA incluidas en cada plan (1,500 / 4,000) son una aproximación vía `AI_MAX_REPLIES_PER_DAY`; no hay contador mensual en la base todavía. El operador revisa el excedente manualmente.
+Las respuestas de IA incluidas en cada plan se controlan con dos capas: `AI_MAX_REPLIES_PER_DAY` (techo diario) y `AI_MONTHLY_REPLIES_LIMIT` (tope mensual real, 1,500 / 4,000), contado sobre las respuestas automáticas enviadas en el mes. El excedente se revisa por el operador. Las sugerencias tienen su propio tope diario opcional (`AI_MAX_SUGGESTIONS_PER_DAY`) para acotar el costo de tokens.
 
 ---
 
@@ -385,7 +385,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - `AI_ENABLED`, `AI_PROVIDER`, `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`, `AI_TIMEOUT_MS`.
 - `AI_MAX_CONTEXT_MESSAGES`, `AI_MAX_KNOWLEDGE_ENTRIES`, `AI_DEBOUNCE_SECONDS`, `AI_WORKER_INTERVAL_MS`, `AI_MAX_ATTEMPTS`, `AI_MAX_TOKENS`, `AI_TEMPERATURE`.
 - `AI_PRICE_INPUT_PER_MILLION`, `AI_PRICE_OUTPUT_PER_MILLION`.
-- **Techos del operador:** `AI_MAX_REPLIES_PER_DAY`, `AI_MAX_REPLIES_PER_THREAD`, `AI_MAX_MONTHLY_BUDGET_CENTS`, `AI_LIMITS_LOCKED`, `AI_LIMITS_HIDDEN`.
+- **Techos del operador:** `AI_MAX_REPLIES_PER_DAY`, `AI_MAX_REPLIES_PER_THREAD`, `AI_MONTHLY_REPLIES_LIMIT`, `AI_MAX_SUGGESTIONS_PER_DAY`, `AI_MAX_MONTHLY_BUDGET_CENTS`, `AI_LIMITS_LOCKED`, `AI_LIMITS_HIDDEN`.
 
 ### Demo y comercial
 
