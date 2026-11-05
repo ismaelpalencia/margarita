@@ -307,11 +307,16 @@
                             value="<%= settings.maxRepliesPerDay %>"
                             min="0"
                             max="1000"
-                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                            <%= settings.maxRepliesPerDayLocked ? "readonly" : "" %>
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100 <%= settings.maxRepliesPerDayLocked ? 'bg-slate-100 text-slate-500' : '' %>"
                         />
 
                         <p class="mt-2 text-xs text-slate-500">
-                            0 apaga el envío automático sin cambiar de modo.
+                            <% if (settings.maxRepliesPerDayLocked) { %>
+                                Definido por el operador desde Railway. No se puede subir desde el panel.
+                            <% } else { %>
+                                0 apaga el envío automático sin cambiar de modo.
+                            <% } %>
                         </p>
                     </div>
 
@@ -326,12 +331,17 @@
                             value="<%= settings.maxRepliesPerThread %>"
                             min="0"
                             max="50"
-                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                            <%= settings.maxRepliesPerThreadLocked ? "readonly" : "" %>
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100 <%= settings.maxRepliesPerThreadLocked ? 'bg-slate-100 text-slate-500' : '' %>"
                         />
 
                         <p class="mt-2 text-xs text-slate-500">
-                            Respuestas automáticas acumuladas en un mismo hilo
-                            antes de entregarlo a una persona.
+                            <% if (settings.maxRepliesPerThreadLocked) { %>
+                                Definido por el operador desde Railway. No se puede subir desde el panel.
+                            <% } else { %>
+                                Respuestas automáticas acumuladas en un mismo hilo
+                                antes de entregarlo a una persona.
+                            <% } %>
                         </p>
                     </div>
 

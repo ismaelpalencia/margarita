@@ -10,68 +10,9 @@
 </head>
 
 <body class="min-h-screen bg-slate-100">
-    <header class="border-b bg-white">
-        <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div>
-                <a href="/admin/dashboard" class="flex items-center gap-3">
-                    <img
-                        src="/brand/img/margarita-icon-64.png"
-                        alt="Margarita"
-                        class="h-9 w-9"
-                    />
+    <%- include("../../../partials/admin-nav", { user }) %>
 
-                    <span class="min-w-0">
-                        <span class="block text-base font-black leading-tight text-slate-900">
-                            Margarita
-                        </span>
-
-                        <span class="block text-xs font-medium text-slate-500">
-                            Contactos
-                        </span>
-                    </span>
-                </a>
-            </div>
-
-            <nav class="no-scrollbar -mx-4 flex items-center gap-3 overflow-x-auto whitespace-nowrap px-4 sm:mx-0 sm:flex-wrap sm:overflow-x-visible sm:px-0">
-                <a href="/admin/dashboard" class="text-sm font-medium text-slate-700">
-                    Dashboard
-                </a>
-
-                <a href="/admin/users" class="text-sm font-medium text-slate-700">
-                    Agentes
-                </a>
-
-                <a href="/admin/contacts" class="text-sm font-medium text-margarita-700">
-                    Contactos
-                </a>
-
-                <a href="/admin/tags" class="text-sm font-medium text-slate-700">
-                    Etiquetas
-                </a>
-                <a href="/admin/whatsapp" class="text-sm font-medium text-slate-700">
-                    WhatsApp
-                </a>
-
-                <a href="/admin/templates" class="text-sm font-medium text-slate-700">
-                    Plantillas
-                </a>
-
-                <a href="/admin/conversations" class="text-sm font-medium text-slate-700">
-                    Conversaciones
-                </a>
-
-                <%- include("../../../partials/theme-toggle") %>
-
-                <form action="/auth/logout" method="POST">
-                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
-                        Cerrar sesión
-                    </button>
-                </form>
-            </nav>
-        </div>
-    </header>
-
-    <main class="mx-auto max-w-6xl px-6 py-8">
+    <main class="mx-auto max-w-7xl px-6 py-8">
         <section class="mb-6 flex items-center justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-slate-800">Contactos</h2>

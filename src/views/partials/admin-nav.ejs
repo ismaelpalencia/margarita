@@ -70,7 +70,9 @@
 </aside>
 
 <div class="panel-topbar">
-    <button class="btn btn--ghost" id="panel-menu-toggle" aria-label="Menú">☰</button>
+    <button class="btn btn--ghost lg:hidden" id="panel-menu-toggle" aria-label="Menú">☰</button>
+
+    <button class="btn btn--ghost hidden md:inline-flex" id="panel-hide" aria-label="Ocultar menú" title="Ocultar menú">⇤</button>
 
     <form action="/admin/conversations" method="GET" class="panel-topbar__search">
         <input type="search" name="search" class="input" placeholder="Buscar conversación o contacto…" />
@@ -122,6 +124,22 @@
             });
         }
 
+        var hide = document.getElementById("panel-hide");
+
+        if (hide) {
+            if (localStorage.getItem("margarita:sidebar-hidden") === "1") {
+                document.body.classList.add("sidebar-hidden");
+            }
+
+            hide.addEventListener("click", function () {
+                document.body.classList.toggle("sidebar-hidden");
+                localStorage.setItem(
+                    "margarita:sidebar-hidden",
+                    document.body.classList.contains("sidebar-hidden") ? "1" : "0"
+                );
+            });
+        }
+
         var bell = document.getElementById("panel-bell");
         var bellPanel = document.getElementById("panel-bell-panel");
         var bellCount = document.getElementById("panel-bell-count");
@@ -137,10 +155,15 @@
         function renderToasts() {
             var items = readToasts();
 
+            var seenAt = Number(localStorage.getItem("margarita:toastsSeenAt") || 0);
+            var unseen = items.filter(function (item) {
+                return Number(item.at || 0) > seenAt;
+            }).length;
+
             if (bellCount) {
-                bellCount.textContent = String(items.length);
-                bellCount.classList.toggle("is-empty", items.length === 0);
-                bellCount.classList.toggle("hidden", items.length === 0);
+                bellCount.textContent = String(unseen);
+                bellCount.classList.toggle("is-empty", unseen === 0);
+                bellCount.classList.toggle("hidden", unseen === 0);
             }
 
             if (!bellPanel) {
@@ -182,6 +205,11 @@
             bell.addEventListener("click", function (event) {
                 event.stopPropagation();
                 bellPanel.hidden = !bellPanel.hidden;
+
+                if (!bellPanel.hidden) {
+                    localStorage.setItem("margarita:toastsSeenAt", String(Date.now()));
+                }
+
                 renderToasts();
             });
 

@@ -141,6 +141,12 @@ export function servesLanding(
     return domains.includes(clean);
 }
 
+function optionalLimit(value: string | undefined): number | null {
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
 export const appConfig = {
     name: process.env.APP_NAME || "Margarita",
     version: process.env.APP_VERSION?.trim() || readPackageVersion(),
@@ -149,6 +155,18 @@ export const appConfig = {
     appUrl: appUrl.url,
     productDomains,
     port: Number(process.env.PORT) || 3000,
+
+    /**
+     * Techos que el operador (superadmin) fija desde Railway. Si existen, la
+     * app recorta los límites de IA del workspace y no deja que el cliente
+     * los suba por encima; en la pantalla se muestran como solo lectura.
+     */
+    aiMaxRepliesPerDay: optionalLimit(process.env.AI_MAX_REPLIES_PER_DAY),
+    aiMaxRepliesPerThread: optionalLimit(process.env.AI_MAX_REPLIES_PER_THREAD),
+    aiLimitsLocked:
+        process.env.AI_LIMITS_LOCKED === "true" ||
+        Boolean(process.env.AI_MAX_REPLIES_PER_DAY?.trim()) ||
+        Boolean(process.env.AI_MAX_REPLIES_PER_THREAD?.trim()),
     env: runtimeEnvironment,
     timezone: process.env.TIMEZONE || "America/Mexico_City",
 

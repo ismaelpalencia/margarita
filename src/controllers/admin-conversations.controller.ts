@@ -162,6 +162,18 @@ export class AdminConversationsController {
             conversation.id
         );
 
+        /** Recalcula los contadores de la página que se está pintando. */
+        res.locals.unreadTotal = await ConversationService.countUnread({
+            workspaceId: req.user!.workspaceId,
+            whatsappNumberId: req.activeNumber?.id,
+            assignedUserId:
+                req.user!.role === "AGENT" ? req.user!.id : undefined
+        }).catch(() => res.locals.unreadTotal);
+        res.locals.unassignedCount =
+            await ConversationService.countUnassigned(
+                req.user!.workspaceId
+            ).catch(() => res.locals.unassignedCount);
+
         const timezone = await SendPolicyService.timezoneFor(
             req.user!.workspaceId
         );

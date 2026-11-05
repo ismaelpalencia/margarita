@@ -10,12 +10,10 @@
 </head>
 
 <body class="min-h-screen bg-slate-100">
-    <main class="mx-auto max-w-2xl px-6 py-10">
-        <div class="mb-2 flex justify-end">
-            <%- include("../../../partials/theme-toggle") %>
-        </div>
+    <%- include("../../../partials/admin-nav", { user }) %>
 
-        <section class="mb-6">
+<main class="mx-auto max-w-2xl px-6 py-10">
+<section class="mb-6">
             <a href="/admin/contacts" class="text-sm font-medium text-margarita-700">
                 ← Volver a contactos
             </a>

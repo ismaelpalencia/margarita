@@ -500,3 +500,18 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Gates: tsc OK, 341 unit, 101 integration.
 
 ---
+
+## Ajustes post-Batch B
+
+- Contraste: los enlaces sin clase mantienen el color de marca; los botones con `text-white`/utilidades ya no heredan el azul (base.css usa `a:not([class])`).
+- Ocultar menú izquierdo: botón ⇤ en el topbar (escritorio), estado en localStorage (`margarita:sidebar-hidden`); en móvil sigue el ☰.
+- No leídos: al abrir un hilo los controladores show recalculan `unreadTotal`/`unassignedCount` antes de renderizar (el middleware los calculaba antes de `markAsRead`). La campana marca los toasts como vistos (`margarita:toastsSeenAt`) y deja de mostrar el 1.
+- Límites de IA controlados por el operador: `AI_MAX_REPLIES_PER_DAY`, `AI_MAX_REPLIES_PER_THREAD` y `AI_LIMITS_LOCKED` recortan el valor efectivo en `AiSettingsService` (get/save) y la pantalla los muestra en solo lectura. Documentado en `.env.example`.
+- Shell aplicado a Contactos/Etiquetas/Plantillas y formularios de alta/edición.
+- Skeleton de la lista de bandeja al enviar filtros.
+
+### Gates
+
+- tsc OK, 341 unit, 101 integration.
+
+---

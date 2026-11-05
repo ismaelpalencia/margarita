@@ -38,7 +38,7 @@
             </div>
         </section>
 
-        <form action="/admin/conversations" method="GET" class="mb-6 grid gap-3 md:grid-cols-[1fr_180px_180px_auto_auto]">
+        <form id="inbox-filter" action="/admin/conversations" method="GET" class="mb-6 grid gap-3 md:grid-cols-[1fr_180px_180px_auto_auto]">
             <input
                 type="search"
                 name="search"
@@ -104,7 +104,20 @@
                 </div>
             </div>
         <% } else { %>
-        <section class="card" style="padding: 0; overflow: hidden">
+        <div class="card" id="inbox-skeleton" hidden style="padding: 0; overflow: hidden">
+            <% for (let i = 0; i < 5; i++) { %>
+                <div class="inbox-row">
+                    <div class="skeleton" style="width: 32px; height: 32px; border-radius: 9999px"></div>
+                    <div class="min-w-0 flex-1">
+                        <div class="skeleton" style="height: 10px; width: 40%"></div>
+                        <div class="skeleton mt-2" style="height: 10px; width: 70%"></div>
+                        <div class="skeleton mt-2" style="height: 8px; width: 30%"></div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+
+        <section id="inbox-list" class="card" style="padding: 0; overflow: hidden">
             <div class="flex items-center justify-between border-b px-5 py-3" style="border-color: var(--surface-border)">
                 <h2 class="card__title">Bandeja <span class="chip"><%= conversations.length %></span></h2>
                 <span class="text-xs" style="color: var(--text-tertiary)">Ordenadas por actividad reciente</span>
@@ -161,5 +174,33 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/copy.js"></script>
     <script src="/js/live.js"></script>
+    <script>
+        (function () {
+            var form = document.getElementById("inbox-filter");
+            var skeleton = document.getElementById("inbox-skeleton");
+            var list = document.getElementById("inbox-list");
+
+            if (!form || !skeleton) {
+                return;
+            }
+
+            form.addEventListener("submit", function () {
+                if (list) {
+                    list.style.display = "none";
+                }
+
+                skeleton.hidden = false;
+            });
+
+            window.addEventListener("pageshow", function () {
+                skeleton.hidden = true;
+
+                if (list) {
+                    list.style.display = "";
+                }
+            });
+        })();
+    </script>
+
 </body>
 </html>
