@@ -14,23 +14,10 @@ la junta.
 
 Lo que se vende son **dos paquetes de instalación y una mensualidad**:
 
-1. **La instalación** (pago único, **incluye el primer mes**): el panel
-   operativo con el módulo de cobranza, funcionando en producción, con
-   usuarios ilimitados. La página pública (`margaritaapp.org`, sitio estático
-   aparte) muestra el precio de la promoción (`INSTALL_PRICE_PROMO`), el de
-   lista (`INSTALL_PRICE`) y la vigencia (`INSTALL_PROMO_LABEL`). La raíz de
-   una instalación de cliente manda al inicio de sesión, no a la oferta.
-2. **La mensualidad** (`INSTALL_MONTHLY_PRICE`, $699): del segundo mes en
-   adelante, **mes a mes y sin mínimo obligatorio**. El primer mes es un
-   **piloto pagado**: al día 30 el cliente decide si sigue, sin penalización.
-   Si no continúa, se lleva su respaldo y se borra todo a petición.
-   El **compromiso es opcional** y baja la mensualidad: 3 meses $649, 6 meses
-   $599, 12 meses $549 (más IVA).
-3. **El servicio de conexión con Meta**: el trámite que todo el mundo
-   subestima. Va **incluido en el Paquete A** ($3,500 con instalación y primer
-   mes); quien ya tiene Meta contratado usa el **Paquete B** ($2,500). El
-   detalle del trámite está en [`guia-meta.md`](guia-meta.md).
-
+1. **Un solo plan: Margarita IA** — **$1,299 MXN/mes, más IVA**. Incluye plataforma completa, IA (sugerencias y automático acotado), onboarding (sesión de arranque de 2 h + guía) y **2,000 respuestas de IA/mes**.
+2. **Sin instalación ni setup.** El onboarding va incluido. El primer mes tiene **garantía de satisfacción**: si no convence, se devuelve la mensualidad (30 días).
+3. **Excedente de IA:** $150 MXN por cada 1,000 respuestas adicionales, solo por contrato del operador y visible en el panel; **no se publica en el landing**.
+4. **Clientes legacy:** conservan su precio y plan actuales.
 **Lo que paga el cliente a Meta, no a nosotros:** el consumo de WhatsApp
 (conversaciones y plantillas). Se dice en la página pública, en la propuesta y
 en el contrato: nuestra factura es solo por la herramienta y los servicios.

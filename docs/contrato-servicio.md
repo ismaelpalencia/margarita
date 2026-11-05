@@ -32,49 +32,33 @@ por conversaciones y plantillas son por cuenta del cliente.
 
 ---
 
-## 3. Paquete contratado
+## 3. Plan contratado
 
-| Paquete | Contenido | Precio (más IVA) |
+| Plan | Contenido | Precio (más IVA) |
 | --- | --- | --- |
-| **A · Llave en mano** | Instalación, primer mes y conexión completa con Meta | $3,500.00 MXN |
-| **B · Ya tengo Meta** | Instalación y primer mes | $2,500.00 MXN |
+| **Margarita IA** | Plataforma completa + IA + onboarding + 2,000 respuestas de IA/mes | $1,299.00 MXN al mes |
 
-Paquete elegido: **[A / B]**.
-
-La instalación incluye: proyecto, base de datos, dominio, usuario administrador,
-carga de plantillas y una sesión de arranque de dos horas. En el Paquete A
-incluye además la configuración de la app de Meta, la cuenta de WhatsApp
-Business, el número, el token permanente y el webhook firmado.
+**Sin instalación ni setup.** El onboarding incluye: proyecto, base de datos, dominio, usuario administrador, carga de plantillas, conexión con Meta y una sesión de arranque de dos horas.
 
 ---
 
-## 4. Piloto de 30 días
+## 4. Garantía de satisfacción (primer mes)
 
-El primer mes está incluido en la instalación y se presta como **piloto**.
+El primer mes tiene garantía de satisfacción.
 
-1. Al cumplirse **30 días naturales** desde la puesta en marcha, el cliente
-   confirma por escrito si continúa.
-2. Si no continúa, el contrato termina **sin penalización**.
-3. Al terminar, el prestador entrega al cliente un **respaldo completo** de sus
-   datos y, a petición escrita, elimina la instalación y los datos asociados.
+1. Si el cliente no queda satisfecho dentro de los **30 días naturales** desde la puesta en marcha, puede pedir la devolución de la mensualidad.
+2. La cancelación no tiene penalización.
+3. Al terminar, el prestador entrega al cliente un **respaldo completo** de sus datos y, a petición escrita, elimina la cuenta y los datos asociados.
 
 ---
 
-## 5. Mensualidad y compromiso opcional
+## 5. Mensualidad
 
 | Modalidad | Mensualidad (más IVA) |
 | --- | --- |
-| Mes a mes | $699.00 MXN |
-| Compromiso 3 meses | $649.00 MXN |
-| Compromiso 6 meses | $599.00 MXN |
-| Compromiso 12 meses | $549.00 MXN |
+| Mes a mes | $1,299.00 MXN |
 
-Modalidad elegida: **[mes a mes / 3 / 6 / 12]**. La mensualidad se paga por
-adelantado. Los compromisos son **opcionales**; si el cliente los elige, se
-facturan mes con mes durante el plazo y el precio se mantiene.
-
-Precio de lista: $4,900.00 MXN de instalación y $1,490.00 MXN al mes. La
-promoción vigente aplica hasta el **31 de diciembre de 2026**.
+Modalidad elegida: **[mes a mes]**. La mensualidad se paga por adelantado.
 
 ---
 

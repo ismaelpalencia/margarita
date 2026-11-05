@@ -23,7 +23,7 @@ ni la app normal. Para que funcione hace falta:
 | Cuenta de WhatsApp Business con el negocio verificado | El cliente, en Meta |
 | Número registrado con PIN y **método de cobro válido** | El cliente, en Meta |
 | Plantillas aprobadas (mínimo la de bienvenida) | El cliente, con la guía de plantillas |
-| Instalación en su dominio (`suempresa.margaritaapp.org`) y usuario administrador | Nosotros |
+| Publicación en su dominio (`suempresa.margaritaapp.org`) y usuario administrador | Nosotros |
 
 > Sin método de cobro en Meta los envíos fallan aunque la app diga que todo está
 > bien (error `131042`). Es el problema número uno del primer día.
@@ -248,7 +248,7 @@ pisa lo que ya editaste.
 1. Abre el **Dashboard**: conversaciones abiertas, sin asignar y errores
    recientes.
 2. Revisa la **bandeja**: lo nuevo, lo no leído y lo que quedó pendiente.
-3. Si tu instalación tiene módulo de resultados, abre **Reportes → Hoy** y
+3. Si tu cuenta tiene módulo de resultados, abre **Reportes → Hoy** y
    empieza por lo que ya pidió atención.
 
 **Durante el día**
@@ -343,13 +343,12 @@ Para no prometer de más:
 - **Correo**: contacto@margaritaapp.org.
 - Atención en horario hábil. Incluye correcciones y actualizaciones mientras la
   mensualidad esté activa.
-- La **sesión de arranque de dos horas** se agenda después de la instalación:
-  ahí se revisan tus plantillas, se carga la primera campaña y se deja al equipo
-  operando.
-- **El primer mes es un piloto pagado**: al día 30 decides si sigues, sin
-  penalización. Después se paga la mensualidad mes a mes; los compromisos de 3,
-  6 o 12 meses son opcionales y bajan el precio. El consumo de Meta va por
-  cuenta de la empresa.
+- La **sesión de arranque de dos horas** va incluida en el plan y se agenda
+  después del alta: ahí se revisan tus plantillas, se carga la primera campaña y
+  se deja al equipo operando.
+- **El primer mes tiene garantía de satisfacción**: si no te convence, te
+  devolvemos la mensualidad. Después se paga mes a mes. El consumo de Meta va
+  por cuenta de la empresa.
 
 > Este documento y la app cambian juntos: si algo de aquí no coincide con lo que
 > ves en pantalla, gana la pantalla — y avísanos para corregir la guía.

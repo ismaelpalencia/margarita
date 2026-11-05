@@ -284,16 +284,12 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `SESSION_MAX_ACTIVE` | No | Dispositivos con sesión abierta por usuario. Default `3` |
 | `SUPPORT_WHATSAPP` | Comercial | Número de contacto (dígitos con lada país) que aparece en la página pública |
 | `SUPPORT_EMAIL` | Comercial | Correo de contacto alterno |
-| `SETUP_SERVICE_PRICE` | Comercial | Precio del acompañamiento con Meta (`se cotiza aparte` por omisión) |
-| `INSTALL_PRICE` | Comercial | Precio de lista de la instalación (`$4,900.00 MXN`) |
-| `INSTALL_PRICE_PROMO` | Comercial | Paquete B, instalación + primer mes sin conexión con Meta (`$2,500.00 MXN`) |
-| `INSTALL_PRICE_WITH_META` | Comercial | Paquete A, instalación + primer mes + conexión con Meta (`$3,500.00 MXN`). Acepta también el alias `SETUP_BUNDLE_PRICE` |
-| `INSTALL_PROMO_LABEL` | Comercial | Texto de la oferta (`Precio de instalación vigente`) |
-| `INSTALL_MONTHLY_PRICE` | Comercial | Mensualidad mes a mes (`$699.00 MXN`); el primer mes va incluido y es el piloto de 30 días |
-| `INSTALL_MONTHLY_LIST_PRICE` | Comercial | Mensualidad a precio de lista (`$1,490.00 MXN`) |
-| `MONTHLY_3` / `MONTHLY_6` / `MONTHLY_12` | Comercial | Compromisos **opcionales**: `$649`, `$599` y `$549` al mes |
-| `PILOT_DAYS` | Comercial | Duración del piloto pagado. Default `30` |
-| `INSTALL_PROMO_UNTIL` | Comercial | Hasta cuándo vale la oferta (`2026-12-31`); después, la página deja de anunciarla sola |
+| `AI_MONTHLY_REPLIES_LIMIT` | Comercial | Respuestas de IA incluidas al mes (`2000` en el plan único) |
+| `AI_MONTHLY_SUGGESTIONS_LIMIT` | Comercial | Tope mensual informativo de sugerencias (0 = sin tope) |
+| `AI_MONTHLY_BUDGET_CENTS` | Comercial | Hard cap de costo de tokens en centavos USD (`2800` ≈ $28 USD) |
+| `AI_OVERAGE_PRICE_MXN` | Comercial | Precio del excedente para la estimación del panel (`150` por 1,000) |
+| `AI_LIMITS_ENFORCE` | Comercial | Apaga el modo automático al llegar al hard cap. Default `false` |
+| `AI_LIMITS_HIDDEN` | Comercial | Oculta la tarjeta de límites al cliente. Default `false` |
 | `SUPPORT_WHATSAPP_DISPLAY` | Comercial | El número como se muestra en la página (`55 3878 3682`) |
 | `BACKUP_ENABLED` | No | Respaldo automático de la base. Default `true` |
 | `BACKUP_INTERVAL_HOURS` | No | Cada cuánto se guarda una copia completa. Default `24` |

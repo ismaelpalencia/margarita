@@ -39,7 +39,7 @@ const PAGES: Page[] = [
         file: "index.html",
         title: "Margarita — Automatiza WhatsApp con IA",
         description:
-            "Atiende, califica y deriva conversaciones de WhatsApp con IA acotada, control humano y panel completo. API oficial de Meta, datos cifrados y planes desde $699 MXN al mes.",
+            "Atiende, califica y deriva conversaciones de WhatsApp con IA acotada, control humano y panel completo. API oficial de Meta, datos cifrados y $1,299 MXN al mes con 2,000 respuestas de IA.",
         active: "home"
     },
     {
@@ -55,7 +55,7 @@ const PAGES: Page[] = [
         file: "precios.html",
         title: "Precios — Margarita",
         description:
-            "Un producto, tres planes: Esencial $699, IA Esencial $999 e IA Soporte $1,299 MXN al mes. Instalación desde $2,900. Precios más IVA.",
+            "Margarita IA: $1,299 MXN al mes, 2,000 respuestas de IA incluidas, sin instalación y con onboarding incluido. Precios más IVA.",
         active: "precios"
     },
     {
@@ -103,7 +103,7 @@ const PAGES: Page[] = [
         file: "acceso.html",
         title: "Ya tengo acceso — Margarita",
         description:
-            "Cómo entrar al panel de tu instalación de Margarita y qué hacer si olvidaste tu dominio o contraseña.",
+            "Cómo entrar al panel de tu cuenta de Margarita y qué hacer si olvidaste tu dominio o contraseña.",
         active: "acceso"
     }
 ];
@@ -114,60 +114,29 @@ const PAGES: Page[] = [
  * esta constante.
  */
 const PRICING = {
-    plans: [
-        {
-            name: "Esencial",
-            monthly: 699,
-            list: 1290,
-            replies: 0,
-            tag: "",
-            featured: false,
-            description: "La plataforma completa, sin respuestas de IA.",
-            features: [
-                "Bandeja, contactos y campañas",
-                "Horarios y fuera de horario",
-                "Botones, listas y flujos",
-                "Leads y reportes de servicio",
-                "Cifrado y respaldos"
-            ]
-        },
-        {
-            name: "IA Esencial",
-            monthly: 999,
-            list: 1690,
-            replies: 1500,
-            tag: "Más elegido",
-            featured: true,
-            description: "IA en sugerencias, con tu equipo al mando.",
-            features: [
-                "Todo lo de Esencial",
-                "1,500 respuestas de IA al mes",
-                "Base de conocimiento y handoff",
-                "Panel de IA por conversación",
-                "Pausa por hilo"
-            ]
-        },
-        {
-            name: "IA Soporte",
-            monthly: 1299,
-            list: 1990,
-            replies: 4000,
-            tag: "",
-            featured: false,
-            description: "Respuesta automática acotada para preguntas frecuentes.",
-            features: [
-                "Todo lo de IA Esencial",
-                "4,000 respuestas de IA al mes",
-                "Respuesta automática acotada",
-                "Límites por día y por hilo",
-                "Presupuesto mensual"
-            ]
-        }
-    ],
-    install: { a: 3900, b: 2900 },
-    upgrades: { esencialToAI: 500, esencialToSupport: 1000 },
-    overage: 150,
-    pilotDays: 30
+    plan: {
+        name: "Margarita IA",
+        monthly: 1299,
+        replies: 2000,
+        description: "Todo incluido: plataforma, IA y onboarding.",
+        features: [
+            "Plataforma completa: bandeja, agentes, campañas y plantillas",
+            "IA en sugerencias y respuesta automática acotada",
+            "2,000 respuestas de IA incluidas al mes",
+            "Base de conocimiento, handoff y pausa por hilo",
+            "Horarios y mensaje fuera de horario",
+            "Botones y listas interactivas",
+            "Flujos por vertical y paquete inicial",
+            "Leads, exportación CSV y webhook firmado",
+            "Demo pública y reportes de servicio",
+            "Onboarding: sesión de arranque de 2 h + guía",
+            "Cifrado, respaldos, 2FA y bitácora"
+        ]
+    },
+    /** Solo referencia del operador; no se renderiza en el landing. */
+    overagePrice: 150,
+    overageUnit: 1000,
+    guaranteeDays: 30
 };
 
 const money = (value: number) =>

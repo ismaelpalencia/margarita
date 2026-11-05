@@ -609,3 +609,17 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - tsc OK, 347 unit, 105 integración (107 total, 2 skipped).
 
 ---
+
+## Fase 2 — Plan único Margarita IA
+
+- Landing: `PRICING` pasa a un solo plan ($1,299, 2,000 respuestas, garantía 30 días, overage solo referencia). `precios.ejs` reescrito (una tarjeta + Todo lo que incluye, sin tabla comparativa, sin instalación, sin piloto). `index.ejs`, `ia.ejs`, `onboarding.ejs`, `guia.ejs`, `plantillas.ejs`, `demo.ejs`, `_footer.ejs` actualizados. HTML regenerado.
+- Metas y PAGES de `scripts/build-landing.ts` actualizados; `docs/guia-uso.md` ajustado (guía publicada).
+- Docs: alcance (precio único, clientes legacy, vistas legacy, checklist), facturación, propuesta, contrato, modelo, plan-interactivos, guía Meta, plantilla Railway, kit comercial, demanda Workana y README.
+- Legacy: `app.config` marcado como legacy y con precios nuevos; `.env.example` sin AI_ESSENTIAL/AI_SUPPORT/INSTALL, con vars del plan.
+- Grep landing prohibidos: 0. `1,299` y `2,000` presentes. Docs: solo quedan menciones de "instalación" como despliegue/tenant.
+
+### Gates
+
+- landing:build OK; tsc OK; 347 unit; 105 integración (107 total, 2 skipped).
+
+---

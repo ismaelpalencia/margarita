@@ -314,26 +314,22 @@ export const appConfig = {
         "se cotiza aparte",
 
     /**
-     * La oferta comercial, tal como aparece en la página pública. Se escribe
-     * ya formateada ("$1,500.00 MXN") porque es un texto que lee el cliente:
-     * el formato es decisión comercial, no del navegador.
+     * LEGACY: estos importes alimentan las vistas públicas heredadas
+     * (`src/views/pages/home/*`), que solo se sirven en instalaciones con
+     * `PRODUCT_DOMAIN` configurado. La oferta oficial es el plan único de
+     * `landing/` (Margarita IA, $1,299/mes, 2,000 respuestas, sin instalación).
      *
-     * El modelo es **mes con mes**: la instalación (que se paga junto con el
-     * primer mes) y, de ahí en adelante, la mensualidad. Hay una oferta de
-     * lanzamiento para los primeros clientes, con precio de lista y de oferta,
-     * y una fecha de vigencia: al pasar esa fecha la página deja de anunciarla
-     * sola, sin tocar código.
-     *
-     * Los precios van **más IVA**, como el resto de la propuesta.
+     * Se dejan con el precio nuevo para que una instalación vieja no muestre
+     * cifras atrasadas; no se usan en el landing nuevo.
      */
-    installPrice: process.env.INSTALL_PRICE?.trim() || "$4,900.00 MXN",
+    installPrice: process.env.INSTALL_PRICE?.trim() || "$0.00 MXN",
     /** Paquete A: instalación + conexión con Meta. */
     installPriceWithMeta:
         process.env.INSTALL_PRICE_WITH_META?.trim() ||
         process.env.SETUP_BUNDLE_PRICE?.trim() ||
-        "$3,500.00 MXN",
+        "$0.00 MXN",
     installPricePromo:
-        process.env.INSTALL_PRICE_PROMO?.trim() || "$2,500.00 MXN",
+        process.env.INSTALL_PRICE_PROMO?.trim() || "$0.00 MXN",
     installPromoLabel:
         process.env.INSTALL_PROMO_LABEL?.trim() ||
         "Precio de instalación vigente",
@@ -351,9 +347,9 @@ export const appConfig = {
             ? Number(process.env.INSTALL_PROMO_SPOTS_LEFT)
             : 3,
     installMonthlyPrice:
-        process.env.INSTALL_MONTHLY_PRICE?.trim() || "$699.00 MXN",
+        process.env.INSTALL_MONTHLY_PRICE?.trim() || "$1,299.00 MXN",
     installMonthlyListPrice:
-        process.env.INSTALL_MONTHLY_LIST_PRICE?.trim() || "$1,490.00 MXN",
+        process.env.INSTALL_MONTHLY_LIST_PRICE?.trim() || "$1,299.00 MXN",
     /**
      * Mensualidad con compromiso opcional. No hay mínimo obligatorio: el primer
      * mes es un piloto pagado y, al día 30, el cliente decide si sigue.
@@ -383,13 +379,16 @@ export const appConfig = {
      */
     aiEssentialInstallPrice:
         process.env.AI_ESSENTIAL_INSTALL_PRICE?.trim() ||
-        "+$1,500.00 MXN",
+        "$0.00 MXN",
     aiEssentialMonthlyPrice:
-        process.env.AI_ESSENTIAL_MONTHLY_PRICE?.trim() || "+$299.00 MXN",
+        process.env.AI_ESSENTIAL_MONTHLY_PRICE?.trim() ||
+        "$1,299.00 MXN",
     aiSupportInstallPrice:
-        process.env.AI_SUPPORT_INSTALL_PRICE?.trim() || "+$3,000.00 MXN",
+        process.env.AI_SUPPORT_INSTALL_PRICE?.trim() ||
+        "$0.00 MXN",
     aiSupportMonthlyPrice:
-        process.env.AI_SUPPORT_MONTHLY_PRICE?.trim() || "+$599.00 MXN",
+        process.env.AI_SUPPORT_MONTHLY_PRICE?.trim() ||
+        "$1,299.00 MXN",
     pilotDays: Number(process.env.PILOT_DAYS) || 30,
 
 

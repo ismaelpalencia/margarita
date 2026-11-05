@@ -173,11 +173,9 @@ ofrece y la que sostiene el precio.
 > `alcance-produccion.md`, `facturacion.md`, las variables y la página `/ia` en
 > el mismo cambio.
 
-| Nivel | Instalación (una vez) | Mensualidad | Para quién |
+| Plan | Setup | Mensualidad | Para quién |
 | --- | --- | --- | --- |
-| **Base** (lo de hoy, sin IA) | $3,500 MXN | $699 MXN | Cobranza y operación actual |
-| **IA Esencial** (sugerencias + KB + handoff) | +$1,500 MXN | +$299 MXN | Quien quiere control total y medir calidad |
-| **IA Soporte** (automático acotado) | +$3,000 MXN | +$599 MXN | Quien quiere liberar tiempo de verdad |
+| **Margarita IA** (todo incluido) | $0 | $1,299 MXN | Plataforma + IA + onboarding + 2,000 respuestas/mes |
 
 La captura de leads y las rutas a recursos **no** están incluidas todavía: se
 cotizan aparte mientras se cierra esa fase.
@@ -189,8 +187,8 @@ cotizan aparte mientras se cierra esa fase.
 - El costo real para el cliente es el de una persona: una respuesta humana
   cuesta $0.08–$0.17. A 300 respuestas al mes, el ahorro es de $25–$50 USD, muy
   por encima del incremento.
-- El precio actual ($3,500 MXN ≈ $190 USD por instalación + primer mes) solo
-  funciona porque es **repetible**. En cuanto se personaliza, se pierde dinero.
+- El precio actual ($1,299 MXN/mes ≈ $70 USD, sin instalación) solo funciona
+  porque es **repetible**. En cuanto se personaliza, se pierde dinero.
   Ese es el argumento más fuerte contra aceptar proyectos a medida de Workana.
 
 **Lo que no se debe hacer:** bajar el precio para ganar la publicación. Con 50

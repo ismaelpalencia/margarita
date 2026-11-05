@@ -84,9 +84,7 @@ Meta? ¿qué pasa si en 30 días no funciona?
 ## 5. Objeciones
 
 **«Está caro.»**
-> «Compáralo con una sola cobranza recuperada. La instalación incluye el primer
-> mes y es un piloto: si al día 30 no te sirve, no sigues y te llevas tu
-> respaldo. Después son $699 al mes, y baja a $649 si te comprometes a 3 meses.»
+> «Es un solo plan: $1,299 al mes, todo incluido y sin instalación. El primer mes tiene garantía de satisfacción: si no te sirve, te devolvemos la mensualidad.»
 
 **«Ya uso WhatsApp Web y me funciona.»**
 > «WhatsApp Web no te dice a quién llamar hoy ni guarda en qué quedó cada

@@ -138,10 +138,6 @@ Meta.
 trámites legales, aviso de privacidad del cliente, migración de un CRM ajeno,
 ni teléfonos o equipos.
 
-**Precio:** va **incluida en el Paquete A** ($3,500 con instalación y primer
-mes). Si el cliente ya tiene Meta usa el **Paquete B** ($2,500) y no
-paga esta parte. Cuando se contrata por separado, se cotiza con
-`SETUP_SERVICE_PRICE` (por omisión, «se cotiza aparte»). La guía sigue
-disponible para quien prefiera hacer el trámite por su cuenta.
+**Precio:** la conexión con Meta va **incluida en el onboarding** del plan único ($1,299 MXN/mes, más IVA). No se cobra aparte. La guía sigue disponible para quien prefiera hacer el trámite por su cuenta.
 
 **Contacto:** `SUPPORT_WHATSAPP` y `SUPPORT_EMAIL`.

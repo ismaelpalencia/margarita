@@ -83,37 +83,22 @@ Decirlo aquí evita discusiones después:
 ## 7. Inversión
 
 La cobranza es del día a día, así que el cobro también: **instalación una vez y
-después mes con mes**, sin mínimo obligatorio. El primer mes es un **piloto
-pagado**.
+después mes con mes**, sin mínimo obligatorio. El primer mes tiene **garantía de satisfacción** (reembolsable).
 
 | Concepto | Importe | Cuándo |
 | --- | --- | --- |
-| **Paquete A · Llave en mano** | **$3,500.00 MXN** | Una vez; instalación, primer mes y **conexión completa con Meta** |
-| **Paquete B · Ya tengo Meta** | **$2,500.00 MXN** | Una vez; instalación y primer mes |
-| **Mensualidad** (mes a mes) | **$699.00 MXN al mes** | Del segundo mes en adelante |
-| Compromiso 3 meses | $649.00 MXN al mes | Opcional; baja la mensualidad |
-| Compromiso 6 meses | $599.00 MXN al mes | Opcional |
-| Compromiso 12 meses | $549.00 MXN al mes | Opcional |
+| **Margarita IA** | **$1,299.00 MXN al mes** | Mensual adelantado, desde el primer mes |
+| Incluye | Plataforma completa + IA + onboarding (2 h + guía) + 2,000 respuestas de IA/mes | — |
+| Instalación / setup | **$0** | No hay |
+| Excedente de IA | $150.00 MXN por cada 1,000 respuestas adicionales | Solo por contrato del operador |
 | Consumo de WhatsApp | Lo cobra Meta | Directo a la empresa |
-| **IA Esencial · instalación** | **+$1,500.00 MXN** | Una vez; se suma al paquete base |
-| **IA Esencial · mensualidad** | **+$299.00 MXN al mes** | Del segundo mes en adelante |
-| **IA Soporte · instalación** | **+$3,000.00 MXN** | Una vez; se suma al paquete base |
-| **IA Soporte · mensualidad** | **+$599.00 MXN al mes** | Del segundo mes en adelante |
-| Consumo de IA | Aparte, con presupuesto | Se ve en Admin → IA |
-| Migración de cartera | [PRECIO O INCLUIDA] | Una vez |
+| Garantía | Primer mes reembolsable | 30 días |
 
-**El complemento de IA es opcional.** IA Esencial incluye sugerencias, base de
-conocimiento, handoff y pausa por conversación. IA Soporte agrega respuesta
-automática acotada para FAQ, límites y presupuesto. La captura de leads y las
-rutas a recursos se cotizan aparte mientras se cierra esa fase.
+**Todo incluido.** La IA va incluida: sugerencias, base de conocimiento, handoff, pausa por conversación y respuesta automática acotada, con 2,000 respuestas/mes. La captura de leads y los reportes de servicio también van incluidos.
 
-**El piloto de 30 días.** El primer mes está incluido en la instalación y se
-trata como piloto: **al día 30 el cliente decide si continúa**, sin penalización.
-Si no sigue, se le entrega su respaldo completo y se borra la instalación a
-petición.
+**Garantía de satisfacción.** El primer mes es reembolsable: si el cliente no queda satisfecho, se le devuelve la mensualidad, se le entrega su respaldo completo y se borra la cuenta a petición.
 
-Precio de lista: $4,900 de instalación y $1,490 al mes. Promoción vigente hasta
-el **31 de diciembre de 2026**; todos los precios son **más IVA**.
+Todos los precios son **más IVA**.
 
 **Qué incluye la mensualidad** (esto es lo que se está pagando cada mes):
 
@@ -144,13 +129,7 @@ solo sirve para bajar la mensualidad; se anota en el contrato únicamente si el
 cliente lo elige. El detalle operativo (fechas, recordatorios y frases para
 cobrar) está en [`facturacion.md`](facturacion.md).
 
-**Cómo se calculó:** la instalación cubre el alta (despliegue, conexión y
-capacitación) y el primer mes; de ahí en adelante, $699 al mes por un equipo
-completo sin tope de usuarios. Del lado del costo, el mes incluye el canal de
-soporte (~1 hora), las mejoras del periodo, el monitoreo y, si el alojamiento va
-por nuestra cuenta, unos $150 más. El precio de lista es $4,900 de instalación y
-$1,490 al mes; la promoción vigente baja el precio de entrada y se anuncia hasta
-el 31 de diciembre de 2026.
+**Cómo se calculó:** un solo plan de $1,299 al mes por la plataforma completa, la IA y el onboarding, sin tope de usuarios y sin instalación. Del lado del costo, el mes incluye el canal de soporte (~1 hora), las mejoras del periodo, el monitoreo y el consumo de tokens (~$500 MXN/mes en el escenario base), lo que deja un margen aproximado de 61%.
 
 ## 8. Requisitos del cliente
 

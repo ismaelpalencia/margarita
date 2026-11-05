@@ -52,21 +52,21 @@ Margarita es una aplicación web para **operar la WhatsApp Business Cloud API de
 
 ---
 
-## 2. Planes y precios (comercial)
+## 2. Plan y precios (comercial)
 
 Los precios viven en `landing/` y en `scripts/build-landing.ts` (`PRICING`). **El panel no muestra precios.**
 
-| Plan | Mensual | Lista | Respuestas de IA/mes |
-| --- | --- | --- | --- |
-| Esencial | $699 MXN | $1,290 | 0 |
-| IA Esencial | $999 MXN | $1,690 | 1,500 |
-| IA Soporte | $1,299 MXN | $1,990 | 4,000 |
+| Plan | Mensual | Respuestas de IA/mes |
+| --- | --- | --- |
+| Margarita IA | $1,299 MXN | 2,000 |
 
-- **Instalación:** Paquete A **$3,900** (incluye el primer mes en Esencial, conexión con Meta y sesión de arranque de 2 h) o Paquete B **$2,900** (si el cliente ya tiene Meta configurado).
-- **Cambios:** Esencial → IA Esencial **$500**; Esencial → IA Soporte **$1,000**.
-- **Excedente:** **$150 MXN por cada 1,000 respuestas adicionales**.
+- **Un solo plan, todo incluido:** plataforma completa + IA (sugerencias y automático acotado) + onboarding (sesión de arranque de 2 h + guía publicada).
+- **Sin instalación ni setup.**
+- **Garantía de satisfacción el primer mes** (30 días, reembolsable). No se llama “piloto pagado”.
+- **Excedente:** **$150 MXN por cada 1,000 respuestas adicionales**, solo en el contrato del operador y en el panel; **no se publica en el landing**.
 - **Todos los precios son más IVA.** El consumo de WhatsApp lo factura **Meta directamente al cliente**.
-- **Piloto pagado de 30 días**, sin penalización; después, mes a mes.
+- **Clientes legacy:** conservan su precio y plan actuales; no se migran ni se les cambia la facturación.
+- **Vistas legacy:** `src/views/pages/home/*` y los importes de `src/config/app.config.ts` quedan marcados como legacy; solo se sirven si una instalación usa `PRODUCT_DOMAIN`. La oferta oficial es `landing/`.
 
 ### Lo importante: los planes no están cableados en el código
 
@@ -425,7 +425,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 3. Volume montado en `/data`; con `HEALTH_TOKEN`, `checks.mediaStoragePersistent` y `checks.encryptionKeyConfigured` en `true`.
 4. Migraciones al día (`[migraciones] Listo`).
 5. Si la base está vacía, el operador completa `/setup` antes de publicar el dominio; después crea un segundo admin y activa 2FA.
-6. Si se vende IA, fijar los techos `AI_MAX_REPLIES_PER_DAY` / `AI_MAX_REPLIES_PER_THREAD` según el plan contratado.
+6. Plan único: fijar `AI_MONTHLY_REPLIES_LIMIT=2000`, `AI_MAX_REPLIES_PER_DAY=67`, `AI_MAX_REPLIES_PER_THREAD=5`, `AI_MONTHLY_BUDGET_CENTS=2800` (≈$28 USD) y `AI_LIMITS_HIDDEN=true` si el operador gestiona el plan conversacionalmente. `AI_LIMITS_ENFORCE=false` por defecto.
 7. Si se publica la demo, `DEMO_ENABLED=true` y la API de demo accesible.
 8. Si la oferta vive en Cloudflare, el landing se despliega aparte (`landing/`) y `PRODUCT_DOMAIN` ya no es necesario (es legado).
 9. Los logs de Railway no se comparten ni se commitean.

@@ -106,7 +106,7 @@
             <div class="prose">
                 <h2 id="1-antes-de-la-primera-sesion">1. Antes de la primera sesión</h2>
 <p>Margarita opera sobre la <strong>API oficial de WhatsApp (Meta)</strong>; no es WhatsApp Web ni la app normal. Para que funcione hace falta:</p>
-<div class="marga-table"><table><thead><tr><th>Qué</th><th>Quién lo prepara</th></tr></thead><tbody><tr><td>Cuenta de WhatsApp Business con el negocio verificado</td><td>El cliente, en Meta</td></tr><tr><td>Número registrado con PIN y <strong>método de cobro válido</strong></td><td>El cliente, en Meta</td></tr><tr><td>Plantillas aprobadas (mínimo la de bienvenida)</td><td>El cliente, con la guía de plantillas</td></tr><tr><td>Instalación en su dominio (<code>suempresa.margaritaapp.org</code>) y usuario administrador</td><td>Nosotros</td></tr></tbody></table></div>
+<div class="marga-table"><table><thead><tr><th>Qué</th><th>Quién lo prepara</th></tr></thead><tbody><tr><td>Cuenta de WhatsApp Business con el negocio verificado</td><td>El cliente, en Meta</td></tr><tr><td>Número registrado con PIN y <strong>método de cobro válido</strong></td><td>El cliente, en Meta</td></tr><tr><td>Plantillas aprobadas (mínimo la de bienvenida)</td><td>El cliente, con la guía de plantillas</td></tr><tr><td>Publicación en su dominio (<code>suempresa.margaritaapp.org</code>) y usuario administrador</td><td>Nosotros</td></tr></tbody></table></div>
 <blockquote>Sin método de cobro en Meta los envíos fallan aunque la app diga que todo está bien (error <code>131042</code>). Es el problema número uno del primer día.</blockquote>
 <hr />
 <h2 id="2-entrar-y-dejar-la-cuenta-segura">2. Entrar y dejar la cuenta segura</h2>
@@ -155,7 +155,7 @@
 <hr />
 <h2 id="9-el-dia-de-trabajo">9. El día de trabajo</h2>
 <p><strong>En la mañana</strong></p>
-<ol><li>Abre el <strong>Dashboard</strong>: conversaciones abiertas, sin asignar y errores recientes.</li><li>Revisa la <strong>bandeja</strong>: lo nuevo, lo no leído y lo que quedó pendiente.</li><li>Si tu instalación tiene módulo de resultados, abre <strong>Reportes → Hoy</strong> y empieza por lo que ya pidió atención.</li></ol>
+<ol><li>Abre el <strong>Dashboard</strong>: conversaciones abiertas, sin asignar y errores recientes.</li><li>Revisa la <strong>bandeja</strong>: lo nuevo, lo no leído y lo que quedó pendiente.</li><li>Si tu cuenta tiene módulo de resultados, abre <strong>Reportes → Hoy</strong> y empieza por lo que ya pidió atención.</li></ol>
 <p><strong>Durante el día</strong></p>
 <ol><li>Contesta y asigna. Si la IA dejó un borrador, decídelo tú.</li><li>Cuando la conversación lo pida, <strong>deriva</strong> a una persona o pausa la IA.</li><li>Usa notas internas para lo que el equipo necesita saber.</li></ol>
 <p><strong>Al cierre</strong></p>
@@ -175,7 +175,7 @@
 <div class="marga-table"><table><thead><tr><th>Lo que ves</th><th>Qué hacer</th></tr></thead><tbody><tr><td>No llegan mensajes de WhatsApp</td><td><code>Admin → Sistema</code> o <code>/health</code>: si Meta no está entregando, revisa el webhook y el App Secret</td></tr><tr><td>Todo falla con «método de cobro»</td><td>Cargar el método de cobro en Meta (<code>131042</code>)</td></tr><tr><td>«Ventana cerrada» al responder</td><td>Pasaron 24 horas: usa una plantilla aprobada</td></tr><tr><td>Una campaña no se crea</td><td>Plantilla no aprobada, o reclasificada como marketing</td></tr><tr><td>El cliente no recibe nada</td><td>Está dado de baja, en pausa o sin consentimiento</td></tr><tr><td>No puedo buscar por teléfono</td><td>Escribe el número completo: 10 dígitos en México o con <code>+</code> y lada para otro país</td></tr><tr><td>La sesión se cerró sola</td><td>Pasó el tiempo de inactividad o alguien cerró las sesiones desde <strong>Sesiones</strong></td></tr><tr><td>Olvidé la contraseña</td><td>Pídele a un administrador que la restablezca en <strong>Equipo</strong></td></tr><tr><td>«Cargando…» y no avanza</td><td>Recarga; si sigue, revisa <code>/health</code> y los logs</td></tr></tbody></table></div>
 <hr />
 <h2 id="14-soporte-y-condiciones">14. Soporte y condiciones</h2>
-<ul><li><strong>WhatsApp de soporte</strong>: 55 3878 3682.</li><li><strong>Correo</strong>: contacto@margaritaapp.org.</li><li>Atención en horario hábil. Incluye correcciones y actualizaciones mientras la mensualidad esté activa.</li><li>La <strong>sesión de arranque de dos horas</strong> se agenda después de la instalación: ahí se revisan tus plantillas, se carga la primera campaña y se deja al equipo operando.</li><li><strong>El primer mes es un piloto pagado</strong>: al día 30 decides si sigues, sin penalización. Después se paga la mensualidad mes a mes; los compromisos de 3, 6 o 12 meses son opcionales y bajan el precio. El consumo de Meta va por cuenta de la empresa.</li></ul>
+<ul><li><strong>WhatsApp de soporte</strong>: 55 3878 3682.</li><li><strong>Correo</strong>: contacto@margaritaapp.org.</li><li>Atención en horario hábil. Incluye correcciones y actualizaciones mientras la mensualidad esté activa.</li><li>La <strong>sesión de arranque de dos horas</strong> va incluida en el plan y se agenda después del alta: ahí se revisan tus plantillas, se carga la primera campaña y se deja al equipo operando.</li><li><strong>El primer mes tiene garantía de satisfacción</strong>: si no te convence, te devolvemos la mensualidad. Después se paga mes a mes. El consumo de Meta va por cuenta de la empresa.</li></ul>
 <blockquote>Este documento y la app cambian juntos: si algo de aquí no coincide con lo que ves en pantalla, gana la pantalla — y avísanos para corregir la guía.</blockquote>
             </div>
         </div>
@@ -185,7 +185,7 @@
         <div class="container cta-band__inner">
             <div>
                 <h2>¿Necesitas ayuda con el arranque?</h2>
-                <p>La sesión de arranque de 2 horas va incluida en la instalación.</p>
+                <p>La sesión de arranque de 2 horas va incluida en el plan.</p>
             </div>
             <a class="btn btn--primary btn--lg" href="https://wa.me/525538783682" target="_blank" rel="noopener">Hablar por WhatsApp</a>
         </div>
@@ -200,7 +200,7 @@
                     <img src="/assets/img/margarita-icon-128.png" alt="Margarita" />
                     <span>Margarita</span>
                 </a>
-                <p>Automatiza WhatsApp con IA: atiende, califica y deriva. Instalación por empresa, datos cifrados y control humano.</p>
+                <p>Automatiza WhatsApp con IA: atiende, califica y deriva. Cuenta dedicada, datos cifrados y control humano.</p>
             </div>
 
             <div class="footer-col">

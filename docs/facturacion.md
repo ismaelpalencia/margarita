@@ -11,19 +11,11 @@ está en [`propuesta-comercial.md`](propuesta-comercial.md).
 
 | Concepto | Precio | Cuándo se cobra |
 | --- | --- | --- |
-| **Paquete A · Llave en mano** | **$3,500.00 MXN** | Una vez, al firmar: instalación, **primer mes** y conexión completa con Meta |
-| **Paquete B · Ya tengo Meta** | **$2,500.00 MXN** | Una vez, al firmar: instalación y **primer mes** |
-| **Mensualidad** (mes a mes) | **$699.00 MXN** | Del segundo mes en adelante, mes adelantado |
-| **IA Esencial · instalación** | **+$1,500.00 MXN** | Una vez, al firmar; se suma al paquete base |
-| **IA Esencial · mensualidad** | **+$299.00 MXN** | Del segundo mes en adelante, junto con la mensualidad base |
-| **IA Soporte · instalación** | **+$3,000.00 MXN** | Una vez, al firmar; se suma al paquete base |
-| **IA Soporte · mensualidad** | **+$599.00 MXN** | Del segundo mes en adelante, junto con la mensualidad base |
-| Compromiso 3 meses (opcional) | $649.00 MXN al mes | Baja la mensualidad; se firma solo si el cliente lo elige |
-| Compromiso 6 meses (opcional) | $599.00 MXN al mes | Igual |
-| Compromiso 12 meses (opcional) | $549.00 MXN al mes | Igual |
-| Conexión con Meta por separado | Se cotiza aparte | Solo si el cliente no contrata el Paquete A |
-| Precio de lista (referencia) | $4,900.00 MXN de instalación y $1,490.00 MXN al mes | Es el precio sin promoción; sirve para mostrar el ahorro |
-| Migración de cartera | [definir o incluir] | Una vez, si se contrata |
+| **Margarita IA** | **$1,299.00 MXN al mes** | Mensual adelantado, desde el primer mes |
+| Incluye | Plataforma completa + IA + onboarding (2 h + guía) + 2,000 respuestas de IA/mes | — |
+| Instalación / setup | **$0** | No hay |
+| Excedente de IA | $150.00 MXN por cada 1,000 respuestas adicionales | Solo por contrato del operador; no se publica en el landing |
+| Garantía | Primer mes reembolsable (30 días) | — |
 
 Todos los precios son **más IVA**. El **consumo de WhatsApp** (conversaciones y
 plantillas) lo cobra Meta directo al cliente, con su método de pago; no está
@@ -43,12 +35,7 @@ cierra esa fase. No se publican como incluidas en el nivel Soporte.
 
 ## 2. Las tres reglas que no se negocian
 
-1. **El primer mes es piloto y no hay mínimo obligatorio.** Se cobra la
-   instalación con el primer mes incluido; al día 30 el cliente decide si sigue.
-   Si no sigue, se le entrega su respaldo y se borra la instalación a petición.
-   El **compromiso es opcional** y solo sirve para bajar la mensualidad:
-   3 meses $649, 6 meses $599, 12 meses $549 (todos más IVA). **Anotar en el
-   contrato** qué eligió el cliente, si eligió alguno.
+1. **Sin instalación y sin mínimo obligatorio.** Se cobra solo la mensualidad de $1,299 MXN (más IVA). El primer mes tiene garantía de satisfacción: si no convence, se devuelve la mensualidad y se entrega el respaldo. No hay compromisos de plazo ni precios alternativos.
 2. **La mensualidad es adelantada.** Se cobra el día 1 (o al cumplirse el mes
    de la instalación), nunca a mes vencido.
 3. **El consumo de Meta y el alojamiento no son nuestros.** Los mensajes los
@@ -71,29 +58,18 @@ cierra esa fase. No se publican como incluidas en el nivel Soporte.
 
 ## 4. Fechas y recordatorios
 
-- **Hasta el 31 de diciembre de 2026**: rige el precio de la tabla ($3,500 /
-  $2,500 de instalación y $699 al mes). **El 1 de enero de 2027 se apaga sola**
-  porque `INSTALL_PROMO_UNTIL` es `2026-12-31`; para extenderla se cambia esa
-  variable, y para retirarla antes se iguala `INSTALL_PRICE_PROMO` con
-  `INSTALL_PRICE` o se ajusta `INSTALL_PROMO_LABEL`.
+- **Precio único vigente:** $1,299 MXN al mes, sin instalación ni setup.
 - **Cada trimestre**: revisar si toca subir la mensualidad (ver sección 7).
 - **Por cada cliente** guardar: contrato firmado, comprobante del primer pago,
   fecha de inicio (es la base del cobro mensual) y el historial de pagos.
 
 ## 5. Qué decirle al cliente (frases cortas, ya probadas)
 
-- «El paquete completo, con la conexión a Meta, cuesta $3,500 e incluye el
-  primer mes. Si ya tienes Meta, son $2,500. Después son $699 al mes, sin
-  mínimo obligatorio: al día 30 decides si sigues.»
-- «Si te comprometes a 3, 6 o 12 meses, la mensualidad baja a $649, $599 o
-  $549. Es opcional; no hace falta firmar plazo para empezar.»
-- «Los mensajes de WhatsApp los cobra Meta directo a tu cuenta. Nosotros no
-  cobramos por mensaje: nuestra factura es por la herramienta.»
-- «La IA se agrega al paquete: Esencial son +$1,500 de instalación y +$299 al
-  mes; Soporte, +$3,000 y +$599. El consumo del modelo va aparte, con un
-  presupuesto mensual que tú ves en el panel.»
-- «Si no quieres hacer el trámite de Meta, lo hacemos nosotros dentro del
-  Paquete A; si tu cuenta ya está lista, te ahorras esa parte con el B.»
+- «Margarita IA cuesta $1,299 al mes, más IVA. Incluye plataforma, IA, onboarding y 2,000 respuestas de IA al mes. Sin instalación ni setup.»
+- «El primer mes tiene garantía de satisfacción: si no te convence, te devolvemos la mensualidad.»
+- «Los mensajes de WhatsApp los cobra Meta directo a tu cuenta. Nosotros no cobramos por mensaje: nuestra factura es por la herramienta.»
+- «Si necesitas más de 2,000 respuestas de IA, lo revisamos contigo. El plan público no cobra excedentes automáticos.»
+- «La conexión con Meta va incluida en el onboarding.»
 - Si pide descuento: **no bajar la mensualidad fuera de la tabla**. Ofrecer un
   compromiso opcional, incluir la migración de la cartera o una capacitación
   extra.

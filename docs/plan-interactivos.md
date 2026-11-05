@@ -117,12 +117,7 @@ nadie sobre un contrato que no se comprobó.
    la hora local del deudor para las tareas de llamada.
 4. **La tarifa por mensaje** que usará el contador de la fase 5 para estimar el
    costo acumulado (es un dato de configuración, no un precio de venta).
-5. **Los precios.** **Resuelto**: gobiernan los de
-   [`alcance-produccion.md`](alcance-produccion.md) — Paquete A $3,500 (con
-   conexión a Meta) o Paquete B $2,500 (si ya tiene Meta), mensualidad **$699**
-   (lista $1,490), más IVA, con **piloto de 30 días y sin mínimo obligatorio**;
-   los compromisos de 3, 6 y 12 meses son opcionales. La página, la propuesta y
-   la facturación ya dicen lo mismo.
+5. **Los precios.** **Resuelto**: gobiernan los de [`alcance-produccion.md`](alcance-produccion.md) — un solo plan **Margarita IA $1,299 MXN/mes**, más IVA, con 2,000 respuestas de IA incluidas, sin instalación y con onboarding. La página, la propuesta y la facturación ya dicen lo mismo.
 
 ---
 

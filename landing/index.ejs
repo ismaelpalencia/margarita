@@ -17,12 +17,12 @@
 
                 <div class="hero__actions">
                     <a class="btn btn--primary btn--lg" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Agendar una demo</a>
-                    <a class="btn btn--secondary btn--lg" href="/precios">Ver planes y precios</a>
+                    <a class="btn btn--secondary btn--lg" href="/precios">Ver el plan</a>
                 </div>
 
                 <ul class="hero__meta">
                     <li>API oficial de Meta</li>
-                    <li>Piloto de <%= pricing.pilotDays %> días</li>
+                    <li>Garantía de <%= pricing.guaranteeDays %> días</li>
                     <li>Sin contrato largo</li>
                 </ul>
             </div>
@@ -144,48 +144,41 @@
     <section class="section" id="planes">
         <div class="container">
             <div class="section-head section-head--center">
-                <p class="section-kicker">Planes</p>
-                <h2 class="section-title">Un producto, tres planes mensuales</h2>
+                <p class="section-kicker">Plan</p>
+                <h2 class="section-title">Margarita IA: todo incluido</h2>
                 <p class="section-lede">
-                    Todos incluyen la plataforma completa. La diferencia es cuántas respuestas
-                    de IA necesitas al mes.
+                    Una sola mensualidad: plataforma completa, IA acotada y onboarding.
+                    2,000 respuestas de IA incluidas al mes.
                 </p>
             </div>
 
-            <div class="plans">
-                <% pricing.plans.forEach((plan) => { %>
-                    <article class="plan <%= plan.featured ? "plan--featured" : "" %>">
-                        <% if (plan.tag) { %><span class="plan__tag"><%= plan.tag %></span><% } %>
-                        <h3><%= plan.name %></h3>
-                        <p class="plan__desc"><%= plan.description %></p>
-                        <div class="plan__price">
-                            <strong>$<%= money(plan.monthly) %></strong>
-                            <small>MXN / mes + IVA</small>
-                        </div>
-                        <p class="plan__list">Lista $<%= money(plan.list) %></p>
-                        <div class="plan__replies">
-                            <strong><%= plan.replies === 0 ? "Sin IA" : money(plan.replies) + " respuestas de IA" %></strong>
-                            <%= plan.replies === 0 ? "al mes" : "incluidas al mes" %>
-                        </div>
-                        <ul>
-                            <% plan.features.forEach((feature) => { %>
-                                <li><%= feature %></li>
-                            <% }) %>
-                        </ul>
-                        <div class="plan__cta">
-                            <a class="btn <%= plan.featured ? "btn--primary" : "btn--secondary" %> btn--block" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Elegir <%= plan.name %></a>
-                        </div>
-                    </article>
-                <% }) %>
+            <div class="plans" style="grid-template-columns:minmax(0,640px);justify-content:center;">
+                <article class="plan plan--featured">
+                    <span class="plan__tag">Plan único</span>
+                    <h3><%= pricing.plan.name %></h3>
+                    <p class="plan__desc"><%= pricing.plan.description %></p>
+                    <div class="plan__price">
+                        <strong>$<%= money(pricing.plan.monthly) %></strong>
+                        <small>MXN / mes + IVA</small>
+                    </div>
+                    <div class="plan__replies">
+                        <strong><%= money(pricing.plan.replies) %> respuestas de IA</strong>
+                        incluidas al mes
+                    </div>
+                    <ul>
+                        <% pricing.plan.features.forEach((feature) => { %>
+                            <li><%= feature %></li>
+                        <% }) %>
+                    </ul>
+                    <div class="plan__cta">
+                        <a class="btn btn--primary btn--block" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Empezar con <%= pricing.plan.name %></a>
+                    </div>
+                </article>
             </div>
 
-            <div class="note mt-5">
-                <strong>Instalación:</strong> Paquete A $<%= money(pricing.install.a) %> (incluye el primer mes en Esencial, conexión con Meta y sesión de arranque de 2 h) o Paquete B $<%= money(pricing.install.b) %> si ya tienes Meta configurado. <strong>+ IVA.</strong>
-            </div>
-
-            <p class="small mt-3">
-                ¿Necesitas más respuestas de IA? El excedente cuesta $<%= money(pricing.overage) %> por cada 1,000 respuestas adicionales.
-                <a href="/precios">Ver el detalle de precios</a>.
+            <p class="small mt-3" style="text-align:center">
+                <strong>Sin instalación.</strong> Onboarding incluido: sesión de arranque de 2 h + guía publicada.
+                <a href="/precios">Ver el detalle del plan</a>.
             </p>
         </div>
     </section>
@@ -194,9 +187,9 @@
         <div class="container">
             <div class="grid grid--2">
                 <div>
-                    <p class="section-kicker">Todos los planes incluyen</p>
-                    <h2 class="section-title">La plataforma completa, sin recortes</h2>
-                    <p class="section-lede">El plan cambia la IA que incluyes, no las funciones de operación.</p>
+                    <p class="section-kicker">Incluye</p>
+                    <h2 class="section-title">Todo lo que necesitas, en un solo plan</h2>
+                    <p class="section-lede">Todo va incluido: plataforma, IA, onboarding y soporte.</p>
                 </div>
 
                 <ul class="checklist">
@@ -232,20 +225,20 @@
                     <p>No. Responde solo lo que está en tu base de conocimiento, con un umbral de confianza y límites. Si el dato no está, o si piden una persona, entrega la conversación.</p>
                 </details>
                 <details>
-                    <summary>¿Puedo empezar sin IA?</summary>
-                    <p>Sí. El plan Esencial incluye la plataforma completa sin respuestas de IA. Puedes subir a IA Esencial o IA Soporte cuando quieras; el cambio tiene un setup de $500 o $1,000 según el plan.</p>
+                    <summary>¿Qué pasa si necesito más de 2,000 respuestas de IA?</summary>
+                    <p>Escríbenos: revisamos tu operación y te decimos cómo ampliar el consumo. El plan público no cobra cargos automáticos por consumo adicional.</p>
                 </details>
                 <details>
-                    <summary>¿Qué incluye la instalación?</summary>
-                    <p>Paquete A: instalación, primer mes en Esencial, conexión con Meta y sesión de arranque de 2 horas. Paquete B: lo mismo si ya tienes Meta configurado. Los precios son más IVA.</p>
+                    <summary>¿Hay costo de instalación o setup?</summary>
+                    <p>No. El plan incluye la puesta en marcha y el onboarding: sesión de arranque de 2 h y guía publicada. Solo pagas la mensualidad.</p>
                 </details>
                 <details>
                     <summary>¿El consumo de WhatsApp está incluido?</summary>
                     <p>No. Meta factura el consumo de WhatsApp directamente al cliente. Margarita no lo incluye ni lo revende; el panel muestra una estimación, no la factura de Meta.</p>
                 </details>
                 <details>
-                    <summary>¿Hay contrato largo?</summary>
-                    <p>No. El primer mes es un piloto pagado de <%= pricing.pilotDays %> días. Al día <%= pricing.pilotDays %> decides si continúas, sin penalización y con tu respaldo. Después es mes a mes.</p>
+                    <summary>¿Cómo funciona la garantía?</summary>
+                    <p>El primer mes tiene garantía de satisfacción: si no te convence, te devolvemos la mensualidad. Después, mes a mes, sin contrato largo.</p>
                 </details>
             </div>
         </div>
