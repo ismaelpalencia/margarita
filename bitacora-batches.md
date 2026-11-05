@@ -515,3 +515,11 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - tsc OK, 341 unit, 101 integration.
 
 ---
+
+## Documentación — alcance real
+
+- Nuevo `docs/alcance-nuevamargarita.md`: alcance completo verificado contra el código (modelos, rutas, servicios, flags, env y pruebas).
+- Resuelve las contradicciones de `alcance-produccion.md` (listas, IA automática, conteos de pruebas/migraciones, rate limit, landing, handoff, notificaciones).
+- No se editó `alcance-produccion.md`; el nuevo documento lo declara superseded.
+
+---
