@@ -147,6 +147,13 @@ function optionalLimit(value: string | undefined): number | null {
     return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
 
+/** Entero de entorno con 0 por defecto (0 = sin límite en los contadores). */
+function envCount(value: string | undefined, fallback = 0): number {
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
 export const appConfig = {
     name: process.env.APP_NAME || "Margarita",
     version: process.env.APP_VERSION?.trim() || readPackageVersion(),
@@ -166,10 +173,21 @@ export const appConfig = {
     aiMaxMonthlyBudgetCents: optionalLimit(
         process.env.AI_MAX_MONTHLY_BUDGET_CENTS
     ),
-    /** Tope mensual real de respuestas automáticas (1,500 / 4,000 del plan). */
-    aiMonthlyRepliesLimit: optionalLimit(
-        process.env.AI_MONTHLY_REPLIES_LIMIT
+    /** Tope mensual real de respuestas automáticas (2,000 del plan). */
+    aiMonthlyRepliesLimit: envCount(process.env.AI_MONTHLY_REPLIES_LIMIT),
+    /** Tope mensual informativo de sugerencias (no bloquea). */
+    aiMonthlySuggestionsLimit: envCount(
+        process.env.AI_MONTHLY_SUGGESTIONS_LIMIT
     ),
+    /** Hard cap mensual en centavos de USD (costo estimado de tokens). */
+    aiMonthlyBudgetCents: envCount(
+        process.env.AI_MONTHLY_BUDGET_CENTS ||
+            process.env.AI_MAX_MONTHLY_BUDGET_CENTS
+    ),
+    /** Precio del excedente, para la estimación del panel. */
+    aiOveragePriceMxn: envCount(process.env.AI_OVERAGE_PRICE_MXN, 150),
+    /** Con true, el hard cap apaga el modo AUTO y entrega a una persona. */
+    aiLimitsEnforce: process.env.AI_LIMITS_ENFORCE === "true",
     /** Tope diario de generaciones de sugerencia (costo de tokens). */
     aiMaxSuggestionsPerDay: optionalLimit(
         process.env.AI_MAX_SUGGESTIONS_PER_DAY

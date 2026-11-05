@@ -32,6 +32,87 @@
             </a>
         </section>
 
+        <% if (aiUsage) { %>
+            <%
+                const state = aiUsage.state;
+                const stateLabel = state === "HARD_CAP_REACHED"
+                    ? "⛔ Hard cap"
+                    : state === "OVERAGE"
+                      ? "⚠ Excedente"
+                      : state === "LIMIT_REACHED"
+                        ? "⚠ Límite alcanzado"
+                        : "● Al día";
+                const stateClass = state === "OK"
+                    ? "badge--success"
+                    : state === "HARD_CAP_REACHED"
+                      ? "badge--danger"
+                      : "badge--warning";
+                const progress = aiUsage.limit > 0
+                    ? Math.min(100, Math.round((aiUsage.replyCount / aiUsage.limit) * 100))
+                    : 0;
+                const now = new Date();
+                const projection = aiUsage.replyCount > 0
+                    ? Math.round((aiUsage.replyCount / Math.max(1, now.getDate())) * 30)
+                    : 0;
+            %>
+
+            <section class="card mb-6">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h3 class="card__title">Consumo de IA</h3>
+                    <span class="badge <%= stateClass %>"><%= stateLabel %></span>
+                </div>
+
+                <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div>
+                        <p class="text-xs" style="color: var(--text-tertiary)">Respuestas usadas este mes</p>
+                        <p class="mt-1 text-2xl font-bold" style="color: var(--text-primary)"><%= aiUsage.replyCount %></p>
+                    </div>
+                    <div>
+                        <p class="text-xs" style="color: var(--text-tertiary)">Sugerencias generadas</p>
+                        <p class="mt-1 text-2xl font-bold" style="color: var(--text-primary)"><%= aiUsage.suggestCount %></p>
+                    </div>
+
+                    <% if (!aiUsage.hidden) { %>
+                        <div>
+                            <p class="text-xs" style="color: var(--text-tertiary)">Incluidas en el plan</p>
+                            <p class="mt-1 text-2xl font-bold" style="color: var(--text-primary)">
+                                <%= aiUsage.limit > 0 ? aiUsage.limit : "Sin tope" %>
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-xs" style="color: var(--text-tertiary)">Restantes</p>
+                            <p class="mt-1 text-2xl font-bold" style="color: var(--success)">
+                                <%= aiUsage.limit > 0 ? Math.max(0, aiUsage.limit - aiUsage.replyCount) : "—" %>
+                            </p>
+                        </div>
+                    <% } %>
+                </div>
+
+                <% if (!aiUsage.hidden && aiUsage.limit > 0) { %>
+                    <div class="mt-4 h-2 w-full overflow-hidden rounded-full" style="background: var(--surface-hover)">
+                        <div class="h-full rounded-full" style="width: <%= progress %>%; background: <%= state === 'OK' ? 'var(--brand-500)' : state === 'HARD_CAP_REACHED' ? 'var(--danger)' : 'var(--warning)' %>"></div>
+                    </div>
+                    <p class="mt-2 text-xs" style="color: var(--text-tertiary)">
+                        <%= progress %>% del plan · proyección a fin de mes: <%= projection %> respuestas
+                    </p>
+                <% } %>
+
+                <% if (!aiUsage.hidden && aiUsage.overage > 0) { %>
+                    <p class="mt-3 text-sm" style="color: var(--warning)">
+                        Excedente: <strong><%= aiUsage.overage %></strong> respuestas
+                        · costo estimado <strong>$<%= aiUsage.overageCost %> MXN</strong>.
+                    </p>
+                <% } %>
+
+                <% if (!aiUsage.hidden && aiUsage.enforce && aiUsage.hardCap > 0) { %>
+                    <p class="mt-2 text-xs" style="color: var(--text-tertiary)">
+                        Hard cap de costo: $<%= (aiUsage.spentCents / 100).toFixed(2) %> USD de
+                        $<%= (aiUsage.hardCap / 100).toFixed(2) %> USD.
+                    </p>
+                <% } %>
+            </section>
+        <% } %>
+
         <% if (success) { %>
             <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
                 <% if (success === "settings") { %>

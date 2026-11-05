@@ -585,3 +585,27 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - tsc OK, 345 unit, 101 integración.
 
 ---
+
+## Baseline — Plan único y consumo mensual de IA (2026-11-05)
+
+- Rama `feat/single-plan-and-ai-usage` desde `main` (`8ba228e`).
+- `npx tsc --noEmit` OK; `npm test` 345 pass; `npm run test:integration` 101 pass, 2 skipped.
+- Puntos localizados: `AI_AUTO_REPLY_SENT` en `src/services/message.service.ts` (send success, con guardia `aiSuggestionId`); creación de borradores en `src/services/ai/suggestion.service.ts`; zona horaria en `SendPolicyService.timezoneFor` (`WorkspaceSettings.timezone`).
+
+---
+
+## Fase 1 — Contador mensual de IA
+
+- Migración aditiva `20261105120000_ai_usage_monthly`: CREATE TABLE AiUsageMonthly + unique/index + FK. Sin drops.
+- `src/services/aiUsage.service.ts`: incrementAutoReply / incrementSuggest, getCurrentMonthUsage, getMonthlyReport, shouldHardCap; mes en zona del workspace con Intl.
+- Wiring: `message.service` incrementa tras AI_AUTO_REPLY_SENT (guardia aiSuggestionId evita doble conteo); `suggestion.service` incrementa borradores SUGGEST y aplica hard cap (modo OFF + handoff).
+- Panel: bloque en Admin → IA, tarjeta en Admin → Sistema y vista Admin → Reportes de servicio → Consumo de IA con CSV.
+- Env: AI_MONTHLY_REPLIES_LIMIT, AI_MONTHLY_SUGGESTIONS_LIMIT, AI_MONTHLY_BUDGET_CENTS, AI_OVERAGE_PRICE_MXN, AI_LIMITS_ENFORCE (AI_LIMITS_HIDDEN ya existía).
+- Eventos: AI_USAGE_LIMIT_REACHED, AI_OVERAGE_STARTED, AI_HARD_CAP_REACHED (uno por mes).
+- Tests: 2 unitarios de frontera de mes + 4 de integración (conteo, reporte, excedente único, hard cap).
+
+### Gates
+
+- tsc OK, 347 unit, 105 integración (107 total, 2 skipped).
+
+---

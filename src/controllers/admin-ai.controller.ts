@@ -10,6 +10,7 @@ import { appConfig } from "../config/app.config";
 import { prisma } from "../config/prisma";
 import { aiProviderLabel, isProviderConfigured } from "../services/ai/provider";
 import { AiSettingsService } from "../services/ai/settings.service";
+import { AiUsageService } from "../services/aiUsage.service";
 import { KnowledgeService } from "../services/ai/knowledge";
 import { AiSuggestionService } from "../services/ai/suggestion.service";
 import { LogService } from "../services/log.service";
@@ -49,8 +50,15 @@ export class AdminAiController {
         try {
             const timezone = await SendPolicyService.timezoneFor(workspaceId);
 
-            const [settings, entries, stats, monthlyRepliesUsed, suggestionsToday] =
-                await Promise.all([
+            const [
+                settings,
+                entries,
+                stats,
+                monthlyRepliesUsed,
+                suggestionsToday,
+                aiUsage,
+                aiUsageReport
+            ] = await Promise.all([
                     AiSettingsService.get(workspaceId),
                     KnowledgeService.list(workspaceId),
                     AiSuggestionService.stats(
@@ -71,7 +79,9 @@ export class AdminAiController {
                             workspaceId,
                             createdAt: { gte: startOfTodayIn(timezone) }
                         }
-                    })
+                    }),
+                    AiUsageService.getCurrentMonthUsage(workspaceId, timezone),
+                    AiUsageService.getMonthlyReport(workspaceId, 12)
                 ]);
 
             return {
@@ -80,6 +90,8 @@ export class AdminAiController {
                 stats,
                 monthlyRepliesUsed,
                 suggestionsToday,
+                aiUsage,
+                aiUsageReport,
                 aiMaxSuggestionsPerDay: appConfig.aiMaxSuggestionsPerDay,
                 providerLabel: aiProviderLabel(),
                 providerReady: isProviderConfigured(),
@@ -98,6 +110,8 @@ export class AdminAiController {
                 stats: EMPTY_STATS,
                 monthlyRepliesUsed: 0,
                 suggestionsToday: 0,
+                aiUsage: null,
+                aiUsageReport: [],
                 aiMaxSuggestionsPerDay: appConfig.aiMaxSuggestionsPerDay,
                 providerLabel: aiProviderLabel(),
                 providerReady: isProviderConfigured(),

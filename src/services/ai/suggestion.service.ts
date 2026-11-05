@@ -34,6 +34,7 @@ import {
 } from "../../utils/language";
 import { createAiProvider, isProviderConfigured } from "./provider";
 import { AiSettingsService } from "./settings.service";
+import { AiUsageService } from "../aiUsage.service";
 import { SendPolicyService } from "../send-policy.service";
 import { startOfTodayIn } from "../../utils/date";
 
@@ -130,10 +131,10 @@ export class AiSuggestionService {
         }
 
         const settings = await AiSettingsService.get(job.workspaceId);
+        const timezone = await SendPolicyService.timezoneFor(job.workspaceId);
 
         /** Tope diario de sugerencias: protege el costo de tokens. */
         if (appConfig.aiMaxSuggestionsPerDay !== null) {
-            const timezone = await SendPolicyService.timezoneFor(job.workspaceId);
             const suggestionsToday = await prisma.aiSuggestion.count({
                 where: {
                     workspaceId: job.workspaceId,
@@ -361,6 +362,13 @@ export class AiSuggestionService {
             }).catch(() => undefined);
         }
 
+        if (!automatic) {
+            /** Contador mensual de borradores de sugerencia. */
+            await AiUsageService.incrementSuggest(job.workspaceId, timezone).catch(
+                () => undefined
+            );
+        }
+
         if (automatic) {
             await this.processAutoReply({
                 workspaceId: job.workspaceId,
@@ -419,6 +427,27 @@ export class AiSuggestionService {
             return;
         }
 
+        const timezone = await SendPolicyService.timezoneFor(params.workspaceId);
+        const usageBefore = await AiUsageService.getCurrentMonthUsage(
+            params.workspaceId,
+            timezone
+        );
+
+        /** Con el hard cap agotado no se envía: se entrega a una persona. */
+        if (
+            appConfig.aiLimitsEnforce &&
+            usageBefore.state === "HARD_CAP_REACHED"
+        ) {
+            await AiAutoReplyService.handoff({
+                workspaceId: params.workspaceId,
+                conversationId: params.conversationId,
+                reason: "HARD_CAP",
+                pause: false
+            });
+
+            return;
+        }
+
         const decision = decideAutoReply({
             settings: {
                 mode: params.settings.mode,
@@ -467,6 +496,20 @@ export class AiSuggestionService {
                 aiSuggestionId: params.suggestion.id,
                 aiModel: params.suggestion.model
             });
+
+            const usageAfter = await AiUsageService.getCurrentMonthUsage(
+                params.workspaceId,
+                timezone
+            );
+
+            if (usageAfter.state === "HARD_CAP_REACHED") {
+                await AiAutoReplyService.handoff({
+                    workspaceId: params.workspaceId,
+                    conversationId: params.conversationId,
+                    reason: "HARD_CAP",
+                    pause: false
+                });
+            }
 
             await prisma.aiSuggestion.update({
                 where: { id: params.suggestion.id },

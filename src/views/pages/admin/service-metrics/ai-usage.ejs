@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Consumo de IA | Margarita</title>
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+    <%- include("../../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-wide text-margarita-600">Reportes de servicio</p>
+                <h2 class="mt-1 text-2xl font-bold text-slate-800">Consumo de IA</h2>
+                <p class="mt-1 text-sm text-slate-500">
+                    Respuestas automáticas y sugerencias por mes. Zona horaria: <%= timezone %>.
+                </p>
+            </div>
+
+            <div class="flex gap-2">
+                <a href="/admin/reports/service" class="btn btn--secondary btn--sm">← Resumen</a>
+                <a href="/admin/reports/service/ai-usage/export" class="btn btn--primary btn--sm">Exportar CSV</a>
+            </div>
+        </div>
+
+        <section class="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="card">
+                <p class="text-xs" style="color: var(--text-tertiary)">Respuestas este mes</p>
+                <p class="mt-1 text-3xl font-bold" style="color: var(--text-primary)"><%= current.replyCount %></p>
+            </div>
+            <div class="card">
+                <p class="text-xs" style="color: var(--text-tertiary)">Sugerencias este mes</p>
+                <p class="mt-1 text-3xl font-bold" style="color: var(--text-primary)"><%= current.suggestCount %></p>
+            </div>
+            <div class="card">
+                <p class="text-xs" style="color: var(--text-tertiary)">Incluidas en el plan</p>
+                <p class="mt-1 text-3xl font-bold" style="color: var(--text-primary)"><%= current.limit > 0 ? current.limit : "Sin tope" %></p>
+            </div>
+            <div class="card">
+                <p class="text-xs" style="color: var(--text-tertiary)">Estado</p>
+                <p class="mt-1 text-lg font-bold" style="color: <%= current.state === 'OK' ? 'var(--success)' : current.state === 'HARD_CAP_REACHED' ? 'var(--danger)' : 'var(--warning)' %>">
+                    <%= current.state === "OK" ? "● Al día" : current.state === "HARD_CAP_REACHED" ? "⛔ Hard cap" : current.state === "OVERAGE" ? "⚠ Excedente" : "⚠ Límite alcanzado" %>
+                </p>
+            </div>
+        </section>
+
+        <section class="card" style="padding: 0; overflow: hidden">
+            <div class="border-b px-5 py-3" style="border-color: var(--surface-border)">
+                <h3 class="card__title">Últimos 12 meses</h3>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Periodo</th>
+                            <th>Respuestas</th>
+                            <th>Sugerencias</th>
+                            <th>Incluidas</th>
+                            <th>Excedente</th>
+                            <th>Costo excedente</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% report.forEach((row) => { %>
+                            <tr>
+                                <td><%= row.year %>-<%= String(row.month).padStart(2, "0") %></td>
+                                <td><%= row.replyCount %></td>
+                                <td><%= row.suggestCount %></td>
+                                <td><%= row.limit > 0 ? row.limit : "—" %></td>
+                                <td><%= row.overage > 0 ? row.overage : "—" %></td>
+                                <td><%= row.overageCost > 0 ? "$" + row.overageCost + " MXN" : "—" %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <p class="mt-4 text-xs text-slate-500">
+            El costo del excedente es una estimación con el precio configurado
+            (<%= current.limit > 0 ? "$" + (current.overageCost / Math.max(1, current.overage) * 1000) + " MXN por 1,000" : "sin excedente" %>).
+            La facturación del excedente la hace el operador.
+        </p>
+    </main>
+</body>
+</html>

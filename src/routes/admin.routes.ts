@@ -48,6 +48,11 @@ router.use("/quick-replies", adminQuickRepliesRoutes);
 router.use("/replies", adminRepliesRoutes);
 /** Métricas de servicio (todos los giros), antes del módulo legado de reportes. */
 router.get("/reports/service", AdminServiceMetricsController.index);
+router.get("/reports/service/ai-usage", AdminServiceMetricsController.aiUsage);
+router.get(
+    "/reports/service/ai-usage/export",
+    AdminServiceMetricsController.exportAiUsage
+);
 router.use("/reports", adminReportsRoutes);
 router.use("/sessions", adminSessionsRoutes);
 router.use("/tags", adminTagsRoutes);

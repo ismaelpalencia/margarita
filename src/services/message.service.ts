@@ -21,6 +21,7 @@ import {
 import { prisma } from "../config/prisma";
 import { appConfig } from "../config/app.config";
 import { SendLocalMessageInput } from "../validations/message.validation";
+import { AiUsageService } from "./aiUsage.service";
 import { SendTemplateMessageInput } from "../validations/template-message.validation";
 import { SendFreeTextMessageInput } from "../validations/free-text-message.validation";
 import {
@@ -598,6 +599,24 @@ export class MessageService {
                     model: params.aiModel
                 }
             }).catch(() => undefined);
+
+            /**
+             * Contador mensual del plan. Va después del envío real y de la
+             * guardia por aiSuggestionId, así un reintento no suma doble.
+             */
+            if (params.aiSuggestionId) {
+                try {
+                    const timezone = await SendPolicyService.timezoneFor(
+                        params.workspaceId
+                    );
+                    await AiUsageService.incrementAutoReply(
+                        params.workspaceId,
+                        timezone
+                    );
+                } catch {
+                    /** El contador no debe tumbar un envío que ya salió. */
+                }
+            }
 
             return updatedMessage;
         } catch (error) {

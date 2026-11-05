@@ -4,6 +4,8 @@ import { Request, Response } from "express";
 import { prisma } from "../config/prisma";
 import { LogService } from "../services/log.service";
 import { ConversationService } from "../services/conversation.service";
+import { AiUsageService } from "../services/aiUsage.service";
+import { SendPolicyService } from "../services/send-policy.service";
 import { SystemStatusService } from "../services/system-status.service";
 import { WorkspaceService } from "../services/workspace.service";
 import { appConfig } from "../config/app.config";
@@ -87,6 +89,14 @@ export class AdminSystemController {
             req.user!.workspaceId
         );
 
+        const aiTimezone = await SendPolicyService.timezoneFor(
+            req.user!.workspaceId
+        );
+        const aiUsage = await AiUsageService.getCurrentMonthUsage(
+            req.user!.workspaceId,
+            aiTimezone
+        );
+
         return res.render("pages/admin/system/index", {
             user: req.user,
             status,
@@ -101,6 +111,7 @@ export class AdminSystemController {
             handoffEscalationMinutes: workspaceFlags?.handoffEscalationMinutes ?? 15,
             autoAssignToAdmin: Boolean(workspaceFlags?.autoAssignToAdmin ?? true),
             unassignedCount,
+            aiUsage,
             profileLabels: WORKSPACE_PROFILE_LABELS,
             profileDescriptions: WORKSPACE_PROFILE_DESCRIPTIONS,
             success: req.query.success || null,

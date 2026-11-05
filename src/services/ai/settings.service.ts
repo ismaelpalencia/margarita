@@ -80,7 +80,10 @@ export class AiSettingsService {
             maxRepliesPerDay: cap(50, appConfig.aiMaxRepliesPerDay),
             maxRepliesPerThread: cap(5, appConfig.aiMaxRepliesPerThread),
             monthlyBudgetCents: cap(500, appConfig.aiMaxMonthlyBudgetCents),
-            monthlyRepliesLimit: appConfig.aiMonthlyRepliesLimit,
+            monthlyRepliesLimit:
+                appConfig.aiMonthlyRepliesLimit > 0
+                    ? appConfig.aiMonthlyRepliesLimit
+                    : null,
             handoffKeywords: [],
             model: null,
             ...this.locks()
@@ -112,7 +115,10 @@ export class AiSettingsService {
                 row.monthlyBudgetCents,
                 appConfig.aiMaxMonthlyBudgetCents
             ),
-            monthlyRepliesLimit: appConfig.aiMonthlyRepliesLimit,
+            monthlyRepliesLimit:
+                appConfig.aiMonthlyRepliesLimit > 0
+                    ? appConfig.aiMonthlyRepliesLimit
+                    : null,
             handoffKeywords: row.handoffKeywords,
             model: row.model,
             ...this.locks()

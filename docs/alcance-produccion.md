@@ -78,7 +78,7 @@ La app **no tiene un campo `plan` ni bloquea el modo `AUTO` según el plan**. Lo
 
 Así el cliente no puede subir su límite por encima de lo contratado aunque tenga acceso de administrador.
 
-Las respuestas de IA incluidas en cada plan se controlan con dos capas: `AI_MAX_REPLIES_PER_DAY` (techo diario) y `AI_MONTHLY_REPLIES_LIMIT` (tope mensual real, 1,500 / 4,000), contado sobre las respuestas automáticas enviadas en el mes. El excedente se revisa por el operador. Las sugerencias tienen su propio tope diario opcional (`AI_MAX_SUGGESTIONS_PER_DAY`) para acotar el costo de tokens.
+Las respuestas de IA incluidas en el plan se controlan con dos capas: `AI_MAX_REPLIES_PER_DAY` (techo diario) y `AI_MONTHLY_REPLIES_LIMIT` (tope mensual real, 2,000), contado sobre las respuestas automáticas enviadas en el mes en la tabla `AiUsageMonthly`. El excedente se revisa por el operador. Las sugerencias tienen su propio tope diario opcional (`AI_MAX_SUGGESTIONS_PER_DAY`) para acotar el costo de tokens.
 
 ---
 
@@ -205,6 +205,15 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - Proveedor compatible con OpenAI; por defecto **DeepSeek** (`AI_PROVIDER=deepseek`, `AI_MODEL=deepseek-chat`; también `deepseek-reasoner`).
 - Variables: `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`, `AI_TIMEOUT_MS`, `AI_MAX_CONTEXT_MESSAGES`, `AI_MAX_KNOWLEDGE_ENTRIES`, `AI_DEBOUNCE_SECONDS`, `AI_WORKER_INTERVAL_MS`, `AI_MAX_ATTEMPTS`, `AI_MAX_TOKENS`, `AI_TEMPERATURE`, `AI_PRICE_INPUT_PER_MILLION`, `AI_PRICE_OUTPUT_PER_MILLION`.
 - El costo es una **estimación** para presupuesto, no la factura del proveedor.
+
+### Consumo mensual de IA
+
+- **`AiUsageMonthly`** guarda, por workspace y mes, `replyCount` (respuestas automáticas enviadas) y `suggestCount` (borradores de sugerencia generados). El mes se calcula en la zona del workspace, no en UTC.
+- **Límite del plan:** `AI_MONTHLY_REPLIES_LIMIT` (0 = sin tope; para el plan, 2,000). El excedente se estima con `AI_OVERAGE_PRICE_MXN` (150 MXN por 1,000) y se revisa en el panel; no se factura solo.
+- **Hard cap de costo:** `AI_MONTHLY_BUDGET_CENTS` (centavos de USD de tokens). Con `AI_LIMITS_ENFORCE=true`, al alcanzarlo se apaga el modo automático y se entrega a una persona.
+- **Sugerencias:** `AI_MONTHLY_SUGGESTIONS_LIMIT` es informativo; `AI_MAX_SUGGESTIONS_PER_DAY` es el que corta la generación.
+- **Eventos:** `AI_USAGE_LIMIT_REACHED`, `AI_OVERAGE_STARTED` y `AI_HARD_CAP_REACHED` (uno por mes cada uno).
+- **Panel:** Admin → IA muestra el consumo del mes; Admin → Sistema lo resume; Admin → Reportes de servicio → Consumo de IA trae los últimos 12 meses con exportación CSV (vista del operador, siempre completa aunque `AI_LIMITS_HIDDEN=true`).
 
 ---
 
@@ -335,7 +344,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | --- | --- | --- |
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
-| Pruebas | 302 unitarias / 82 integración | **341 unitarias** (52 archivos) y **103 de integración** (26 archivos; 101 pasan, 2 destructivas solo en CI) |
+| Pruebas | 302 unitarias / 82 integración | **347 unitarias** (53 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
 | Migraciones | 23 | **31** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
@@ -385,7 +394,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - `AI_ENABLED`, `AI_PROVIDER`, `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`, `AI_TIMEOUT_MS`.
 - `AI_MAX_CONTEXT_MESSAGES`, `AI_MAX_KNOWLEDGE_ENTRIES`, `AI_DEBOUNCE_SECONDS`, `AI_WORKER_INTERVAL_MS`, `AI_MAX_ATTEMPTS`, `AI_MAX_TOKENS`, `AI_TEMPERATURE`.
 - `AI_PRICE_INPUT_PER_MILLION`, `AI_PRICE_OUTPUT_PER_MILLION`.
-- **Techos del operador:** `AI_MAX_REPLIES_PER_DAY`, `AI_MAX_REPLIES_PER_THREAD`, `AI_MONTHLY_REPLIES_LIMIT`, `AI_MAX_SUGGESTIONS_PER_DAY`, `AI_MAX_MONTHLY_BUDGET_CENTS`, `AI_LIMITS_LOCKED`, `AI_LIMITS_HIDDEN`.
+- **Techos del operador:** `AI_MAX_REPLIES_PER_DAY`, `AI_MAX_REPLIES_PER_THREAD`, `AI_MONTHLY_REPLIES_LIMIT`, `AI_MONTHLY_SUGGESTIONS_LIMIT`, `AI_MAX_SUGGESTIONS_PER_DAY`, `AI_MONTHLY_BUDGET_CENTS`, `AI_OVERAGE_PRICE_MXN`, `AI_LIMITS_LOCKED`, `AI_LIMITS_HIDDEN`, `AI_LIMITS_ENFORCE`.
 
 ### Demo y comercial
 
@@ -400,8 +409,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Aspecto | Estado |
 | --- | --- |
 | Tipos | `npx tsc --noEmit` limpio |
-| Unitarias | **341** en 52 archivos |
-| Integración | **103** en 26 archivos (101 pasan, 2 destructivas solo en CI) |
+| Unitarias | **347** en 53 archivos |
+| Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
 | Migraciones | **31** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |
 | Linter/formateador | No hay |

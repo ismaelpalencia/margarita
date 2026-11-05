@@ -50,6 +50,29 @@
         <% } %>
 
         <section class="mb-8 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <p class="text-sm font-semibold uppercase tracking-wide text-margarita-600">Consumo de IA</p>
+                    <h2 class="mt-1 text-xl font-black text-slate-900">Mes en curso</h2>
+                </div>
+                <span class="text-xs font-bold <%= aiUsage.state === 'OK' ? 'text-emerald-700' : aiUsage.state === 'HARD_CAP_REACHED' ? 'text-red-700' : 'text-amber-700' %>">
+                    <%= aiUsage.state === "OK" ? "● Al día" : aiUsage.state === "HARD_CAP_REACHED" ? "⛔ Hard cap" : aiUsage.state === "OVERAGE" ? "⚠ Excedente" : "⚠ Límite alcanzado" %>
+                </span>
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-6 text-sm">
+                <p><span class="text-slate-500">Respuestas:</span> <strong><%= aiUsage.replyCount %></strong></p>
+                <p><span class="text-slate-500">Sugerencias:</span> <strong><%= aiUsage.suggestCount %></strong></p>
+                <% if (!aiUsage.hidden) { %>
+                    <p><span class="text-slate-500">Incluidas:</span> <strong><%= aiUsage.limit > 0 ? aiUsage.limit : "Sin tope" %></strong></p>
+                    <% if (aiUsage.overage > 0) { %>
+                        <p class="text-amber-700"><span class="text-slate-500">Excedente:</span> <strong><%= aiUsage.overage %></strong> ($<%= aiUsage.overageCost %> MXN)</p>
+                    <% } %>
+                <% } %>
+            </div>
+        </section>
+
+        <section class="mb-8 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                 <div class="max-w-2xl">
                     <p class="text-sm font-semibold uppercase tracking-wide text-margarita-600">
