@@ -148,7 +148,9 @@ const demoApiBase = (process.env.DEMO_API_BASE || "https://demo.margaritaapp.org
 const demoUrl = process.env.DEMO_URL?.trim() || demoApiBase + "/demo";
 
 /** Pixel de Meta para los anuncios; vacío = no se renderiza. */
-const metaPixelId = (process.env.META_PIXEL_ID || "").trim();
+const metaPixelId = (
+    process.env.META_PIXEL_ID || "2253115132222921"
+).trim();
 const whatsappText =
     process.env.SUPPORT_WHATSAPP_TEXT?.trim() ||
     "Hola, quiero una demo de Margarita IA";
