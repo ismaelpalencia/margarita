@@ -20,6 +20,7 @@ import adminAiRoutes from "./admin-ai.routes";
 import adminSystemRoutes from "./admin-system.routes";
 import adminGuideRoutes from "./admin-guide.routes";
 import adminBackupRoutes from "./admin-backup.routes";
+import adminHoursRoutes from "./admin-hours.routes";
 import { activeNumberMiddleware } from "../middlewares/active-number.middleware";
 import { workspaceProfileMiddleware } from "../middlewares/workspace-profile.middleware";
 import { ActiveNumberController } from "../controllers/active-number.controller";
@@ -54,6 +55,8 @@ router.use("/campaigns", adminCampaignsRoutes);
 /** IA: ajustes, base de conocimiento y consola de prueba. */
 router.use("/ai", adminAiRoutes);
 router.use("/system", adminSystemRoutes);
+/** Horarios de atención y modo fuera de horario. */
+router.use("/hours", adminHoursRoutes);
 /** Guía del producto para el equipo del cliente (antes: roadmap interno). */
 router.use("/guia", adminGuideRoutes);
 router.use("/backup", adminBackupRoutes);

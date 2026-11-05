@@ -9,6 +9,7 @@ import {
     MessageSource,
     MessageStatus,
     MessageType,
+    OffHoursMode,
     Prisma
 } from "@prisma/client";
 
@@ -34,6 +35,8 @@ import { WhatsAppNumberService } from "./whatsapp-number.service";
 import { AccountHealthService } from "./account-health.service";
 import { InteractiveReplyService } from "./interactive-reply.service";
 import { enqueueSuggestion } from "./ai/queue.service";
+import { OffHoursService } from "./off-hours.service";
+import { isWithinBusinessHours, parseBusinessHours } from "../utils/business-hours";
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
@@ -298,6 +301,30 @@ export class MetaWebhookHandlerService {
             });
         }
 
+        /**
+         * Fuera de horario: se decide aquí, antes de asignar y de encolar la
+         * IA. Con businessHoursEnabled apagado (o sin horario configurado)
+         * el camino es exactamente el de siempre.
+         */
+        const workspace = await prisma.workspace.findUnique({
+            where: { id: workspaceId },
+            select: {
+                name: true,
+                businessHoursEnabled: true,
+                businessHours: true,
+                offHoursMode: true,
+                offHoursMessage: true,
+                offHoursReplyIntervalHours: true
+            }
+        });
+
+        const businessHours = workspace?.businessHoursEnabled
+            ? parseBusinessHours(workspace.businessHours)
+            : null;
+        const offHours = businessHours
+            ? !isWithinBusinessHours(businessHours, messageDate)
+            : false;
+
         const updatedConversation = await prisma.conversation.update({
             where: {
                 id: conversation.id
@@ -319,7 +346,11 @@ export class MetaWebhookHandlerService {
 
         let finalConversation = updatedConversation;
 
-        if (!updatedConversation.assignedUserId) {
+        /**
+         * Fuera de horario no se asigna a nadie: la conversación queda en la
+         * bandeja sin agente y se asigna cuando alguien la abre en la mañana.
+         */
+        if (!updatedConversation.assignedUserId && !offHours) {
             finalConversation = await AssignmentService.assignLeastBusyAgent({
                 workspaceId,
                 conversationId: updatedConversation.id
@@ -333,34 +364,68 @@ export class MetaWebhookHandlerService {
             body: parsed.body
         });
 
-        /**
-         * La IA se encola **después** de la baja: si el cliente escribió
-         * STOP, no se genera ni un borrador. El trabajo corre aparte para no
-         * retrasar el webhook; el worker vuelve a validar la política antes
-         * de llamar al modelo.
-         */
         if (!optedOut) {
-            try {
-                await enqueueSuggestion({
-                    workspaceId,
-                    conversationId: conversation.id,
-                    inboundMessageId: savedMessage.id,
-                    type: parsed.type,
-                    body: parsed.body,
-                    replyTitle: parsed.replyTitle ?? null
-                });
-            } catch (error) {
-                /** La IA es opcional: un fallo al encolar no pierde el mensaje. */
-                logger.warn(
-                    {
-                        error:
-                            error instanceof Error
-                                ? error.message
-                                : String(error),
-                        conversationId: conversation.id
-                    },
-                    "No se pudo encolar el borrador de IA."
-                );
+            if (offHours) {
+                /**
+                 * Fuera de horario no se encola la IA normal: se responde
+                 * según el modo configurado. Un fallo aquí no pierde el
+                 * mensaje; el hilo queda en la bandeja para la mañana.
+                 */
+                try {
+                    await OffHoursService.handle({
+                        workspace: {
+                            id: workspaceId,
+                            name: workspace?.name ?? "",
+                            offHoursMode: workspace?.offHoursMode ?? OffHoursMode.TEXT_ONLY,
+                            offHoursMessage: workspace?.offHoursMessage ?? null,
+                            offHoursReplyIntervalHours:
+                                workspace?.offHoursReplyIntervalHours ?? 12
+                        },
+                        conversationId: conversation.id,
+                        inboundMessageId: savedMessage.id,
+                        text: (parsed.body || parsed.replyTitle || "").trim()
+                    });
+                } catch (error) {
+                    logger.warn(
+                        {
+                            error:
+                                error instanceof Error
+                                    ? error.message
+                                    : String(error),
+                            conversationId: conversation.id
+                        },
+                        "No se pudo responder fuera de horario."
+                    );
+                }
+            } else {
+                /**
+                 * La IA se encola **después** de la baja: si el cliente
+                 * escribió STOP, no se genera ni un borrador. El trabajo corre
+                 * aparte para no retrasar el webhook; el worker vuelve a
+                 * validar la política antes de llamar al modelo.
+                 */
+                try {
+                    await enqueueSuggestion({
+                        workspaceId,
+                        conversationId: conversation.id,
+                        inboundMessageId: savedMessage.id,
+                        type: parsed.type,
+                        body: parsed.body,
+                        replyTitle: parsed.replyTitle ?? null
+                    });
+                } catch (error) {
+                    /** La IA es opcional: un fallo al encolar no pierde el mensaje. */
+                    logger.warn(
+                        {
+                            error:
+                                error instanceof Error
+                                    ? error.message
+                                    : String(error),
+                            conversationId: conversation.id
+                        },
+                        "No se pudo encolar el borrador de IA."
+                    );
+                }
             }
         }
 

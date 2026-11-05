@@ -1,0 +1,201 @@
+<%- include("../../../partials/header", { title: "Horarios - Admin" }) %>
+
+<div class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-4xl px-4 py-8">
+        <div class="mb-8">
+            <p class="text-sm font-semibold uppercase tracking-wide text-margarita-600">
+                Configuración
+            </p>
+
+            <h1 class="mt-1 text-3xl font-black text-slate-900">
+                Horarios de atención
+            </h1>
+
+            <p class="mt-2 text-slate-600">
+                Define cuándo atiende tu negocio y qué pasa con los mensajes que
+                llegan fuera de ese horario. Si el horario está apagado, la
+                herramienta se comporta igual que siempre.
+            </p>
+        </div>
+
+        <% if (success === "saved") { %>
+            <div class="mb-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                Horario guardado. El panel y el hilo muestran el aviso de fuera de horario.
+            </div>
+        <% } %>
+
+        <% if (error === "invalid") { %>
+            <div class="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                Revisa los datos: las horas deben tener el formato 09:00 y el intervalo ser entre 1 y 72.
+            </div>
+        <% } else if (error === "save") { %>
+            <div class="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                No se pudo guardar el horario. Inténtalo de nuevo.
+            </div>
+        <% } %>
+
+        <form action="/admin/hours" method="POST" class="space-y-6">
+            <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <label class="flex cursor-pointer items-start gap-3">
+                    <input
+                        type="checkbox"
+                        name="businessHoursEnabled"
+                        value="true"
+                        <%= form.businessHoursEnabled ? "checked" : "" %>
+                        class="mt-1 h-5 w-5 accent-margarita-600"
+                    />
+
+                    <span>
+                        <span class="block text-sm font-bold text-slate-800">
+                            Activar horario de atención
+                        </span>
+
+                        <span class="mt-1 block text-xs text-slate-500">
+                            Apagado, cada mensaje se atiende como hasta ahora, sin respuesta automática fuera de horario.
+                        </span>
+                    </span>
+                </label>
+            </section>
+
+            <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <h2 class="text-lg font-black text-slate-900">Zona horaria</h2>
+
+                <label class="mt-4 block text-sm font-semibold text-slate-700">
+                    Zona de la empresa
+                </label>
+
+                <input
+                    type="text"
+                    name="timezone"
+                    value="<%= form.timezone %>"
+                    placeholder="America/Mexico_City"
+                    class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                />
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Formato IANA, por ejemplo America/Mexico_City, America/Bogota o America/New_York.
+                </p>
+            </section>
+
+            <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <h2 class="text-lg font-black text-slate-900">Días y horas</h2>
+
+                <fieldset class="mt-4">
+                    <legend class="text-sm font-semibold text-slate-700">Días que se atiende</legend>
+
+                    <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        <% [0, 1, 2, 3, 4, 5, 6].forEach((day) => { %>
+                            <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 p-3 hover:border-margarita-300">
+                                <input
+                                    type="checkbox"
+                                    name="days"
+                                    value="<%= day %>"
+                                    <%= form.days.includes(day) ? "checked" : "" %>
+                                    class="h-4 w-4 accent-margarita-600"
+                                />
+                                <span class="text-sm text-slate-700"><%= weekdayLabels[day] %></span>
+                            </label>
+                        <% }) %>
+                    </div>
+                </fieldset>
+
+                <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700">Apertura</label>
+                        <input
+                            type="time"
+                            name="start"
+                            value="<%= form.start %>"
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700">Cierre</label>
+                        <input
+                            type="time"
+                            name="end"
+                            value="<%= form.end %>"
+                            class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                        />
+                    </div>
+                </div>
+
+                <p class="mt-2 text-xs text-slate-500">
+                    El cierre es exclusivo: a la hora exacta de cierre ya se considera fuera de horario.
+                    Si la apertura es mayor que el cierre (por ejemplo 22:00–06:00), el tramo cruza la medianoche.
+                </p>
+            </section>
+
+            <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <h2 class="text-lg font-black text-slate-900">Qué pasa fuera de horario</h2>
+
+                <label class="mt-4 block text-sm font-semibold text-slate-700">
+                    Modo
+                </label>
+
+                <select
+                    name="mode"
+                    class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                >
+                    <% modes.forEach((mode) => { %>
+                        <option value="<%= mode %>" <%= form.mode === mode ? "selected" : "" %>>
+                            <%= modeLabels[mode] %>
+                        </option>
+                    <% }) %>
+                </select>
+
+                <label class="mt-5 block text-sm font-semibold text-slate-700">
+                    Mensaje de fuera de horario
+                </label>
+
+                <textarea
+                    name="message"
+                    rows="4"
+                    maxlength="1000"
+                    placeholder="Estamos fuera del horario de atención. Te respondemos en cuanto abramos."
+                    class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                ><%= form.message %></textarea>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Si el modo es IA y la base de conocimiento cubre la pregunta, la IA responde en su lugar;
+                    si no, se manda este mensaje y la conversación queda para una persona.
+                </p>
+
+                <label class="mt-5 block text-sm font-semibold text-slate-700">
+                    Repetir como máximo cada (horas)
+                </label>
+
+                <input
+                    type="number"
+                    name="intervalHours"
+                    min="1"
+                    max="72"
+                    value="<%= form.intervalHours %>"
+                    class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                />
+
+                <p class="mt-1 text-xs text-slate-500">
+                    La respuesta automática se manda una sola vez por conversación dentro de este intervalo.
+                </p>
+
+                <div class="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-amber-100">
+                    <strong>Vista previa fuera de horario.</strong>
+                    <% if (form.message.trim()) { %>
+                        <p class="mt-2 rounded-lg bg-white px-3 py-2 text-slate-700"><%= form.message %></p>
+                    <% } else { %>
+                        <p class="mt-2 text-amber-700">Sin mensaje definido: no se responde, solo se encola para la mañana.</p>
+                    <% } %>
+                </div>
+            </section>
+
+            <div class="flex justify-end">
+                <button class="rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                    Guardar horario
+                </button>
+            </div>
+        </form>
+    </main>
+</div>

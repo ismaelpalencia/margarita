@@ -50,3 +50,42 @@
 - La biblioteca de ideas del panel (`src/content/template-library.ts`) todavía contiene ideas de cobranza y no se filtró por giro: no entraba en el alcance de Batch 1 y tocar el contenido del admin no era necesario para la aceptación. Se registra como brecha para Batch 9/revisión de producto.
 
 ---
+
+## Batch 2 — Horarios de atención y mensaje fuera de horario
+
+**Estado:** completado (en pro). **Migración:** sí, una y aditiva: `20261104140000_horarios_fuera_de_horario`.
+
+### Archivos tocados
+
+- Esquema/migración: `prisma/schema.prisma` (enum `OffHoursMode`, campos en `Workspace` y `Conversation.lastOffHoursReplyAt`), `prisma/migrations/20261104140000_horarios_fuera_de_horario/migration.sql`.
+- Cifrado (registro mínimo, sin tocar llaves ni índices): `src/config/prisma-encryption.ts` (campo `Workspace.offHoursMessage` añadido a `ENCRYPTED_FIELDS` y a `WRITE_RULES`).
+- Lógica pura TZ: `src/utils/business-hours.ts` (+ `business-hours.test.ts`), usa `Intl.DateTimeFormat` sin dependencias nuevas.
+- Servicio: `src/services/off-hours.service.ts`, `src/services/message.service.ts` (`sendOffHoursReply`).
+- Integración en el webhook: `src/services/meta-webhook-handler.service.ts` (sin asignación ni encolado de IA fuera de horario).
+- Badge: `src/middlewares/workspace-profile.middleware.ts`, `src/views/partials/admin-nav.ejs`, `agent-nav.ejs`, `admin/conversations/show.ejs`, `agent/conversations/show.ejs`.
+- UI: `src/controllers/admin-hours.controller.ts`, `src/validations/hours.validation.ts`, `src/routes/admin-hours.routes.ts`, `src/views/pages/admin/hours/index.ejs`, montaje en `src/routes/admin.routes.ts`.
+- Docs: `docs/alcance-produccion.md`, `docs/catalogo-producto.md`, `docs/guia-uso.md`.
+- Pruebas: `tests/integration/off-hours.integration.test.ts`.
+
+### Pruebas nuevas
+
+- 8 unitarias de `business-hours` (dentro/fuera, frontera exacta inicio/fin, cambio de día, DST América/New_York, tramo nocturno, día completo, sin horario).
+- 4 de integración: TEXT_ONLY responde y no dispara IA (y el mensaje queda cifrado en la base); QUEUE_ONLY no responde ni asigna; AI_IF_COVERED sin cobertura entrega con motivo OFF_HOURS; AI_IF_COVERED con cobertura responde con IA (proveedor mock).
+
+### Comandos y resultados
+
+- `npx tsc --noEmit` → **OK**.
+- `npm run typecheck:all` → **OK**.
+- `npm test` → **315 pass, 0 fail**.
+- `npm run test:integration` → **86 pass, 2 skipped, 0 fail**.
+- Migración: solo `CREATE TYPE` y `ADD COLUMN`; sin DROP/DELETE/TRUNCATE ni cambios de tipo.
+
+### Decisiones y notas (repo manda)
+
+- El indicador por workspace es la columna `Workspace.businessHoursEnabled` (no una variable de entorno), como pide «flag per workspace».
+- El intervalo es cerrado-abierto [start, end); `start === end` deja el día abierto; `start > end` cruza la medianoche.
+- «Marcar para la cola de la mañana» se interpreta como **dejar el hilo sin asignar** (UNASSIGNED) y sin agente, más el evento `OFF_HOURS_QUEUED`; no se inventó una cola nueva. Fuera de horario nunca se asigna al agente con menos carga.
+- `AI_IF_COVERED` reutiliza la política pura (`decideGeneration`) y los helpers de prompt/proveedor, sin encolar un `AiSuggestionJob` y sin tocar el motor de sugerencias/automático. Si la IA no está configurada o no cubre, cae al mensaje fuera de horario + `OFF_HOURS`.
+- El envío fuera de horario va por `MessageService.sendOffHoursReply` (source AUTOMATIC); la idempotencia la da `Conversation.lastOffHoursReplyAt`, no `aiSuggestionId`.
+
+---

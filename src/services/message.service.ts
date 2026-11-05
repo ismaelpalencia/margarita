@@ -652,6 +652,156 @@ export class MessageService {
     }
 
     /**
+     * Respuesta automática fuera de horario (TEXT_ONLY o AI_IF_COVERED).
+     *
+     * La manda el sistema, no una persona: source AUTOMATIC y sin userId. La
+     * idempotencia no va por aiSuggestionId (no hay sugerencia), sino por el
+     * sello Conversation.lastOffHoursReplyAt que escribe quien la invoca.
+     */
+    static async sendOffHoursReply(params: {
+        workspaceId: string;
+        conversationId: string;
+        body: string;
+    }) {
+        const conversation = await prisma.conversation.findFirst({
+            where: {
+                id: params.conversationId,
+                workspaceId: params.workspaceId
+            },
+            include: { contact: true }
+        });
+
+        if (!conversation) {
+            throw new Error("Conversación no encontrada.");
+        }
+
+        if (conversation.status !== ConversationStatus.OPEN) {
+            throw new Error("La conversación está cerrada.");
+        }
+
+        if (conversation.contact.optOutAt || conversation.contact.pausedAt) {
+            throw new Error("El contacto no admite mensajes.");
+        }
+
+        if (!isConversationWindowOpen(conversation.lastIncomingMessageAt)) {
+            throw new Error(
+                "La ventana de 24 horas está cerrada. No se envía texto libre."
+            );
+        }
+
+        const credentials = await this.getSendingCredentials(conversation);
+        const body = params.body.trim();
+
+        if (body.length === 0) {
+            throw new Error("La respuesta fuera de horario está vacía.");
+        }
+
+        const localMessage = await prisma.message.create({
+            data: {
+                workspaceId: params.workspaceId,
+                conversationId: conversation.id,
+                sentByUserId: null,
+                direction: MessageDirection.OUT,
+                type: MessageType.TEXT,
+                status: MessageStatus.SENDING,
+                source: MessageSource.AUTOMATIC,
+                body,
+                metaPayload: {
+                    type: "text",
+                    body,
+                    offHours: true
+                }
+            }
+        });
+
+        const payload = {
+            messaging_product: "whatsapp",
+            recipient_type: "individual",
+            to: conversation.contact.phone,
+            type: "text",
+            text: {
+                preview_url: false,
+                body
+            }
+        };
+
+        try {
+            const response = await axios.post(
+                `${appConfig.graphBaseUrl}/${credentials.apiVersion}/${credentials.phoneNumberId}/messages`,
+                payload,
+                {
+                    params: { access_token: credentials.accessToken },
+                    timeout: 15000
+                }
+            );
+
+            const wamid =
+                Array.isArray(response.data?.messages) &&
+                response.data.messages[0]?.id
+                    ? String(response.data.messages[0].id)
+                    : null;
+
+            const updatedMessage = await prisma.message.update({
+                where: { id: localMessage.id },
+                data: {
+                    status: MessageStatus.SENT,
+                    wamid,
+                    metaResponse: response.data
+                }
+            });
+
+            await this.touchConversationAfterOutgoingMessage(
+                conversation.id,
+                updatedMessage.createdAt,
+                conversation.assignedUserId
+            );
+
+            this.emitOutgoingMessage(
+                params.workspaceId,
+                conversation,
+                updatedMessage
+            );
+
+            return updatedMessage;
+        } catch (error) {
+            const errorPayload = axios.isAxiosError(error)
+                ? {
+                      status: error.response?.status,
+                      data: error.response?.data,
+                      message: error.message
+                  }
+                : {
+                      message:
+                          error instanceof Error
+                              ? error.message
+                              : "Error desconocido"
+                  };
+
+            const failedMessage = await prisma.message.update({
+                where: { id: localMessage.id },
+                data: {
+                    status: MessageStatus.FAILED,
+                    metaResponse: errorPayload
+                }
+            });
+
+            await this.touchConversationAfterOutgoingMessage(
+                conversation.id,
+                failedMessage.createdAt,
+                conversation.assignedUserId
+            );
+
+            this.emitOutgoingMessage(
+                params.workspaceId,
+                conversation,
+                failedMessage
+            );
+
+            throw new Error("No se pudo enviar el mensaje fuera de horario a Meta.");
+        }
+    }
+
+    /**
      * Mensaje con botones (dentro de la ventana de 24 horas).
      *
      * Es la misma ruta que el texto libre —mismos permisos, mismo tope, misma

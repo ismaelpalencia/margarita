@@ -178,6 +178,20 @@ enum AiMode {
   AUTO
 }
 
+/**
+ * Qué hace la instalación con un mensaje que llega fuera del horario de
+ * atención configurado (solo aplica cuando `businessHoursEnabled` es true).
+ * - `TEXT_ONLY`: responde con `offHoursMessage` una vez por intervalo.
+ * - `AI_IF_COVERED`: responde con IA solo si la base de conocimiento cubre la
+ *   pregunta y la confianza alcanza el umbral; si no, mensaje fuera de horario.
+ * - `QUEUE_ONLY`: no responde; deja la conversación sin asignar para la mañana.
+ */
+enum OffHoursMode {
+  TEXT_ONLY
+  AI_IF_COVERED
+  QUEUE_ONLY
+}
+
 enum AiJobStatus {
   PENDING
   PROCESSING
@@ -298,6 +312,17 @@ model Workspace {
   taxRegime               String?
   authorizedScheduleStart String           @default("08:00")
   authorizedScheduleEnd   String           @default("21:00")
+
+  /**
+   * Horario de atención (fuera de horario). Todo es opcional y apagado por
+   * defecto: sin `businessHoursEnabled`, la instalación se comporta igual que
+   * antes. `businessHours` trae `{ timezone, days, start, end }`.
+   */
+  businessHoursEnabled      Boolean       @default(false)
+  businessHours             Json?
+  offHoursMode              OffHoursMode  @default(TEXT_ONLY)
+  offHoursMessage           String?
+  offHoursReplyIntervalHours Int          @default(12)
 
   settings                 WorkspaceSettings?
   whatsappAccount          WhatsAppAccount?
@@ -691,6 +716,12 @@ model Conversation {
    */
   aiHandoffAt     DateTime?
   aiHandoffReason String?
+
+  /**
+   * Última vez que se mandó la respuesta automática de fuera de horario en
+   * este hilo. Sirve para no repetirla más de una vez por intervalo.
+   */
+  lastOffHoursReplyAt DateTime?
 
   status            ConversationStatus            @default(OPEN)
   operationalStatus ConversationOperationalStatus @default(UNASSIGNED)

@@ -2,6 +2,7 @@ import { WorkspaceProfile } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 
 import { prisma } from "../config/prisma";
+import { isWithinBusinessHours, parseBusinessHours } from "../utils/business-hours";
 import {
     isCollectionsProfile,
     modulesForProfile
@@ -22,14 +23,25 @@ export async function workspaceProfileMiddleware(
     next: NextFunction
 ) {
     let profile: WorkspaceProfile = WorkspaceProfile.COBRANZA;
+    let offHoursNow = false;
 
     try {
         const workspace = await prisma.workspace.findUnique({
             where: { id: req.user!.workspaceId },
-            select: { profile: true }
+            select: {
+                profile: true,
+                businessHoursEnabled: true,
+                businessHours: true
+            }
         });
 
         profile = workspace?.profile ?? WorkspaceProfile.COBRANZA;
+
+        const hours = workspace?.businessHoursEnabled
+            ? parseBusinessHours(workspace.businessHours)
+            : null;
+
+        offHoursNow = hours ? !isWithinBusinessHours(hours, new Date()) : false;
     } catch (error) {
         console.error("No se pudo leer el giro de la instalación:", error);
     }
@@ -39,6 +51,8 @@ export async function workspaceProfileMiddleware(
     res.locals.workspaceModules = modulesForProfile(profile);
     /** Atajo para las plantillas que solo necesitan saber si hay cobranza. */
     res.locals.collectionsEnabled = isCollectionsProfile(profile);
+    /** Badge "Fuera de horario" en el panel y en el hilo. */
+    res.locals.offHoursNow = offHoursNow;
 
     return next();
 }

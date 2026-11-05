@@ -275,6 +275,22 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 - **Proveedor**: DeepSeek por defecto; cualquier API compatible con OpenAI
   cambiando variables. `AI_PROVIDER=mock` para pruebas sin red.
 
+### 3.17 Horarios de atención (Admin → Configuración → Horarios)
+
+- Interruptor por workspace; apagado por defecto (comportamiento idéntico a
+  siempre).
+- Zona horaria IANA, días de la semana, hora de apertura y de cierre
+  (el cierre es exclusivo y se admite un tramo que cruza la medianoche).
+- Modo fuera de horario: solo mensaje (TEXT_ONLY), IA si la base cubre la
+  pregunta (AI_IF_COVERED) o solo encolar sin responder (QUEUE_ONLY).
+- Mensaje fuera de horario cifrado en la base y vista previa en la misma
+  pantalla.
+- Repetición como máximo una vez por intervalo configurable (12 h por
+  defecto) por conversación.
+- Fuera de horario el hilo no se asigna a un agente y queda en la bandeja;
+  se audita como OFF_HOURS_REPLY_SENT y OFF_HOURS_QUEUED. El panel y el hilo
+  muestran la insignia «Fuera de horario».
+
 ---
 
 ## 4. Automatismos (lo que pasa sin que nadie lo toque)
@@ -297,6 +313,9 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 13. **Borradores de IA** (si está encendida): se generan en segundo plano con
     debounce y aparecen en la bandeja; **nada se envía sin que una persona lo
     apruebe**.
+14. **Fuera de horario** (si está encendido): el mensaje que llega fuera del
+    horario configurado no se asigna a un agente; responde el mensaje (o la IA
+    si cubre la pregunta), queda encolado para la mañana y se audita.
 
 ---
 

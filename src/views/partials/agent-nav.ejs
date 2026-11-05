@@ -111,6 +111,11 @@
         </details>
 
         <div class="ml-auto flex items-center gap-3">
+            <% if (offHoursNow) { %>
+                <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-200" title="Fuera del horario de atención">
+                    Fuera de horario
+                </span>
+            <% } %>
             <%- include("theme-toggle") %>
 
             <div class="hidden text-right md:block">

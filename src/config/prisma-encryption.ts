@@ -153,6 +153,11 @@ const ENCRYPTED_FIELDS: Record<string, string[]> = {
      * contenido. El índice y el estado quedan en claro porque se filtran.
      */
     AiSettings: ["systemPrompt"],
+    /**
+     * El mensaje que se manda fuera de horario es texto del negocio que no
+     * debe quedar en claro: se cifra como el resto del contenido.
+     */
+    Workspace: ["offHoursMessage"],
     KnowledgeEntry: ["question", "answer"],
     AiSuggestion: ["body", "reason"]
 };
@@ -382,6 +387,10 @@ const WRITE_RULES: Record<string, WriteRule> = {
      * conocimiento que se le cargó. `keywords`, `intent` y `status` quedan
      * en claro porque son índices de trabajo, no contenido.
      */
+    Workspace(data) {
+        encryptTextFields(data, ["offHoursMessage"]);
+    },
+
     AiSettings(data) {
         encryptTextFields(data, ["systemPrompt"]);
     },

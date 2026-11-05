@@ -70,6 +70,7 @@ otras. Un administrador ve las de toda la empresa.
 | **IA** | Base de conocimiento, modo, límites y consola de prueba |
 | **Logs / Webhooks** | Qué pasó y por qué; lo que mandó Meta tal cual |
 | **Sistema / Respaldos** | Salud del servicio y copias de la base |
+| **Horarios** | Zona horaria, días, hora de apertura y cierre, y qué responde fuera de horario |
 
 > Algunas instalaciones antiguas muestran módulos adicionales según el giro con
 > el que nacieron. Si no ves una pantalla en tu menú, no aplica a tu operación.
@@ -261,6 +262,11 @@ interviene.
   Cloudflare R2 cuando está configurado y descarga manual en JSON. Al terminar el
   contrato, el borrado total elimina mensajes, contactos, campañas, usuarios,
   credenciales y archivos, y deja constancia en la bitácora.
+- **Admin → Configuración → Horarios**: si activas el horario de atención, los
+  mensajes que llegan fuera de él no se asignan a un agente. Según el modo
+  configurado responden con tu mensaje de fuera de horario (una vez por
+  intervalo), responden con IA si la base cubre la pregunta, o solo se encolan
+  para la mañana. Apagado, todo se atiende como siempre.
 
 ---
 
