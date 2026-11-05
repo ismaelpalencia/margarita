@@ -5,6 +5,10 @@ import { AiUsageService } from "../services/aiUsage.service";
 import { ServiceMetricsService } from "../services/service-metrics.service";
 
 export class AdminServiceMetricsController {
+    /**
+     * Se invoca con el nombre de la clase: Express llama a los handlers sin
+     * `this`, así que `this.timezoneFor` sería undefined.
+     */
     private static async timezoneFor(workspaceId: string) {
         const workspace = await prisma.workspace.findUnique({
             where: { id: workspaceId },
@@ -18,7 +22,9 @@ export class AdminServiceMetricsController {
     }
 
     static async index(req: Request, res: Response) {
-        const timezone = await this.timezoneFor(req.user!.workspaceId);
+        const timezone = await AdminServiceMetricsController.timezoneFor(
+            req.user!.workspaceId
+        );
         const metrics = await ServiceMetricsService.summary(
             req.user!.workspaceId,
             timezone
@@ -33,7 +39,9 @@ export class AdminServiceMetricsController {
 
     /** Consumo mensual de IA: vista del operador, siempre completa. */
     static async aiUsage(req: Request, res: Response) {
-        const timezone = await this.timezoneFor(req.user!.workspaceId);
+        const timezone = await AdminServiceMetricsController.timezoneFor(
+            req.user!.workspaceId
+        );
         const [current, report] = await Promise.all([
             AiUsageService.getCurrentMonthUsage(req.user!.workspaceId, timezone),
             AiUsageService.getMonthlyReport(req.user!.workspaceId, 12)
