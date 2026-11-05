@@ -682,3 +682,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Validaciones de longitud/IDs y auditoría FLOW_UPDATED.
 
 ---
+
+## WhatsApp +52 y Pixel de Meta
+
+- Número actualizado a +52 1 55 6487 0481 (wa.me/5215564870481) en app, landing, panel y docs.
+- Los enlaces de WhatsApp del landing llevan mensaje precargado (`SUPPORT_WHATSAPP_TEXT`).
+- Pixel de Meta opcional por `META_PIXEL_ID` en el build del landing: PageView, ViewContent (/precios, /demo) y Contact (clic wa.me).
+- Sin ID el pixel no se renderiza.
+
+---

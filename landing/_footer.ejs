@@ -39,5 +39,36 @@
         </div>
     </div>
 </footer>
+
+<% if (typeof metaPixelId !== "undefined" && metaPixelId) { %>
+    <script>
+        (function () {
+            if (typeof fbq !== "function") {
+                return;
+            }
+
+            var path = window.location.pathname;
+
+            if (path === "/precios" || path === "/demo") {
+                fbq("track", "ViewContent", { content_name: path });
+            }
+
+            document.addEventListener(
+                "click",
+                function (event) {
+                    var target = event.target;
+                    var link = target && target.closest
+                        ? target.closest('a[href*="wa.me"]')
+                        : null;
+
+                    if (link) {
+                        fbq("track", "Contact", { content_name: "whatsapp" });
+                    }
+                },
+                true
+            );
+        })();
+    </script>
+<% } %>
 </body>
 </html>

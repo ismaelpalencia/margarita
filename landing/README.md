@@ -79,3 +79,22 @@ HTML/CSS/JS plano. Cloudflare Pages resuelve las URLs limpias (`/ia` →
 
 El formulario de acceso no vive aquí: el botón «Iniciar sesión» lleva a
 `acceso.html`, que explica de dónde se entra en cada instalación.
+
+
+## Pixel de Meta y WhatsApp
+
+Variables de **build** (Cloudflare Pages → Environment variables):
+
+- `META_PIXEL_ID`: ID del pixel. Si está vacío, no se renderiza el pixel.
+- `SUPPORT_WHATSAPP`: número con lada, solo dígitos (`5215564870481`).
+- `SUPPORT_WHATSAPP_DISPLAY`: cómo se muestra (`+52 1 55 6487 0481`).
+- `SUPPORT_WHATSAPP_TEXT`: mensaje precargado al abrir WhatsApp.
+
+Eventos que dispara el pixel:
+
+- `PageView` en todas las páginas.
+- `ViewContent` en `/precios` y `/demo`.
+- `Contact` al hacer clic en cualquier enlace `wa.me`.
+
+Para activarlo: pon el ID en Cloudflare Pages y vuelve a desplegar; o construye
+con `META_PIXEL_ID=... npm run landing:build` y sube el resultado.

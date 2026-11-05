@@ -147,6 +147,12 @@ const demoApiBase = (process.env.DEMO_API_BASE || "https://demo.margaritaapp.org
     .replace(/\/+$/, "");
 const demoUrl = process.env.DEMO_URL?.trim() || demoApiBase + "/demo";
 
+/** Pixel de Meta para los anuncios; vacío = no se renderiza. */
+const metaPixelId = (process.env.META_PIXEL_ID || "").trim();
+const whatsappText =
+    process.env.SUPPORT_WHATSAPP_TEXT?.trim() ||
+    "Hola, quiero una demo de Margarita IA";
+
 function copy(from: string, to: string) {
     fs.mkdirSync(path.dirname(to), { recursive: true });
     fs.copyFileSync(from, to);
@@ -235,13 +241,17 @@ function build() {
             appName: appConfig.name,
             supportEmail: appConfig.supportEmail,
             supportWhatsappUrl: appConfig.supportWhatsapp
-                ? "https://wa.me/" + appConfig.supportWhatsapp
+                ? "https://wa.me/" +
+                  appConfig.supportWhatsapp +
+                  "?text=" +
+                  encodeURIComponent(whatsappText)
                 : "https://margaritaapp.org",
             supportWhatsappDisplay: appConfig.supportWhatsappDisplay,
             pricing: PRICING,
             money,
             demoApiBase,
             demoUrl,
+            metaPixelId,
             year: new Date().getFullYear(),
             ...extra
         });

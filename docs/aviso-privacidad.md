@@ -14,7 +14,7 @@
 **Eduardo Ismael Fernández Palencia**, con domicilio en Candelaria, Oyoacán,
 C.P. 04380, es el responsable del tratamiento de los datos
 personales que se describen aquí. Puedes contactarnos en **contacto@margaritaapp.org**
-o al teléfono +1 555 933 7514.
+o al teléfono +52 1 55 6487 0481.
 
 Margarita es la herramienta con la que operamos nuestro canal de WhatsApp. La
 empresa que aparece arriba es la responsable de tus datos; la herramienta es
