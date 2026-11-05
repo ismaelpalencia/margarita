@@ -96,6 +96,14 @@
     <% } %>
 
     <%- include("theme-toggle") %>
+
+    <div class="panel-bell">
+        <button class="btn btn--ghost" id="panel-bell" aria-label="Notificaciones" title="Notificaciones">
+            🔔
+            <span class="panel-sidebar__count panel-sidebar__count--unread is-empty" id="panel-bell-count">0</span>
+        </button>
+        <div class="panel-bell__panel" id="panel-bell-panel" hidden></div>
+    </div>
 </div>
 
 <script>
@@ -112,6 +120,81 @@
             toggle.addEventListener("click", function () {
                 sidebar.classList.toggle("is-open");
             });
+        }
+
+        var bell = document.getElementById("panel-bell");
+        var bellPanel = document.getElementById("panel-bell-panel");
+        var bellCount = document.getElementById("panel-bell-count");
+
+        function readToasts() {
+            try {
+                return JSON.parse(localStorage.getItem("margarita:toasts") || "[]");
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function renderToasts() {
+            var items = readToasts();
+
+            if (bellCount) {
+                bellCount.textContent = String(items.length);
+                bellCount.classList.toggle("is-empty", items.length === 0);
+                bellCount.classList.toggle("hidden", items.length === 0);
+            }
+
+            if (!bellPanel) {
+                return;
+            }
+
+            bellPanel.innerHTML = "";
+
+            if (items.length === 0) {
+                bellPanel.innerHTML = '<p class="toast__detail" style="padding:12px">Sin novedades.</p>';
+                return;
+            }
+
+            items.forEach(function (item) {
+                var node = document.createElement(item.href ? "a" : "div");
+                node.className = "toast";
+
+                if (item.href) {
+                    node.href = item.href;
+                }
+
+                var title = document.createElement("div");
+                title.className = "toast__title";
+                title.textContent = item.title || "";
+                node.appendChild(title);
+
+                if (item.detail) {
+                    var detail = document.createElement("div");
+                    detail.className = "toast__detail";
+                    detail.textContent = item.detail;
+                    node.appendChild(detail);
+                }
+
+                bellPanel.appendChild(node);
+            });
+        }
+
+        if (bell && bellPanel) {
+            bell.addEventListener("click", function (event) {
+                event.stopPropagation();
+                bellPanel.hidden = !bellPanel.hidden;
+                renderToasts();
+            });
+
+            document.addEventListener("click", function () {
+                bellPanel.hidden = true;
+            });
+
+            bellPanel.addEventListener("click", function (event) {
+                event.stopPropagation();
+            });
+
+            window.addEventListener("margarita:toast", renderToasts);
+            renderToasts();
         }
     })();
 </script>

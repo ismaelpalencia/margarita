@@ -42,8 +42,8 @@
         <% } %>
 
         <section class="grid gap-6 lg:grid-cols-3">
-            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 lg:col-span-1">
-                <h2 class="font-bold text-slate-900">
+            <div class="card lg:col-span-1">
+                <h2 class="card__title">
                     Tu estado
                 </h2>
 
@@ -55,27 +55,27 @@
                 </p>
 
                 <form action="/agent/status" method="POST" class="mt-5 grid gap-3">
-                    <button name="status" value="AVAILABLE" class="rounded-xl bg-margarita-600 px-4 py-3 text-sm font-semibold text-white hover:bg-margarita-700">
+                    <button name="status" value="AVAILABLE" class="btn btn--primary btn--block">
                         Disponible
                     </button>
 
-                    <button name="status" value="BUSY" class="rounded-xl bg-yellow-500 px-4 py-3 text-sm font-semibold text-white hover:bg-yellow-600">
+                    <button name="status" value="BUSY" class="btn btn--secondary btn--block">
                         Ocupado
                     </button>
 
-                    <button name="status" value="BREAK" class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700">
+                    <button name="status" value="BREAK" class="btn btn--secondary btn--block">
                         Break
                     </button>
 
-                    <button name="status" value="OFFLINE" class="rounded-xl bg-slate-700 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                    <button name="status" value="OFFLINE" class="btn btn--secondary btn--block">
                         Offline
                     </button>
                 </form>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2 lg:col-span-2">
-                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                    <p class="text-sm font-medium text-slate-500">
+                <div class="card">
+                    <p class="text-sm font-medium" style="color: var(--text-secondary)">
                         Conversaciones asignadas
                     </p>
 
@@ -84,8 +84,8 @@
                     </p>
                 </div>
 
-                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-margarita-200">
-                    <p class="text-sm font-medium text-margarita-600">
+                <div class="card">
+                    <p class="text-sm font-medium" style="color: var(--text-secondary)">
                         En progreso
                     </p>
 
@@ -94,8 +94,8 @@
                     </p>
                 </div>
 
-                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                    <p class="text-sm font-medium text-slate-500">
+                <div class="card">
+                    <p class="text-sm font-medium" style="color: var(--text-secondary)">
                         Mensajes manuales hoy
                     </p>
 

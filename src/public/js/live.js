@@ -229,7 +229,35 @@
         }, 1500);
     }
 
+    function rememberToast(options) {
+        try {
+            var history = JSON.parse(
+                localStorage.getItem("margarita:toasts") || "[]"
+            );
+
+            history.unshift({
+                title: options.title,
+                detail: options.detail || "",
+                href: options.href || null,
+                at: Date.now()
+            });
+
+            localStorage.setItem(
+                "margarita:toasts",
+                JSON.stringify(history.slice(0, 20))
+            );
+
+            window.dispatchEvent(
+                new CustomEvent("margarita:toast", { detail: history[0] })
+            );
+        } catch (error) {
+            /* El historial es opcional. */
+        }
+    }
+
     function showToast(options) {
+        rememberToast(options);
+
         var container = ensureToastContainer();
         var toast = document.createElement("div");
         toast.className =

@@ -54,6 +54,16 @@
 }
 .panel-topbar__search { flex: 1; max-width: 420px; }
 .panel-topbar__spacer { flex: 1; }
+.panel-bell { position: relative; }
+.panel-bell__panel {
+  position: fixed; top: 60px; right: 16px; width: 320px; max-height: 420px;
+  overflow-y: auto; z-index: 60; background: var(--surface-card);
+  border: 1px solid var(--surface-border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg); padding: 8px;
+}
+.panel-bell__panel[hidden] { display: none; }
+.panel-bell__panel .toast { margin-bottom: 6px; box-shadow: none; }
+.panel-bell .panel-sidebar__count { position: absolute; top: -2px; right: -2px; }
 
 body:has(.panel-sidebar) main { margin-left: 240px; padding-top: 72px; }
 body:has(.panel-sidebar) main.max-w-7xl { max-width: none; padding-left: 24px; padding-right: 24px; }

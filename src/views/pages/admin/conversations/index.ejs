@@ -14,49 +14,9 @@
     data-live-page="inbox"
     data-live-base="/admin/conversations"
 >
-    <header class="border-b bg-white">
-        <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div>
-                <a href="/admin/dashboard" class="flex items-center gap-3">
-                    <img
-                        src="/brand/img/margarita-icon-64.png"
-                        alt="Margarita"
-                        class="h-9 w-9"
-                    />
+    <%- include("../../../partials/admin-nav", { user }) %>
 
-                    <span class="min-w-0">
-                        <span class="block text-base font-black leading-tight text-slate-900">
-                            Margarita
-                        </span>
-
-                        <span class="block text-xs font-medium text-slate-500">
-                            Conversaciones
-                        </span>
-                    </span>
-                </a>
-            </div>
-
-            <nav class="no-scrollbar -mx-4 flex items-center gap-3 overflow-x-auto whitespace-nowrap px-4 sm:mx-0 sm:flex-wrap sm:overflow-x-visible sm:px-0">
-                <a href="/admin/dashboard" class="text-sm font-medium text-slate-700">Dashboard</a>
-                <a href="/admin/users" class="text-sm font-medium text-slate-700">Agentes</a>
-                <a href="/admin/contacts" class="text-sm font-medium text-slate-700">Contactos</a>
-                <a href="/admin/tags" class="text-sm font-medium text-slate-700">Etiquetas</a>
-                <a href="/admin/whatsapp" class="text-sm font-medium text-slate-700">WhatsApp</a>
-                <a href="/admin/templates" class="text-sm font-medium text-slate-700">Plantillas</a>
-                <a href="/admin/conversations" class="text-sm font-medium text-margarita-700">Conversaciones</a>
-
-                <%- include("../../../partials/theme-toggle") %>
-
-                <form action="/auth/logout" method="POST">
-                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
-                        Cerrar sesión
-                    </button>
-                </form>
-            </nav>
-        </div>
-    </header>
-
-    <main class="mx-auto max-w-6xl px-6 py-8">
+    <main class="mx-auto max-w-7xl px-6 py-8">
         <section class="mb-6 flex items-center justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-slate-800">
@@ -135,108 +95,67 @@
             </div>
         <% } %>
 
-        <section class="overflow-x-auto rounded-2xl bg-white shadow">
-            <table class="w-full text-left text-sm tabla-conversaciones">
-                <thead class="bg-slate-50 text-slate-500">
-                    <tr>
-                        <th class="px-5 py-4">Contacto</th>
-                        <th class="px-5 py-4">Estado</th>
-                        <th class="px-5 py-4">Operación</th>
-                        <th class="px-5 py-4">Asignado a</th>
-                        <th class="px-5 py-4">Último mensaje</th>
-                        <th class="px-5 py-4 text-right">Acciones</th>
-                    </tr>
-                </thead>
+        <% if (conversations.length === 0) { %>
+            <div class="card">
+                <div class="empty">
+                    <div class="empty__icon">💬</div>
+                    <p class="empty__title">No hay conversaciones para mostrar</p>
+                    <p class="empty__copy">Ajusta los filtros o espera el próximo mensaje. Cuando llegue, aparecerá aquí.</p>
+                </div>
+            </div>
+        <% } else { %>
+        <section class="card" style="padding: 0; overflow: hidden">
+            <div class="flex items-center justify-between border-b px-5 py-3" style="border-color: var(--surface-border)">
+                <h2 class="card__title">Bandeja <span class="chip"><%= conversations.length %></span></h2>
+                <span class="text-xs" style="color: var(--text-tertiary)">Ordenadas por actividad reciente</span>
+            </div>
 
-                <tbody class="divide-y divide-slate-100">
-                    <% if (conversations.length === 0) { %>
-                        <tr>
-                            <td colspan="6" class="px-5 py-8 text-center text-slate-500">
-                                No hay conversaciones para mostrar.
-                            </td>
-                        </tr>
-                    <% } %>
+            <% conversations.forEach((conversation) => { %>
+                <% const lastMessage = conversation.messages[0]; %>
+                <% const unread = conversation.unreadCount > 0; %>
+                <% const name = conversation.contact.customName || conversation.contact.profileName || conversation.contact.phone; %>
 
-                    <% conversations.forEach((conversation) => { %>
-                        <% const lastMessage = conversation.messages[0]; %>
+                <div class="inbox-row" data-conversation-id="<%= conversation.id %>">
+                    <div class="panel-avatar"><%= name.charAt(0).toUpperCase() %></div>
 
-                        <tr>
-                            <td class="px-5 py-4">
-                                <div class="flex items-center gap-2">
-                                    <span class="font-medium text-slate-800">
-                                        <%= conversation.contact.customName || conversation.contact.profileName || conversation.contact.phone %>
-                                    </span>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <a href="/admin/conversations/<%= conversation.id %>" class="truncate text-[13px] <%= unread ? 'font-bold' : 'font-semibold' %>" style="color: var(--text-primary)">
+                                <%= name %>
+                            </a>
+                            <span class="shrink-0 text-[11px]" style="color: var(--text-tertiary)">
+                                <% if (lastMessage) { %><%= new Date(lastMessage.createdAt).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }) %><% } %>
+                            </span>
+                        </div>
 
-                                    <%- include("../../../partials/number-badge", { number: conversation.whatsappNumber }) %>
+                        <a href="/admin/conversations/<%= conversation.id %>" class="mt-0.5 block truncate text-[13px]" style="color: var(--text-secondary)">
+                            <% if (lastMessage) { %><%= lastMessage.body || lastMessage.type %><% } else { %>—<% } %>
+                        </a>
 
-                                    <% if (conversation.unreadCount > 0) { %>
-                                        <span class="rounded-full bg-margarita-600 px-2 py-0.5 text-[11px] font-bold text-white">
-                                            <%= conversation.unreadCount %>
-                                        </span>
-                                    <% } %>
+                        <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            <span class="badge <%= conversation.status === 'OPEN' ? 'badge--success' : 'badge--neutral' %>"><%= conversation.status %></span>
+                            <% if (conversation.aiHandoffAt) { %><span class="badge badge--warning">Handoff</span><% } %>
+                            <% if (!conversation.assignedUser) { %><span class="badge badge--danger">Sin asignar</span><% } else { %><span class="badge badge--neutral"><%= conversation.assignedUser.name %></span><% } %>
+                            <% if (conversation.contact.optOutAt) { %><span class="badge badge--danger">BAJA</span><% } %>
+                        </div>
+                    </div>
 
-                                    <% if (conversation.contact.optOutAt) { %>
-                                        <span
-                                            class="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700"
-                                            title="Pidió la baja: no se le envían mensajes"
-                                        >
-                                            BAJA
-                                        </span>
-                                    <% } %>
-                                </div>
-                                <div class="mt-1 text-xs text-slate-400">
-                                    <%= conversation.contact.phone %>
-                                </div>
-                            </td>
+                    <div class="flex shrink-0 flex-col items-end gap-1.5">
+                        <span class="panel-sidebar__count <%= unread ? 'panel-sidebar__count--unread' : 'is-empty' %>" data-row-unread data-count="<%= conversation.unreadCount %>"><%= conversation.unreadCount %></span>
 
-                            <td class="px-5 py-4 text-slate-600">
-                                <%= conversation.status %>
-                            </td>
-
-                            <td class="px-5 py-4 text-slate-600">
-                                <%= conversation.operationalStatus %>
-                            </td>
-
-                            <td class="px-5 py-4 text-slate-600">
-                                <% if (conversation.assignedUser) { %>
-                                    <%= conversation.assignedUser.name %>
-                                <% } else { %>
-                                    Sin asignar
-                                <% } %>
-                            </td>
-
-                            <td class="px-5 py-4 text-slate-600">
-                                <% if (lastMessage) { %>
-                                    <span class="line-clamp-1">
-                                        <%= lastMessage.body || lastMessage.type %>
-                                    </span>
-                                <% } else { %>
-                                    —
-                                <% } %>
-                            </td>
-
-                            <td class="px-5 py-4 text-right">
-                                <div class="flex justify-end gap-2">
-                                    <% if (!conversation.assignedUser) { %>
-                                        <form action="/admin/conversations/<%= conversation.id %>/claim" method="POST">
-                                            <button class="rounded-lg bg-margarita-600 px-3 py-2 text-xs font-medium text-white hover:bg-margarita-700">
-                                                Reclamar
-                                            </button>
-                                        </form>
-                                    <% } %>
-                                    <a
-                                        href="/admin/conversations/<%= conversation.id %>"
-                                        class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white"
-                                    >
-                                        Ver
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    <% }) %>
-                </tbody>
-            </table>
+                        <div class="flex items-center gap-1.5">
+                            <% if (!conversation.assignedUser) { %>
+                                <form action="/admin/conversations/<%= conversation.id %>/claim" method="POST">
+                                    <button class="btn btn--primary btn--sm">Reclamar</button>
+                                </form>
+                            <% } %>
+                            <a href="/admin/conversations/<%= conversation.id %>" class="btn btn--secondary btn--sm">Abrir</a>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
         </section>
+        <% } %>
     </main>
 
     <script src="/socket.io/socket.io.js"></script>

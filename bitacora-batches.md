@@ -471,3 +471,23 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - npm run test:integration → 101 pass, 2 skipped.
 
 ---
+
+## Batch B (continuación) — Pantallas y campana
+
+- Dashboard admin/agente: KPIs con .card/.badge y botones de estado con .btn.
+- Bandeja admin y agente: lista tipo correo (.inbox-row) con avatar, no leídos en negrita, chips (estado, Handoff, Sin asignar, BAJA), contador por fila (data-row-unread) y acciones Reclamar/Abrir; empty state.
+- Conversaciones index/show admin y agente: usan el shell (admin-nav/agent-nav) en lugar de cabeceras propias.
+- Campana de notificaciones en el topbar con historial de toasts en localStorage (margarita:toasts) y panel desplegable; live.js guarda cada toast y emite margarita:toast.
+- CSS: .inbox-row, .panel-bell__panel.
+
+### Pendiente / bloqueado
+
+- Bandeja de 3 columnas real (lista | hilo | panel): requiere pasar la lista de conversaciones al controlador del show, que Batch B prohíbe tocar. Queda como follow-up si se autoriza un cambio mínimo de controlador.
+- Contactos/Etiquetas/Plantillas siguen con cabecera propia (sin shell).
+- Rediseño fino de Reportes/Sistema/IA panel y skeletons.
+
+### Gates
+
+- npx tsc --noEmit → OK; npm test → 341 pass; npm run test:integration → 101 pass, 2 skipped.
+
+---
