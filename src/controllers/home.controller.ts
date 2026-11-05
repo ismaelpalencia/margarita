@@ -67,7 +67,7 @@ export class HomeController {
         }
 
         return res.render("pages/home/index", {
-            title: "Margarita — Cobranza por WhatsApp con seguridad bancaria",
+            title: "Margarita — Automatiza WhatsApp con IA",
             ...supportContext()
         });
     }

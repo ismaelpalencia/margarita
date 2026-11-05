@@ -18,26 +18,26 @@ Y no todas cuestan lo mismo:
 
 | Categoría | Para qué es | Costo relativo |
 | --- | --- | --- |
-| **Utilidad** | Avisos sobre una cuenta, un pago, una entrega, un servicio que la persona ya tiene | Bajo |
-| **Marketing** | Promociones, novedades, recuperación de clientes | Varias veces más |
+| **Utilidad** | Avisos sobre un pedido, una entrega, una cita o un servicio que la persona ya tiene | Bajo |
+| **Marketing** | Promociones, novedades y reactivación de clientes | Varias veces más |
 | **Autenticación** | Códigos de un solo uso | Bajo |
 
-Para cobranza, el objetivo es que Meta las clasifique como **utilidad**. La app
-te avisa cuando una plantilla quedó como marketing y **no deja usarla en
-campañas** sin que lo sepas.
+Para atención al cliente, el objetivo es que Meta las clasifique como
+**utilidad**. La app te avisa cuando una plantilla quedó como marketing y **no
+deja usarla en campañas** sin que lo sepas.
 
 ---
 
 ## 2. Las cinco reglas que hacen que se aprueben
 
-1. **Habla de la cuenta de esa persona, no de una oferta.** «Le recordamos su
-   saldo pendiente» es utilidad; «aproveche el 20% de descuento» es marketing.
+1. **Habla de la relación que ya existe, no de una oferta.** «Le confirmamos el
+   horario de su cita» es utilidad; «aproveche el 20% de descuento» es marketing.
 2. **Nada de urgencia falsa ni promociones.** Sin «última oportunidad», sin
    «promoción», sin «descuento», salvo que de verdad sea marketing.
 3. **Identifícate.** El cuerpo debe decir de qué negocio es el mensaje; el
    cliente tiene que saber quién le escribe sin adivinar.
-4. **Un solo objetivo por plantilla.** Recordatorio de pago, confirmación,
-   convenio. No mezcles aviso, promoción y encuesta.
+4. **Un solo objetivo por plantilla.** Confirmación, aviso de entrega, bienvenida.
+   No mezcles aviso, promoción y encuesta.
 5. **Ejemplos reales en cada variable.** Si usas `{{1}}`, Meta pide un ejemplo
    («María»); sin él, la plantilla se rechaza.
 
@@ -55,7 +55,7 @@ En campañas, las variables se llenan con texto fijo, el **nombre**, el
 **teléfono** o cualquier **columna del Excel**. En el hilo se capturan a mano.
 
 Los botones de **respuesta rápida** no llevan variables: su texto es fijo y es
-lo que la app usa para saber qué tocó el deudor.
+lo que la app usa para saber qué tocó el cliente.
 
 ---
 
@@ -65,11 +65,11 @@ lo que la app usa para saber qué tocó el deudor.
    WhatsApp Business).
 2. **Crear plantilla**.
 3. **Nombre**: en minúsculas y con guiones bajos, por ejemplo
-   `recordatorio_pago_v1`. No se puede repetir.
-4. **Categoría**: `Utilidad` para cobranza.
+   `bienvenida_v1`. No se puede repetir.
+4. **Categoría**: `Utilidad` para atención y avisos de servicio.
 5. **Idioma**: `es_MX` (español de México).
 6. **Contenido**:
-   - **Encabezado de texto** (opcional): por ejemplo `Aviso de pago`.
+   - **Encabezado de texto** (opcional): por ejemplo `Gracias por escribir`.
    - **Cuerpo**: el mensaje, con `{{1}}`, `{{2}}`… donde van los datos.
    - **Pie** (opcional): el nombre del negocio.
    - **Botones**: respuesta rápida y/o enlace.
@@ -82,29 +82,29 @@ aparece con su estado.
 
 ---
 
-## 5. La plantilla de cobranza recomendada
+## 5. La plantilla de atención recomendada
 
-**Nombre**: `recordatorio_pago_asesor`
+**Nombre**: `bienvenida_asesor`
 **Categoría**: Utilidad · **Idioma**: es_MX
 
-**Encabezado**: `Aviso de pago`
+**Encabezado**: `Gracias por escribir`
 
 **Cuerpo**:
 
-> Hola {{1}}, le escribimos de {{2}} por su cuenta. Tiene un saldo pendiente de
-> {{3}}. Si ya lo pagó, puede avisarnos por aquí; si necesita revisarlo,
-> con gusto le ayudamos.
+> Hola {{1}}, gracias por escribir a {{2}}. Cuéntanos qué necesitas y con gusto
+> te ayudamos. Si prefieres, podemos pasarte con una persona del equipo.
 
 **Pie**: `{{2}}`
 
 **Botones**:
 
-1. Respuesta rápida: **Quiero que me llame un asesor**
-2. Enlace: **Aviso de privacidad** → `https://suempresa.margaritaapp.org/aviso-de-privacidad`
+1. Respuesta rápida: **Ver horarios**
+2. Respuesta rápida: **Hablar con una persona**
+3. Enlace: **Aviso de privacidad** → `https://suempresa.margaritaapp.org/aviso-de-privacidad`
 
 > El texto del botón importa: es lo que la app usa para reconocer la respuesta
-> (además del identificador). «Quiero que me llame un asesor» ya viene mapeado
-> en las reglas recomendadas de **Admin → Botones**.
+> (además del identificador). Los botones de una plantilla deben caber en el
+> límite de Meta: hasta 3 y 20 caracteres por botón.
 
 ---
 
@@ -112,12 +112,12 @@ aparece con su estado.
 
 | Momento | Cuerpo sugerido | Variables |
 | --- | --- | --- |
-| **Recordatorio** | «Hola {{1}}, le escribimos de {{2}} por su cuenta. Tiene un saldo pendiente de {{3}}…» | nombre, negocio, monto |
-| **Promesa por vencer** | «Hola {{1}}, le recordamos el pago acordado para el {{2}} por {{3}}…» | nombre, fecha, monto |
-| **Convenio** | «Hola {{1}}, quedó registrado su convenio de {{2}}. El primer pago es el {{3}}…» | nombre, monto, fecha |
-| **Pago confirmado** | «Hola {{1}}, recibimos su pago de {{2}}. Gracias…» | nombre, monto |
-| **Reagendar llamada** | «Hola {{1}}, no pudimos localizarle. ¿A qué hora le podemos llamar?» | nombre |
-| **Aviso de baja** | «Hola {{1}}, registramos que no desea recibir mensajes. No le escribiremos más…» | nombre |
+| **Bienvenida** | «Hola {{1}}, gracias por escribir a {{2}}. ¿En qué te ayudamos?» | nombre, negocio |
+| **Horario y ubicación** | «Hola {{1}}, atendemos de {{2}} a {{3}} en {{4}}. Si quieres, te pasamos con una persona.» | nombre, apertura, cierre, dirección |
+| **Estado de un pedido** | «Hola {{1}}, tu pedido {{2}} ya está listo. ¿Coordinamos la entrega?» | nombre, folio |
+| **Confirmación de cita** | «Hola {{1}}, confirmamos tu cita del {{2}} a las {{3}}.» | nombre, fecha, hora |
+| **Seguimiento** | «Hola {{1}}, ¿pudimos resolver tu duda? Si necesitas algo más, respóndenos.» | nombre |
+| **Aviso de baja** | «Hola {{1}}, registramos que no deseas recibir mensajes. No te escribiremos más.» | nombre |
 
 ---
 
@@ -126,8 +126,8 @@ aparece con su estado.
 | Motivo típico | Qué corregir |
 | --- | --- |
 | «Variable sin ejemplo» | Llenar el ejemplo de cada `{{n}}` |
-| «Categoría incorrecta» | Si suena comercial, es marketing; si es un aviso de cuenta, es utilidad |
-| «Contenido promocional» | Quitar descuentos, urgencias y promesas de beneficio |
+| «Categoría incorrecta» | Si suena comercial, es marketing; si es un aviso de servicio, es utilidad |
+| «Contenido promocional» | Quitar descuentos, urgencias y beneficios exagerados |
 | «URL no válida» | La URL del botón debe ser pública y empezar con `https://` |
 | «Formato de variable inválido» | Deben ser `{{1}}`, `{{2}}`… sin espacios ni texto dentro |
 | «Nombre repetido» | Cambiar el nombre (por ejemplo, `_v2`) |

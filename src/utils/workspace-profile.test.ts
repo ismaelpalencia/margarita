@@ -8,6 +8,7 @@ import {
     isWorkspaceProfile,
     modulesForProfile,
     parseWorkspaceProfile,
+    SETUP_PROFILES,
     WORKSPACE_PROFILES
 } from "./workspace-profile";
 
@@ -57,6 +58,19 @@ test("los perfiles desconocidos no se guardan", () => {
     assert.equal(parseWorkspaceProfile(""), null);
     assert.equal(parseWorkspaceProfile(null), null);
     assert.equal(parseWorkspaceProfile(123), null);
+});
+
+test("el alta no ofrece COBRANZA y arranca en GENERICO", () => {
+    assert.deepEqual([...SETUP_PROFILES], [
+        WorkspaceProfile.COMERCIO,
+        WorkspaceProfile.SERVICIOS,
+        WorkspaceProfile.GENERICO
+    ]);
+
+    const setupProfiles: readonly WorkspaceProfile[] = SETUP_PROFILES;
+
+    assert.equal(setupProfiles.includes(WorkspaceProfile.COBRANZA), false);
+    assert.equal(setupProfiles.includes(WorkspaceProfile.GENERICO), true);
 });
 
 test("las cuatro opciones del interruptor están declaradas", () => {

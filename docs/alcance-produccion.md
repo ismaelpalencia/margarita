@@ -6,7 +6,7 @@ Para la parte comercial y los videos, el inventario completo —pantalla por
 pantalla, con reglas, atajos, flujos y guiones— está en
 [`catalogo-producto.md`](catalogo-producto.md).
 
-Última revisión: 2026-11-04 (fase 2 de IA: respuesta automática acotada con pausa por conversación, límites, presupuesto y entrega a personas; el modo por defecto sigue siendo sugerencias y `AI_ENABLED=false`). Mismo día: el módulo de cobranza se puede apagar por giro desde **Sistema**, sin borrar datos; se aprobó el complemento de IA y se publicó en `/ia`; cada conversación muestra su panel de IA.
+Última revisión: 2026-11-04 (reposicionamiento: el producto se vende como automatización de WhatsApp con IA para atender, calificar y derivar; el giro por defecto de una instalación nueva es `GENERICO` y **COBRANZA deja de ofrecerse**, aunque se conserva como módulo legado para instalaciones que ya lo usan). La fase 2 de IA sigue en pie: respuesta automática acotada, pausa por conversación, límites y entrega a personas; el modo por defecto sigue siendo sugerencias y `AI_ENABLED=false`.
 
 > **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
 > **Paquete A $3,500.00 MXN** (instalación, primer mes y conexión con Meta) o
@@ -37,17 +37,17 @@ pantalla, con reglas, atajos, flujos y guiones— está en
 
 ### ¿Se puede ofrecer hoy?
 
-Sí, como **instalación por empresa** en Railway, una vez cumplido el checklist de salida de la sección 9. El producto cubre el ciclo completo de WhatsApp (campañas, bandeja, agentes, cobranza y reportes) y cifra los datos personales en la base **cuando `ENCRYPTION_KEY` está configurada**. Antes de firmar conviene que el cliente y tú tengan claro lo siguiente:
+Sí, como **instalación por empresa** en Railway, una vez cumplido el checklist de salida de la sección 9. El producto cubre la atención de WhatsApp de punta a punta (campañas, bandeja, agentes, IA acotada y reportes) y cifra los datos personales en la base **cuando `ENCRYPTION_KEY` está configurada**. La oferta principal ya **no es cobranza**: el giro por defecto es `GENERICO` y las instalaciones nuevas eligen comercio, servicios o genérico. **COBRANZA se conserva como módulo legado** para quien ya lo tiene; no se ofrece a instalaciones nuevas. Antes de firmar conviene que el cliente y tú tengan claro lo siguiente:
 
 | Punto | Estado |
 | --- | --- |
 | Cuenta de WhatsApp y método de pago en Meta | **Del cliente, y de entrada.** Llega con su cuenta de WhatsApp Business ya configurada (verificación del negocio, nombre visible, número registrado con PIN y método de pago). Si no la tiene, acompañarlo es una **cotización aparte**; [`guia-meta.md`](guia-meta.md) sirve para hacerlo solo. |
 | Cobro y contrato | **Del operador.** **Paquete A: $3,500** (instalación, primer mes y conexión con Meta) o **Paquete B: $2,500** (si ya tiene Meta). Mensualidad **$699** mes a mes, con compromiso opcional de 3/6/12 meses a $649/$599/$549. **Más IVA**; el consumo de Meta va aparte. **Piloto de 30 días** sin penalización. Precio de lista $4,900 y $1,490. |
-| Plantillas de las campañas | **Del cliente, con nuestra guía.** Al contratar se le entrega la **guía de plantillas**, publicada en `margaritaapp.org/plantillas` (código en [`guia-plantillas.md`](guia-plantillas.md)): categorías y costo, reglas de redacción, variables, el paso a paso en Meta, la plantilla de cobranza recomendada y los motivos de rechazo. Armarlas en Meta es suyo; revisarlas con él es parte del arranque. Para la conexión con Meta está además [`guia-meta.md`](guia-meta.md). |
-| Guía de uso del equipo | **Escrita y publicada** en `margaritaapp.org/guia` (código en [`guia-uso.md`](guia-uso.md) y en la página `guia.ejs`): arranque, bandeja, plantillas, campañas, resultados de gestión, botones, reportes, respaldos, límites y problemas comunes. Se entrega al contratar junto con la **sesión de arranque de 2 horas** que promete la página. |
+| Plantillas de las campañas | **Del cliente, con nuestra guía.** Al contratar se le entrega la **guía de plantillas**, publicada en `margaritaapp.org/plantillas` (código en [`guia-plantillas.md`](guia-plantillas.md)): categorías y costo, reglas de redacción, variables, el paso a paso en Meta, la plantilla de atención recomendada y los motivos de rechazo. Armarlas en Meta es suyo; revisarlas con él es parte del arranque. Para la conexión con Meta está además [`guia-meta.md`](guia-meta.md). |
+| Guía de uso del equipo | **Escrita y publicada** en `margaritaapp.org/guia` (código en [`guia-uso.md`](guia-uso.md) y en la página `guia.ejs`): arranque, bandeja, plantillas, campañas, IA, respaldos, límites y problemas comunes. Se entrega al contratar junto con la **sesión de arranque de 2 horas** que promete la página. |
 | Opt-in de los contactos | **Del cliente.** La herramienta lo registra y respeta las bajas, pero no verifica de dónde salió el consentimiento. |
 | Respaldos fuera del servidor | **Incluido cuando se configura R2.** La copia diaria cifrada se sube a Cloudflare R2 y Admin → Sistema muestra archivos, tamaño y fecha del último. Sin R2, la copia vive en el mismo Volume y alguien tiene que descargarla. |
-| Nombres de los contactos | **Cifrados desde el 2026-10-19**, con índice ciego para buscarlos por nombre completo. Los datos de los deudores (nombre, teléfono, mensajes, notas y montos) y los correos de acceso ya no quedan en claro. El nombre de los usuarios del equipo y el de la empresa no se cifran porque no son datos de los deudores. |
+| Nombres de los contactos | **Cifrados desde el 2026-10-19**, con índice ciego para buscarlos por nombre completo. Los datos de los contactos (nombre, teléfono, mensajes y notas) y los correos de acceso ya no quedan en claro. El nombre de los usuarios del equipo y el de la empresa no se cifran porque no son datos personales de terceros. |
 | Verificación en dos pasos | **Disponible y opcional.** Se activa por cuenta; conviene dejarla puesta en las de administrador (el panel dice cuántas están cubiertas). |
 | Runtime y dependencias | **Actualizados para el redeploy.** La configuración fija Node 22.23.4 LTS y el lockfile fija Axios 1.20.0, Multer 2.5.0 y Express 4.22.3; no se debe desplegar con versiones previas del repositorio. |
 
@@ -99,18 +99,21 @@ Es **una instalación por empresa** (*single-tenant*): un workspace, una cuenta 
 
 ### Giro de la operación y módulo de cobranza
 
-Cada instalación declara un **giro** en `Workspace.profile`:
+Cada instalación declara un **giro** en `Workspace.profile`. El valor por
+defecto de una instalación nueva es `GENERICO`:
 
 | Perfil | Qué muestra |
 | --- | --- |
-| `COBRANZA` | Todo: resultados de gestión, promesas, montos, reportes y respuestas de botón. |
+| `GENERICO` | **Predeterminado.** Bandeja y operación de WhatsApp sin un giro definido. Sin módulo de cobranza. |
 | `COMERCIO` | Bandeja, campañas, contactos, etiquetas, plantillas, IA y administración. Sin módulo de cobranza. |
 | `SERVICIOS` | Igual que comercio, con el vocabulario de servicios en la operación. |
-| `GENERICO` | Bandeja y operación de WhatsApp sin un giro definido. Sin módulo de cobranza. |
+| `COBRANZA` | **Legado.** Resultados de gestión, promesas, montos, reportes y respuestas de botón. No se ofrece en `/setup` ni en la narrativa comercial; se conserva para instalaciones que ya operan con él. |
 
 El giro se cambia en **Admin → Sistema → Giro de la operación** y también se
-elige al crear una instalación desde el asistente. Es un **interruptor, no una
-migración**:
+elige al crear una instalación desde el asistente. En el alta solo aparecen
+`COMERCIO`, `SERVICIOS` y `GENERICO`; si no se elige nada, queda `GENERICO`.
+Una instalación que ya es `COBRANZA` conserva esa opción en Sistema. Es un
+**interruptor, no una migración**:
 
 - Apagar cobranza **no borra** contactos, conversaciones, resultados, montos ni
   historial. Solo oculta los paneles, enlaces y reportes de cobranza y bloquea
@@ -133,12 +136,12 @@ migración**:
 - **Agentes**: crear, editar, activar o desactivar, con permiso de envío manual y límite configurable.
 - **Equipo**: crear administradores y agentes, cambiar el rol, activar o desactivar y restablecer contraseñas. La instalación nunca se queda sin un administrador activo: el sistema bloquea degradar o desactivar al último (y el botón aparece deshabilitado). Al desactivar a alguien se cierran sus sesiones.
 - **Contactos**: crear, editar, buscar por **nombre completo o teléfono completo**, filtrar por etiqueta y por bajas, registrar el consentimiento (opt-in), marcar la baja a mano y desactivar.
-- **Resultado de la gestión (cobranza)**: marcar en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota. Se marca desde el hilo, desde la ficha del contacto y en bloque desde la lista. Cada marcado deja historial con quién y cuándo. **Solo con el giro `COBRANZA` encendido.**
-- **Reportes**: gestiones del periodo por resultado, persona y día; promesas vigentes con lo vencido arriba, cumplimiento (a tiempo, tarde, sin pago) y prometido contra pagado; lista de clientes sin contestación tras X intentos; y detalle exportable a CSV. **Cada fila muestra el número emisor** (nombre y teléfono) cuando la gestión salió de un hilo, y se puede filtrar por fecha, persona, campaña, etiqueta y número.
-- **Lista de trabajo del día**: una pantalla que pone **arriba de todo las llamadas pedidas** —el cliente que tocó el botón— y debajo lo vencido, lo que vence hoy, lo de esta semana y los clientes sin contestar, en orden de urgencia, con acceso directo a la ficha.
-- **Llamadas pedidas, como tarea**: el toque de «quiero que me llame un asesor» ya no se queda solo en el registro: aparece en **Reportes → Hoy** con **cuánto lleva esperando** el deudor (en palabras: «hace 3 horas»), la hora en que lo pidió, si lo pidió **fuera del horario** permitido (8:00 a 21:00) y si salió del **botón** o lo marcó el equipo. Se despacha con un clic —**«No contestó»**— o abriendo la ficha para registrar promesa, convenio o pago, y **sale de la lista sola** en cuanto se registra otro resultado. En el hilo y en la ficha, el panel del resultado avisa que hay una llamada pendiente y cuánto lleva esperando.
-- **Agenda de llamadas**: desde la misma lista se le pone **fecha y hora** a la llamada, en la zona de la empresa. Las citas de hoy o vencidas suben al principio y se marcan «Toca ahora»; las futuras se ordenan por hora y luego van las que no tienen cita. La cita se puede quitar y se borra sola si el cliente pasa a otro resultado (pagó, no le interesa…).
-- **Tendencias**: gestiones, promesas, prometido, pagos y cobrado semana a semana, más el cumplimiento de promesas por persona.
+- **Módulo legado de resultados (solo giro `COBRANZA`)**: los bloques de resultados, reportes de gestión, lista del día, llamadas y tendencias que siguen pertenecen a instalaciones que ya nacieron con ese giro; una instalación nueva no los ofrece. Marcar en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota. Se marca desde el hilo, desde la ficha del contacto y en bloque desde la lista. Cada marcado deja historial con quién y cuándo. **Solo con el giro `COBRANZA` encendido.**
+- **Reportes de gestión (legado, solo `COBRANZA`)**: gestiones del periodo por resultado, persona y día; promesas vigentes con lo vencido arriba, cumplimiento (a tiempo, tarde, sin pago) y prometido contra pagado; lista de clientes sin contestación tras X intentos; y detalle exportable a CSV. **Cada fila muestra el número emisor** (nombre y teléfono) cuando la gestión salió de un hilo, y se puede filtrar por fecha, persona, campaña, etiqueta y número.
+- **Lista de trabajo del día (legado, solo `COBRANZA`)**: una pantalla que pone **arriba de todo las llamadas pedidas** —el cliente que tocó el botón— y debajo lo vencido, lo que vence hoy, lo de esta semana y los clientes sin contestar, en orden de urgencia, con acceso directo a la ficha.
+- **Llamadas pedidas, como tarea (legado, solo `COBRANZA`)**: el toque de «quiero que me llame un asesor» ya no se queda solo en el registro: aparece en **Reportes → Hoy** con **cuánto lleva esperando** el cliente (en palabras: «hace 3 horas»), la hora en que lo pidió, si lo pidió **fuera del horario** permitido (8:00 a 21:00) y si salió del **botón** o lo marcó el equipo. Se despacha con un clic —**«No contestó»**— o abriendo la ficha para registrar promesa, convenio o pago, y **sale de la lista sola** en cuanto se registra otro resultado. En el hilo y en la ficha, el panel del resultado avisa que hay una llamada pendiente y cuánto lleva esperando.
+- **Agenda de llamadas (legado, solo `COBRANZA`)**: desde la misma lista se le pone **fecha y hora** a la llamada, en la zona de la empresa. Las citas de hoy o vencidas suben al principio y se marcan «Toca ahora»; las futuras se ordenan por hora y luego van las que no tienen cita. La cita se puede quitar y se borra sola si el cliente pasa a otro resultado (pagó, no le interesa…).
+- **Tendencias (legado, solo `COBRANZA`)**: gestiones, promesas, prometido, pagos y cobrado semana a semana, más el cumplimiento de promesas por persona.
 - **Sesiones**: cada quien ve desde qué dispositivo y qué IP entró, cierra sesiones individuales y puede cerrar todas las demás. El admin ve las de toda la empresa.
 - **Verificación en dos pasos (2FA)**: cada persona la activa desde **Mi cuenta → Seguridad** con cualquier app de autenticación —Google Authenticator, Authy, Microsoft Authenticator, 1Password, Bitwarden o la app **Contraseñas** de Apple— usando un código TOTP de 6 dígitos (el estándar RFC 6238, SHA-1, 30 segundos). La pantalla muestra un **código QR** para escanear y, debajo, la clave de configuración para capturarla a mano (o el enlace `otpauth://` completo) por si no se puede escanear. Si alguien pierde el teléfono, un administrador puede desactivarla desde Equipo y queda en la bitácora con quién lo hizo. El panel de Sistema muestra cuántas cuentas y cuántos administradores la tienen.
 - **Etiquetas**: crear, editar, desactivar y asignar a contactos.
@@ -149,7 +152,7 @@ migración**:
 - **Campañas**: crear seleccionando contactos o subiendo Excel/CSV, **con variables** (texto fijo, el nombre o el teléfono del contacto, y cualquier columna del archivo), enviar, ver el estado por destinatario y reintentar los fallidos.
 - **Campañas en cola**: el envío corre en segundo plano, por lotes y con una pausa entre mensajes para no chocar con los límites de Meta. Se puede pausar, reanudar y cancelar, y la pantalla muestra el avance en vivo.
 - **Campañas programadas**: se elige fecha y hora (zona de la empresa), la campaña queda en `PROGRAMADA` y el planificador la arranca sola. Después se pausa, reanuda o cancela como cualquier otra.
-- **Logs**: auditoría filtrable por nivel y módulo, con el detalle de cada evento, más **Webhooks recibidos** (Admin → Logs → Webhooks): los últimos 20 eventos **tal como los mandó Meta**, con un botón para copiarlos completos. Es la pantalla con la que se comprueba qué identificador trae un botón cuando un deudor lo toca de verdad, sin entrar a la base.
+- **Logs**: auditoría filtrable por nivel y módulo, con el detalle de cada evento, más **Webhooks recibidos** (Admin → Logs → Webhooks): los últimos 20 eventos **tal como los mandó Meta**, con un botón para copiarlos completos. Es la pantalla con la que se comprueba qué identificador trae un botón cuando un cliente lo toca de verdad, sin entrar a la base.
 - **Aviso de carga con la marca**: al cambiar de pantalla y al enviar un formulario aparece el sello de Margarita con un aro girando y «Cargando…». El botón que se envió queda ocupado —con un aro dentro y sin poder tocarse otra vez—, así nadie manda dos veces el mismo mensaje o la misma campaña. Con «reducir movimiento» activado en el sistema, el sello y el aro se quedan quietos y solo avisa el texto.
 - **Respuestas rápidas**: textos guardados que el equipo inserta con un clic, con `{nombre}` y `{telefono}` del contacto.
 - **IA de respuestas (sugerencias y automático acotado)**: con `AI_ENABLED=true` y una llave de proveedor, cada mensaje entrante puede generar una respuesta. En **sugerencias** aparece como borrador en la bandeja con su confianza y su motivo; el equipo lo usa —se copia al compositor— o lo descarta, y nada se envía solo. En **automático acotado** la IA responde sola **solo** cuando la pregunta está cubierta por la base de conocimiento, la confianza alcanza el mínimo, no hay baja ni pausa, la ventana de 24 horas sigue abierta, no intervino una persona y quedan límites y presupuesto. Si falta cualquiera de esas condiciones, entrega el hilo a una persona en lugar de inventar. Admin → IA permite ajustar modo, tono, umbral, límites, presupuesto y base de conocimiento, y probar una pregunta sin tocar una conversación real. La pausa se puede activar por conversación y se activa sola cuando alguien del equipo responde. Cada hilo muestra un **panel de IA** con el modo, el último resultado, la intención, la confianza, el motivo del handoff, cuántas veces respondió sola, cuántas entregó, los borradores aprobados y el costo estimado de esa conversación. Con `AI_ENABLED=false` la herramienta funciona exactamente igual que antes.
@@ -218,7 +221,9 @@ migración**:
 ## 3. Límites y matices actuales
 
 Lo que la herramienta no hace y los matices que conviene tener presentes antes
-de prometer algo:
+de prometer algo. Los límites marcados como **legado** describen el módulo de
+cobranza que se conserva para instalaciones existentes; no forman parte de la
+oferta a instalaciones nuevas.
 
 | Límite | Detalle |
 | --- | --- |
@@ -226,7 +231,7 @@ de prometer algo:
 | **Archivos con caducidad** | Meta conserva lo que envían los clientes alrededor de 30 días. Un archivo que nadie abrió en ese plazo ya no se puede recuperar; el hilo lo avisa en lugar de fallar. |
 | **Botones sí, listas no** | Dentro de la ventana de 24 horas ya se mandan **mensajes con hasta 3 botones** (con validación de límites antes de llamar a Meta, y con la respuesta del cliente interpretada como cualquier botón). Las **listas** desplegables todavía no se envían desde el panel; se construirán encima de la misma ruta. |
 | **Plantillas reclasificadas a marketing** | Meta puede reclasificar una plantilla de cobranza como marketing si el texto suena promocional, y entonces cuesta varias veces más. La herramienta lo avisa (lista de plantillas) y lo bloquea (campañas), pero **la redacción es responsabilidad de quien la crea**: al crear plantillas, el encabezado admite **exactamente una** variable y la URL del botón **una sola, al final**. |
-| **La llamada se agenda, pero no avisa** | La llamada pedida **es una tarea** y se puede **agendar** con fecha y hora (hora de la empresa), incluidas las citas de hoy y las vencidas, que suben al principio de la lista; y se puede quitar. Lo que no hay es recordatorio automático al deudor ni notificación push al equipo: el aviso es la pantalla. La herramienta tampoco sabe si la llamada se hizo: eso lo registra una persona. |
+| **La llamada se agenda, pero no avisa** | La llamada pedida **es una tarea** y se puede **agendar** con fecha y hora (hora de la empresa), incluidas las citas de hoy y las vencidas, que suben al principio de la lista; y se puede quitar. Lo que no hay es recordatorio automático al cliente ni notificación push al equipo: el aviso es la pantalla. La herramienta tampoco sabe si la llamada se hizo: eso lo registra una persona. |
 | **El costo del tramo es una estimación** | El panel cuenta servicio, plantillas de utilidad y de marketing, y estima el costo con las tarifas configuradas (`SERVICE_MESSAGE_RATE`, `UTILITY_TEMPLATE_RATE`, `MARKETING_TEMPLATE_RATE`). **No es la factura**: Meta cobra con sus propias tarifas por país y puede cambiar precios. Se cuentan solo los mensajes **entregados o leídos**, nunca los fallidos. |
 | **Baja solo por palabra clave** | Se detecta la palabra al inicio del mensaje (`STOP`, `STOP por favor`). Si el cliente la pide con otras palabras ("no me escriban más"), hay que marcarlo a mano desde su ficha. |
 | **El opt-in se registra, no se comprueba** | Cada consentimiento guarda **fecha, canal y quién lo capturó**, y queda en la bitácora (`CONTACT_OPT_IN`). La herramienta no puede verificar si de verdad ocurrió: esa evidencia la aporta el operador. Las campañas siguen avisando cuántos destinatarios no tienen consentimiento. |
@@ -241,7 +246,7 @@ de prometer algo:
 | **Una réplica** | El tiempo real y la cola funcionan en una sola instancia. Con varias haría falta el adaptador de Redis. |
 | **Búsqueda exacta** | Teléfono y nombre están cifrados: se busca por número completo (10 dígitos en México o con `+` y lada internacional) o por nombre completo; la coincidencia parcial no es posible. |
 | **Búsqueda de correo solo exacta** | El correo del usuario está cifrado y se resuelve con índice ciego: el inicio de sesión funciona igual y el correo se ve en el panel, pero una consulta por partes del correo falla con explicación en lugar de devolver resultados. En la práctica el panel no tiene buscador de usuarios. |
-| **Un pago reportado no es un pago** | «Ya pagué» es una declaración del deudor: entra como *reportado, por confirmar* y **no** suma a la recuperación hasta que alguien lo confirme marcando pagado. |
+| **Un pago reportado no es un pago** | «Ya pagué» es una declaración del cliente: entra como *reportado, por confirmar* y **no** suma a la recuperación hasta que alguien lo confirme marcando pagado. |
 | **"Pagado" no es conciliación** | Marcar pagado es una anotación operativa: la herramienta no comprueba que el dinero entró, no maneja pagos parciales ni saldos. Los reportes de monto son de promesas y pagos registrados, no un estado de cuenta. |
 | **Los montos no se suman en SQL** | Van cifrados en la base (y también en el historial), así que los totales se calculan en la aplicación sobre las filas del periodo. Con el volumen de una cobranza normal es instantáneo; si algún día fueran cientos de miles de gestiones por periodo, habría que paginar el cálculo. |
 | **Un intento es un mensaje que salió** | Se cuentan los mensajes salientes que no fallaron y que no son notas internas, posteriores al último mensaje del cliente. Una llamada telefónica no cuenta salvo que se registre el resultado a mano. |

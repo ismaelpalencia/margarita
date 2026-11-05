@@ -112,8 +112,8 @@
                     {
                         step: "01",
                         title: "Cuenta y portafolio de Meta Business",
-                        text: "Entra a business.facebook.com y crea (o usa) tu portafolio comercial: ahí viven la cuenta de WhatsApp y el método de pago.",
-                        check: "Verifica tu negocio si vas a enviar a volumen y agrega un método de pago válido. Sin método de pago, la cuenta no envía aunque todo lo demás esté listo."
+                        text: "Entra a business.facebook.com y crea (o usa) tu portafolio comercial: ahí viven la cuenta de WhatsApp y el método de cobro.",
+                        check: "Verifica tu negocio si vas a enviar a volumen y agrega un método de cobro válido. Sin método de cobro, la cuenta no envía aunque todo lo demás esté listo."
                     },
                     {
                         step: "02",
@@ -149,7 +149,7 @@
                         step: "07",
                         title: "Crea la primera plantilla",
                         text: "Las plantillas son la única forma de iniciar una conversación. Créala en Meta (categoría, idioma y variables) y espera la aprobación, que suele tardar minutos u horas.",
-                        check: "Ejemplo de cuerpo: «Hola {{1}}, tenemos pendiente tu pago de {{2}}. ¿Cómo te ayudamos?». En Margarita se sincroniza sola."
+                        check: "Ejemplo de cuerpo: «Hola {{1}}, te escribimos de {{2}} para dar seguimiento a tu pedido. ¿Cómo te ayudamos?». En Margarita se sincroniza sola."
                     },
                     {
                         step: "08",
@@ -204,7 +204,7 @@
             <div class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <% [
                     ["El webhook responde 401", "El App Secret capturado no es el de la app (o quedó un valor de relleno). Meta entrega y el sistema rechaza: no llega ni un mensaje."],
-                    ["«Se envió» pero no llega", "Casi siempre es el método de pago de Meta: sin él, la cuenta devuelve el error 131042 y el mensaje nunca sale."],
+                    ["«Se envió» pero no llega", "Casi siempre es el método de cobro de Meta: sin él, la cuenta devuelve el error 131042 y el mensaje nunca sale."],
                     ["No puedo iniciar conversación", "Fuera de la ventana de 24 horas solo se puede iniciar con una plantilla aprobada. El texto libre solo funciona si el cliente escribió en las últimas 24 horas."],
                     ["La plantilla fue rechazada", "Suele pasar por categoría mal elegida o por contenido promocional en una plantilla declarada como servicio. Se corrige y se reenvía."],
                     ["El número no se puede registrar", "Todavía está en la app normal de WhatsApp. Hay que eliminarlo de ahí (y perder ese historial de app) antes de registrarlo en la API."],

@@ -8,9 +8,9 @@ import {
 } from "../services/storage-status.service";
 import { setupSchema } from "../validations/setup.validation";
 import {
+    SETUP_PROFILES,
     WORKSPACE_PROFILE_DESCRIPTIONS,
-    WORKSPACE_PROFILE_LABELS,
-    WORKSPACE_PROFILES
+    WORKSPACE_PROFILE_LABELS
 } from "../utils/workspace-profile";
 
 type SetupValues = {
@@ -30,7 +30,7 @@ function setupLocals(values: SetupValues, error: string | null) {
         appName: appConfig.name,
         values,
         error,
-        profiles: WORKSPACE_PROFILES,
+        profiles: SETUP_PROFILES,
         profileLabels: WORKSPACE_PROFILE_LABELS,
         profileDescriptions: WORKSPACE_PROFILE_DESCRIPTIONS
     };

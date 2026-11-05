@@ -60,12 +60,22 @@ test(
                 role: true,
                 isActive: true,
                 password: true,
-                workspace: { select: { settings: { select: { id: true } } } }
+                workspace: {
+                    select: {
+                        profile: true,
+                        settings: { select: { id: true } }
+                    }
+                }
             }
         });
 
         assert.equal(admin.role, UserRole.ADMIN);
         assert.equal(admin.isActive, true);
+        assert.equal(
+            admin.workspace.profile,
+            "GENERICO",
+            "sin elegir giro, la instalación arranca como genérica"
+        );
         assert.ok(
             admin.workspace.settings,
             "la empresa nace con su configuración operativa"

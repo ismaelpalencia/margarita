@@ -1,6 +1,12 @@
 import crypto from "node:crypto";
 
-import { PrismaClient, UserRole, UserStatus, WorkspaceStatus } from "@prisma/client";
+import {
+    PrismaClient,
+    UserRole,
+    UserStatus,
+    WorkspaceProfile,
+    WorkspaceStatus
+} from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcrypt";
 
@@ -80,7 +86,10 @@ export type WorkspaceFixture = {
  * Crea una instalación de prueba: empresa, configuración, cuenta de WhatsApp
  * con un número y un administrador.
  */
-export async function createWorkspaceFixture(): Promise<WorkspaceFixture> {
+export async function createWorkspaceFixture(options?: {
+    /** Las suites del módulo legado de cobranza piden COBRANZA explícitamente. */
+    profile?: WorkspaceProfile;
+}): Promise<WorkspaceFixture> {
     requireDatabase();
 
     const id = randomId();
@@ -92,6 +101,7 @@ export async function createWorkspaceFixture(): Promise<WorkspaceFixture> {
             name: `Prueba de integración ${id}`,
             slug: `${TEST_PREFIX}${id}`,
             status: WorkspaceStatus.ACTIVE,
+            profile: options?.profile ?? WorkspaceProfile.COBRANZA,
             settings: { create: {} }
         }
     });

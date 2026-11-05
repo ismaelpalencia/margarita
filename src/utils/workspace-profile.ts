@@ -18,6 +18,19 @@ export const WORKSPACE_PROFILES = [
     WorkspaceProfile.GENERICO
 ] as const;
 
+/**
+ * Los giros que se ofrecen a una instalación nueva.
+ *
+ * COBRANZA se conserva en el enum y en el panel de Sistema para las
+ * instalaciones que ya lo usan, pero no se ofrece en el alta ni en la
+ * narrativa del producto: el giro por defecto es GENERICO.
+ */
+export const SETUP_PROFILES = [
+    WorkspaceProfile.COMERCIO,
+    WorkspaceProfile.SERVICIOS,
+    WorkspaceProfile.GENERICO
+] as const;
+
 export const WORKSPACE_PROFILE_LABELS: Record<WorkspaceProfile, string> = {
     COBRANZA: "Cobranza",
     COMERCIO: "Comercio",

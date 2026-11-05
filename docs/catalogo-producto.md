@@ -4,25 +4,26 @@ Todo lo que hace la aplicación, pantalla por pantalla, con sus reglas, atajos y
 límites. Sirve para dos cosas: **la oferta comercial** (qué se puede prometer,
 con qué palabras) y **los guiones de video** (qué grabar y en qué orden).
 
-Última revisión: 17 de octubre de 2026.
+Última revisión: 4 de noviembre de 2026.
 
 ---
 
 ## 1. En una frase
 
-Margarita opera la **WhatsApp Business Cloud API de Meta**: envía plantillas,
-atiende conversaciones y, con el **giro de cobranza encendido**, registra **en
-qué quedó cada cliente** y te dice **a quién escribirle o llamarle hoy**. El
-mismo binario opera comercio, servicios o un giro genérico con ese módulo
-apagado; no hay dos versiones del producto.
+Margarita opera la **WhatsApp Business Cloud API de Meta** para **atender,
+calificar y derivar** conversaciones: responde lo frecuente con IA, ordena el
+contexto y entrega a una persona cuando hace falta. El binario es el mismo para
+comercio, servicios o un giro genérico, que es el valor por defecto de una
+instalación nueva.
 
 **No es**: un CRM, un chatbot general, un sistema de facturación ni una
 herramienta de mensajería masiva sin control. La IA puede redactar borradores
 o responder sola **solo** preguntas cubiertas por la base de conocimiento,
 dentro de límites y entregando a una persona cuando duda.
 
-**La promesa central**: cada conversación termina en un resultado; cada
-resultado alimenta la lista de trabajo del día siguiente.
+**La promesa central**: cada conversación se atiende con contexto, la IA
+responde solo lo que sabe y una persona toma el control cuando la conversación
+lo necesita.
 
 ---
 
@@ -46,7 +47,9 @@ resultado alimenta la lista de trabajo del día siguiente.
 - **`/auth/login`**: correo y contraseña; bloqueo por intentos fallidos, límite
   por IP y verificación en dos pasos si está activa.
 - **`/setup`**: en una instalación nueva, crea la empresa y el primer
-  administrador desde el navegador. Se cierra solo cuando ya hay empresa.
+  administrador desde el navegador. Pregunta a qué se dedica el negocio con tres
+  opciones: comercio, servicios o genérico (si no se elige, genérico). Se cierra
+  solo cuando ya hay empresa.
 - **Recuperación**: un administrador restablece contraseñas desde **Equipo**; el
   usuario debe cambiarla al entrar.
 - **`/health`**: base, cola, worker, webhooks, respaldos y configuración.
@@ -54,8 +57,8 @@ resultado alimenta la lista de trabajo del día siguiente.
 ### 3.2 Dashboard (inicio del administrador)
 
 - **Conversaciones abiertas**, **sin asignar**, **asignadas** y **en progreso**.
-- **Cobranza del día**: gestiones, promesas vencidas, compromisos de la semana y
-  cobrado del mes.
+- **Actividad del día**: conversaciones abiertas, pendientes y errores recientes.
+  Las instalaciones con giro legado de cobranza ven además su tablero de gestión.
 - **Agentes** por estado: disponibles, ocupados, en break, fuera.
 - **Conversaciones recientes** con el último mensaje y quién la atiende.
 - **Mensajes entrantes recientes**, con botón **Ocultar** (reversible) para
@@ -117,9 +120,11 @@ resultado alimenta la lista de trabajo del día siguiente.
   resultado vigente, historial de gestiones y etiquetas.
 - En el celular: nombre (toca y abre la ficha) y botón **Abrir**.
 
-### 3.6 Resultados de gestión
+### 3.6 Resultados de gestión (legado, solo giro `COBRANZA`)
 
-Catálogo completo, con historial inmutable por marcado:
+Módulo que se conserva para instalaciones que ya nacieron con cobranza. No se
+ofrece en el alta ni en la narrativa comercial. Catálogo completo, con historial
+inmutable por marcado:
 
 | Resultado | Pide | Para qué |
 | --- | --- | --- |
@@ -138,8 +143,11 @@ Catálogo completo, con historial inmutable por marcado:
 **Reglas**: una promesa con fecha pasada aparece vencida sola; marcar **pagado**
 la cierra; **pago reportado** no cuenta como recuperación.
 
-### 3.7 Botones inteligentes
+### 3.7 Botones (reglas de gestión, legado)
 
+- Enviar botones dentro de la ventana de 24 horas está disponible para cualquier
+  giro; las **reglas que traducen un botón a un resultado de gestión** son del
+  módulo legado de cobranza.
 - Tabla **identificador / texto del botón → resultado → efecto**.
 - Efectos: ninguno, **pausa** la cuenta, **baja** al contacto.
 - Seis reglas recomendadas con un clic (ya pagué, llámame, necesito plazo, no
@@ -157,7 +165,10 @@ la cierra; **pago reportado** no cuenta como recuperación.
   ahora»; se pueden quitar.
 - **No contestó** cierra la tarea en un clic.
 
-### 3.9 Reportes
+### 3.9 Reportes (legado, solo giro `COBRANZA`)
+
+Las instalaciones nuevas no ven este módulo. Se conserva para no romper la
+operación de clientes existentes.
 
 | Vista | Qué muestra |
 | --- | --- |
@@ -231,7 +242,8 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
   botón para copiarlos.
 - **Sistema**: checklist de configuración, cifrado, firma, cola, respaldos,
   **almacenamiento de archivos** (si es un volumen persistente) y el
-  **giro de la operación** (cobranza, comercio, servicios o genérico).
+  **giro de la operación** (genérico por defecto, comercio o servicios; cobranza
+  queda visible solo para instalaciones que ya lo usan).
 - **Respaldos**: copia automática diaria cifrada, descarga manual y borrado total
   al cerrar contrato.
 - **Sesiones**: dispositivos, IP y cierre remoto.
@@ -277,8 +289,8 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 6. **Estados reales**: enviado, entregado, leído y fallido llegan al hilo y a la
    campaña.
 7. **Bajas**: `BAJA`/`STOP` da de baja al instante y detiene campañas en curso.
-8. **Reglas de botón**: registran resultado, pausan o dan de baja.
-9. **Promesas**: se marcan vencidas solas al pasar la fecha.
+8. **Reglas de botón (legado de cobranza)**: registran resultado, pausan o dan de baja. No aplican en giros nuevos.
+9. **Promesas (legado de cobranza)**: se marcan vencidas solas al pasar la fecha.
 10. **Tramo**: aviso al 80% una vez por número y mes.
 11. **Retención**: bitácora 90 días, eventos de webhook resueltos 30 días.
 12. **Respaldos**: cada 24 h, cifrados, verificados al crearse y subidos a Cloudflare R2 cuando está configurado.
@@ -293,7 +305,7 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 - Contraseñas con **bcrypt**; sesiones en cookie `httpOnly`, revocables.
 - **2FA** TOTP por cuenta.
 - **Cifrado en reposo** de teléfonos, **nombres de contacto**, mensajes, notas,
-  montos, variables, payloads y **correos de acceso**, con AES-256-GCM e índices
+  variables, payloads y **correos de acceso**, con AES-256-GCM e índices
   ciegos para buscar sin tener el dato en claro.
 - **Webhooks** firmados y cola con reintentos.
 - **CSRF** por origen; CORS restringido; cabeceras con Helmet.
@@ -318,7 +330,7 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 - Los **archivos que envía el cliente** caducan en Meta (~30 días).
 - Los **nombres de contacto** están cifrados; por eso la búsqueda es por
   **nombre completo** o **teléfono completo**, no por fragmento. Teléfonos,
-  mensajes, notas, montos y correos también están cifrados.
+  mensajes, notas y correos también están cifrados.
 - **Una instancia**: no hay multi-servidor.
 - El **consumo de WhatsApp** lo cobra Meta directamente a la empresa.
 
@@ -326,18 +338,18 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 
 ## 7. Cinco flujos para demostrar
 
-**A. Del botón a la llamada (60 s)**
+**A. Bienvenida y derivación (60 s)**
 
-1. Campaña con la plantilla de cobranza.
-2. El cliente toca «Quiero que me llame un asesor».
-3. Abrir Reportes → Hoy: aparece arriba con su tiempo de espera.
-4. Agendar la llamada y marcar «No contestó».
+1. Campaña con la plantilla de bienvenida.
+2. El cliente toca «Hablar con una persona».
+3. La respuesta entra al hilo y la conversación se asigna a un agente.
+4. El agente responde con el contexto a la vista.
 
-**B. Cobranza del día (90 s)**
+**B. Consulta frecuente con IA (90 s)**
 
-1. Hoy: promesas vencidas y sin contestar.
-2. Abrir una ficha, registrar promesa con monto y fecha.
-3. Volver a Hoy: la promesa quedó ordenada por fecha.
+1. El cliente pregunta por horarios o ubicación.
+2. La IA responde si está en la base de conocimiento; si no, entrega con motivo.
+3. Abrir el panel de IA del hilo: modo, confianza, handoff y costo.
 
 **C. Campaña desde Excel (90 s)**
 
@@ -349,7 +361,7 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 
 1. Bandeja con filtros y no leídos.
 2. Responder con una respuesta rápida; adjuntar un archivo.
-3. Cerrar con resultado y nota.
+3. Cerrar con nota interna.
 
 **E. Control y confianza (45 s)**
 
@@ -363,13 +375,13 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 
 | # | Título | Duración | Qué grabar | Texto en pantalla |
 | --- | --- | --- | --- | --- |
-| 1 | «El problema» | 20 s | WhatsApp con números bloqueados / hojas de Excel | «Tu número no está hecho para cobrar» |
-| 2 | «Qué es Margarita» | 25 s | Dashboard y bandeja | «Cobra por WhatsApp sin perder el hilo» |
-| 3 | «Un botón, una tarea» | 35 s | Toque del botón → Hoy | «Ya dio el paso: llámalo hoy» |
-| 4 | «La lista del día» | 30 s | Hoy con promesas y sin contestar | «Sabe a quién escribirle primero» |
+| 1 | «El problema» | 20 s | WhatsApp saturado / hojas de Excel | «Responder todo a mano no escala» |
+| 2 | «Qué es Margarita» | 25 s | Dashboard y bandeja | «Atiende, califica y deriva» |
+| 3 | «IA con freno» | 35 s | Consulta frecuente y panel de IA | «Responde lo que sabe; entrega cuando duda» |
+| 4 | «La persona toma el control» | 30 s | Handoff y respuesta humana | «La conversación no se queda en un robot» |
 | 5 | «Campañas con Excel» | 40 s | Descargar ejemplo, subir, enviar | «Tu Excel, tus variables, sin adivinar» |
 | 6 | «Plantillas que cuestan menos» | 30 s | Plantillas y aviso de marketing | «Utilidad en vez de marketing» |
-| 7 | «Dos personas, cero desorden» | 25 s | Equipo + asignación + resultados | «Cada quien ve lo suyo» |
+| 7 | «Dos personas, cero desorden» | 25 s | Equipo + asignación + bandeja | «Cada quien ve lo suyo» |
 | 8 | «Datos protegidos» | 25 s | Sistema y respaldos | «Cifrado, respaldos y bitácora» |
 | 9 | «Tramo y costo» | 25 s | WhatsApp: barra del tramo | «Sabes cuánto llevas gastado» |
 | 10 | «Cierre» | 15 s | Logo + WhatsApp de contacto | «Instalación en minutos» |
@@ -388,12 +400,13 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 **Se puede decir**
 
 - «Campañas por WhatsApp con plantillas aprobadas y control de avance».
-- «Cada conversación queda con su resultado y su historial».
-- «Una lista diaria que prioriza llamadas pedidas y promesas vencidas».
+- «Cada conversación conserva su contexto y su historial».
+- «La IA entrega a una persona cuando duda, hay una queja o falta conocimiento».
 - «Los datos van cifrados y con respaldos diarios».
 - «La IA responde lo frecuente y tu equipo lo importante» (automático acotado,
   con límites y entrega a personas).
 - «La IA redacta borradores y tu equipo decide qué se envía» (modo sugerencia).
+- «Se atiende desde una sola bandeja, con roles y bitácora».
 - «Se instala en minutos y el equipo entra desde el navegador».
 
 **No se puede decir**

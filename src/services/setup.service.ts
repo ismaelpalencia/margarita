@@ -53,7 +53,7 @@ export class SetupService {
                 name: input.workspaceName,
                 slug: input.workspaceSlug,
                 status: WorkspaceStatus.ACTIVE,
-                profile: input.profile ?? WorkspaceProfile.COBRANZA,
+                profile: input.profile ?? WorkspaceProfile.GENERICO,
                 settings: {
                     create: {}
                 }

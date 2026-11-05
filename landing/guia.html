@@ -39,7 +39,7 @@
 <meta name="theme-color" content="#0c5b4c" />
 <meta
     name="description"
-    content="Margarita ayuda a equipos de cobranza a operar WhatsApp Business: conversaciones, campañas, llamadas pedidas y seguimiento de acuerdos, con cifrado de datos sensibles y controles de acceso."
+    content="Margarita automatiza WhatsApp con IA para atender, calificar y derivar: conversaciones, campañas, base de conocimiento y control humano, con datos cifrados y bitácora."
 />
 
 <link rel="icon" href="favicon.ico?v=1.0.0" sizes="any" />
@@ -255,8 +255,8 @@
                     </li>
                 
                     <li>
-                        <a href="#4-contactos-como-se-llena-la-cartera" class="hover:text-margarita-700">
-                            4. Contactos: cómo se llena la cartera
+                        <a href="#4-contactos-como-se-llena-la-agenda" class="hover:text-margarita-700">
+                            4. Contactos: cómo se llena la agenda
                         </a>
                     </li>
                 
@@ -279,50 +279,44 @@
                     </li>
                 
                     <li>
-                        <a href="#8-en-que-quedo-cada-cliente-el-corazon-de-la-cobranza" class="hover:text-margarita-700">
-                            8. En qué quedó cada cliente (el corazón de la cobranza)
+                        <a href="#8-ia-de-respuestas" class="hover:text-margarita-700">
+                            8. IA de respuestas
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#9-botones-inteligentes" class="hover:text-margarita-700">
-                            9. Botones inteligentes
+                        <a href="#9-el-dia-de-trabajo" class="hover:text-margarita-700">
+                            9. El día de trabajo
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#10-el-dia-de-trabajo-reportes-hoy" class="hover:text-margarita-700">
-                            10. El día de trabajo: Reportes → Hoy
+                        <a href="#10-operacion-lo-que-conviene-revisar" class="hover:text-margarita-700">
+                            10. Operación: lo que conviene revisar
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#11-operacion-lo-que-conviene-revisar" class="hover:text-margarita-700">
-                            11. Operación: lo que conviene revisar
+                        <a href="#11-lo-que-la-app-no-hace" class="hover:text-margarita-700">
+                            11. Lo que la app no hace
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#12-lo-que-la-app-no-hace" class="hover:text-margarita-700">
-                            12. Lo que la app no hace
+                        <a href="#12-la-rutina-que-funciona" class="hover:text-margarita-700">
+                            12. La rutina que funciona
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#13-la-rutina-que-funciona" class="hover:text-margarita-700">
-                            13. La rutina que funciona
+                        <a href="#13-problemas-comunes" class="hover:text-margarita-700">
+                            13. Problemas comunes
                         </a>
                     </li>
                 
                     <li>
-                        <a href="#14-problemas-comunes" class="hover:text-margarita-700">
-                            14. Problemas comunes
-                        </a>
-                    </li>
-                
-                    <li>
-                        <a href="#15-soporte-y-condiciones" class="hover:text-margarita-700">
-                            15. Soporte y condiciones
+                        <a href="#14-soporte-y-condiciones" class="hover:text-margarita-700">
+                            14. Soporte y condiciones
                         </a>
                     </li>
                 
@@ -332,8 +326,8 @@
         <div class="guia-prose mt-12">
             <h2 id="1-antes-de-la-primera-sesion">1. Antes de la primera sesión</h2>
 <p>Margarita opera sobre la <strong>API oficial de WhatsApp (Meta)</strong>; no es WhatsApp Web ni la app normal. Para que funcione hace falta:</p>
-<div class="marga-table"><table><thead><tr><th>Qué</th><th>Quién lo prepara</th></tr></thead><tbody><tr><td>Cuenta de WhatsApp Business con el negocio verificado</td><td>El cliente, en Meta</td></tr><tr><td>Número registrado con PIN y <strong>método de pago válido</strong></td><td>El cliente, en Meta</td></tr><tr><td>Plantillas aprobadas (mínimo la de cobranza)</td><td>El cliente, con la guía de plantillas</td></tr><tr><td>Instalación en su dominio (<code>suempresa.margaritaapp.org</code>) y usuario administrador</td><td>Nosotros</td></tr></tbody></table></div>
-<blockquote>Sin método de pago en Meta los envíos fallan aunque la app diga que todo está bien (error <code>131042</code>). Es el problema número uno del primer día.</blockquote>
+<div class="marga-table"><table><thead><tr><th>Qué</th><th>Quién lo prepara</th></tr></thead><tbody><tr><td>Cuenta de WhatsApp Business con el negocio verificado</td><td>El cliente, en Meta</td></tr><tr><td>Número registrado con PIN y <strong>método de cobro válido</strong></td><td>El cliente, en Meta</td></tr><tr><td>Plantillas aprobadas (mínimo la de bienvenida)</td><td>El cliente, con la guía de plantillas</td></tr><tr><td>Instalación en su dominio (<code>suempresa.margaritaapp.org</code>) y usuario administrador</td><td>Nosotros</td></tr></tbody></table></div>
+<blockquote>Sin método de cobro en Meta los envíos fallan aunque la app diga que todo está bien (error <code>131042</code>). Es el problema número uno del primer día.</blockquote>
 <hr />
 <h2 id="2-entrar-y-dejar-la-cuenta-segura">2. Entrar y dejar la cuenta segura</h2>
 <ol><li>Abre <code>https://suempresa.margaritaapp.org</code>. La raíz lleva directo al inicio de sesión.</li><li>Entra con el correo y la contraseña que te entregaron. Si es la primera vez, cámbiala en <strong>Mi cuenta</strong>.</li><li>Activa la <strong>verificación en dos pasos</strong> en <strong>Mi cuenta → Seguridad</strong>. Sirve cualquier app de códigos: Google Authenticator, Authy, Microsoft Authenticator, 1Password, Bitwarden o la app <strong>Contraseñas</strong> de Apple. Escanea el código QR o captura la clave que aparece debajo.</li></ol>
@@ -342,73 +336,63 @@
 <p>En <strong>Sesiones</strong> cada quien ve desde qué dispositivo entró y puede cerrar las otras. Un administrador ve las de toda la empresa.</p>
 <hr />
 <h2 id="3-el-mapa-del-panel">3. El mapa del panel</h2>
-<div class="marga-table"><table><thead><tr><th>Pantalla</th><th>Para qué sirve</th></tr></thead><tbody><tr><td><strong>Dashboard</strong></td><td>Foto del día: conversaciones abiertas, gestiones, promesas vencidas y errores recientes</td></tr><tr><td><strong>Conversaciones</strong></td><td>La bandeja: atender, responder, asignar y cerrar</td></tr><tr><td><strong>Contactos</strong></td><td>La cartera: datos, etiquetas, consentimiento y resultado actual</td></tr><tr><td><strong>Reportes</strong></td><td><strong>Hoy</strong> y los reportes con exportación a CSV</td></tr><tr><td><strong>Botones</strong></td><td>Qué significa cada botón que toca el deudor</td></tr><tr><td><strong>Etiquetas</strong></td><td>Cómo agrupar la cartera</td></tr><tr><td><strong>Equipo</strong></td><td>Altas del equipo, permisos, límites y contraseñas</td></tr><tr><td><strong>Plantillas</strong></td><td>Las plantillas de Meta y su estado</td></tr><tr><td><strong>Campañas</strong></td><td>Envíos masivos con control de avance</td></tr><tr><td><strong>WhatsApp</strong></td><td>Credenciales, números, calidad de cada número</td></tr><tr><td><strong>Respuestas</strong></td><td>Textos guardados para insertar con un clic</td></tr><tr><td><strong>Logs / Webhooks</strong></td><td>Qué pasó y por qué; lo que mandó Meta tal cual</td></tr><tr><td><strong>Sistema / Respaldos</strong></td><td>Salud del servicio y copias de la base</td></tr></tbody></table></div>
+<div class="marga-table"><table><thead><tr><th>Pantalla</th><th>Para qué sirve</th></tr></thead><tbody><tr><td><strong>Dashboard</strong></td><td>Foto del día: conversaciones abiertas, sin asignar, agentes y errores recientes</td></tr><tr><td><strong>Conversaciones</strong></td><td>La bandeja: atender, responder, asignar y cerrar</td></tr><tr><td><strong>Contactos</strong></td><td>Datos, etiquetas, consentimiento y notas</td></tr><tr><td><strong>Etiquetas</strong></td><td>Cómo agrupar contactos y segmentar campañas</td></tr><tr><td><strong>Equipo</strong></td><td>Altas del equipo, permisos, límites y contraseñas</td></tr><tr><td><strong>Plantillas</strong></td><td>Las plantillas de Meta y su estado</td></tr><tr><td><strong>Campañas</strong></td><td>Envíos masivos con control de avance</td></tr><tr><td><strong>WhatsApp</strong></td><td>Credenciales, números y calidad de cada número</td></tr><tr><td><strong>Respuestas</strong></td><td>Textos guardados para insertar con un clic</td></tr><tr><td><strong>IA</strong></td><td>Base de conocimiento, modo, límites y consola de prueba</td></tr><tr><td><strong>Logs / Webhooks</strong></td><td>Qué pasó y por qué; lo que mandó Meta tal cual</td></tr><tr><td><strong>Sistema / Respaldos</strong></td><td>Salud del servicio y copias de la base</td></tr></tbody></table></div>
+<blockquote>Algunas instalaciones antiguas muestran módulos adicionales según el giro con el que nacieron. Si no ves una pantalla en tu menú, no aplica a tu operación.</blockquote>
 <hr />
-<h2 id="4-contactos-como-se-llena-la-cartera">4. Contactos: cómo se llena la cartera</h2>
+<h2 id="4-contactos-como-se-llena-la-agenda">4. Contactos: cómo se llena la agenda</h2>
 <p>Los contactos llegan por tres caminos:</p>
 <ol><li><strong>Escriben por WhatsApp</strong>: se crean solos, con su nombre de perfil.</li><li><strong>Subes un Excel o CSV a una campaña</strong>: los números nuevos se dan de alta ahí mismo.</li><li><strong>Alta manual</strong> en <strong>Contactos → Nuevo</strong>.</li></ol>
 <p>Lo que conviene capturar desde el principio:</p>
-<ul><li><strong>Etiquetas</strong> (<code>cartera</code>, <code>vencido</code>, <code>convenio</code>…): sirven para filtrar y para elegir destinatarios de una campaña.</li><li><strong>Consentimiento (opt-in)</strong>: la fecha en que la persona aceptó recibir mensajes, <strong>por qué canal</strong> y <strong>quién lo capturó</strong>. Es lo que te protege ante Meta y ante una queja.</li><li><strong>Notas</strong>: contexto que no debe ir al cliente.</li></ul>
+<ul><li><strong>Etiquetas</strong> (<code>cliente</code>, <code>prospecto</code>, <code>mayoreo</code>…): sirven para filtrar y para elegir destinatarios de una campaña.</li><li><strong>Consentimiento (opt-in)</strong>: la fecha en que la persona aceptó recibir mensajes, <strong>por qué canal</strong> y <strong>quién lo capturó</strong>. Es lo que te protege ante Meta y ante una queja.</li><li><strong>Notas</strong>: contexto que no debe ir al cliente.</li></ul>
 <p><strong>Bajas.</strong> Si el cliente escribe <code>BAJA</code> o <code>STOP</code>, la app lo da de baja al instante y deja de enviarle todo, incluso si estaba en una campaña en curso. Si la pide por teléfono o en el mostrador, se marca a mano en su ficha. Reactivar a alguien es una decisión explícita y queda auditada.</p>
 <p><strong>Búsqueda.</strong> Por <strong>nombre</strong> hay que escribir el nombre completo; por <strong>teléfono</strong>, el número completo (10 dígitos en México o con <code>+</code> y lada fuera de México). No hay búsqueda parcial porque nombre y teléfono están cifrados en la base: es el precio de que un volcado de la base no los exponga.</p>
-<p><strong>Pausa.</strong> Si el cliente dice que no reconoce la deuda, pon la cuenta en <strong>pausa</strong> desde su ficha: no recibe mensajes ni campañas hasta que alguien la quite. Con la regla de botón correspondiente, la pausa se pone sola.</p>
+<p><strong>Pausa.</strong> Si la persona pide que no se le escriba mientras se revisa un caso, pon la cuenta en <strong>pausa</strong> desde su ficha: no recibe mensajes ni campañas hasta que alguien la quite.</p>
 <hr />
 <h2 id="5-la-bandeja-atender-conversaciones">5. La bandeja: atender conversaciones</h2>
-<ul><li>Cada agente ve <strong>solo las conversaciones asignadas a él</strong>.</li><li>El estado (<strong>Disponible, Ocupado, Break, Fuera</strong>) lo pone la persona; no se queda disponible solo al entrar. La asignación automática va al disponible con menos carga.</li><li><strong>Ventana de 24 horas</strong>: si el cliente escribió en las últimas 24 horas puedes mandar texto libre y archivos. Pasado ese plazo, WhatsApp solo permite <strong>plantillas aprobadas</strong>; la app te lo avisa en el compositor.</li><li><strong>Nota interna</strong>: no sale a WhatsApp, sirve para el equipo.</li><li><strong>Archivos</strong>: imagen hasta 5 MB, video y audio hasta 16 MB, documentos hasta 100 MB.</li><li><strong>Respuestas rápidas</strong>: insertan un texto guardado con <code>{nombre}</code> y <code>{telefono}</code> ya resueltos.</li><li><strong>Enter envía</strong> el mensaje y <strong>Shift + Enter</strong> hace un salto de línea.</li><li><strong>Botones dentro de las 24 horas</strong>: desde la columna lateral se manda un mensaje con hasta <strong>3 botones</strong> de 20 caracteres. Sirve para pedir un sí/no o un «ya pagué» sin gastar plantilla; cuando el cliente toca, la respuesta entra al hilo y puede disparar su regla en <strong>Admin → Botones</strong>.</li><li><strong>Ocultar o borrar</strong>: ocultar un mensaje es reversible (el administrador lo ve y lo restaura); borrar el hilo completo exige escribir <code>BORRAR</code>.</li><li>El contador de no leídos es <strong>por conversación</strong>, no por persona.</li></ul>
+<ul><li>Cada agente ve <strong>solo las conversaciones asignadas a él</strong>.</li><li>El estado (<strong>Disponible, Ocupado, Break, Fuera</strong>) lo pone la persona; no se queda disponible solo al entrar. La asignación automática va al disponible con menos carga.</li><li><strong>Ventana de 24 horas</strong>: si el cliente escribió en las últimas 24 horas puedes mandar texto libre y archivos. Pasado ese plazo, WhatsApp solo permite <strong>plantillas aprobadas</strong>; la app te lo avisa en el compositor.</li><li><strong>Nota interna</strong>: no sale a WhatsApp, sirve para el equipo.</li><li><strong>Archivos</strong>: imagen hasta 5 MB, video y audio hasta 16 MB, documentos hasta 100 MB.</li><li><strong>Respuestas rápidas</strong>: insertan un texto guardado con <code>{nombre}</code> y <code>{telefono}</code> ya resueltos.</li><li><strong>Enter envía</strong> el mensaje y <strong>Shift + Enter</strong> hace un salto de línea.</li><li><strong>Botones dentro de las 24 horas</strong>: desde la columna lateral se manda un mensaje con hasta <strong>3 botones</strong> de 20 caracteres. Sirve para pedir un sí/no o dirigir a una opción sin gastar plantilla. Cuando el cliente toca, la respuesta entra al hilo con su identificador y su texto.</li><li><strong>Ocultar o borrar</strong>: ocultar un mensaje es reversible (el administrador lo ve y lo restaura); borrar el hilo completo exige escribir <code>BORRAR</code>.</li><li>El contador de no leídos es <strong>por conversación</strong>, no por persona.</li></ul>
 <p>Cada mensaje muestra su estado real de WhatsApp: enviado, entregado, leído o fallido, con el motivo traducido cuando falla.</p>
 <hr />
 <h2 id="6-plantillas-la-parte-que-abarata-el-envio">6. Plantillas: la parte que abarata el envío</h2>
-<p>Meta cobra distinto según la categoría de la plantilla: una de <strong>utilidad</strong> (recordatorio de pago, aviso de cuenta) cuesta una fracción de lo que cuesta una de <strong>marketing</strong>. Por eso la app:</p>
+<p>Meta cobra distinto según la categoría de la plantilla: una de <strong>utilidad</strong> (confirmación de pedido, aviso de entrega, respuesta a una solicitud) cuesta una fracción de lo que cuesta una de <strong>marketing</strong>. Por eso la app:</p>
 <ul><li>Sincroniza el estado real de cada plantilla: aprobada, pendiente, rechazada.</li><li>Marca en rojo las que salieron <strong>rechazadas o pausadas</strong>.</li><li><strong>Avisa y bloquea</strong> las que Meta reclasificó como <strong>marketing</strong>, para que no se usen en campañas sin saber lo que cuestan.</li></ul>
 <p>Al crear una plantilla, ten en cuenta lo que la app puede llenar:</p>
 <div class="marga-table"><table><thead><tr><th>Parte de la plantilla</th><th>Variables</th></tr></thead><tbody><tr><td>Encabezado de texto</td><td><strong>una</strong></td></tr><tr><td>Cuerpo</td><td>las que necesites</td></tr><tr><td>Botón con URL</td><td><strong>una, al final de la dirección</strong></td></tr></tbody></table></div>
-<p>Los botones de respuesta rápida no llevan variable: su texto es fijo y es lo que se usa para saber qué tocó el deudor.</p>
+<p>Los botones de respuesta rápida no llevan variable: su texto es fijo y es lo que se usa para saber qué tocó el cliente.</p>
 <hr />
 <h2 id="7-campanas">7. Campañas</h2>
 <ol><li><strong>Campañas → Nueva</strong>. Elige una plantilla <strong>aprobada</strong>.</li><li>Destinatarios: seleccionando contactos o subiendo un <strong>Excel/CSV</strong> con una columna de teléfono. Puedes usar columnas del archivo como variables.</li><li>Revisa la vista previa: cuántos van, cuántos están dados de baja y cuántos no tienen consentimiento registrado.</li><li>Enviar ahora o <strong>programar</strong> para una fecha y hora (zona de la empresa). La campaña programada queda en estado <code>PROGRAMADA</code> y el planificador la arranca solo; el envío corre <strong>en cola</strong>, por lotes y con una pausa entre mensajes para no chocar con los límites de Meta.</li></ol>
 <p><strong>El Excel, sin adivinar.</strong> Al elegir la plantilla, la página te dice <strong>qué columnas debe traer tu archivo</strong> y te deja <strong>descargar un ejemplo</strong> con los encabezados exactos (<code>phone</code>, <code>name</code>, <code>var1</code>, <code>var2</code>… y <code>encabezado</code> o <code>enlace</code> si la plantilla los pide) y una fila de muestra. Bájalo, llénalo y súbelo tal cual. Si el archivo trae <strong>columnas de más</strong>, no pasa nada: solo se usan las que referencias. Si le <strong>falta</strong> una que usas, la app dice cuál falta y cuáles hay.</p>
 <p>Durante el envío puedes <strong>pausar</strong>, <strong>reanudar</strong> o <strong>cancelar</strong>, y ver el avance en vivo. Al terminar, cada destinatario muestra su estado y puedes <strong>reintentar los fallidos</strong>.</p>
 <p>Errores que vas a ver y qué significan:</p>
-<div class="marga-table"><table><thead><tr><th>Código o mensaje</th><th>Qué hacer</th></tr></thead><tbody><tr><td><code>131042</code> (método de pago)</td><td>Cargar el método de pago en Meta</td></tr><tr><td>Ventana cerrada</td><td>Usar una plantilla aprobada, no texto libre</td></tr><tr><td>Número inválido</td><td>Revisar el número; la app normaliza a formato mexicano</td></tr><tr><td>Plantilla no aprobada</td><td>Esperar la aprobación en Meta y volver a sincronizar</td></tr><tr><td>Plantilla de marketing</td><td>Usar una de utilidad o aceptar el costo</td></tr></tbody></table></div>
+<div class="marga-table"><table><thead><tr><th>Código o mensaje</th><th>Qué hacer</th></tr></thead><tbody><tr><td><code>131042</code> (método de cobro)</td><td>Cargar el método de cobro en Meta</td></tr><tr><td>Ventana cerrada</td><td>Usar una plantilla aprobada, no texto libre</td></tr><tr><td>Número inválido</td><td>Revisar el número; la app normaliza a formato mexicano</td></tr><tr><td>Plantilla no aprobada</td><td>Esperar la aprobación en Meta y volver a sincronizar</td></tr><tr><td>Plantilla de marketing</td><td>Usar una de utilidad o aceptar el costo</td></tr></tbody></table></div>
 <hr />
-<h2 id="8-en-que-quedo-cada-cliente-el-corazon-de-la-cobranza">8. En qué quedó cada cliente (el corazón de la cobranza)</h2>
-<p>Se marca desde el hilo, desde la ficha o en bloque desde Contactos. Cada marcado deja historial con quién y cuándo. El catálogo:</p>
-<div class="marga-table"><table><thead><tr><th>Resultado</th><th>Cuándo usarlo</th><th>Pide</th></tr></thead><tbody><tr><td><strong>Promesa de pago</strong></td><td>Dijo que pagará en una fecha</td><td>Monto y fecha</td></tr><tr><td><strong>Convenio</strong></td><td>Acordaron pagos parciales</td><td>Monto y fecha</td></tr><tr><td><strong>Pagado</strong></td><td>Confirmaste que el dinero entró</td><td>Monto y fecha de pago</td></tr><tr><td><strong>Pago reportado</strong></td><td>Dijo «ya pagué» y falta confirmar</td><td>—</td></tr><tr><td><strong>Promesa incumplida</strong></td><td>Confirmaste que no va a pagar</td><td>—</td></tr><tr><td><strong>Sin contestación</strong></td><td>No respondió</td><td>—</td></tr><tr><td><strong>Número inválido</strong></td><td>El número no existe o no es de esa persona</td><td>—</td></tr><tr><td><strong>Cuenta en disputa</strong></td><td>No reconoce la deuda</td><td>—</td></tr><tr><td><strong>No le interesa</strong></td><td>Pidió que no se le insista</td><td>—</td></tr><tr><td><strong>Volver a llamar</strong></td><td>Pidió una llamada</td><td>—</td></tr><tr><td><strong>Otro</strong></td><td>Lo que no encaja arriba, con nota</td><td>—</td></tr></tbody></table></div>
-<p>Reglas que hacen que los reportes sirvan:</p>
-<ul><li><strong>Una promesa vencida no hay que marcarla</strong>: si la fecha pasó y nadie registró el pago, aparece sola como <em>«Promesa vencida · N días»</em> en la lista del día y en los reportes. Marcar <strong>pagado</strong> después la resuelve sin deshacer nada.</li><li><strong>«Promesa incumplida» es una confirmación humana</strong>, no un estado automático: úsalo cuando ya sabes que no se va a pagar.</li><li><strong>«Ya pagué» no es pagado</strong>: entra como <em>pago reportado, por confirmar</em> y no suma a la recuperación hasta que alguien lo verifique.</li></ul>
+<h2 id="8-ia-de-respuestas">8. IA de respuestas</h2>
+<p>La IA de Margarita no es un chatbot general: responde <strong>solo</strong> con la base de conocimiento del negocio y dentro de límites.</p>
+<ul><li><strong>Admin → IA → Base de conocimiento</strong>: pregunta, respuesta, palabras clave y prioridad. Si el dato no está, la IA no inventa: entrega el hilo a una persona.</li><li><strong>Modos</strong>: apagado, <strong>sugerencias</strong> (redacta y tu equipo decide) y <strong>automático acotado</strong> (responde solo lo cubierto, con umbral de confianza, límites por día y por hilo, y presupuesto mensual).</li><li><strong>En la bandeja</strong>: en sugerencias ves una tarjeta con el borrador, la confianza y el motivo. <strong>Usar borrador</strong> lo copia al compositor; <strong>Descartar</strong> lo quita. Nada se envía sin aprobación en ese modo.</li><li><strong>Control humano</strong>: cualquiera puede <strong>pausar o reactivar</strong> la IA en un hilo. Responder a mano la pausa automáticamente.</li><li><strong>Entrega</strong>: si la IA duda, detecta una queja o falta conocimiento, asigna la conversación al agente con menos carga y deja el motivo a la vista.</li><li><strong>Consola de prueba</strong>: escribe una pregunta y ve qué respondería, qué entradas usó, el modelo y la latencia. No guarda nada ni toca un hilo real.</li></ul>
+<p>Con <code>AI_ENABLED=false</code> la herramienta funciona igual que antes: la IA no interviene.</p>
 <hr />
-<h2 id="9-botones-inteligentes">9. Botones inteligentes</h2>
-<p>La plantilla de cobranza lleva botones («Quiero que me llame un asesor», «Ya pagué», «No reconozco la deuda»…). Cuando el deudor toca uno:</p>
-<ol><li>El toque queda guardado con su texto y su identificador, visible en el hilo.</li><li>La app busca la regla en <strong>Admin → Botones</strong> — primero por identificador y, si no coincide, <strong>por el texto del botón</strong>.</li><li>Según la regla, registra el resultado solo y, si corresponde, <strong>pausa</strong> la cuenta o <strong>da de baja</strong> al contacto.</li></ol>
-<p>Las reglas recomendadas se crean de un clic y no pisan las que ya editaste. Si un botón no tiene regla, no se inventa nada: queda anotado como «no mapeado» con su identificador para agregarla en un minuto.</p>
-<p>Para crear una regla nueva: en el hilo, la burbuja del botón trae <strong><code>copiar id: …</code></strong>. Ese es el dato que se pega en <strong>Botones</strong>.</p>
+<h2 id="9-el-dia-de-trabajo">9. El día de trabajo</h2>
+<p><strong>En la mañana</strong></p>
+<ol><li>Abre el <strong>Dashboard</strong>: conversaciones abiertas, sin asignar y errores recientes.</li><li>Revisa la <strong>bandeja</strong>: lo nuevo, lo no leído y lo que quedó pendiente.</li><li>Si tu instalación tiene módulo de resultados, abre <strong>Reportes → Hoy</strong> y empieza por lo que ya pidió atención.</li></ol>
+<p><strong>Durante el día</strong></p>
+<ol><li>Contesta y asigna. Si la IA dejó un borrador, decídelo tú.</li><li>Cuando la conversación lo pida, <strong>deriva</strong> a una persona o pausa la IA.</li><li>Usa notas internas para lo que el equipo necesita saber.</li></ol>
+<p><strong>Al cierre</strong></p>
+<ol><li>Revisa lo que quedó sin contestar y despáchalo.</li><li>Si usas reportes, baja el CSV del día.</li><li>Una vez por semana, revisa el consumo de IA y la calidad de tus respuestas.</li></ol>
 <hr />
-<h2 id="10-el-dia-de-trabajo-reportes-hoy">10. El día de trabajo: Reportes → Hoy</h2>
-<p>Es la pantalla que se abre en la mañana. Va de arriba abajo por urgencia:</p>
-<ol><li><strong>Pidieron que los llamen.</strong> Son los que ya dieron el paso: la mayor intención de pago de la cartera. Muestra cuánto lleva esperando cada uno y si lo pidió fuera del horario permitido (<strong>8:00 a 21:00</strong>, hora de la empresa). Se despacha con <strong>«No contestó»</strong> o abriendo la ficha para registrar promesa, convenio o pago. También se le puede <strong>agendar fecha y hora</strong>: la cita de hoy o vencida sube al principio y se marca «Toca ahora». Sale de la lista solo cuando se registra otro resultado.</li><li><strong>Promesas vencidas</strong>, con monto y días de atraso.</li><li><strong>Vencen hoy</strong> y <strong>esta semana</strong>.</li><li><strong>Sin contestar</strong> tras varios intentos.</li></ol>
-<p>El resto de los reportes:</p>
-<ul><li><strong>Gestiones</strong>: qué se hizo, quién y cuándo, filtrable por persona, campaña y etiqueta.</li><li><strong>Promesas</strong>: cumplimiento (a tiempo, tarde, sin pago) y prometido contra cobrado.</li><li><strong>Sin contestación</strong>: los que llevan X intentos sin responder.</li><li><strong>Tendencias</strong>: semana a semana.</li><li><strong>Detalle</strong>: todo, para bajar en CSV.</li></ul>
-<p>Todos se exportan a <strong>CSV</strong> con los filtros que tengas puestos; abre en Excel sin pelear con los acentos.</p>
-<hr />
-<h2 id="11-operacion-lo-que-conviene-revisar">11. Operación: lo que conviene revisar</h2>
+<h2 id="10-operacion-lo-que-conviene-revisar">10. Operación: lo que conviene revisar</h2>
 <ul><li><strong>Admin → Sistema</strong>: checklist de configuración y tarjetas de seguridad.</li><li><strong><code>/health</code></strong> (sin sesión): en producción devuelve solo el estado; con <code>?token=</code> (variable <code>HEALTH_TOKEN</code>) muestra base, cola, worker, si Meta está entregando webhooks y qué variables faltan.</li><li><strong>Admin → Logs</strong>: qué pasó y por qué. Los campos que parecen credenciales se redactan solos.</li><li><strong>Admin → Logs → Webhooks recibidos</strong>: lo último que mandó Meta, tal cual. Es la pantalla para comprobar el identificador de un botón o para reportar un caso con el evento completo.</li><li><strong>Admin → Respaldos</strong>: copia automática diaria (comprimida y cifrada), copia en Cloudflare R2 cuando está configurado y descarga manual en JSON. Al terminar el contrato, el borrado total elimina mensajes, contactos, campañas, usuarios, credenciales y archivos, y deja constancia en la bitácora.</li></ul>
 <hr />
-<h2 id="12-lo-que-la-app-no-hace">12. Lo que la app no hace</h2>
+<h2 id="11-lo-que-la-app-no-hace">11. Lo que la app no hace</h2>
 <p>Para no prometer de más:</p>
-<ul><li>No es un CRM: no maneja ventas, embudos, cotizaciones ni facturación.</li><li>No responde sola ni es un chatbot.</li><li>No crea plantillas en Meta: las plantillas se aprueban allá.</li><li>No cobra ni concilia pagos: «pagado» es una anotación operativa.</li><li>En México se capturan <strong>10 dígitos</strong>; para otro país, el número completo con <code>+</code> y lada. Meta valida que el número exista y pueda recibir mensajes.</li><li>Dentro de la ventana de 24 horas <strong>sí</strong> manda botones (hasta 3); las <strong>listas desplegables</strong> todavía no se envían desde el panel. Las plantillas con botones también se envían.</li><li>No restringe qué números ve cada agente: con varios números, todos ven todos.</li><li>Los archivos que envía el cliente caducan en Meta a los ~30 días si nadie los abrió antes.</li><li>El <strong>consumo de WhatsApp lo cobra Meta</strong> directamente a la empresa; no va en la mensualidad.</li></ul>
+<ul><li>No es un CRM: no maneja ventas, embudos, cotizaciones ni facturación.</li><li>No responde cualquier cosa: la IA solo cubre la base de conocimiento y entrega cuando duda.</li><li>No crea plantillas en Meta: las plantillas se aprueban allá.</li><li>No procesa cobros ni concilia transacciones.</li><li>En México se capturan <strong>10 dígitos</strong>; para otro país, el número completo con <code>+</code> y lada. Meta valida que el número exista y pueda recibir mensajes.</li><li>Dentro de la ventana de 24 horas <strong>sí</strong> manda botones (hasta 3); las <strong>listas desplegables</strong> todavía no se envían desde el panel. Las plantillas con botones también se envían.</li><li>No restringe qué números ve cada agente: con varios números, todos ven todos.</li><li>Los archivos que envía el cliente caducan en Meta a los ~30 días si nadie los abrió antes.</li><li>El <strong>consumo de WhatsApp lo cobra Meta</strong> directamente a la empresa; no va en la mensualidad.</li></ul>
 <hr />
-<h2 id="13-la-rutina-que-funciona">13. La rutina que funciona</h2>
-<p><strong>En la mañana</strong></p>
-<ol><li>Abre <strong>Reportes → Hoy</strong>.</li><li>Llama primero a los que pidieron llamada; registra el resultado en el momento.</li><li>Revisa las promesas vencidas y las de hoy.</li></ol>
-<p><strong>Durante el día</strong></p>
-<ol><li>Contesta la bandeja y, al cerrar cada conversación, marca el resultado. Es lo que hace que mañana la lista tenga sentido.</li><li>Las notas internas, para lo que el equipo necesita saber.</li></ol>
-<p><strong>Al cierre</strong></p>
-<ol><li>Revisa lo que quedó sin contestar y despáchalo.</li><li>Baja el CSV del día si lo necesitas para tu control.</li><li>Una vez por semana, revisa <strong>Tendencias</strong> y el cumplimiento de promesas.</li></ol>
+<h2 id="12-la-rutina-que-funciona">12. La rutina que funciona</h2>
+<ol><li><strong>Responde rápido lo nuevo.</strong> La bandeja ordena por no leídos y asignación.</li><li><strong>No dejes crecer la cola.</strong> Lo que no puedas atender hoy, asígnalo o respóndele con una plantilla.</li><li><strong>Una conversación, un contexto.</strong> Usa notas internas y etiquetas.</li><li><strong>La IA propone, la persona decide.</strong> En sugerencias, revisa antes de enviar.</li><li><strong>Cierra el día con la bandeja vacía de pendientes.</strong></li></ol>
 <hr />
-<h2 id="14-problemas-comunes">14. Problemas comunes</h2>
-<div class="marga-table"><table><thead><tr><th>Lo que ves</th><th>Qué hacer</th></tr></thead><tbody><tr><td>No llegan mensajes de WhatsApp</td><td><code>Admin → Sistema</code> o <code>/health</code>: si Meta no está entregando, revisa el webhook y el App Secret</td></tr><tr><td>Todo falla con «método de pago»</td><td>Cargar el método de pago en Meta (<code>131042</code>)</td></tr><tr><td>«Ventana cerrada» al responder</td><td>Pasaron 24 horas: usa una plantilla aprobada</td></tr><tr><td>Una campaña no se crea</td><td>Plantilla no aprobada, o reclasificada como marketing</td></tr><tr><td>El cliente no recibe nada</td><td>Está dado de baja, en pausa o sin consentimiento</td></tr><tr><td>No puedo buscar por teléfono</td><td>Escribe el número completo: 10 dígitos en México o con <code>+</code> y lada para otro país</td></tr><tr><td>La sesión se cerró sola</td><td>Pasó el tiempo de inactividad o alguien cerró las sesiones desde <strong>Sesiones</strong></td></tr><tr><td>Olvidé la contraseña</td><td>Pídele a un administrador que la restablezca en <strong>Equipo</strong></td></tr><tr><td>«Cargando…» y no avanza</td><td>Recarga; si sigue, revisa <code>/health</code> y los logs</td></tr></tbody></table></div>
+<h2 id="13-problemas-comunes">13. Problemas comunes</h2>
+<div class="marga-table"><table><thead><tr><th>Lo que ves</th><th>Qué hacer</th></tr></thead><tbody><tr><td>No llegan mensajes de WhatsApp</td><td><code>Admin → Sistema</code> o <code>/health</code>: si Meta no está entregando, revisa el webhook y el App Secret</td></tr><tr><td>Todo falla con «método de cobro»</td><td>Cargar el método de cobro en Meta (<code>131042</code>)</td></tr><tr><td>«Ventana cerrada» al responder</td><td>Pasaron 24 horas: usa una plantilla aprobada</td></tr><tr><td>Una campaña no se crea</td><td>Plantilla no aprobada, o reclasificada como marketing</td></tr><tr><td>El cliente no recibe nada</td><td>Está dado de baja, en pausa o sin consentimiento</td></tr><tr><td>No puedo buscar por teléfono</td><td>Escribe el número completo: 10 dígitos en México o con <code>+</code> y lada para otro país</td></tr><tr><td>La sesión se cerró sola</td><td>Pasó el tiempo de inactividad o alguien cerró las sesiones desde <strong>Sesiones</strong></td></tr><tr><td>Olvidé la contraseña</td><td>Pídele a un administrador que la restablezca en <strong>Equipo</strong></td></tr><tr><td>«Cargando…» y no avanza</td><td>Recarga; si sigue, revisa <code>/health</code> y los logs</td></tr></tbody></table></div>
 <hr />
-<h2 id="15-soporte-y-condiciones">15. Soporte y condiciones</h2>
+<h2 id="14-soporte-y-condiciones">14. Soporte y condiciones</h2>
 <ul><li><strong>WhatsApp de soporte</strong>: 55 3878 3682.</li><li><strong>Correo</strong>: contacto@margaritaapp.org.</li><li>Atención en horario hábil. Incluye correcciones y actualizaciones mientras la mensualidad esté activa.</li><li>La <strong>sesión de arranque de dos horas</strong> se agenda después de la instalación: ahí se revisan tus plantillas, se carga la primera campaña y se deja al equipo operando.</li><li><strong>El primer mes es un piloto pagado</strong>: al día 30 decides si sigues, sin penalización. Después se paga la mensualidad mes a mes; los compromisos de 3, 6 o 12 meses son opcionales y bajan el precio. El consumo de Meta va por cuenta de la empresa.</li></ul>
 <blockquote>Este documento y la app cambian juntos: si algo de aquí no coincide con lo que ves en pantalla, gana la pantalla — y avísanos para corregir la guía.</blockquote>
         </div>

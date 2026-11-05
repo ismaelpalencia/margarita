@@ -292,7 +292,7 @@ model Workspace {
    * Giro con el que se arrancó esta instalación. Hoy solo cambia el matiz
    * de la interfaz y el playbook; no bifurca el código.
    */
-  profile                 WorkspaceProfile @default(COBRANZA)
+  profile                 WorkspaceProfile @default(GENERICO)
   legalName               String?
   rfc                     String?
   taxRegime               String?

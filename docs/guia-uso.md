@@ -1,15 +1,15 @@
 # Guía de uso — Margarita
 
-Para el equipo que cobra por WhatsApp. Es la guía que se entrega al contratar,
+Para el equipo que atiende por WhatsApp. Es la guía que se entrega al contratar,
 junto con la **sesión de arranque de dos horas** y la guía de plantillas.
 
 **Publicada** en `margaritaapp.org/guia` (y en la carpeta `landing/`, como
 `guia.html`). Si cambias el texto de la página, actualiza también este archivo:
 son el mismo contenido y tienen que decir lo mismo.
 
-La idea en una frase: **cada conversación termina en un resultado**, y cada
-resultado alimenta la lista de trabajo del día siguiente. Si el equipo hace eso,
-los reportes salen solos.
+La idea en una frase: **cada conversación se atiende, se califica y, cuando hace
+falta, se deriva a una persona**. Si el equipo hace eso, el resto del panel
+trabaja solo.
 
 ---
 
@@ -21,11 +21,11 @@ ni la app normal. Para que funcione hace falta:
 | Qué | Quién lo prepara |
 | --- | --- |
 | Cuenta de WhatsApp Business con el negocio verificado | El cliente, en Meta |
-| Número registrado con PIN y **método de pago válido** | El cliente, en Meta |
-| Plantillas aprobadas (mínimo la de cobranza) | El cliente, con la guía de plantillas |
+| Número registrado con PIN y **método de cobro válido** | El cliente, en Meta |
+| Plantillas aprobadas (mínimo la de bienvenida) | El cliente, con la guía de plantillas |
 | Instalación en su dominio (`suempresa.margaritaapp.org`) y usuario administrador | Nosotros |
 
-> Sin método de pago en Meta los envíos fallan aunque la app diga que todo está
+> Sin método de cobro en Meta los envíos fallan aunque la app diga que todo está
 > bien (error `131042`). Es el problema número uno del primer día.
 
 ---
@@ -58,23 +58,25 @@ otras. Un administrador ve las de toda la empresa.
 
 | Pantalla | Para qué sirve |
 | --- | --- |
-| **Dashboard** | Foto del día: conversaciones abiertas, gestiones, promesas vencidas y errores recientes |
+| **Dashboard** | Foto del día: conversaciones abiertas, sin asignar, agentes y errores recientes |
 | **Conversaciones** | La bandeja: atender, responder, asignar y cerrar |
-| **Contactos** | La cartera: datos, etiquetas, consentimiento y resultado actual |
-| **Reportes** | **Hoy** y los reportes con exportación a CSV |
-| **Botones** | Qué significa cada botón que toca el deudor |
-| **Etiquetas** | Cómo agrupar la cartera |
+| **Contactos** | Datos, etiquetas, consentimiento y notas |
+| **Etiquetas** | Cómo agrupar contactos y segmentar campañas |
 | **Equipo** | Altas del equipo, permisos, límites y contraseñas |
 | **Plantillas** | Las plantillas de Meta y su estado |
 | **Campañas** | Envíos masivos con control de avance |
-| **WhatsApp** | Credenciales, números, calidad de cada número |
+| **WhatsApp** | Credenciales, números y calidad de cada número |
 | **Respuestas** | Textos guardados para insertar con un clic |
+| **IA** | Base de conocimiento, modo, límites y consola de prueba |
 | **Logs / Webhooks** | Qué pasó y por qué; lo que mandó Meta tal cual |
 | **Sistema / Respaldos** | Salud del servicio y copias de la base |
 
+> Algunas instalaciones antiguas muestran módulos adicionales según el giro con
+> el que nacieron. Si no ves una pantalla en tu menú, no aplica a tu operación.
+
 ---
 
-## 4. Contactos: cómo se llena la cartera
+## 4. Contactos: cómo se llena la agenda
 
 Los contactos llegan por tres caminos:
 
@@ -85,7 +87,7 @@ Los contactos llegan por tres caminos:
 
 Lo que conviene capturar desde el principio:
 
-- **Etiquetas** (`cartera`, `vencido`, `convenio`…): sirven para filtrar y para
+- **Etiquetas** (`cliente`, `prospecto`, `mayoreo`…): sirven para filtrar y para
   elegir destinatarios de una campaña.
 - **Consentimiento (opt-in)**: la fecha en que la persona aceptó recibir
   mensajes, **por qué canal** y **quién lo capturó**. Es lo que te protege ante
@@ -99,13 +101,12 @@ a alguien es una decisión explícita y queda auditada.
 
 **Búsqueda.** Por **nombre** hay que escribir el nombre completo; por
 **teléfono**, el número completo (10 dígitos en México o con `+` y lada fuera
-de México). No hay búsqueda parcial porque
-nombre y teléfono están cifrados en la base: es el precio de que un volcado de
-la base no los exponga.
+de México). No hay búsqueda parcial porque nombre y teléfono están cifrados en
+la base: es el precio de que un volcado de la base no los exponga.
 
-**Pausa.** Si el cliente dice que no reconoce la deuda, pon la cuenta en
-**pausa** desde su ficha: no recibe mensajes ni campañas hasta que alguien la
-quite. Con la regla de botón correspondiente, la pausa se pone sola.
+**Pausa.** Si la persona pide que no se le escriba mientras se revisa un caso,
+pon la cuenta en **pausa** desde su ficha: no recibe mensajes ni campañas hasta
+que alguien la quite.
 
 ---
 
@@ -126,8 +127,8 @@ quite. Con la regla de botón correspondiente, la pausa se pone sola.
 - **Enter envía** el mensaje y **Shift + Enter** hace un salto de línea.
 - **Botones dentro de las 24 horas**: desde la columna lateral se manda un
   mensaje con hasta **3 botones** de 20 caracteres. Sirve para pedir un sí/no o
-  un «ya pagué» sin gastar plantilla; cuando el cliente toca, la respuesta entra
-  al hilo y puede disparar su regla en **Admin → Botones**.
+  dirigir a una opción sin gastar plantilla. Cuando el cliente toca, la respuesta
+  entra al hilo con su identificador y su texto.
 - **Ocultar o borrar**: ocultar un mensaje es reversible (el administrador lo
   ve y lo restaura); borrar el hilo completo exige escribir `BORRAR`.
 - El contador de no leídos es **por conversación**, no por persona.
@@ -140,8 +141,8 @@ fallido, con el motivo traducido cuando falla.
 ## 6. Plantillas: la parte que abarata el envío
 
 Meta cobra distinto según la categoría de la plantilla: una de **utilidad**
-(recordatorio de pago, aviso de cuenta) cuesta una fracción de lo que cuesta
-una de **marketing**. Por eso la app:
+(confirmación de pedido, aviso de entrega, respuesta a una solicitud) cuesta una
+fracción de lo que cuesta una de **marketing**. Por eso la app:
 
 - Sincroniza el estado real de cada plantilla: aprobada, pendiente, rechazada.
 - Marca en rojo las que salieron **rechazadas o pausadas**.
@@ -157,7 +158,7 @@ Al crear una plantilla, ten en cuenta lo que la app puede llenar:
 | Botón con URL | **una, al final de la dirección** |
 
 Los botones de respuesta rápida no llevan variable: su texto es fijo y es lo que
-se usa para saber qué tocó el deudor.
+se usa para saber qué tocó el cliente.
 
 ---
 
@@ -188,7 +189,7 @@ Errores que vas a ver y qué significan:
 
 | Código o mensaje | Qué hacer |
 | --- | --- |
-| `131042` (método de pago) | Cargar el método de pago en Meta |
+| `131042` (método de cobro) | Cargar el método de cobro en Meta |
 | Ventana cerrada | Usar una plantilla aprobada, no texto libre |
 | Número inválido | Revisar el número; la app normaliza a formato mexicano |
 | Plantilla no aprobada | Esperar la aprobación en Meta y volver a sincronizar |
@@ -196,89 +197,56 @@ Errores que vas a ver y qué significan:
 
 ---
 
-## 8. En qué quedó cada cliente (el corazón de la cobranza)
+## 8. IA de respuestas
 
-Se marca desde el hilo, desde la ficha o en bloque desde Contactos. Cada marcado
-deja historial con quién y cuándo. El catálogo:
+La IA de Margarita no es un chatbot general: responde **solo** con la base de
+conocimiento del negocio y dentro de límites.
 
-| Resultado | Cuándo usarlo | Pide |
-| --- | --- | --- |
-| **Promesa de pago** | Dijo que pagará en una fecha | Monto y fecha |
-| **Convenio** | Acordaron pagos parciales | Monto y fecha |
-| **Pagado** | Confirmaste que el dinero entró | Monto y fecha de pago |
-| **Pago reportado** | Dijo «ya pagué» y falta confirmar | — |
-| **Promesa incumplida** | Confirmaste que no va a pagar | — |
-| **Sin contestación** | No respondió | — |
-| **Número inválido** | El número no existe o no es de esa persona | — |
-| **Cuenta en disputa** | No reconoce la deuda | — |
-| **No le interesa** | Pidió que no se le insista | — |
-| **Volver a llamar** | Pidió una llamada | — |
-| **Otro** | Lo que no encaja arriba, con nota | — |
+- **Admin → IA → Base de conocimiento**: pregunta, respuesta, palabras clave y
+  prioridad. Si el dato no está, la IA no inventa: entrega el hilo a una persona.
+- **Modos**: apagado, **sugerencias** (redacta y tu equipo decide) y
+  **automático acotado** (responde solo lo cubierto, con umbral de confianza,
+  límites por día y por hilo, y presupuesto mensual).
+- **En la bandeja**: en sugerencias ves una tarjeta con el borrador, la confianza
+  y el motivo. **Usar borrador** lo copia al compositor; **Descartar** lo quita.
+  Nada se envía sin aprobación en ese modo.
+- **Control humano**: cualquiera puede **pausar o reactivar** la IA en un hilo.
+  Responder a mano la pausa automáticamente.
+- **Entrega**: si la IA duda, detecta una queja o falta conocimiento, asigna la
+  conversación al agente con menos carga y deja el motivo a la vista.
+- **Consola de prueba**: escribe una pregunta y ve qué respondería, qué entradas
+  usó, el modelo y la latencia. No guarda nada ni toca un hilo real.
 
-Reglas que hacen que los reportes sirvan:
-
-- **Una promesa vencida no hay que marcarla**: si la fecha pasó y nadie
-  registró el pago, aparece sola como *«Promesa vencida · N días»* en la lista
-  del día y en los reportes. Marcar **pagado** después la resuelve sin deshacer
-  nada.
-- **«Promesa incumplida» es una confirmación humana**, no un estado automático:
-  úsalo cuando ya sabes que no se va a pagar.
-- **«Ya pagué» no es pagado**: entra como *pago reportado, por confirmar* y no
-  suma a la recuperación hasta que alguien lo verifique.
+Con `AI_ENABLED=false` la herramienta funciona igual que antes: la IA no
+interviene.
 
 ---
 
-## 9. Botones inteligentes
+## 9. El día de trabajo
 
-La plantilla de cobranza lleva botones («Quiero que me llame un asesor», «Ya
-pagué», «No reconozco la deuda»…). Cuando el deudor toca uno:
+**En la mañana**
 
-1. El toque queda guardado con su texto y su identificador, visible en el hilo.
-2. La app busca la regla en **Admin → Botones** — primero por identificador y,
-   si no coincide, **por el texto del botón**.
-3. Según la regla, registra el resultado solo y, si corresponde, **pausa** la
-   cuenta o **da de baja** al contacto.
+1. Abre el **Dashboard**: conversaciones abiertas, sin asignar y errores
+   recientes.
+2. Revisa la **bandeja**: lo nuevo, lo no leído y lo que quedó pendiente.
+3. Si tu instalación tiene módulo de resultados, abre **Reportes → Hoy** y
+   empieza por lo que ya pidió atención.
 
-Las reglas recomendadas se crean de un clic y no pisan las que ya editaste. Si
-un botón no tiene regla, no se inventa nada: queda anotado como «no mapeado» con
-su identificador para agregarla en un minuto.
+**Durante el día**
 
-Para crear una regla nueva: en el hilo, la burbuja del botón trae
-**`copiar id: …`**. Ese es el dato que se pega en **Botones**.
+4. Contesta y asigna. Si la IA dejó un borrador, decídelo tú.
+5. Cuando la conversación lo pida, **deriva** a una persona o pausa la IA.
+6. Usa notas internas para lo que el equipo necesita saber.
 
----
+**Al cierre**
 
-## 10. El día de trabajo: Reportes → Hoy
-
-Es la pantalla que se abre en la mañana. Va de arriba abajo por urgencia:
-
-1. **Pidieron que los llamen.** Son los que ya dieron el paso: la mayor
-   intención de pago de la cartera. Muestra cuánto lleva esperando cada uno y si
-   lo pidió fuera del horario permitido (**8:00 a 21:00**, hora de la empresa).
-   Se despacha con **«No contestó»** o abriendo la ficha para registrar promesa,
-   convenio o pago. También se le puede **agendar fecha y hora**: la cita de hoy
-   o vencida sube al principio y se marca «Toca ahora». Sale de la lista solo
-   cuando se registra otro resultado.
-2. **Promesas vencidas**, con monto y días de atraso.
-3. **Vencen hoy** y **esta semana**.
-4. **Sin contestar** tras varios intentos.
-
-El resto de los reportes:
-
-- **Gestiones**: qué se hizo, quién y cuándo, filtrable por persona, campaña y
-  etiqueta.
-- **Promesas**: cumplimiento (a tiempo, tarde, sin pago) y prometido contra
-  cobrado.
-- **Sin contestación**: los que llevan X intentos sin responder.
-- **Tendencias**: semana a semana.
-- **Detalle**: todo, para bajar en CSV.
-
-Todos se exportan a **CSV** con los filtros que tengas puestos; abre en Excel sin
-pelear con los acentos.
+7. Revisa lo que quedó sin contestar y despáchalo.
+8. Si usas reportes, baja el CSV del día.
+9. Una vez por semana, revisa el consumo de IA y la calidad de tus respuestas.
 
 ---
 
-## 11. Operación: lo que conviene revisar
+## 10. Operación: lo que conviene revisar
 
 - **Admin → Sistema**: checklist de configuración y tarjetas de seguridad.
 - **`/health`** (sin sesión): en producción devuelve solo el estado; con
@@ -289,22 +257,22 @@ pelear con los acentos.
 - **Admin → Logs → Webhooks recibidos**: lo último que mandó Meta, tal cual. Es
   la pantalla para comprobar el identificador de un botón o para reportar un
   caso con el evento completo.
-- **Admin → Respaldos**: copia automática diaria (comprimida y cifrada), copia
-  en Cloudflare R2 cuando está configurado y descarga manual en JSON. Al
-  terminar el contrato, el borrado total elimina
-  mensajes, contactos, campañas, usuarios, credenciales y archivos, y deja
-  constancia en la bitácora.
+- **Admin → Respaldos**: copia automática diaria (comprimida y cifrada), copia en
+  Cloudflare R2 cuando está configurado y descarga manual en JSON. Al terminar el
+  contrato, el borrado total elimina mensajes, contactos, campañas, usuarios,
+  credenciales y archivos, y deja constancia en la bitácora.
 
 ---
 
-## 12. Lo que la app no hace
+## 11. Lo que la app no hace
 
 Para no prometer de más:
 
 - No es un CRM: no maneja ventas, embudos, cotizaciones ni facturación.
-- No responde sola ni es un chatbot.
+- No responde cualquier cosa: la IA solo cubre la base de conocimiento y
+  entrega cuando duda.
 - No crea plantillas en Meta: las plantillas se aprueban allá.
-- No cobra ni concilia pagos: «pagado» es una anotación operativa.
+- No procesa cobros ni concilia transacciones.
 - En México se capturan **10 dígitos**; para otro país, el número completo con
   `+` y lada. Meta valida que el número exista y pueda recibir mensajes.
 - Dentro de la ventana de 24 horas **sí** manda botones (hasta 3); las **listas
@@ -318,34 +286,23 @@ Para no prometer de más:
 
 ---
 
-## 13. La rutina que funciona
+## 12. La rutina que funciona
 
-**En la mañana**
-
-1. Abre **Reportes → Hoy**.
-2. Llama primero a los que pidieron llamada; registra el resultado en el momento.
-3. Revisa las promesas vencidas y las de hoy.
-
-**Durante el día**
-
-4. Contesta la bandeja y, al cerrar cada conversación, marca el resultado. Es lo
-   que hace que mañana la lista tenga sentido.
-5. Las notas internas, para lo que el equipo necesita saber.
-
-**Al cierre**
-
-6. Revisa lo que quedó sin contestar y despáchalo.
-7. Baja el CSV del día si lo necesitas para tu control.
-8. Una vez por semana, revisa **Tendencias** y el cumplimiento de promesas.
+1. **Responde rápido lo nuevo.** La bandeja ordena por no leídos y asignación.
+2. **No dejes crecer la cola.** Lo que no puedas atender hoy, asígnalo o
+   respóndele con una plantilla.
+3. **Una conversación, un contexto.** Usa notas internas y etiquetas.
+4. **La IA propone, la persona decide.** En sugerencias, revisa antes de enviar.
+5. **Cierra el día con la bandeja vacía de pendientes.**
 
 ---
 
-## 14. Problemas comunes
+## 13. Problemas comunes
 
 | Lo que ves | Qué hacer |
 | --- | --- |
 | No llegan mensajes de WhatsApp | `Admin → Sistema` o `/health`: si Meta no está entregando, revisa el webhook y el App Secret |
-| Todo falla con «método de pago» | Cargar el método de pago en Meta (`131042`) |
+| Todo falla con «método de cobro» | Cargar el método de cobro en Meta (`131042`) |
 | «Ventana cerrada» al responder | Pasaron 24 horas: usa una plantilla aprobada |
 | Una campaña no se crea | Plantilla no aprobada, o reclasificada como marketing |
 | El cliente no recibe nada | Está dado de baja, en pausa o sin consentimiento |
@@ -356,7 +313,7 @@ Para no prometer de más:
 
 ---
 
-## 15. Soporte y condiciones
+## 14. Soporte y condiciones
 
 - **WhatsApp de soporte**: 55 3878 3682.
 - **Correo**: contacto@margaritaapp.org.

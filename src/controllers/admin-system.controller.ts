@@ -1,3 +1,4 @@
+import { WorkspaceProfile } from "@prisma/client";
 import { Request, Response } from "express";
 
 import { SystemStatusService } from "../services/system-status.service";
@@ -60,6 +61,17 @@ export class AdminSystemController {
         const status = await SystemStatusService.getAdminStatus(
             req.user!.workspaceId
         );
+        const currentProfile =
+            status.workspace?.profile ?? WorkspaceProfile.GENERICO;
+        /**
+         * COBRANZA ya no se ofrece como giro nuevo, pero una instalación que
+         * nació con él debe poder conservarlo (y volver a él si lo cambió).
+         */
+        const profiles = WORKSPACE_PROFILES.filter(
+            (profile) =>
+                profile !== WorkspaceProfile.COBRANZA ||
+                currentProfile === WorkspaceProfile.COBRANZA
+        );
 
         return res.render("pages/admin/system/index", {
             user: req.user,
@@ -69,7 +81,8 @@ export class AdminSystemController {
             formatDateTimeMX,
             r2: await r2Summary(),
             humanBytes,
-            profiles: WORKSPACE_PROFILES,
+            profiles,
+            currentProfile,
             profileLabels: WORKSPACE_PROFILE_LABELS,
             profileDescriptions: WORKSPACE_PROFILE_DESCRIPTIONS,
             success: req.query.success || null,

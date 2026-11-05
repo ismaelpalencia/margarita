@@ -31,14 +31,18 @@ export const setupSchema = z.object({
         .toLowerCase(),
     adminPassword: passwordSchema,
     /**
-     * Giro con el que nace la instalación. El asistente lo pregunta para que
-     * una empresa comercial no arranque con pantallas de cobranza que no usa.
+     * Giro con el que nace la instalación. El alta solo ofrece comercio,
+     * servicios o genérico: COBRANZA queda para instalaciones existentes y
+     * no se puede elegir desde aquí.
      */
     profile: z
         .nativeEnum(WorkspaceProfile, {
             message: "Elige un giro válido."
         })
         .default(WorkspaceProfile.GENERICO)
+        .refine((profile) => profile !== WorkspaceProfile.COBRANZA, {
+            message: "Elige comercio, servicios o genérico."
+        })
 });
 
 export type SetupInput = z.infer<typeof setupSchema>;
