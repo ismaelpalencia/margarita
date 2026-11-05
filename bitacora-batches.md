@@ -518,7 +518,7 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 
 ## Documentación — alcance real
 
-- Nuevo `docs/alcance-nuevamargarita.md`: alcance completo verificado contra el código (modelos, rutas, servicios, flags, env y pruebas).
+- `docs/alcance-produccion.md` consolidado con el alcance verificado contra el código (modelos, rutas, servicios, flags, env y pruebas).
 - Resuelve las contradicciones de `alcance-produccion.md` (listas, IA automática, conteos de pruebas/migraciones, rate limit, landing, handoff, notificaciones).
 - No se editó `alcance-produccion.md`; el nuevo documento lo declara superseded.
 
@@ -535,5 +535,24 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 ### Gates
 
 - tsc OK, 343 unit, 101 integración.
+
+---
+
+## Doc consolidation
+
+- Se copió el documento nuevo sobre `docs/alcance-produccion.md` (reemplazo total) y se eliminó el archivo temporal.
+- Se actualizó la única referencia interna (`bitacora-batches.md`).
+- Ediciones aplicadas en `docs/alcance-produccion.md`:
+  1. Sección 4: «Botones y listas» dividido en dos filas (envío general y reglas solo COBRANZA).
+  2. Sección 1: `PRODUCT_DOMAIN` marcado como legado (solo instalaciones que sirven la oferta desde `src/views/pages/home/*`); también marcado en la sección 17 y en el checklist.
+  3. Sección 15: el contador de no leídos lo calcula el servidor y sigue siendo por hilo, no por usuario.
+  4. Sección 8: bullet de escalamiento de handoff con el job real.
+  5. Sección 2: aclaración de que 1,500/4,000 son aproximación vía `AI_MAX_REPLIES_PER_DAY` y no hay contador mensual en la base.
+- Ajustes de coherencia tras la consolidación: encabezado sin autoreferencia y sección 16 renombrada a «Contradicciones históricas».
+
+### Evidencia de repositorio
+
+- (b) `PRODUCT_DOMAIN`: `src/config/app.config.ts` lo lee y `src/controllers/home.controller.ts` solo sirve `pages/home/*` cuando `servesLanding(hostname)`; el landing nuevo está en `landing/` (build `landing:build`, deploy en Cloudflare).
+- (d) Escalamiento: `src/jobs/handoff-escalation.job.ts` define `INTERVAL_MS = 60 * 1000`, `runHandoffEscalation()` y `startHandoffEscalationJob()`; se registra en `src/jobs/index.ts`.
 
 ---
