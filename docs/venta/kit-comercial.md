@@ -77,14 +77,14 @@ momento es un piloto: si no te sirve, te llevas tu respaldo».
 
 **Checklist de 60 segundos**: ¿cuántos casos al mes? ¿cuántas personas? ¿cómo
 registran hoy las promesas? ¿quién configura Meta? ¿tienen método de pago en
-Meta? ¿qué pasa si en 30 días no funciona?
+Meta? ¿qué pasa si no funciona?
 
 ---
 
 ## 5. Objeciones
 
 **«Está caro.»**
-> «Es un solo plan: $1,299 al mes, todo incluido y sin instalación. El primer mes tiene garantía de satisfacción: si no te sirve, te devolvemos la mensualidad.»
+> «Es un solo plan: $1,299 al mes, todo incluido y sin instalación. Puedes cancelar cuando quieras, sin compromiso; el primer mes se paga si usas el servicio.»
 
 **«Ya uso WhatsApp Web y me funciona.»**
 > «WhatsApp Web no te dice a quién llamar hoy ni guarda en qué quedó cada
@@ -96,9 +96,9 @@ Meta? ¿qué pasa si en 30 días no funciona?
 > cuida: la app te avisa de la calidad del número, de las plantillas rechazadas
 > y de las que Meta clasifica como marketing. Las bajas se respetan solas.»
 
-**«¿Y si no funciona en 30 días?»**
-> «No continúas. Sin penalización, con tu respaldo y con la instalación borrada
-> a petición. El piloto es justo para eso.»
+**«¿Y si no funciona?»**
+> «Cancelas cuando quieras, sin penalización, con tu respaldo y con la cuenta
+> borrada a petición. El primer mes se paga si usas el servicio.»
 
 **«Ya tengo un CRM.»**
 > «Perfecto: no competimos con el CRM. Margarita es el canal de WhatsApp y el

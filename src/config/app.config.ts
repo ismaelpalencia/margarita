@@ -298,7 +298,7 @@ export const appConfig = {
      * país, que es lo que necesita wa.me) y el mismo número como se muestra.
      */
     supportWhatsapp:
-        process.env.SUPPORT_WHATSAPP?.replace(/\D/g, "") || "525538783682",
+        process.env.SUPPORT_WHATSAPP?.replace(/\D/g, "") || "525559337514",
     /**
      * Contacto comercial y de privacidad de la página pública. Por omisión es
      * el del producto; cada instalación puede poner el suyo con
@@ -308,7 +308,7 @@ export const appConfig = {
     supportEmail:
         process.env.SUPPORT_EMAIL?.trim() || "contacto@margaritaapp.org",
     supportWhatsappDisplay:
-        process.env.SUPPORT_WHATSAPP_DISPLAY?.trim() || "55 3878 3682",
+        process.env.SUPPORT_WHATSAPP_DISPLAY?.trim() || "55 5933 7514",
     setupServicePrice:
         process.env.SETUP_SERVICE_PRICE?.trim() ||
         "se cotiza aparte",

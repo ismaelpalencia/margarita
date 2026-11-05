@@ -15,7 +15,7 @@ la junta.
 Lo que se vende son **dos paquetes de instalación y una mensualidad**:
 
 1. **Un solo plan: Margarita IA** — **$1,299 MXN/mes, más IVA**. Incluye plataforma completa, IA (sugerencias y automático acotado), onboarding (sesión de arranque de 2 h + guía) y **2,000 respuestas de IA/mes**.
-2. **Sin instalación ni setup.** El onboarding va incluido. El primer mes tiene **garantía de satisfacción**: si no convence, se devuelve la mensualidad (30 días).
+2. **Sin instalación ni setup.** El onboarding va incluido. El cliente puede **cancelar cuando quiera**, sin penalización; el primer mes se paga si usa el servicio.
 3. **Excedente de IA:** $150 MXN por cada 1,000 respuestas adicionales, solo por contrato del operador y visible en el panel; **no se publica en el landing**.
 4. **Clientes legacy:** conservan su precio y plan actuales.
 **Lo que paga el cliente a Meta, no a nosotros:** el consumo de WhatsApp

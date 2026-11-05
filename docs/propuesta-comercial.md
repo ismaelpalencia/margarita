@@ -83,7 +83,7 @@ Decirlo aquí evita discusiones después:
 ## 7. Inversión
 
 La cobranza es del día a día, así que el cobro también: **instalación una vez y
-después mes con mes**, sin mínimo obligatorio. El primer mes tiene **garantía de satisfacción** (reembolsable).
+después mes con mes**, sin mínimo obligatorio. El cliente puede **cancelar cuando quiera**, sin penalización; el primer mes se paga si usa el servicio.
 
 | Concepto | Importe | Cuándo |
 | --- | --- | --- |
@@ -92,11 +92,11 @@ después mes con mes**, sin mínimo obligatorio. El primer mes tiene **garantía
 | Instalación / setup | **$0** | No hay |
 | Excedente de IA | $150.00 MXN por cada 1,000 respuestas adicionales | Solo por contrato del operador |
 | Consumo de WhatsApp | Lo cobra Meta | Directo a la empresa |
-| Garantía | Primer mes reembolsable | 30 días |
+| Cancelación | Sin compromiso; primer mes se paga si se usa | — |
 
 **Todo incluido.** La IA va incluida: sugerencias, base de conocimiento, handoff, pausa por conversación y respuesta automática acotada, con 2,000 respuestas/mes. La captura de leads y los reportes de servicio también van incluidos.
 
-**Garantía de satisfacción.** El primer mes es reembolsable: si el cliente no queda satisfecho, se le devuelve la mensualidad, se le entrega su respaldo completo y se borra la cuenta a petición.
+**Cancelación sin compromiso.** El cliente puede cancelar cuando quiera, sin penalización. El primer mes se paga si usa el servicio; al cancelar se entrega su respaldo completo y se borra la cuenta a petición.
 
 Todos los precios son **más IVA**.
 

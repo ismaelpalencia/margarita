@@ -623,3 +623,17 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - landing:build OK; tsc OK; 347 unit; 105 integración (107 total, 2 skipped).
 
 ---
+
+## Ajuste — Cancelación sin compromiso y nuevo WhatsApp
+
+- Se retiró la garantía de devolución de la mensualidad. Nuevo texto: cancelación cuando quiera, sin penalización; el primer mes se paga si se usa el servicio.
+- Landing: index (hero/FAQ), precios (tarjeta/FAQ), onboarding (día 30) y guía publicada. `PRICING.guaranteeDays` eliminado.
+- Docs: alcance, contrato (sección 4), facturación, propuesta, modelo comercial, guía de uso y kit comercial.
+- WhatsApp de soporte: 55 5933 7514 (wa.me/525559337514) en la landing, docs y panel de plantillas.
+- Landing regenerado.
+
+### Gates
+
+- tsc OK, unit OK, landing:build OK; sin teléfono viejo ni textos de reembolso en landing/*.html.
+
+---

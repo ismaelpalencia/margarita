@@ -62,7 +62,7 @@ Los precios viven en `landing/` y en `scripts/build-landing.ts` (`PRICING`). **E
 
 - **Un solo plan, todo incluido:** plataforma completa + IA (sugerencias y automático acotado) + onboarding (sesión de arranque de 2 h + guía publicada).
 - **Sin instalación ni setup.**
-- **Garantía de satisfacción el primer mes** (30 días, reembolsable). No se llama “piloto pagado”.
+- **Cancelación sin compromiso:** el cliente puede cancelar cuando quiera, sin penalización. El primer mes se paga si usa el servicio; no hay devolución de mensualidades prestadas.
 - **Excedente:** **$150 MXN por cada 1,000 respuestas adicionales**, solo en el contrato del operador y en el panel; **no se publica en el landing**.
 - **Todos los precios son más IVA.** El consumo de WhatsApp lo factura **Meta directamente al cliente**.
 - **Clientes legacy:** conservan su precio y plan actuales; no se migran ni se les cambia la facturación.

@@ -136,7 +136,7 @@ const PRICING = {
     /** Solo referencia del operador; no se renderiza en el landing. */
     overagePrice: 150,
     overageUnit: 1000,
-    guaranteeDays: 30
+    cancellation: "Cancela cuando quieras, sin compromiso"
 };
 
 const money = (value: number) =>

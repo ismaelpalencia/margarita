@@ -15,7 +15,7 @@ está en [`propuesta-comercial.md`](propuesta-comercial.md).
 | Incluye | Plataforma completa + IA + onboarding (2 h + guía) + 2,000 respuestas de IA/mes | — |
 | Instalación / setup | **$0** | No hay |
 | Excedente de IA | $150.00 MXN por cada 1,000 respuestas adicionales | Solo por contrato del operador; no se publica en el landing |
-| Garantía | Primer mes reembolsable (30 días) | — |
+| Cancelación | Sin compromiso; el primer mes se paga si se usa | — |
 
 Todos los precios son **más IVA**. El **consumo de WhatsApp** (conversaciones y
 plantillas) lo cobra Meta directo al cliente, con su método de pago; no está
@@ -35,7 +35,7 @@ cierra esa fase. No se publican como incluidas en el nivel Soporte.
 
 ## 2. Las tres reglas que no se negocian
 
-1. **Sin instalación y sin mínimo obligatorio.** Se cobra solo la mensualidad de $1,299 MXN (más IVA). El primer mes tiene garantía de satisfacción: si no convence, se devuelve la mensualidad y se entrega el respaldo. No hay compromisos de plazo ni precios alternativos.
+1. **Sin instalación y sin mínimo obligatorio.** Se cobra solo la mensualidad de $1,299 MXN (más IVA). El cliente puede cancelar cuando quiera, sin penalización; el primer mes se paga si usa el servicio. No hay compromisos de plazo ni precios alternativos.
 2. **La mensualidad es adelantada.** Se cobra el día 1 (o al cumplirse el mes
    de la instalación), nunca a mes vencido.
 3. **El consumo de Meta y el alojamiento no son nuestros.** Los mensajes los
@@ -66,7 +66,7 @@ cierra esa fase. No se publican como incluidas en el nivel Soporte.
 ## 5. Qué decirle al cliente (frases cortas, ya probadas)
 
 - «Margarita IA cuesta $1,299 al mes, más IVA. Incluye plataforma, IA, onboarding y 2,000 respuestas de IA al mes. Sin instalación ni setup.»
-- «El primer mes tiene garantía de satisfacción: si no te convence, te devolvemos la mensualidad.»
+- «Puedes cancelar cuando quieras, sin compromiso. El primer mes se paga si usas el servicio.»
 - «Los mensajes de WhatsApp los cobra Meta directo a tu cuenta. Nosotros no cobramos por mensaje: nuestra factura es por la herramienta.»
 - «Si necesitas más de 2,000 respuestas de IA, lo revisamos contigo. El plan público no cobra excedentes automáticos.»
 - «La conexión con Meta va incluida en el onboarding.»

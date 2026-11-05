@@ -14,7 +14,7 @@
 
 **Prestador:** Eduardo Ismael Fernández Palencia, con domicilio en Candelaria,
 Oyoacán, C.P. 04380, Ciudad de México, correo contacto@margaritaapp.org,
-teléfono 55 3878 3682.
+teléfono 55 5933 7514.
 
 **Cliente:** [RAZÓN SOCIAL], RFC [RFC], domicilio [DOMICILIO], representada por
 [REPRESENTANTE].
@@ -42,13 +42,11 @@ por conversaciones y plantillas son por cuenta del cliente.
 
 ---
 
-## 4. Garantía de satisfacción (primer mes)
+## 4. Cancelación sin compromiso
 
-El primer mes tiene garantía de satisfacción.
-
-1. Si el cliente no queda satisfecho dentro de los **30 días naturales** desde la puesta en marcha, puede pedir la devolución de la mensualidad.
-2. La cancelación no tiene penalización.
-3. Al terminar, el prestador entrega al cliente un **respaldo completo** de sus datos y, a petición escrita, elimina la cuenta y los datos asociados.
+1. El cliente puede cancelar cuando quiera, sin penalización ni plazo mínimo.
+2. El primer mes se paga si el cliente usa el servicio; no hay devolución de mensualidades ya prestadas.
+3. Al cancelar, el prestador entrega un **respaldo completo** de sus datos y, a petición escrita, elimina la cuenta y los datos asociados.
 
 ---
 

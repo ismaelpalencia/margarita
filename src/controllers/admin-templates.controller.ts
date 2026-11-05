@@ -18,7 +18,7 @@ export class AdminTemplatesController {
             templates,
             templateIdeas: TEMPLATE_LIBRARY,
             formatTemplateLibraryIdea,
-            shareTemplateUrl: `https://wa.me/525538783682?text=${encodeURIComponent(
+            shareTemplateUrl: `https://wa.me/525559337514?text=${encodeURIComponent(
                 "Hola, equipo Margarita. Esta plantilla de cobranza me ha funcionado y quiero compartirla para que la revisen y, si la aprueban, la agreguen a la biblioteca.\n\nSituación en la que la uso:\n\nTexto de la plantilla:\n\nBotones (si tiene):\n\nPor qué me ha funcionado:\n\nConfirmo que quité nombres, teléfonos, saldos y cualquier dato personal de clientes.\n\nAutorizo a Margarita a adaptar esta idea y publicarla en su biblioteca si la aprueba."
             )}`,
             /** Para marcar las que traen encabezado con variable o botón. */

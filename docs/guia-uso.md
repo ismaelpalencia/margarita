@@ -339,16 +339,16 @@ Para no prometer de más:
 
 ## 14. Soporte y condiciones
 
-- **WhatsApp de soporte**: 55 3878 3682.
+- **WhatsApp de soporte**: 55 5933 7514.
 - **Correo**: contacto@margaritaapp.org.
 - Atención en horario hábil. Incluye correcciones y actualizaciones mientras la
   mensualidad esté activa.
 - La **sesión de arranque de dos horas** va incluida en el plan y se agenda
   después del alta: ahí se revisan tus plantillas, se carga la primera campaña y
   se deja al equipo operando.
-- **El primer mes tiene garantía de satisfacción**: si no te convence, te
-  devolvemos la mensualidad. Después se paga mes a mes. El consumo de Meta va
-  por cuenta de la empresa.
+- **Puedes cancelar cuando quieras**, sin compromiso ni penalización. El primer
+  mes se paga si usas el servicio; después, mes a mes. El consumo de Meta va por
+  cuenta de la empresa.
 
 > Este documento y la app cambian juntos: si algo de aquí no coincide con lo que
 > ves en pantalla, gana la pantalla — y avísanos para corregir la guía.

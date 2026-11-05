@@ -290,7 +290,7 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `AI_OVERAGE_PRICE_MXN` | Comercial | Precio del excedente para la estimación del panel (`150` por 1,000) |
 | `AI_LIMITS_ENFORCE` | Comercial | Apaga el modo automático al llegar al hard cap. Default `false` |
 | `AI_LIMITS_HIDDEN` | Comercial | Oculta la tarjeta de límites al cliente. Default `false` |
-| `SUPPORT_WHATSAPP_DISPLAY` | Comercial | El número como se muestra en la página (`55 3878 3682`) |
+| `SUPPORT_WHATSAPP_DISPLAY` | Comercial | El número como se muestra en la página (`55 5933 7514`) |
 | `BACKUP_ENABLED` | No | Respaldo automático de la base. Default `true` |
 | `BACKUP_INTERVAL_HOURS` | No | Cada cuánto se guarda una copia completa. Default `24` |
 | `BACKUP_KEEP` | No | Copias que se conservan. Default `7` |
