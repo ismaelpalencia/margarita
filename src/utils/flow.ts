@@ -45,3 +45,24 @@ export type FlowList = {
     sectionTitle?: string;
     rows: FlowListRow[];
 };
+
+/** WhatsApp limita el título de un botón a 20 caracteres. */
+const MAX_FLOW_BUTTON_TITLE = 20;
+
+const BUTTON_TITLE_FALLBACKS: Record<string, string> = {
+    "hablar con una persona": "Hablar con asesor",
+    "pasar con una persona": "Pasar con asesor"
+};
+
+/**
+ * Ajusta el título de un botón de flujo al límite de Meta. Los flujos
+ * sembrados antes del límite (o editados a mano) pueden traer títulos
+ * largos; se corrigen al enviar para no romper el mensaje interactivo.
+ */
+export function fitFlowButtonTitle(title: string): string {
+    const clean = (title || "").trim();
+    const fixed = BUTTON_TITLE_FALLBACKS[clean.toLowerCase()] ?? clean;
+    const fitted = fixed.slice(0, MAX_FLOW_BUTTON_TITLE).trim();
+
+    return fitted || "Ver opciones";
+}

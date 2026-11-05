@@ -644,3 +644,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Actualizados appConfig (default), panel de plantillas, landing regenerada, contrato, guía, aviso de privacidad y README.
 
 ---
+
+## Fix — botones de flujo y límite de Meta
+
+- Meta rechazaba el interactivo del flujo «Bienvenida» con 131009 porque «Hablar con una persona» (22) y «Pasar con una persona» (21) pasan del máximo de 20.
+- Seeds corregidos a «Hablar con asesor» / «Pasar con asesor».
+- `sendFlowReply` sanea los títulos con `fitFlowButtonTitle` antes de armar el payload: corrige también los flujos ya guardados en la base.
+- Prueba nueva para el ajuste de títulos.
+
+---

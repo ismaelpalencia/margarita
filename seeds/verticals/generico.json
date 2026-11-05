@@ -18,7 +18,7 @@
           },
           {
             "id": "HABLAR_PERSONA",
-            "title": "Hablar con una persona",
+            "title": "Hablar con asesor",
             "description": "Atención personalizada"
           },
           {
@@ -37,7 +37,7 @@
       "buttons": [
         {
           "id": "HABLAR_PERSONA",
-          "title": "Hablar con una persona"
+          "title": "Hablar con asesor"
         }
       ]
     },
@@ -50,7 +50,7 @@
     },
     {
       "slug": "hablar-persona",
-      "name": "Hablar con una persona",
+      "name": "Hablar con asesor",
       "trigger": "hablar con|persona|humano|asesor",
       "reply": "Claro, te pasamos con una persona del equipo.",
       "buttons": []

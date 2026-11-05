@@ -18,7 +18,7 @@
         },
         {
           "id": "HABLAR_PERSONA",
-          "title": "Hablar con una persona"
+          "title": "Hablar con asesor"
         }
       ]
     },
@@ -34,7 +34,7 @@
         },
         {
           "id": "HABLAR_PERSONA",
-          "title": "Hablar con una persona"
+          "title": "Hablar con asesor"
         }
       ]
     },
@@ -46,7 +46,7 @@
       "buttons": [
         {
           "id": "HABLAR_PERSONA",
-          "title": "Pasar con una persona"
+          "title": "Pasar con asesor"
         }
       ]
     },
@@ -74,7 +74,7 @@
     },
     {
       "slug": "hablar-persona",
-      "name": "Hablar con una persona",
+      "name": "Hablar con asesor",
       "trigger": "hablar con|persona|asesor|agente|humano|ejecutivo",
       "reply": "Claro, te pasamos con una persona del equipo. En un momento te atiende.",
       "buttons": []

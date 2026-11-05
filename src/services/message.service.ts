@@ -37,7 +37,7 @@ import {
     interactiveListPayload,
     interactivePayload
 } from "../utils/interactive-message";
-import { FlowButton, FlowList } from "../utils/flow";
+import { fitFlowButtonTitle, FlowButton, FlowList } from "../utils/flow";
 import { decryptSecret } from "../utils/crypto";
 import { describeMetaError } from "../utils/meta-error";
 import {
@@ -1119,7 +1119,11 @@ export class MessageService {
             throw new Error("La respuesta del flujo está vacía.");
         }
 
-        const hasButtons = Boolean(params.buttons && params.buttons.length > 0);
+        const flowButtons = (params.buttons ?? []).map((button) => ({
+            ...button,
+            title: fitFlowButtonTitle(button.title)
+        }));
+        const hasButtons = flowButtons.length > 0;
         const hasList = Boolean(params.list && params.list.rows?.length > 0);
 
         let type: MessageType = MessageType.TEXT;
@@ -1134,7 +1138,7 @@ export class MessageService {
                 message: {
                     body,
                     footer: null,
-                    buttons: params.buttons as InteractiveButtonMessage["buttons"]
+                    buttons: flowButtons as InteractiveButtonMessage["buttons"]
                 }
             });
         } else if (hasList) {
