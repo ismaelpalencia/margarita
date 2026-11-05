@@ -1,178 +1,117 @@
-<header class="border-b border-slate-200 bg-white/90 backdrop-blur">
-    <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-4 lg:flex-nowrap lg:justify-between">
-        <div class="flex items-center gap-3">
-            <a href="/admin/dashboard" class="shrink-0">
-                <img src="/brand/img/margarita-icon-128.png" alt="Margarita" class="h-10 w-10" />
-            </a>
+<%
+    const availableNumbers = (activeNumbers || []).filter((number) => number.isActive);
+    const collectionsOn = typeof collectionsEnabled !== "undefined" ? collectionsEnabled : true;
+    const moduleLinks = ["/admin/reports", "/admin/replies"];
+    const navLinks = [
+        { href: "/admin/dashboard", label: "Dashboard" },
+        { href: "/admin/conversations", label: "Conversaciones", badge: unreadTotal || 0, badgeKind: "unread" },
+        { href: "/admin/conversations?assigned=unassigned", label: "Sin asignar", badge: unassignedCount || 0, badgeKind: "unassigned" },
+        { href: "/admin/campaigns", label: "Campañas" },
+        { href: "/admin/contacts", label: "Contactos" },
+        { href: "/admin/tags", label: "Etiquetas" },
+        { href: "/admin/reports", label: "Reportes" },
+        { href: "/admin/quick-replies", label: "Respuestas" },
+        { href: "/admin/ai", label: "IA" },
+        { href: "/admin/replies", label: "Botones y listas" },
+        { href: "/admin/users", label: "Equipo" },
+        { href: "/admin/templates", label: "Plantillas" },
+        { href: "/admin/system", label: "Sistema" },
+        { href: "/admin/hours", label: "Horarios" },
+        { href: "/admin/leads", label: "Leads" },
+        { href: "/admin/reports/service", label: "Reportes de servicio" },
+        { href: "/admin/guia", label: "Guía" },
+        { href: "/admin/whatsapp", label: "WhatsApp" },
+        { href: "/admin/logs", label: "Logs" },
+        { href: "/admin/backup", label: "Respaldos" },
+        { href: "/admin/sessions", label: "Sesiones" },
+        { href: "/account/password", label: "Mi cuenta" }
+    ].filter((link) => collectionsOn || !moduleLinks.includes(link.href));
+    const current = currentPath || "/";
+%>
 
-            <div>
-                <p class="text-lg font-black leading-tight text-slate-900">
-                    Margarita
-                </p>
-
-                <p class="text-xs font-medium text-slate-500">
-                    Panel Admin
-                </p>
-            </div>
-
-            <%
-                const availableNumbers = (activeNumbers || []).filter((number) => number.isActive);
-            %>
-
-            <% if (availableNumbers.length === 1) { %>
-                <span
-                    class="ml-1 rounded-full bg-margarita-50 px-3 py-1 text-xs font-semibold text-margarita-700 ring-1 ring-margarita-100"
-                    title="Número activo"
-                >
-                    <%= availableNumbers[0].displayName || availableNumbers[0].phoneNumber %>
-                </span>
-            <% } else if (availableNumbers.length > 1) { %>
-                <form action="/admin/number/switch" method="POST" class="ml-1">
-                    <input type="hidden" name="redirectTo" value="<%= currentPath || '/' %>" />
-
-                    <select
-                        name="numberId"
-                        onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()"
-                        title="Número activo"
-                        class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
-                    >
-                        <% availableNumbers.forEach((number) => { %>
-                            <option
-                                value="<%= number.id %>"
-                                <%= activeNumber && activeNumber.id === number.id ? "selected" : "" %>
-                            >
-                                <%= number.displayName || number.phoneNumber %>
-                            </option>
-                        <% }) %>
-                    </select>
-                </form>
-            <% } %>
-        </div>
-
-        <%
-            /**
-             * Los enlaces del panel se declaran una sola vez y se pintan dos:
-             * en fila para pantallas grandes y dentro de un menú plegable en el
-             * celular. Antes eran diecisiete enlaces que se envolvían y
-             * empujaban el contenido media pantalla hacia abajo.
-             *
-             * Reportes y Botones pertenecen al módulo de cobranza. Si la
-             * instalación opera con otro giro se ocultan, pero las rutas
-             * siguen existiendo para cuando se vuelva a encender.
-             */
-            const collectionsOn =
-                typeof collectionsEnabled !== "undefined"
-                    ? collectionsEnabled
-                    : true;
-
-            const moduleLinks = ["/admin/reports", "/admin/replies"];
-
-            const navLinks = [
-                { href: "/admin/dashboard", label: "Dashboard" },
-                { href: "/admin/conversations", label: "Conversaciones", badge: unreadTotal || 0 },
-                { href: "/admin/conversations?assigned=unassigned", label: "Sin asignar", badge: unassignedCount || 0, badgeKind: "unassigned" },
-                { href: "/admin/campaigns", label: "Campañas" },
-                { href: "/admin/contacts", label: "Contactos" },
-                { href: "/admin/tags", label: "Etiquetas" },
-                { href: "/admin/reports", label: "Reportes" },
-                { href: "/admin/quick-replies", label: "Respuestas" },
-                { href: "/admin/ai", label: "IA" },
-                { href: "/admin/replies", label: "Botones y listas" },
-                { href: "/admin/users", label: "Equipo" },
-                { href: "/admin/templates", label: "Plantillas" },
-                { href: "/admin/system", label: "Sistema" },
-                { href: "/admin/hours", label: "Horarios" },
-                { href: "/admin/leads", label: "Leads" },
-                { href: "/admin/reports/service", label: "Reportes de servicio" },
-                { href: "/admin/guia", label: "Guía" },
-                { href: "/admin/whatsapp", label: "WhatsApp" },
-                { href: "/admin/logs", label: "Logs" },
-                { href: "/admin/backup", label: "Respaldos" },
-                { href: "/admin/sessions", label: "Sesiones" },
-                { href: "/account/password", label: "Mi cuenta" }
-            ].filter((link) => collectionsOn || !moduleLinks.includes(link.href));
-        %>
-
-        <nav class="hidden items-center gap-2 text-sm lg:flex lg:flex-wrap">
-            <% navLinks.forEach((link) => { %>
-                <a
-                    href="<%= link.href %>"
-                    class="inline-flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700"
-                >
-                    <%= link.label %>
-
-                    <% if (typeof link.badge === "number") { %>
-                        <span
-                            <%= link.badgeKind === "unassigned" ? 'data-badge="unassigned"' : 'data-unread-badge' %>
-                            data-count="<%= link.badge %>"
-                            class="rounded-full px-2 py-0.5 text-[11px] font-bold text-white <%= link.badgeKind === "unassigned" ? 'bg-red-600' : 'bg-margarita-600' %> <%= link.badge > 0 ? '' : 'hidden' %>"
-                            title="<%= link.badgeKind === "unassigned" ? 'Sin asignar' : 'Mensajes sin leer' %>"
-                        >
-                            <%= link.badge %>
-                        </span>
-                    <% } %>
-                </a>
-            <% }) %>
-        </nav>
-
-        <details class="order-last w-full lg:order-none lg:hidden">
-            <summary
-                class="flex cursor-pointer items-center justify-between rounded-xl bg-margarita-50 px-4 py-3 text-sm font-black text-margarita-800 ring-1 ring-margarita-100"
-            >
-                Menú del panel
-
-                <span class="text-xs font-semibold text-margarita-700">
-                    <%= navLinks.length %> secciones
-                </span>
-            </summary>
-
-            <nav class="mt-2 grid grid-cols-2 gap-1 text-sm">
-                <% navLinks.forEach((link) => { %>
-                    <a
-                        href="<%= link.href %>"
-                        class="inline-flex items-center justify-between gap-2 rounded-xl px-3 py-2 font-semibold text-slate-600 hover:bg-margarita-50 hover:text-margarita-700"
-                    >
-                        <%= link.label %>
-
-                        <% if (typeof link.badge === "number" && link.badge > 0) { %>
-                            <span class="rounded-full bg-margarita-600 px-2 py-0.5 text-[11px] font-bold text-white">
-                                <%= link.badge %>
-                            </span>
-                        <% } %>
-                    </a>
-                <% }) %>
-            </nav>
-        </details>
-
-        <div class="ml-auto flex items-center gap-3">
-            <% if (offHoursNow) { %>
-                <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-200" title="Fuera del horario de atención">
-                    Fuera de horario
-                </span>
-            <% } %>
-            <%- include("theme-toggle") %>
-
-            <div class="hidden text-right md:block">
-                <p class="text-sm font-bold text-slate-800">
-                    <%= user?.name || "Admin" %>
-                </p>
-
-                <p class="text-xs text-slate-500">
-                    Administrador
-                </p>
-            </div>
-
-            <form action="/auth/logout" method="POST">
-                <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800">
-                    Salir
-                </button>
-            </form>
+<aside class="panel-sidebar" id="panel-sidebar">
+    <div class="panel-sidebar__brand">
+        <img src="/brand/img/margarita-icon-128.png" alt="Margarita" />
+        <div>
+            <strong>Margarita</strong>
+            <small>Panel Admin</small>
         </div>
     </div>
-</header>
+
+    <nav class="panel-sidebar__nav">
+        <% navLinks.forEach((link) => { %>
+            <a
+                href="<%= link.href %>"
+                class="panel-sidebar__link <%= current === link.href || (link.href !== "/admin/dashboard" && current.startsWith(link.href.split("?")[0])) ? "is-active" : "" %>"
+            >
+                <span><%= link.label %></span>
+
+                <% if (typeof link.badge === "number") { %>
+                    <span
+                        <%= link.badgeKind === "unassigned" ? "data-badge=\"unassigned\"" : "data-unread-badge" %>
+                        data-count="<%= link.badge %>"
+                        class="panel-sidebar__count <%= link.badgeKind === "unassigned" ? "panel-sidebar__count--unassigned" : "panel-sidebar__count--unread" %> <%= link.badge > 0 ? "" : "is-empty" %>"
+                    ><%= link.badge %></span>
+                <% } %>
+            </a>
+        <% }) %>
+    </nav>
+
+    <div class="panel-sidebar__footer">
+        <div class="panel-avatar"><%= (user?.name || "A").charAt(0).toUpperCase() %></div>
+        <div class="meta">
+            <div class="name"><%= user?.name || "Admin" %></div>
+            <div class="role">Administrador</div>
+        </div>
+        <form action="/auth/logout" method="POST">
+            <button class="btn btn--ghost btn--sm">Salir</button>
+        </form>
+    </div>
+</aside>
+
+<div class="panel-topbar">
+    <button class="btn btn--ghost" id="panel-menu-toggle" aria-label="Menú">☰</button>
+
+    <form action="/admin/conversations" method="GET" class="panel-topbar__search">
+        <input type="search" name="search" class="input" placeholder="Buscar conversación o contacto…" />
+    </form>
+
+    <div class="panel-topbar__spacer"></div>
+
+    <% if (typeof offHoursNow !== "undefined" && offHoursNow) { %>
+        <span class="badge badge--warning" title="Fuera del horario de atención">Fuera de horario</span>
+    <% } %>
+
+    <% if (availableNumbers.length === 1) { %>
+        <span class="badge badge--info" title="Número activo"><%= availableNumbers[0].displayName || availableNumbers[0].phoneNumber %></span>
+    <% } else if (availableNumbers.length > 1) { %>
+        <form action="/admin/number/switch" method="POST">
+            <input type="hidden" name="redirectTo" value="<%= current || "/" %>" />
+            <select name="numberId" class="input" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()" title="Número activo">
+                <% availableNumbers.forEach((number) => { %>
+                    <option value="<%= number.id %>" <%= activeNumber && activeNumber.id === number.id ? "selected" : "" %>><%= number.displayName || number.phoneNumber %></option>
+                <% }) %>
+            </select>
+        </form>
+    <% } %>
+
+    <%- include("theme-toggle") %>
+</div>
+
 <script>
     window.__margaritaNotifications = {
         sound: <%= typeof notifySoundEnabled !== "undefined" && notifySoundEnabled ? "true" : "false" %>,
         browser: <%= typeof notifyBrowserEnabled !== "undefined" && notifyBrowserEnabled ? "true" : "false" %>
     };
+
+    (function () {
+        var toggle = document.getElementById("panel-menu-toggle");
+        var sidebar = document.getElementById("panel-sidebar");
+
+        if (toggle && sidebar) {
+            toggle.addEventListener("click", function () {
+                sidebar.classList.toggle("is-open");
+            });
+        }
+    })();
 </script>

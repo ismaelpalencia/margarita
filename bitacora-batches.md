@@ -437,3 +437,37 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - El escalamiento usa Conversation.handoffEscalatedAt para no repetir, con un job cada minuto.
 
 ---
+
+## Batch B — Rediseño visual del panel (shell + tokens)
+
+**Estado:** parcial (shell + tokens + componentes; el rediseño pantalla por pantalla queda pendiente). **Migración:** no.
+
+### Archivos tocados
+
+- src/assets/css/tokens.css (mismos valores que landing/assets/css/tokens.css), base.css (tipografía 13px, Inter, fondos, foco), components.css (.btn/.card/.badge/.chip/.input/.table/.toast/.empty/.skeleton), shell.css (topbar + sidebar).
+- src/assets/css/input.css: importa components.css, shell.css y la fuente Inter.
+- src/views/partials/admin-nav.ejs y agent-nav.ejs: reescritos como sidebar (240px) + topbar (56px), conservando enlaces, badges (data-unread-badge / data-badge="unassigned"), selector de número, tema, fuera de horario, cierre de sesión y el script de preferencias.
+- src/public/js/live.js: setBadge sincroniza la clase is-empty.
+
+### Decisiones / desviaciones
+
+- Tokens: se copiaron los valores del landing (fuente única) en src/assets/css/tokens.css porque la canalización de CSS del panel compila desde src/assets/css; no se importa el archivo del landing directamente.
+- Iconos: se conserva el conjunto existente (emoji/SVG) sin introducir Lucide, para no mezclar y no añadir dependencia de CDN.
+- Modo oscuro: ya existía (Fase previa); no se añadió ni se eliminó.
+- El buscador del topbar es funcional y redirige a la bandeja con ?search=.
+
+### Pendiente (siguiente iteración)
+
+- Bandeja de 3 columnas (lista | hilo | panel) en escritorio.
+- KPI cards y lista de Dashboard con las nuevas tarjetas.
+- Rediseño fino de Contactos, Agentes, Campañas/Plantillas, IA → Panel por hilo, Reportes, Sistema.
+- Estados vacíos y skeletons en bandeja/Dashboard.
+- Campana de notificaciones con historial de toasts.
+
+### Comandos
+
+- npx tsc --noEmit → OK.
+- npm test → 341 pass.
+- npm run test:integration → 101 pass, 2 skipped.
+
+---

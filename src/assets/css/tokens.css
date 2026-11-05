@@ -1,0 +1,41 @@
+:root {
+  --surface-bg:        #F7F8FA;
+  --surface-card:      #FFFFFF;
+  --surface-hover:     #F0F2F5;
+  --surface-selected:  #E8F1FC;
+  --surface-border:    #E4E7EC;
+
+  --text-primary:      #1A1D21;
+  --text-secondary:    #5A6270;
+  --text-tertiary:     #8B94A3;
+  --text-inverse:      #FFFFFF;
+
+  --brand-500:         #2B6CB0;
+  --brand-600:         #245A94;
+  --brand-50:          #EBF3FB;
+
+  --success:           #1E8E5A;
+  --success-bg:        #E6F6EE;
+  --warning:           #B7791F;
+  --warning-bg:        #FDF6E3;
+  --danger:            #C53030;
+  --danger-bg:         #FDECEC;
+
+  --shadow-sm: 0 1px 2px rgba(16,24,40,0.05);
+  --shadow-md: 0 4px 12px rgba(16,24,40,0.08);
+  --shadow-lg: 0 12px 24px rgba(16,24,40,0.10);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --text-xs:   12px / 16px;
+  --text-sm:   13px / 18px;
+  --text-base: 14px / 20px;
+  --text-md:   15px / 22px;
+  --text-lg:   18px / 26px;
+  --text-xl:   22px / 30px;
+  --text-2xl:  28px / 36px;
+
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px;
+
+  --radius-sm: 4px; --radius-md: 6px; --radius-lg: 8px; --radius-xl: 12px; --radius-full: 9999px;
+}

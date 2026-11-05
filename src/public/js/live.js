@@ -167,6 +167,7 @@
             badge.setAttribute("data-count", String(count));
             badge.textContent = String(count);
             badge.classList.toggle("hidden", !show);
+            badge.classList.toggle("is-empty", !show);
         });
     }
 

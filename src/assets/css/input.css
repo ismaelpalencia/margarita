@@ -1,4 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
+@import "./components.css";
+@import "./shell.css";
 
 /**
  * El tema oscuro se activa con la clase `dark` en `<html>`, no con la

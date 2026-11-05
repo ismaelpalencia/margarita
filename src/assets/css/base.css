@@ -1,0 +1,41 @@
+@import "./tokens.css";
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-primary);
+  background: var(--surface-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--brand-500); text-decoration: none; }
+a:hover { color: var(--brand-600); }
+
+h1, h2, h3, h4, p, ul, ol, dl { margin: 0; }
+ul, ol { padding-left: 1.15rem; }
+
+img { max-width: 100%; display: block; }
+
+:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection { background: var(--brand-50); color: var(--brand-600); }
+
+/* Skeleton para estados de carga */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-hover) 25%, var(--surface-border) 50%, var(--surface-hover) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-wave 1.2s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+@keyframes skeleton-wave {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
