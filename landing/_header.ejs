@@ -1,0 +1,25 @@
+<header class="site-header">
+    <div class="container site-header__inner">
+        <a class="brand" href="/">
+            <img src="/assets/img/margarita-icon-128.png" alt="Margarita" />
+            <span>
+                Margarita
+                <small>Automatización de WhatsApp con IA</small>
+            </span>
+        </a>
+
+        <nav class="nav" aria-label="Navegación principal">
+            <a href="/ia" <%= active === "ia" ? 'aria-current="page"' : "" %>>IA</a>
+            <a href="/precios" <%= active === "precios" ? 'aria-current="page"' : "" %>>Precios</a>
+            <a href="/demo" <%= active === "demo" ? 'aria-current="page"' : "" %>>Demo</a>
+            <a href="/onboarding" <%= active === "onboarding" ? 'aria-current="page"' : "" %>>Alta</a>
+            <a href="/guia" <%= active === "guia" ? 'aria-current="page"' : "" %>>Guía</a>
+            <a href="/plantillas" <%= active === "plantillas" ? 'aria-current="page"' : "" %>>Plantillas</a>
+        </nav>
+
+        <div class="header-actions">
+            <a class="header-login" href="/acceso">Iniciar sesión</a>
+            <a class="btn btn--primary" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Agendar demo</a>
+        </div>
+    </div>
+</header>

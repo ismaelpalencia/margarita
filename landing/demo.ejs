@@ -1,0 +1,177 @@
+<%- include("_head") %>
+<%- include("_header") %>
+
+<main id="contenido">
+    <section class="section section--tight">
+        <div class="container">
+            <span class="eyebrow">Demo en vivo</span>
+            <h1 class="section-title" style="font-size:34px;line-height:42px;">Prueba la IA con una base de conocimiento real</h1>
+            <p class="section-lede">
+                Elige un vertical y escribe como si fueras el cliente. La demo usa una base de
+                conocimiento en memoria y no toca la base de datos del producto.
+            </p>
+        </div>
+    </section>
+
+    <section class="section section--tight">
+        <div class="container demo-grid">
+            <div class="demo-chat">
+                <div class="demo-chat__head">
+                    <div>
+                        <strong>Simulador de WhatsApp</strong>
+                        <p class="small">Atiende, califica y deriva.</p>
+                    </div>
+                    <label class="small" for="vertical">Vertical</label>
+                    <select id="vertical" style="border:1px solid var(--surface-border);border-radius:6px;padding:6px 8px;font-size:12px;">
+                        <option value="comercio">Comercio</option>
+                        <option value="servicios">Servicios</option>
+                        <option value="generico">Genérico</option>
+                    </select>
+                </div>
+
+                <div class="demo-chat__log" id="chat-log" aria-live="polite"></div>
+
+                <form class="demo-chat__form" id="chat-form">
+                    <input id="message" autocomplete="off" placeholder="Escribe un mensaje…" aria-label="Mensaje para la demo" />
+                    <button class="btn btn--primary" type="submit">Enviar</button>
+                </form>
+
+                <div class="container" style="padding:0 12px 12px;">
+                    <p class="demo-error" id="demo-error" hidden>
+                        La demo no está disponible en este momento. Puedes abrirla directamente en
+                        <a href="<%= demoUrl %>">la demo de Margarita</a> o escribirnos por WhatsApp.
+                    </p>
+                </div>
+            </div>
+
+            <aside class="demo-panel">
+                <h3>Panel de la conversación</h3>
+                <dl>
+                    <div class="row"><dt>Modo</dt><dd id="panel-mode">—</dd></div>
+                    <div class="row"><dt>Intención</dt><dd id="panel-intent">—</dd></div>
+                    <div class="row"><dt>Confianza</dt><dd id="panel-confidence">—</dd></div>
+                    <div class="row"><dt>Handoff</dt><dd id="panel-handoff">—</dd></div>
+                    <div class="row"><dt>Costo estimado</dt><dd id="panel-cost">—</dd></div>
+                </dl>
+
+                <div class="note mt-4">
+                    <strong>Qué estás viendo.</strong> La misma política de IA del producto: solo responde
+                    lo que está en la base, con umbral de confianza y entrega cuando no cubre.
+                </div>
+
+                <a class="btn btn--secondary btn--block mt-4" href="/precios">Ver planes</a>
+            </aside>
+        </div>
+    </section>
+
+    <section class="cta-band section--dark">
+        <div class="container cta-band__inner">
+            <div>
+                <h2>¿Quieres la demo con tus preguntas?</h2>
+                <p>Agenda una sesión y cargamos tres consultas reales de tu operación.</p>
+            </div>
+            <a class="btn btn--primary btn--lg" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Agendar demo</a>
+        </div>
+    </section>
+</main>
+
+<script>
+(function () {
+    var API_BASE = <%- JSON.stringify(demoApiBase) %>;
+    var sessionId = null;
+    var form = document.getElementById("chat-form");
+    var input = document.getElementById("message");
+    var log = document.getElementById("chat-log");
+    var vertical = document.getElementById("vertical");
+    var errorBox = document.getElementById("demo-error");
+
+    function showError() {
+        errorBox.hidden = false;
+    }
+
+    function bubble(text, own) {
+        var div = document.createElement("div");
+        div.className = "bubble " + (own ? "bubble--out" : "bubble--in");
+        div.textContent = text;
+        if (own) {
+            div.style.alignSelf = "flex-end";
+        }
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function panel(mode, intent, confidence, handoff, costMicros) {
+        document.getElementById("panel-mode").textContent = mode || "—";
+        document.getElementById("panel-intent").textContent = intent || "—";
+        document.getElementById("panel-confidence").textContent =
+            confidence === null || confidence === undefined ? "—" : Math.round(confidence * 100) + "%";
+        document.getElementById("panel-handoff").textContent = handoff ? "Sí" : "No";
+        document.getElementById("panel-cost").textContent =
+            costMicros === null || costMicros === undefined ? "—" : "$" + (costMicros / 1000000).toFixed(4);
+    }
+
+    bubble("Hola, soy la IA de Margarita. Escribe un mensaje para probar la atención, la calificación y la entrega a una persona.", false);
+
+    function startSession() {
+        return fetch(API_BASE + "/api/demo/session", { method: "POST" })
+            .then(function (res) {
+                if (!res.ok) {
+                    throw new Error("session");
+                }
+                return res.json();
+            })
+            .then(function (data) {
+                sessionId = data.sessionId;
+                return true;
+            })
+            .catch(function () {
+                showError();
+                return false;
+            });
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        var text = input.value.trim();
+
+        if (!text) {
+            return;
+        }
+
+        bubble(text, true);
+        input.value = "";
+
+        var ready = sessionId ? Promise.resolve(true) : startSession();
+
+        ready.then(function (ok) {
+            if (!ok) {
+                return;
+            }
+
+            return fetch(API_BASE + "/api/demo/chat", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ sessionId: sessionId, message: text, vertical: vertical.value })
+            })
+                .then(function (res) {
+                    if (!res.ok) {
+                        throw new Error("chat");
+                    }
+                    return res.json();
+                })
+                .then(function (data) {
+                    bubble(data.reply || "La conversación se entregaría a una persona.", false);
+                    panel(data.mode, data.intent, data.confidence, data.handoff, data.costMicros);
+                })
+                .catch(function () {
+                    showError();
+                });
+        });
+    });
+
+    startSession();
+})();
+</script>
+
+<%- include("_footer") %>

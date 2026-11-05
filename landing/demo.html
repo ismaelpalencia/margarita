@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demo de WhatsApp con IA — Margarita</title>
+    <meta name="description" content="Prueba la IA con una base de conocimiento real. Simulador de WhatsApp con panel de modo, intención, confianza, handoff y costo." />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Margarita" />
+    <meta property="og:title" content="Demo de WhatsApp con IA — Margarita" />
+    <meta property="og:description" content="Prueba la IA con una base de conocimiento real. Simulador de WhatsApp con panel de modo, intención, confianza, handoff y costo." />
+    <meta property="og:url" content="https://margaritaapp.org/" />
+    <meta property="og:image" content="https://margaritaapp.org/assets/img/margarita-wordmark-512.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Demo de WhatsApp con IA — Margarita" />
+    <meta name="twitter:description" content="Prueba la IA con una base de conocimiento real. Simulador de WhatsApp con panel de modo, intención, confianza, handoff y costo." />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="stylesheet" href="/assets/css/tokens.css" />
+    <link rel="stylesheet" href="/assets/css/site.css" />
+</head>
+<body>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+<header class="site-header">
+    <div class="container site-header__inner">
+        <a class="brand" href="/">
+            <img src="/assets/img/margarita-icon-128.png" alt="Margarita" />
+            <span>
+                Margarita
+                <small>Automatización de WhatsApp con IA</small>
+            </span>
+        </a>
+
+        <nav class="nav" aria-label="Navegación principal">
+            <a href="/ia" >IA</a>
+            <a href="/precios" >Precios</a>
+            <a href="/demo" aria-current=&#34;page&#34;>Demo</a>
+            <a href="/onboarding" >Alta</a>
+            <a href="/guia" >Guía</a>
+            <a href="/plantillas" >Plantillas</a>
+        </nav>
+
+        <div class="header-actions">
+            <a class="header-login" href="/acceso">Iniciar sesión</a>
+            <a class="btn btn--primary" href="https://wa.me/525538783682" target="_blank" rel="noopener">Agendar demo</a>
+        </div>
+    </div>
+</header>
+
+
+<main id="contenido">
+    <section class="section section--tight">
+        <div class="container">
+            <span class="eyebrow">Demo en vivo</span>
+            <h1 class="section-title" style="font-size:34px;line-height:42px;">Prueba la IA con una base de conocimiento real</h1>
+            <p class="section-lede">
+                Elige un vertical y escribe como si fueras el cliente. La demo usa una base de
+                conocimiento en memoria y no toca la base de datos del producto.
+            </p>
+        </div>
+    </section>
+
+    <section class="section section--tight">
+        <div class="container demo-grid">
+            <div class="demo-chat">
+                <div class="demo-chat__head">
+                    <div>
+                        <strong>Simulador de WhatsApp</strong>
+                        <p class="small">Atiende, califica y deriva.</p>
+                    </div>
+                    <label class="small" for="vertical">Vertical</label>
+                    <select id="vertical" style="border:1px solid var(--surface-border);border-radius:6px;padding:6px 8px;font-size:12px;">
+                        <option value="comercio">Comercio</option>
+                        <option value="servicios">Servicios</option>
+                        <option value="generico">Genérico</option>
+                    </select>
+                </div>
+
+                <div class="demo-chat__log" id="chat-log" aria-live="polite"></div>
+
+                <form class="demo-chat__form" id="chat-form">
+                    <input id="message" autocomplete="off" placeholder="Escribe un mensaje…" aria-label="Mensaje para la demo" />
+                    <button class="btn btn--primary" type="submit">Enviar</button>
+                </form>
+
+                <div class="container" style="padding:0 12px 12px;">
+                    <p class="demo-error" id="demo-error" hidden>
+                        La demo no está disponible en este momento. Puedes abrirla directamente en
+                        <a href="https://demo.margaritaapp.org/demo">la demo de Margarita</a> o escribirnos por WhatsApp.
+                    </p>
+                </div>
+            </div>
+
+            <aside class="demo-panel">
+                <h3>Panel de la conversación</h3>
+                <dl>
+                    <div class="row"><dt>Modo</dt><dd id="panel-mode">—</dd></div>
+                    <div class="row"><dt>Intención</dt><dd id="panel-intent">—</dd></div>
+                    <div class="row"><dt>Confianza</dt><dd id="panel-confidence">—</dd></div>
+                    <div class="row"><dt>Handoff</dt><dd id="panel-handoff">—</dd></div>
+                    <div class="row"><dt>Costo estimado</dt><dd id="panel-cost">—</dd></div>
+                </dl>
+
+                <div class="note mt-4">
+                    <strong>Qué estás viendo.</strong> La misma política de IA del producto: solo responde
+                    lo que está en la base, con umbral de confianza y entrega cuando no cubre.
+                </div>
+
+                <a class="btn btn--secondary btn--block mt-4" href="/precios">Ver planes</a>
+            </aside>
+        </div>
+    </section>
+
+    <section class="cta-band section--dark">
+        <div class="container cta-band__inner">
+            <div>
+                <h2>¿Quieres la demo con tus preguntas?</h2>
+                <p>Agenda una sesión y cargamos tres consultas reales de tu operación.</p>
+            </div>
+            <a class="btn btn--primary btn--lg" href="https://wa.me/525538783682" target="_blank" rel="noopener">Agendar demo</a>
+        </div>
+    </section>
+</main>
+
+<script>
+(function () {
+    var API_BASE = "https://demo.margaritaapp.org";
+    var sessionId = null;
+    var form = document.getElementById("chat-form");
+    var input = document.getElementById("message");
+    var log = document.getElementById("chat-log");
+    var vertical = document.getElementById("vertical");
+    var errorBox = document.getElementById("demo-error");
+
+    function showError() {
+        errorBox.hidden = false;
+    }
+
+    function bubble(text, own) {
+        var div = document.createElement("div");
+        div.className = "bubble " + (own ? "bubble--out" : "bubble--in");
+        div.textContent = text;
+        if (own) {
+            div.style.alignSelf = "flex-end";
+        }
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function panel(mode, intent, confidence, handoff, costMicros) {
+        document.getElementById("panel-mode").textContent = mode || "—";
+        document.getElementById("panel-intent").textContent = intent || "—";
+        document.getElementById("panel-confidence").textContent =
+            confidence === null || confidence === undefined ? "—" : Math.round(confidence * 100) + "%";
+        document.getElementById("panel-handoff").textContent = handoff ? "Sí" : "No";
+        document.getElementById("panel-cost").textContent =
+            costMicros === null || costMicros === undefined ? "—" : "$" + (costMicros / 1000000).toFixed(4);
+    }
+
+    bubble("Hola, soy la IA de Margarita. Escribe un mensaje para probar la atención, la calificación y la entrega a una persona.", false);
+
+    function startSession() {
+        return fetch(API_BASE + "/api/demo/session", { method: "POST" })
+            .then(function (res) {
+                if (!res.ok) {
+                    throw new Error("session");
+                }
+                return res.json();
+            })
+            .then(function (data) {
+                sessionId = data.sessionId;
+                return true;
+            })
+            .catch(function () {
+                showError();
+                return false;
+            });
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        var text = input.value.trim();
+
+        if (!text) {
+            return;
+        }
+
+        bubble(text, true);
+        input.value = "";
+
+        var ready = sessionId ? Promise.resolve(true) : startSession();
+
+        ready.then(function (ok) {
+            if (!ok) {
+                return;
+            }
+
+            return fetch(API_BASE + "/api/demo/chat", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ sessionId: sessionId, message: text, vertical: vertical.value })
+            })
+                .then(function (res) {
+                    if (!res.ok) {
+                        throw new Error("chat");
+                    }
+                    return res.json();
+                })
+                .then(function (data) {
+                    bubble(data.reply || "La conversación se entregaría a una persona.", false);
+                    panel(data.mode, data.intent, data.confidence, data.handoff, data.costMicros);
+                })
+                .catch(function () {
+                    showError();
+                });
+        });
+    });
+
+    startSession();
+})();
+</script>
+
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a class="brand" href="/">
+                    <img src="/assets/img/margarita-icon-128.png" alt="Margarita" />
+                    <span>Margarita</span>
+                </a>
+                <p>Automatiza WhatsApp con IA: atiende, califica y deriva. Instalación por empresa, datos cifrados y control humano.</p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Producto</h4>
+                <a href="/ia">IA con control humano</a>
+                <a href="/precios">Precios</a>
+                <a href="/demo">Demo</a>
+                <a href="/onboarding">Alta en 7 días</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Recursos</h4>
+                <a href="/guia">Guía de uso</a>
+                <a href="/plantillas">Guía de plantillas</a>
+                <a href="/privacidad">Aviso de privacidad</a>
+                <a href="/acceso">Ya tengo acceso</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Contacto</h4>
+                <a href="mailto:contacto@margaritaapp.org">contacto@margaritaapp.org</a>
+                <a href="https://wa.me/525538783682" target="_blank" rel="noopener">WhatsApp 55 3878 3682</a>
+                <a href="https://margaritaapp.org">margaritaapp.org</a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© 2026 Margarita. Todos los derechos reservados.</span>
+            <span>Precios en MXN + IVA. El consumo de WhatsApp lo factura Meta directamente al cliente.</span>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
+

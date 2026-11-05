@@ -1,0 +1,34 @@
+<%- include("_head") %>
+<%- include("_header") %>
+
+<main id="contenido">
+    <section class="section section--tight">
+        <div class="container">
+            <span class="eyebrow">Acceso</span>
+            <h1 class="section-title" style="font-size:34px;line-height:42px;">Ya tengo acceso</h1>
+            <p class="section-lede">
+                Cada empresa opera en su propio dominio, por ejemplo
+                <strong>tuempresa.margaritaapp.org</strong>. Ahí vive el inicio de sesión del
+                panel; este sitio es la página pública del producto.
+            </p>
+        </div>
+    </section>
+
+    <section class="section section--tight">
+        <div class="container grid grid--2">
+            <div class="card">
+                <h3>Entrar al panel</h3>
+                <p class="mt-2">Abre el dominio de tu instalación y entra con el correo y la contraseña que te entregaron. Si es la primera vez, cambia la contraseña y activa la verificación en dos pasos.</p>
+                <p class="small mt-3">No hay un formulario de acceso en este sitio: la sesión vive en el dominio de cada empresa.</p>
+            </div>
+
+            <div class="card">
+                <h3>¿No recuerdas tu dominio?</h3>
+                <p class="mt-2">Escríbenos y te lo confirmamos. También podemos ayudarte si olvidaste la contraseña: un administrador de tu instalación puede restablecerla.</p>
+                <a class="btn btn--primary mt-4" href="mailto:<%= supportEmail %>">Escribir a soporte</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<%- include("_footer") %>

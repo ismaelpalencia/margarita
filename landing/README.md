@@ -1,93 +1,81 @@
 # Landing (sitio estático)
 
-Esta carpeta es la **página de venta**, separada de la aplicación para poder
-subirla a su propio dominio. No se edita a mano: son archivos generados.
+Esta carpeta es la **página de venta** del producto, separada de la aplicación
+para publicarla en su propio dominio (Cloudflare Pages o cualquier hosting
+estático).
+
+## Cómo se edita
+
+Las fuentes son las plantillas `.ejs` de esta misma carpeta:
+
+- `index.ejs` → `index.html`
+- `ia.ejs` → `ia.html`
+- `precios.ejs` → `precios.html`
+- `demo.ejs` → `demo.html`
+- `onboarding.ejs` → `onboarding.html`
+- `guia.ejs` → `guia.html`
+- `plantillas.ejs` → `plantillas.html`
+- `privacidad.ejs` → `privacidad.html`
+- `acceso.ejs` → `acceso.html`
+
+Los parciales `_head.ejs`, `_header.ejs` y `_footer.ejs` se incluyen desde
+cada página. El CSS vive en `assets/css/` (`tokens.css` y `site.css`) y las
+imágenes en `assets/img/`.
 
 ```bash
 npm run landing:build
 ```
 
-Se genera desde las mismas plantillas que usa la aplicación
-(`src/views/pages/home/*.ejs`), así que la página publicada y la que sirve la app
-no pueden decir cosas distintas. Para cambiar un texto o un precio: se edita la
-plantilla o la variable de entorno, se corre el comando y se vuelve a subir.
+El comando renderiza las plantillas a HTML en esta misma carpeta, copia los
+assets de marca y los favicons, y **no borra** las plantillas, `assets/` ni el
+`README.md`. Los `.html` son generados: no se editan a mano.
 
-**Qué contiene:** `index.html`, `como-empezar.html`, `aviso-de-privacidad.html`,
-`acceso.html`, el CSS, los archivos de marca y los favicons. Todo con rutas
-relativas: funciona igual en un dominio propio o dentro de una carpeta.
+Los precios viven en `scripts/build-landing.ts` y la fuente que gobierna es
+`docs/alcance-produccion.md`. Si cambian, se actualiza primero ese documento y
+luego la constante del build.
 
-> Este `README.md` es la explicación de la carpeta. Si subes la carpeta completa
-> a un hosting estático, se publica como `/README.md`: no molesta, pero puedes
-> quitarlo del paquete antes de subir.
+## Demo
 
----
+La página `/demo` es un simulador estático que llama a la API de demo de la
+aplicación:
 
-La guía completa —dominio de la operación, variables, DNS y comprobaciones—
-está en [`../docs/dominios.md`](../docs/dominios.md).
+- `DEMO_API_BASE` (build): base de la app que expone `/api/demo/session` y
+  `/api/demo/chat`. Por defecto `https://demo.margaritaapp.org`.
+- `DEMO_URL` (build): enlace directo a la demo. Por defecto
+  `${DEMO_API_BASE}/demo`.
 
-## Maqueta de rediseño 2026
-
-La propuesta visual nueva está en
-[`../mockups/landing-2026/`](../mockups/landing-2026/): HTML y CSS puro, sin
-JavaScript ni Tailwind. Vive fuera de esta carpeta porque `landing:build` borra
-todo lo que no venga de las plantillas; cuando se apruebe, se integra a
-`src/views/pages/home/` y al generador.
+Si la app no está publicada en esa base, la página muestra un aviso con el
+enlace directo. Para que el simulador funcione de punta a punta, la app debe
+tener `DEMO_ENABLED=true` y permitir el origen del sitio (mismo dominio o CORS).
 
 ## Cómo subirlo
 
-Cualquier hosting estático sirve. Dos caminos cómodos:
+**Cloudflare Pages**
 
-| Opción | Cómo |
-| --- | --- |
-| **Cloudflare Pages** | Crear un proyecto, subir esta carpeta (arrastrar o conectar el repositorio y fijar el directorio en `landing`, sin comando de compilación) |
-| **Railway** | Un servicio aparte del mismo repositorio, con la raíz del proyecto en `landing` y un servidor estático (`npx serve` o similar). Sin variables de entorno: no hay backend |
+1. Crea un proyecto conectado al repositorio.
+2. Build command: vacío (o `npm run landing:build` si prefieres generarlo en CI).
+3. Output directory: `landing`.
+4. Publica.
 
-No hace falta Node, ni base de datos, ni variables. Es HTML y CSS.
+O por CLI, después de `npm run landing:build`:
 
-## El reparto de dominios que evita que se rompa
+```bash
+npx wrangler pages deploy landing --project-name margarita
+```
+
+**Railway**: un servicio aparte con la raíz en `landing` y un servidor
+estático; no necesita variables ni base de datos.
+
+No hay `_headers`, `_redirects`, `wrangler.toml` ni `functions/`: el sitio es
+HTML/CSS/JS plano. Cloudflare Pages resuelve las URLs limpias (`/ia` →
+`ia.html`) automáticamente.
+
+## Reparto de dominios
 
 | Dirección | Qué sirve |
 | --- | --- |
-| `margaritaapp.org` (y `www`) | **Este sitio.** La oferta, la guía de Meta y el aviso de privacidad del producto |
-| `palencia.margaritaapp.org` | La instalación de esa operación (la aplicación). Su raíz manda al inicio de sesión |
-| `cliente.margaritaapp.org` | Lo mismo, para cada cliente |
+| `margaritaapp.org` | Este sitio (oferta, guías, privacidad) |
+| `cliente.margaritaapp.org` | La instalación de cada empresa; su raíz manda al inicio de sesión |
 
-### DNS, con una precisión que importa
-
-- **Un CNAME por cliente** (`palencia` → el dominio que Railway le dio a ese
-  servicio), con el **proxy de Cloudflare apagado** (nube gris): el panel usa
-  conexiones en vivo y el proxy puede interferir.
-- El comodín `*.margaritaapp.org` **no** sirve hoy para esto: mandaría a *todos*
-  los subdominios al mismo servicio. El comodín tiene sentido cuando se pase a
-  multi-inquilino (una sola aplicación que atiende varias instalaciones según el
-  host); como la dirección del cliente no cambia, esa migración se puede hacer
-  después sin avisarle a nadie.
-- En el dominio del producto, un `CNAME` a donde esté publicado este sitio.
-
-### Las cinco reglas que hacen que la separación no rompa nada
-
-1. **El formulario de acceso no vive aquí.** Este sitio no tiene formularios: el
-   botón «Iniciar sesión» lleva a `acceso.html`, que explica de dónde se entra
-   (cada operación en su subdominio). Eso evita CORS y una excepción de origen,
-   que es justo el hueco que hoy protege la sesión.
-2. **La cookie de sesión es solo del host**, sin atributo `Domain`: una sesión
-   abierta en el espacio de un cliente no puede servir en el de otro. (Ya está
-   así en el código.)
-3. **Aquí no aparece la app de nadie ni el precio que paga un cliente**: solo la
-   oferta pública del producto. Un subdominio de cliente no debe mostrar la
-   página de venta.
-4. **La raíz de la instalación de un cliente manda al inicio de sesión**, no a
-   esta página. Se controla con la variable `PRODUCT_DOMAIN` (dominios donde sí
-   vive la oferta, separados por coma). Sin esa variable, la aplicación sirve la
-   landing como antes.
-5. **El botón «Aviso de privacidad» de las plantillas de WhatsApp apunta al
-   aviso de la instalación del cliente** (`https://cliente.margaritaapp.org/aviso-de-privacidad`),
-   que es el que corresponde a sus datos. Esta copia es la del producto.
-
-## Después de subirlo, comprobar
-
-1. `https://margaritaapp.org` → se ve esta página, con el CSS y el logo.
-2. `https://margaritaapp.org/acceso.html` → explica dónde entrar.
-3. `https://palencia.margaritaapp.org` → manda a `/auth/login`, no a la oferta.
-4. `https://palencia.margaritaapp.org/aviso-de-privacidad` → responde (ese sí se
-   sirve desde la app, porque no es la raíz).
+El formulario de acceso no vive aquí: el botón «Iniciar sesión» lleva a
+`acceso.html`, que explica de dónde se entra en cada instalación.

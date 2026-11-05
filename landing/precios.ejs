@@ -1,0 +1,163 @@
+<%- include("_head") %>
+<%- include("_header") %>
+
+<main id="contenido">
+    <section class="section section--tight">
+        <div class="container">
+            <span class="eyebrow">Precios claros, sin letras chiquitas</span>
+            <h1 class="section-title" style="font-size:36px;line-height:44px;max-width:18ch;">Un producto, tres planes mensuales</h1>
+            <p class="section-lede">
+                Todos incluyen la plataforma completa. La diferencia es cuántas respuestas de
+                IA necesitas al mes. Precios en MXN + IVA; el consumo de WhatsApp lo factura
+                Meta directamente al cliente.
+            </p>
+        </div>
+    </section>
+
+    <section class="section section--tight">
+        <div class="container">
+            <div class="plans">
+                <% pricing.plans.forEach((plan) => { %>
+                    <article class="plan <%= plan.featured ? "plan--featured" : "" %>">
+                        <% if (plan.tag) { %><span class="plan__tag"><%= plan.tag %></span><% } %>
+                        <h3><%= plan.name %></h3>
+                        <p class="plan__desc"><%= plan.description %></p>
+                        <div class="plan__price">
+                            <strong>$<%= money(plan.monthly) %></strong>
+                            <small>MXN / mes + IVA</small>
+                        </div>
+                        <p class="plan__list">Precio de lista $<%= money(plan.list) %></p>
+                        <div class="plan__replies">
+                            <strong><%= plan.replies === 0 ? "Sin IA" : money(plan.replies) + " respuestas de IA" %></strong>
+                            <%= plan.replies === 0 ? "al mes" : "incluidas al mes" %>
+                        </div>
+                        <ul>
+                            <% plan.features.forEach((feature) => { %>
+                                <li><%= feature %></li>
+                            <% }) %>
+                        </ul>
+                        <div class="plan__cta">
+                            <a class="btn <%= plan.featured ? "btn--primary" : "btn--secondary" %> btn--block" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Elegir <%= plan.name %></a>
+                        </div>
+                    </article>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section--muted">
+        <div class="container">
+            <div class="section-head">
+                <p class="section-kicker">Comparación</p>
+                <h2 class="section-title">Qué incluye cada plan</h2>
+            </div>
+
+            <div class="plan-table-wrap">
+                <table class="plan-table">
+                    <thead>
+                        <tr>
+                            <th>Concepto</th>
+                            <th>Esencial</th>
+                            <th>IA Esencial</th>
+                            <th>IA Soporte</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Precio mensual (MXN + IVA)</td><td><strong>$<%= money(pricing.plans[0].monthly) %></strong></td><td><strong>$<%= money(pricing.plans[1].monthly) %></strong></td><td><strong>$<%= money(pricing.plans[2].monthly) %></strong></td></tr>
+                        <tr><td>Precio de lista</td><td>$<%= money(pricing.plans[0].list) %></td><td>$<%= money(pricing.plans[1].list) %></td><td>$<%= money(pricing.plans[2].list) %></td></tr>
+                        <tr><td>Respuestas de IA / mes</td><td>0</td><td>1,500</td><td>4,000</td></tr>
+                        <tr><td>Bandeja, contactos y campañas</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+                        <tr><td>Horarios y fuera de horario</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+                        <tr><td>Botones y listas</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+                        <tr><td>Flujos y base de conocimiento</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+                        <tr><td>Captura de leads y CSV</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+                        <tr><td>Reportes de servicio</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+                        <tr><td>IA en sugerencias</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+                        <tr><td>Respuesta automática acotada</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+                        <tr><td>Límites y presupuesto de IA</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+                        <tr><td>Cifrado, respaldos y bitácora</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container grid grid--2">
+            <div class="card">
+                <h3>Instalación (una vez)</h3>
+                <p class="mt-2"><strong>Paquete A · $<%= money(pricing.install.a) %> MXN + IVA</strong><br />
+                Instalación, primer mes en Esencial, conexión con Meta y sesión de arranque de 2 horas.</p>
+                <p class="mt-3"><strong>Paquete B · $<%= money(pricing.install.b) %> MXN + IVA</strong><br />
+                Si ya tienes tu cuenta de Meta configurada.</p>
+                <p class="small mt-3">Empezar directo en IA Esencial o IA Soporte no cobra setup adicional: va incluido en la instalación.</p>
+            </div>
+
+            <div class="card">
+                <h3>Cambios de plan y excedente</h3>
+                <p class="mt-2"><strong>Esencial → IA Esencial:</strong> $<%= money(pricing.upgrades.esencialToAI) %> MXN de setup.</p>
+                <p class="mt-2"><strong>Esencial → IA Soporte:</strong> $<%= money(pricing.upgrades.esencialToSupport) %> MXN de setup.</p>
+                <p class="mt-2"><strong>Excedente de IA:</strong> $<%= money(pricing.overage) %> MXN por cada 1,000 respuestas adicionales.</p>
+                <p class="small mt-3">Los cambios de plan se hacen después del primer mes.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section--muted">
+        <div class="container">
+            <div class="grid grid--3">
+                <div class="card">
+                    <h3>Piloto de <%= pricing.pilotDays %> días</h3>
+                    <p>El primer mes es un piloto pagado. Al día <%= pricing.pilotDays %> decides si continúas, sin penalización y con tu respaldo. Después es mes a mes.</p>
+                </div>
+                <div class="card">
+                    <h3>IVA y Meta</h3>
+                    <p>Todos los precios son más IVA. El consumo de WhatsApp lo factura Meta directamente al cliente; Margarita no lo incluye ni lo revende.</p>
+                </div>
+                <div class="card">
+                    <h3>Sin costo por usuario</h3>
+                    <p>Los usuarios y agentes no se cobran aparte. El plan se define por las respuestas de IA incluidas, no por el tamaño del equipo.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-head">
+                <p class="section-kicker">Preguntas de precio</p>
+                <h2 class="section-title">Antes de firmar</h2>
+            </div>
+            <div class="faq">
+                <details>
+                    <summary>¿Puedo cambiar de plan?</summary>
+                    <p>Sí, después del primer mes. Esencial → IA Esencial cuesta $<%= money(pricing.upgrades.esencialToAI) %> de setup; Esencial → IA Soporte, $<%= money(pricing.upgrades.esencialToSupport) %>.</p>
+                </details>
+                <details>
+                    <summary>¿Qué pasa si me paso de las respuestas de IA?</summary>
+                    <p>Se cobra un excedente de $<%= money(pricing.overage) %> por cada 1,000 respuestas adicionales. Puedes fijar un presupuesto mensual en el panel para no pasarte.</p>
+                </details>
+                <details>
+                    <summary>¿La instalación incluye el primer mes?</summary>
+                    <p>Sí, el primer mes en Esencial va incluido en el Paquete A o B. Si empiezas directo en IA Esencial o IA Soporte, el setup ya está incluido en la instalación y solo pagas la mensualidad del plan.</p>
+                </details>
+                <details>
+                    <summary>¿El consumo de WhatsApp está incluido?</summary>
+                    <p>No. Meta factura el consumo de WhatsApp directamente al cliente. Margarita no lo incluye ni lo revende; el panel muestra una estimación, no la factura de Meta.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-band section--dark">
+        <div class="container cta-band__inner">
+            <div>
+                <h2>¿Te ayudo a elegir el plan?</h2>
+                <p>Cuéntanos cuántas conversaciones atiendes al mes y te decimos qué plan conviene.</p>
+            </div>
+            <a class="btn btn--primary btn--lg" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Hablar por WhatsApp</a>
+        </div>
+    </section>
+</main>
+
+<%- include("_footer") %>

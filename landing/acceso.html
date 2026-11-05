@@ -1,317 +1,129 @@
-<!DOCTYPE html>
-
-<html lang="es" data-theme-lock=&#34;light&#34;>
+<!doctype html>
+<html lang="es-MX">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>Ya tengo acceso - Margarita</title>
-
-    
-
-
-<script>
-    (function () {
-        try {
-            var locked =
-                document.documentElement.getAttribute("data-theme-lock") === "light";
-
-            var stored = window.localStorage.getItem("marga-theme");
-            var dark =
-                !locked &&
-                (stored === "dark" ||
-                    (stored !== "light" &&
-                        window.matchMedia &&
-                        window.matchMedia("(prefers-color-scheme: dark)").matches));
-
-            if (dark) {
-                document.documentElement.classList.add("dark");
-            }
-
-            document.documentElement.style.colorScheme = dark ? "dark" : "light";
-        } catch (error) {
-            /* Sin almacenamiento disponible se queda en claro. */
-        }
-    })();
-</script>
-
-
-<meta name="theme-color" content="#0c5b4c" />
-<meta
-    name="description"
-    content="Margarita automatiza WhatsApp con IA para atender, calificar y derivar: conversaciones, campañas, base de conocimiento y control humano, con datos cifrados y bitácora."
-/>
-
-<link rel="icon" href="favicon.ico?v=1.0.0" sizes="any" />
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=1.0.0" />
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=1.0.0" />
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=1.0.0" />
-<link rel="manifest" href="site.webmanifest?v=1.0.0" />
-
-
-<meta name="marga-seal" content="brand/img/margarita-icon-128.png" />
-<meta name="marga-loader-petals" content="brand/img/margarita-loader-petals-128.png" />
-<meta name="marga-loader-face" content="brand/img/margarita-loader-face-128.png" />
-
-<style>
-    #marga-boot {
-        position: fixed;
-        inset: 0;
-        z-index: 120;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.85rem;
-        background: #f6f8f5;
-        transition: opacity 220ms ease;
-    }
-
-    #marga-boot[data-visible="false"] {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    #marga-boot .marga-boot__flower {
-        position: relative;
-        width: 3rem;
-        height: 3rem;
-        filter: drop-shadow(0 6px 14px rgb(15 111 74 / 0.16));
-    }
-
-    #marga-boot .marga-boot__petals {
-        width: 100%;
-        height: 100%;
-        animation: marga-boot-flor 7s linear infinite;
-        transform-origin: 50% 50%;
-    }
-
-    #marga-boot .marga-boot__face {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-    }
-
-    #marga-boot .marga-boot__text {
-        font: 700 0.85rem/1.2 ui-sans-serif, system-ui, sans-serif;
-        color: #10573c;
-        letter-spacing: 0.02em;
-    }
-
-    @keyframes marga-boot-flor {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        #marga-boot .marga-boot__petals {
-            animation: none;
-        }
-    }
-</style>
-
-<script>
-    /**
-     * Capa de arranque. Se crea aquí mismo, con la flor y el texto ya
-     * dibujados, y se retira cuando la página termina de cargar. Tiene un
-     * mínimo de 250 ms (para que no sea un parpadeo) y un máximo de 6 s (para
-     * que un recurso colgado no deje la pantalla tapada).
-     */
-    (function () {
-        var created = Date.now();
-        var petalsTag = document.querySelector('meta[name="marga-loader-petals"]');
-        var faceTag = document.querySelector('meta[name="marga-loader-face"]');
-        var petals = (petalsTag && petalsTag.getAttribute("content")) ||
-            "/brand/img/margarita-loader-petals-128.png";
-        var face = (faceTag && faceTag.getAttribute("content")) ||
-            "/brand/img/margarita-loader-face-128.png";
-
-        var layer = document.createElement("div");
-        layer.id = "marga-boot";
-        layer.setAttribute("role", "status");
-        layer.setAttribute("aria-live", "polite");
-        layer.innerHTML =
-            '<div class="marga-boot__flower" aria-hidden="true">' +
-            '<img src="' + petals + '" alt="" class="marga-boot__petals" />' +
-            '<img src="' + face + '" alt="" class="marga-boot__face" />' +
-            "</div>" +
-            '<p class="marga-boot__text">Cargando…</p>';
-
-        (document.body || document.documentElement).appendChild(layer);
-
-        var hidden = false;
-
-        function retire() {
-            if (hidden) {
-                return;
-            }
-
-            hidden = true;
-
-            var wait = Math.max(0, 150 - (Date.now() - created));
-
-            setTimeout(function () {
-                layer.setAttribute("data-visible", "false");
-                layer.setAttribute("aria-hidden", "true");
-
-                setTimeout(function () {
-                    if (layer.parentNode) {
-                        layer.parentNode.removeChild(layer);
-                    }
-                }, 260);
-            }, wait);
-        }
-
-        window.addEventListener("load", retire);
-        window.addEventListener("pageshow", retire);
-        setTimeout(retire, 6000);
-    })();
-</script>
-
-<script src="js/loading.js?v=1.0.0" defer></script>
-<script src="js/theme.js?v=1.0.0" defer></script>
-
-
-    <link rel="stylesheet" href="css/style.css?v=1.0.0" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ya tengo acceso — Margarita</title>
+    <meta name="description" content="Cómo entrar al panel de tu instalación de Margarita y qué hacer si olvidaste tu dominio o contraseña." />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Margarita" />
+    <meta property="og:title" content="Ya tengo acceso — Margarita" />
+    <meta property="og:description" content="Cómo entrar al panel de tu instalación de Margarita y qué hacer si olvidaste tu dominio o contraseña." />
+    <meta property="og:url" content="https://margaritaapp.org/" />
+    <meta property="og:image" content="https://margaritaapp.org/assets/img/margarita-wordmark-512.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Ya tengo acceso — Margarita" />
+    <meta name="twitter:description" content="Cómo entrar al panel de tu instalación de Margarita y qué hacer si olvidaste tu dominio o contraseña." />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="stylesheet" href="/assets/css/tokens.css" />
+    <link rel="stylesheet" href="/assets/css/site.css" />
 </head>
+<body>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
 
-<body class="min-h-screen bg-slate-100 text-slate-900 antialiased">
+<header class="site-header">
+    <div class="container site-header__inner">
+        <a class="brand" href="/">
+            <img src="/assets/img/margarita-icon-128.png" alt="Margarita" />
+            <span>
+                Margarita
+                <small>Automatización de WhatsApp con IA</small>
+            </span>
+        </a>
+
+        <nav class="nav" aria-label="Navegación principal">
+            <a href="/ia" >IA</a>
+            <a href="/precios" >Precios</a>
+            <a href="/demo" >Demo</a>
+            <a href="/onboarding" >Alta</a>
+            <a href="/guia" >Guía</a>
+            <a href="/plantillas" >Plantillas</a>
+        </nav>
+
+        <div class="header-actions">
+            <a class="header-login" href="/acceso">Iniciar sesión</a>
+            <a class="btn btn--primary" href="https://wa.me/525538783682" target="_blank" rel="noopener">Agendar demo</a>
+        </div>
+    </div>
+</header>
 
 
-
-
-<main class="min-h-screen bg-white text-slate-950">
-    <section class="border-b border-slate-200 bg-white">
-        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-            <a href="index.html" class="flex items-center gap-3">
-                <img src="brand/img/margarita-wordmark-512.png" alt="Margarita" class="h-10 w-auto" />
-            </a>
-
-            <a href="index.html" class="rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100">
-                Inicio
-            </a>
+<main id="contenido">
+    <section class="section section--tight">
+        <div class="container">
+            <span class="eyebrow">Acceso</span>
+            <h1 class="section-title" style="font-size:34px;line-height:42px;">Ya tengo acceso</h1>
+            <p class="section-lede">
+                Cada empresa opera en su propio dominio, por ejemplo
+                <strong>tuempresa.margaritaapp.org</strong>. Ahí vive el inicio de sesión del
+                panel; este sitio es la página pública del producto.
+            </p>
         </div>
     </section>
 
-    <section class="bg-gradient-to-b from-margarita-50 to-white">
-        <div class="mx-auto max-w-3xl px-6 py-16">
-            <p class="text-sm font-black uppercase tracking-wide text-margarita-700">
-                Acceso
-            </p>
-
-            <h1 class="mt-2 text-4xl font-black leading-tight">
-                Ya tengo acceso
-            </h1>
-
-            <p class="mt-4 text-lg leading-8 text-slate-600">
-                El panel de cada empresa vive en <strong>su propia dirección</strong>,
-                del tipo <span class="font-mono text-base">tu-empresa.margaritaapp.org</span>.
-                No se entra desde esta página: cada operación tiene su dirección y su
-                propia base de datos.
-            </p>
-
-            <div class="mt-8 space-y-4">
-                <div class="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
-                    <p class="font-black text-slate-900">
-                        1. Escribe la dirección que te entregamos
-                    </p>
-
-                    <p class="mt-2 text-sm leading-6 text-slate-600">
-                        Es la que anotamos en tu contrato y en la sesión de arranque.
-                        Guárdala en favoritos: ahí vive tu operación.
-                    </p>
-                </div>
-
-                <div class="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
-                    <p class="font-black text-slate-900">
-                        2. Entra con tu correo y contraseña
-                    </p>
-
-                    <p class="mt-2 text-sm leading-6 text-slate-600">
-                        El usuario administrador es el de la persona que firmó. Los demás
-                        usuarios los crea el administrador desde <strong>Equipo</strong>, y
-                        cada uno entra con su propia cuenta.
-                    </p>
-                </div>
-
-                <div class="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
-                    <p class="font-black text-slate-900">
-                        3. Si no te da acceso, escríbenos
-                    </p>
-
-                    <p class="mt-2 text-sm leading-6 text-slate-600">
-                        La contraseña no se recupera por correo (la herramienta no manda
-                        mensajes): la restablece un administrador de tu empresa desde
-                        <strong>Equipo</strong>, o nosotros desde el servidor si nadie
-                        puede entrar.
-                    </p>
-                </div>
+    <section class="section section--tight">
+        <div class="container grid grid--2">
+            <div class="card">
+                <h3>Entrar al panel</h3>
+                <p class="mt-2">Abre el dominio de tu instalación y entra con el correo y la contraseña que te entregaron. Si es la primera vez, cambia la contraseña y activa la verificación en dos pasos.</p>
+                <p class="small mt-3">No hay un formulario de acceso en este sitio: la sesión vive en el dominio de cada empresa.</p>
             </div>
 
-            <div class="mt-10 rounded-2xl bg-slate-950 p-6 text-white">
-                <p class="font-black">
-                    ¿Perdiste la dirección o el usuario?
-                </p>
-
-                <p class="mt-2 text-sm leading-6 text-slate-300">
-                    Escríbenos y te la pasamos:
-                    <span class="font-semibold text-white">contacto@margaritaapp.org</span>
-                    
-                        · WhatsApp <span class="font-semibold text-white">55 3878 3682</span>
-                    
-                </p>
-
-                <a href="https://wa.me/525538783682" class="mt-5 inline-flex rounded-xl bg-margarita-500 px-6 py-3 text-sm font-black text-white hover:bg-margarita-400">
-                    Escribirnos
-                </a>
+            <div class="card">
+                <h3>¿No recuerdas tu dominio?</h3>
+                <p class="mt-2">Escríbenos y te lo confirmamos. También podemos ayudarte si olvidaste la contraseña: un administrador de tu instalación puede restablecerla.</p>
+                <a class="btn btn--primary mt-4" href="mailto:contacto@margaritaapp.org">Escribir a soporte</a>
             </div>
         </div>
     </section>
 </main>
 
-<footer class="border-t border-slate-200 bg-white">
-    <div class="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-        <p>
-            Margarita · Operación de WhatsApp Business Cloud API
-        </p>
-
-        <nav class="flex flex-wrap items-center gap-4">
-            <a href="como-empezar.html" class="hover:text-margarita-700">
-                Cómo empezar
-            </a>
-
-            <a href="guia.html" class="hover:text-margarita-700">
-                Guía de uso
-            </a>
-
-            <a href="plantillas.html" class="hover:text-margarita-700">
-                Guía de plantillas
-            </a>
-
-            <a href="aviso-de-privacidad.html" class="font-semibold text-slate-600 hover:text-margarita-700">
-                Aviso de privacidad
-            </a>
-
-            
-                <a href="mailto:contacto@margaritaapp.org" class="hover:text-margarita-700">
-                    contacto@margaritaapp.org
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a class="brand" href="/">
+                    <img src="/assets/img/margarita-icon-128.png" alt="Margarita" />
+                    <span>Margarita</span>
                 </a>
-            
-        </nav>
+                <p>Automatiza WhatsApp con IA: atiende, califica y deriva. Instalación por empresa, datos cifrados y control humano.</p>
+            </div>
 
-        
-            <p class="text-[11px] text-slate-400">
-                Dudas, sugerencias y valoraciones:
-                <a href="mailto:contacto@margaritaapp.org?subject=Valoraci%C3%B3n%20de%20Margarita" class="font-semibold hover:underline">
-                    escríbenos
-                </a>
-            </p>
-        
+            <div class="footer-col">
+                <h4>Producto</h4>
+                <a href="/ia">IA con control humano</a>
+                <a href="/precios">Precios</a>
+                <a href="/demo">Demo</a>
+                <a href="/onboarding">Alta en 7 días</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Recursos</h4>
+                <a href="/guia">Guía de uso</a>
+                <a href="/plantillas">Guía de plantillas</a>
+                <a href="/privacidad">Aviso de privacidad</a>
+                <a href="/acceso">Ya tengo acceso</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Contacto</h4>
+                <a href="mailto:contacto@margaritaapp.org">contacto@margaritaapp.org</a>
+                <a href="https://wa.me/525538783682" target="_blank" rel="noopener">WhatsApp 55 3878 3682</a>
+                <a href="https://margaritaapp.org">margaritaapp.org</a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© 2026 Margarita. Todos los derechos reservados.</span>
+            <span>Precios en MXN + IVA. El consumo de WhatsApp lo factura Meta directamente al cliente.</span>
+        </div>
     </div>
 </footer>
-
 </body>
 </html>
 

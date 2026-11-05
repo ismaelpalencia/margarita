@@ -341,3 +341,45 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - El fixture de integración del módulo legado crea su workspace con `COBRANZA` explícito; el alta real de una instalación nueva queda en `GENERICO`.
 
 ---
+
+## Batch L — Rebuild del landing público
+
+**Estado:** completado. **Migración:** no. **Alcance:** solo `landing/`, `scripts/build-landing.ts`, la sección de precios de `docs/alcance-produccion.md` y esta bitácora.
+
+### Qué se hizo
+
+- Se reemplazó el sitio generado por un landing propio con plantillas EJS en `landing/` (`index`, `ia`, `precios`, `demo`, `onboarding`, `guia`, `plantillas`, `privacidad`, `acceso`) y parciales `_head`, `_header`, `_footer`.
+- `scripts/build-landing.ts` ahora renderiza esas plantillas a HTML en la misma carpeta, copia marca/favicons y conserva plantillas, `assets/` y `README.md`. El comando sigue siendo `npm run landing:build` y la salida sigue siendo `landing/`.
+- CSS propio con los tokens del panel: `landing/assets/css/tokens.css` y `site.css` (Inter/system, superficies blancas, brand `#2B6CB0`, tablas densas, sin frameworks).
+- Se eliminaron del landing: `como-empezar.html`, `propuesta.html`, `aviso-de-privacidad.html`, `css/`, `js/`, `docs/` y `brand/`; `privacidad.html` reemplaza al aviso anterior.
+- `docs/alcance-produccion.md`: solo se actualizó el bloque de precios y la fila «Cobro y contrato» a los 3 planes.
+
+### Páginas y contenido
+
+- `/`: hero «Automatiza WhatsApp con IA — atiende, califica y deriva», 6 beneficios, 3 pasos, 3 planes con precios y lista tachada, qué incluye cada plan, FAQ y CTA.
+- `/ia`: IA acotada, panel por hilo (modo, intención, confianza, handoff, pausa, costo), límites y lo que no hace.
+- `/precios`: 3 planes, comparación fila por fila, instalación A/B, upgrades, excedente, IVA/Meta y piloto.
+- `/demo`: simulador con selector de vertical y panel; llama a `/api/demo/session` y `/api/demo/chat` de la app (`DEMO_API_BASE`).
+- `/onboarding`: qué traer, plan de 7 días, responsabilidades y checklist.
+- `/guia` y `/plantillas`: renderizan `docs/guia-uso.md` y `docs/guia-plantillas.md` sin apéndice de cobranza.
+- `/privacidad`: aviso de privacidad propio del producto.
+- `/acceso`: explica el inicio de sesión por subdominio.
+
+### Gates
+
+- `npm run landing:build` → OK.
+- `grep -riE 'cobranza|deudor|promesa|recuperaci[oó]n|gesti[oó]n de cobro' landing/` → **0**.
+- `grep -rE '699|999|1,299|3,900|2,900' landing/` → **18 coincidencias** (precios + `9999px`/`-999px` del CSS).
+- `grep -riE '1,500|4,000' landing/` → **10 coincidencias**.
+- `grep -ri 'cobranza' landing/` → **0**.
+- Enlaces internos: **0 roto** (validador propio sobre los 9 HTML).
+- Servidor local (Node con URLs limpias) y capturas con Chrome headless: home, precios, demo, IA, onboarding, guía, plantillas, privacidad y acceso responden 200; móvil 390×844 sin desbordamiento (`scrollWidth = 390`).
+
+### Desviaciones y notas
+
+- El pipeline original generaba `landing/` desde `src/views/pages/home/*.ejs`. El prompt pedía EJS en `landing/` y prohibía tocar `src/`; para cumplir ambas cosas se adaptó únicamente `scripts/build-landing.ts` (comando y carpeta de salida intactos).
+- No existían `_headers`, `_redirects`, `wrangler.toml` ni `functions/`; no se añadieron.
+- El demo del landing depende de una app publicada con `DEMO_ENABLED=true` y CORS/mismo origen. Por defecto apunta a `https://demo.margaritaapp.org`; se puede cambiar con `DEMO_API_BASE` / `DEMO_URL` al construir.
+- `npx serve` no pudo usarse por permisos del caché de npm; la verificación local se hizo con un servidor Node equivalente (URLs limpias) y Chrome headless.
+
+---

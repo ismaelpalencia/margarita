@@ -1,707 +1,262 @@
-<!DOCTYPE html>
-
-<html lang="es" data-theme-lock=&#34;light&#34;>
+<!doctype html>
+<html lang="es-MX">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>Asistente de IA para WhatsApp con control humano - Margarita</title>
-
-    
-
-
-<script>
-    (function () {
-        try {
-            var locked =
-                document.documentElement.getAttribute("data-theme-lock") === "light";
-
-            var stored = window.localStorage.getItem("marga-theme");
-            var dark =
-                !locked &&
-                (stored === "dark" ||
-                    (stored !== "light" &&
-                        window.matchMedia &&
-                        window.matchMedia("(prefers-color-scheme: dark)").matches));
-
-            if (dark) {
-                document.documentElement.classList.add("dark");
-            }
-
-            document.documentElement.style.colorScheme = dark ? "dark" : "light";
-        } catch (error) {
-            /* Sin almacenamiento disponible se queda en claro. */
-        }
-    })();
-</script>
-
-
-<meta name="theme-color" content="#0c5b4c" />
-<meta
-    name="description"
-    content="Margarita automatiza WhatsApp con IA para atender, calificar y derivar: conversaciones, campañas, base de conocimiento y control humano, con datos cifrados y bitácora."
-/>
-
-<link rel="icon" href="favicon.ico?v=1.0.0" sizes="any" />
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=1.0.0" />
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=1.0.0" />
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=1.0.0" />
-<link rel="manifest" href="site.webmanifest?v=1.0.0" />
-
-
-<meta name="marga-seal" content="brand/img/margarita-icon-128.png" />
-<meta name="marga-loader-petals" content="brand/img/margarita-loader-petals-128.png" />
-<meta name="marga-loader-face" content="brand/img/margarita-loader-face-128.png" />
-
-<style>
-    #marga-boot {
-        position: fixed;
-        inset: 0;
-        z-index: 120;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.85rem;
-        background: #f6f8f5;
-        transition: opacity 220ms ease;
-    }
-
-    #marga-boot[data-visible="false"] {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    #marga-boot .marga-boot__flower {
-        position: relative;
-        width: 3rem;
-        height: 3rem;
-        filter: drop-shadow(0 6px 14px rgb(15 111 74 / 0.16));
-    }
-
-    #marga-boot .marga-boot__petals {
-        width: 100%;
-        height: 100%;
-        animation: marga-boot-flor 7s linear infinite;
-        transform-origin: 50% 50%;
-    }
-
-    #marga-boot .marga-boot__face {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-    }
-
-    #marga-boot .marga-boot__text {
-        font: 700 0.85rem/1.2 ui-sans-serif, system-ui, sans-serif;
-        color: #10573c;
-        letter-spacing: 0.02em;
-    }
-
-    @keyframes marga-boot-flor {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        #marga-boot .marga-boot__petals {
-            animation: none;
-        }
-    }
-</style>
-
-<script>
-    /**
-     * Capa de arranque. Se crea aquí mismo, con la flor y el texto ya
-     * dibujados, y se retira cuando la página termina de cargar. Tiene un
-     * mínimo de 250 ms (para que no sea un parpadeo) y un máximo de 6 s (para
-     * que un recurso colgado no deje la pantalla tapada).
-     */
-    (function () {
-        var created = Date.now();
-        var petalsTag = document.querySelector('meta[name="marga-loader-petals"]');
-        var faceTag = document.querySelector('meta[name="marga-loader-face"]');
-        var petals = (petalsTag && petalsTag.getAttribute("content")) ||
-            "/brand/img/margarita-loader-petals-128.png";
-        var face = (faceTag && faceTag.getAttribute("content")) ||
-            "/brand/img/margarita-loader-face-128.png";
-
-        var layer = document.createElement("div");
-        layer.id = "marga-boot";
-        layer.setAttribute("role", "status");
-        layer.setAttribute("aria-live", "polite");
-        layer.innerHTML =
-            '<div class="marga-boot__flower" aria-hidden="true">' +
-            '<img src="' + petals + '" alt="" class="marga-boot__petals" />' +
-            '<img src="' + face + '" alt="" class="marga-boot__face" />' +
-            "</div>" +
-            '<p class="marga-boot__text">Cargando…</p>';
-
-        (document.body || document.documentElement).appendChild(layer);
-
-        var hidden = false;
-
-        function retire() {
-            if (hidden) {
-                return;
-            }
-
-            hidden = true;
-
-            var wait = Math.max(0, 150 - (Date.now() - created));
-
-            setTimeout(function () {
-                layer.setAttribute("data-visible", "false");
-                layer.setAttribute("aria-hidden", "true");
-
-                setTimeout(function () {
-                    if (layer.parentNode) {
-                        layer.parentNode.removeChild(layer);
-                    }
-                }, 260);
-            }, wait);
-        }
-
-        window.addEventListener("load", retire);
-        window.addEventListener("pageshow", retire);
-        setTimeout(retire, 6000);
-    })();
-</script>
-
-<script src="js/loading.js?v=1.0.0" defer></script>
-<script src="js/theme.js?v=1.0.0" defer></script>
-
-
-    <link rel="stylesheet" href="css/style.css?v=1.0.0" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IA para WhatsApp con control humano — Margarita</title>
+    <meta name="description" content="La IA responde solo lo que está en tu base de conocimiento, entrega a una persona cuando duda y deja todo registrado. Panel de IA por conversación, confianza y costo." />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Margarita" />
+    <meta property="og:title" content="IA para WhatsApp con control humano — Margarita" />
+    <meta property="og:description" content="La IA responde solo lo que está en tu base de conocimiento, entrega a una persona cuando duda y deja todo registrado. Panel de IA por conversación, confianza y costo." />
+    <meta property="og:url" content="https://margaritaapp.org/" />
+    <meta property="og:image" content="https://margaritaapp.org/assets/img/margarita-wordmark-512.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="IA para WhatsApp con control humano — Margarita" />
+    <meta name="twitter:description" content="La IA responde solo lo que está en tu base de conocimiento, entrega a una persona cuando duda y deja todo registrado. Panel de IA por conversación, confianza y costo." />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="stylesheet" href="/assets/css/tokens.css" />
+    <link rel="stylesheet" href="/assets/css/site.css" />
 </head>
+<body>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
 
-<body class="min-h-screen bg-slate-100 text-slate-900 antialiased">
+<header class="site-header">
+    <div class="container site-header__inner">
+        <a class="brand" href="/">
+            <img src="/assets/img/margarita-icon-128.png" alt="Margarita" />
+            <span>
+                Margarita
+                <small>Automatización de WhatsApp con IA</small>
+            </span>
+        </a>
 
+        <nav class="nav" aria-label="Navegación principal">
+            <a href="/ia" aria-current=&#34;page&#34;>IA</a>
+            <a href="/precios" >Precios</a>
+            <a href="/demo" >Demo</a>
+            <a href="/onboarding" >Alta</a>
+            <a href="/guia" >Guía</a>
+            <a href="/plantillas" >Plantillas</a>
+        </nav>
 
-
-
-<main class="min-h-screen bg-white text-slate-950">
-    <section class="border-b border-slate-200 bg-white">
-        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-            <a href="index.html" class="flex items-center gap-3">
-                <img src="brand/img/margarita-wordmark-512.png" alt="Margarita" class="h-10 w-auto" />
-            </a>
-
-            <div class="flex items-center gap-3">
-                <a href="onboarding.html" class="hidden rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 md:inline-flex">
-                    Alta en 7 días
-                </a>
-
-                <a href="acceso.html" class="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
-                    Iniciar sesión
-                </a>
-            </div>
+        <div class="header-actions">
+            <a class="header-login" href="/acceso">Iniciar sesión</a>
+            <a class="btn btn--primary" href="https://wa.me/525538783682" target="_blank" rel="noopener">Agendar demo</a>
         </div>
-    </section>
+    </div>
+</header>
 
-    <section class="bg-gradient-to-b from-margarita-50 to-white">
-        <div class="mx-auto grid max-w-7xl gap-12 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+
+<main id="contenido">
+    <section class="hero">
+        <div class="container hero__grid">
             <div>
-                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
-                    Asistente de IA para WhatsApp · Con control humano
+                <span class="eyebrow">IA para atención al cliente</span>
+                <h1>Tu WhatsApp responde, entrega y registra. <span>Tu equipo manda.</span></h1>
+                <p class="hero__lede">
+                    Margarita conecta la IA a una bandeja real. Contesta lo frecuente con tu
+                    base de conocimiento, califica la conversación y la entrega a una persona
+                    cuando hace falta. Nada sale sin control y todo queda auditado.
                 </p>
-
-                <h1 class="mt-4 text-5xl font-black leading-tight tracking-tight text-slate-950">
-                    Tu WhatsApp responde, entrega y registra.
-                    <span class="text-margarita-700">Tu equipo manda.</span>
-                </h1>
-
-                <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-                    Margarita conecta la API oficial de WhatsApp, contesta lo
-                    frecuente con IA, califica la conversación y la entrega a una
-                    persona cuando hace falta. Nada sale sin control y todo queda
-                    auditado.
-                </p>
-
-                <div class="mt-8 flex flex-wrap gap-3">
-                    <a href="https://wa.me/525538783682" class="inline-flex rounded-xl bg-margarita-600 px-6 py-3 text-sm font-black text-white hover:bg-margarita-700">
-                        Agendar una demo
-                    </a>
-
-                    <a href="onboarding.html" class="inline-flex rounded-xl bg-white px-6 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">
-                        Cómo es el alta
-                    </a>
+                <div class="hero__actions">
+                    <a class="btn btn--primary btn--lg" href="https://wa.me/525538783682" target="_blank" rel="noopener">Ver la IA en una demo</a>
+                    <a class="btn btn--secondary btn--lg" href="/precios">Comparar planes</a>
                 </div>
-
-                <ul class="mt-8 grid gap-3 text-sm font-semibold text-slate-700 sm:grid-cols-3">
-                    <li class="flex items-center gap-2">
-                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-margarita-100 text-xs font-black text-margarita-700" aria-hidden="true">✓</span>
-                        API oficial de Meta
-                    </li>
-                    <li class="flex items-center gap-2">
-                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-margarita-100 text-xs font-black text-margarita-700" aria-hidden="true">✓</span>
-                        Piloto de 30 días
-                    </li>
-                    <li class="flex items-center gap-2">
-                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-margarita-100 text-xs font-black text-margarita-700" aria-hidden="true">✓</span>
-                        Datos cifrados
-                    </li>
-                </ul>
             </div>
 
-            <div class="rounded-[2rem] bg-slate-950 p-6 text-white shadow-xl">
-                <p class="text-xs font-black uppercase tracking-wide text-margarita-300">
-                    Así se ve el control
-                </p>
-
-                <div class="mt-4 space-y-3">
-                    <div class="rounded-2xl bg-white/10 p-4">
-                        <p class="text-xs font-bold text-slate-300">Cliente</p>
-                        <p class="mt-1 text-sm">¿Hacen envíos a Monterrey y cuánto cuesta?</p>
-                    </div>
-
-                    <div class="rounded-2xl bg-margarita-500/15 p-4 ring-1 ring-margarita-400/30">
-                        <div class="flex items-center justify-between gap-2">
-                            <p class="text-xs font-bold text-margarita-300">IA · borrador</p>
-                            <span class="rounded-full bg-margarita-500 px-2 py-0.5 text-[10px] font-black text-white">92%</span>
+            <div class="mock" aria-label="Panel de IA por conversación">
+                <div class="mock__bar"><span class="mock__dot"></span><span class="mock__dot"></span><span class="mock__dot"></span></div>
+                <div class="mock__body">
+                    <div class="mock__thread">
+                        <div class="bubble bubble--in">¿Cuál es el horario y dónde están?</div>
+                        <div class="bubble bubble--out">
+                            Atendemos de lunes a viernes de 9:00 a 18:00. Estamos en Av. Principal 123.
+                            <span class="bubble__meta">IA · 0.94 · base de conocimiento</span>
                         </div>
-                        <p class="mt-1 text-sm text-slate-100">
-                            Sí, enviamos a Monterrey. El costo depende del volumen; te paso con una persona para cotizarlo.
-                        </p>
-                        <p class="mt-2 text-[11px] text-slate-400">
-                            Cubierto por la base · listo para que tu equipo lo apruebe
-                        </p>
+                        <div class="bubble bubble--in">Quiero hablar con una persona.</div>
+                        <div class="bubble bubble--out">
+                            Claro, te paso con el equipo.
+                            <span class="bubble__meta">Handoff · el cliente lo pidió</span>
+                        </div>
                     </div>
-
-                    <div class="rounded-2xl bg-amber-500/10 p-4 ring-1 ring-amber-400/30">
-                        <p class="text-xs font-bold text-amber-300">Handoff</p>
-                        <p class="mt-1 text-sm text-amber-50">
-                            La IA entregó la conversación a una persona: la pregunta necesita una cotización.
-                        </p>
-                    </div>
+                    <aside class="mock__panel">
+                        <h4>Panel del hilo</h4>
+                        <div class="mock__row"><span>Modo</span><strong>Sugerencias</strong></div>
+                        <div class="mock__row"><span>Intención</span><strong>Horario</strong></div>
+                        <div class="mock__row"><span>Confianza</span><strong>94%</strong></div>
+                        <div class="mock__row"><span>Handoff</span><strong class="pill pill--warn">Sí</strong></div>
+                        <div class="mock__row"><span>Pausa</span><strong class="pill pill--ok">Disponible</strong></div>
+                        <div class="mock__row"><span>Costo</span><strong>$0.0003</strong></div>
+                    </aside>
                 </div>
-
-                <p class="mt-4 text-[11px] leading-5 text-slate-400">
-                    Ejemplo ilustrativo. En modo sugerencias, el mensaje no sale
-                    hasta que alguien del equipo lo aprueba.
-                </p>
             </div>
         </div>
     </section>
 
-    <section class="border-y border-slate-200 bg-white">
-        <div class="mx-auto max-w-7xl px-6 py-16">
-            <div class="max-w-3xl">
-                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
-                    El objetivo
-                </p>
-
-                <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
-                    Responde. Entrega. Registra.
-                </h2>
-
-                <p class="mt-3 text-slate-600">
-                    Tres cosas, una sola herramienta, pensada para atención al
-                    cliente: contestar rápido lo frecuente, pasar a una persona
-                    cuando hace falta y dejar registro de todo.
-                </p>
+    <section class="section">
+        <div class="container">
+            <div class="section-head section-head--center">
+                <p class="section-kicker">El objetivo</p>
+                <h2 class="section-title">Responde. Entrega. Registra.</h2>
+                <p class="section-lede">Tres cosas, una sola herramienta, pensada para atención al cliente.</p>
             </div>
 
-            <div class="mt-8 grid gap-4 md:grid-cols-3">
-                
-                    <article class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                        <h3 class="text-xl font-black text-slate-900">
-                            Responde
-                        </h3>
-
-                        <p class="mt-3 text-sm leading-6 text-slate-600">
-                            Contesta en segundos las preguntas que ya están en tu base de conocimiento. Si la respuesta no está, no inventa: entrega.
-                        </p>
-
-                        <p class="mt-4 text-xs font-bold text-margarita-700">
-                            Hasta 30 entradas revisadas contigo
-                        </p>
-                    </article>
-                
-                    <article class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                        <h3 class="text-xl font-black text-slate-900">
-                            Entrega
-                        </h3>
-
-                        <p class="mt-3 text-sm leading-6 text-slate-600">
-                            Ante una duda, una queja, una baja o una conversación sensible, pasa el hilo a una persona con el motivo a la vista.
-                        </p>
-
-                        <p class="mt-4 text-xs font-bold text-margarita-700">
-                            Handoff con motivo y prioridad
-                        </p>
-                    </article>
-                
-                    <article class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                        <h3 class="text-xl font-black text-slate-900">
-                            Registra
-                        </h3>
-
-                        <p class="mt-3 text-sm leading-6 text-slate-600">
-                            Cada borrador, respuesta automática y entrega queda en la bitácora. Tú ves qué contestó la IA, qué aprobó tu equipo y cuánto costó.
-                        </p>
-
-                        <p class="mt-4 text-xs font-bold text-margarita-700">
-                            Auditoría y métricas por conversación
-                        </p>
-                    </article>
-                
-            </div>
-        </div>
-    </section>
-
-    <section class="bg-slate-50">
-        <div class="mx-auto max-w-7xl px-6 py-16">
-            <div class="max-w-3xl">
-                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
-                    Cómo funciona
-                </p>
-
-                <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
-                    De la conexión a la primera respuesta en días.
-                </h2>
-            </div>
-
-            <ol class="mt-8 grid gap-4 md:grid-cols-2">
-                
-                    <li class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                        <p class="text-xs font-black text-margarita-700">
-                            01
-                        </p>
-
-                        <h3 class="mt-2 text-lg font-black text-slate-900">
-                            Conectamos tu WhatsApp
-                        </h3>
-
-                        <p class="mt-2 text-sm leading-6 text-slate-600">
-                            La API oficial de Meta, el número, el webhook firmado y una prueba de punta a punta. Sin WhatsApp Web ni atajos.
-                        </p>
-                    </li>
-                
-                    <li class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                        <p class="text-xs font-black text-margarita-700">
-                            02
-                        </p>
-
-                        <h3 class="mt-2 text-lg font-black text-slate-900">
-                            Cargamos tus respuestas
-                        </h3>
-
-                        <p class="mt-2 text-sm leading-6 text-slate-600">
-                            Entre 20 y 30 preguntas frecuentes con sus respuestas reales. Es la única fuente de la que la IA puede contestar.
-                        </p>
-                    </li>
-                
-                    <li class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                        <p class="text-xs font-black text-margarita-700">
-                            03
-                        </p>
-
-                        <h3 class="mt-2 text-lg font-black text-slate-900">
-                            Elegimos el modo
-                        </h3>
-
-                        <p class="mt-2 text-sm leading-6 text-slate-600">
-                            Empieza en sugerencias: la IA redacta y tu equipo decide. Cuando las métricas lo permiten, se enciende el automático acotado para FAQ.
-                        </p>
-                    </li>
-                
-                    <li class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                        <p class="text-xs font-black text-margarita-700">
-                            04
-                        </p>
-
-                        <h3 class="mt-2 text-lg font-black text-slate-900">
-                            Medimos y ajustamos
-                        </h3>
-
-                        <p class="mt-2 text-sm leading-6 text-slate-600">
-                            Aceptación, ediciones, descartes, entregas a personas y costo por conversación. Lo que no se mide, no se mejora.
-                        </p>
-                    </li>
-                
-            </ol>
-        </div>
-    </section>
-
-    <section class="border-y border-slate-200 bg-white">
-        <div class="mx-auto grid max-w-7xl gap-8 px-6 py-16 lg:grid-cols-2">
-            <div>
-                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
-                    El control
-                </p>
-
-                <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
-                    La IA propone. Tu equipo autoriza.
-                </h2>
-
-                <p class="mt-3 leading-7 text-slate-600">
-                    No es un chatbot suelto. Es una capa de IA encima de una
-                    bandeja real, con personas, permisos y bitácora. Si la IA
-                    duda, se detiene; si alguien del equipo responde, se pausa
-                    sola en ese hilo.
-                </p>
-
-                <ul class="mt-5 space-y-3 text-sm leading-6 text-slate-700">
-                    <li class="flex gap-2"><span class="text-margarita-700">✓</span> Pausa por conversación, con un clic.</li>
-                    <li class="flex gap-2"><span class="text-margarita-700">✓</span> Modo sugerencias: nada sale sin aprobación.</li>
-                    <li class="flex gap-2"><span class="text-margarita-700">✓</span> Automático solo para preguntas cubiertas.</li>
-                    <li class="flex gap-2"><span class="text-margarita-700">✓</span> Límites diarios, por hilo y presupuesto mensual.</li>
-                    <li class="flex gap-2"><span class="text-margarita-700">✓</span> Entrega con motivo cuando hay queja o duda.</li>
-                    <li class="flex gap-2"><span class="text-margarita-700">✓</span> Bitácora de cada decisión y su costo.</li>
-                </ul>
-            </div>
-
-            <div class="rounded-3xl bg-margarita-50 p-8 ring-1 ring-margarita-100">
-                <h3 class="text-xl font-black text-margarita-900">
-                    Lo que no vas a encontrar aquí
-                </h3>
-
-                <p class="mt-2 text-sm leading-6 text-margarita-800">
-                    Para que la propuesta no se convierta en otra cosa:
-                </p>
-
-                <ul class="mt-4 space-y-2 text-sm leading-6 text-margarita-900">
-                    <li>• Constructor visual de flujos.</li>
-                    <li>• CRM, ERP, facturación o integraciones a medida.</li>
-                    <li>• Campañas masivas sin control ni consentimiento.</li>
-                    <li>• Multi-tenant o panel de reventa.</li>
-                    <li>• Volumen sin medición ni límites.</li>
-                </ul>
-
-                <p class="mt-4 text-xs leading-5 text-margarita-800">
-                    Lo que sí incluye: conexión con Meta, bandeja, hasta 30
-                    entradas de conocimiento, sugerencias desde el día 1,
-                    automático acotado para FAQ, handoff, ventana de 24 horas,
-                    bajas, cifrado, bitácora, respaldos, capacitación de 2 horas
-                    y piloto de 30 días.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <section class="border-y border-slate-200 bg-slate-50" id="precios">
-        <div class="mx-auto max-w-7xl px-6 py-16">
-            <div class="max-w-3xl">
-                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
-                    Complemento de IA
-                </p>
-
-                <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
-                    Dos niveles. Se suman al paquete base.
-                </h2>
-
-                <p class="mt-3 text-slate-600">
-                    La instalación, la bandeja y la conexión con Meta van en el
-                    paquete base. La IA se agrega según el nivel de autonomía que
-                    quieras darle. Precios en MXN + IVA.
-                </p>
-            </div>
-
-            <div class="mt-8 grid gap-4 lg:grid-cols-2">
-                <article class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <h3 class="text-xl font-black text-slate-900">
-                                IA Esencial
-                            </h3>
-                            <p class="mt-1 text-sm text-slate-500">
-                                Control total y calidad medible.
-                            </p>
-                        </div>
-                        <span class="rounded-full bg-margarita-50 px-3 py-1 text-xs font-black text-margarita-700">
-                            Sugerencias
-                        </span>
-                    </div>
-
-                    <dl class="mt-5 grid grid-cols-2 gap-3">
-                        <div class="rounded-xl bg-slate-50 px-4 py-3">
-                            <dt class="text-xs text-slate-500">Instalación</dt>
-                            <dd class="mt-1 text-lg font-black text-slate-900">
-                                +$1,500.00 MXN
-                            </dd>
-                        </div>
-                        <div class="rounded-xl bg-slate-50 px-4 py-3">
-                            <dt class="text-xs text-slate-500">Mensualidad</dt>
-                            <dd class="mt-1 text-lg font-black text-slate-900">
-                                +$299.00 MXN
-                            </dd>
-                        </div>
-                    </dl>
-
-                    <ul class="mt-5 space-y-2 text-sm leading-6 text-slate-600">
-                        <li>• IA en modo sugerencias desde el día 1.</li>
-                        <li>• Base de conocimiento de hasta 30 entradas.</li>
-                        <li>• Handoff con motivo y pausa por conversación.</li>
-                        <li>• Panel de IA por conversación y métricas de aceptación.</li>
-                        <li>• Consola de prueba y ajuste de tono, umbral y límites.</li>
-                    </ul>
+            <div class="grid grid--3">
+                <article class="card">
+                    <div class="card__icon">1</div>
+                    <h3>Responde lo frecuente</h3>
+                    <p>Contesta en segundos las preguntas que ya están en tu base de conocimiento. Si la respuesta no está, no inventa: entrega.</p>
                 </article>
-
-                <article class="rounded-2xl bg-slate-950 p-6 text-white shadow-xl">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <h3 class="text-xl font-black">
-                                IA Soporte
-                            </h3>
-                            <p class="mt-1 text-sm text-slate-300">
-                                Libera tiempo en lo repetitivo.
-                            </p>
-                        </div>
-                        <span class="rounded-full bg-margarita-500 px-3 py-1 text-xs font-black text-white">
-                            Automático acotado
-                        </span>
-                    </div>
-
-                    <dl class="mt-5 grid grid-cols-2 gap-3">
-                        <div class="rounded-xl bg-white/10 px-4 py-3">
-                            <dt class="text-xs text-slate-300">Instalación</dt>
-                            <dd class="mt-1 text-lg font-black">
-                                +$3,000.00 MXN
-                            </dd>
-                        </div>
-                        <div class="rounded-xl bg-white/10 px-4 py-3">
-                            <dt class="text-xs text-slate-300">Mensualidad</dt>
-                            <dd class="mt-1 text-lg font-black">
-                                +$599.00 MXN
-                            </dd>
-                        </div>
-                    </dl>
-
-                    <ul class="mt-5 space-y-2 text-sm leading-6 text-slate-200">
-                        <li>• Todo lo de IA Esencial.</li>
-                        <li>• Respuesta automática solo para preguntas cubiertas.</li>
-                        <li>• Límites por día, por hilo y presupuesto mensual.</li>
-                        <li>• Entrega automática ante duda, queja o falta de conocimiento.</li>
-                        <li>• Panel por conversación con respuestas solas y costo.</li>
-                    </ul>
-
-                    <p class="mt-4 text-xs leading-5 text-slate-400">
-                        La captura de leads y las rutas a recursos se cotizan
-                        aparte mientras cerramos esa fase.
-                    </p>
+                <article class="card">
+                    <div class="card__icon">2</div>
+                    <h3>Califica y entrega</h3>
+                    <p>Ordena el contexto y pasa el hilo a una persona con el motivo a la vista: duda, queja, cotización o el cliente lo pidió.</p>
+                </article>
+                <article class="card">
+                    <div class="card__icon">3</div>
+                    <h3>Registra todo</h3>
+                    <p>Cada borrador, respuesta automática, pausa y entrega queda en la bitácora. Ves qué contestó la IA y cuánto costó.</p>
                 </article>
             </div>
-
-            <p class="mt-4 text-xs leading-5 text-slate-500">
-                Los dos niveles incluyen el piloto de 30 días y el
-                acompañamiento de arranque. El consumo de Meta y el de la IA se
-                cobran aparte, con presupuesto a la vista.
-            </p>
         </div>
     </section>
 
-    <section class="bg-white">
-        <div class="mx-auto max-w-4xl px-6 py-16">
-            <div class="max-w-3xl">
-                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
-                    Preguntas frecuentes
-                </p>
+    <section class="section section--muted">
+        <div class="container">
+            <div class="grid grid--2">
+                <div>
+                    <p class="section-kicker">El control</p>
+                    <h2 class="section-title">La IA propone. Tu equipo autoriza.</h2>
+                    <p class="section-lede">No es un chatbot suelto: es una capa de IA sobre una bandeja real, con personas, permisos y bitácora.</p>
+                    <ul class="checklist mt-4">
+                        <li>Modo sugerencias: nada sale sin aprobación</li>
+                        <li>Modo automático acotado solo para preguntas cubiertas</li>
+                        <li>Pausa por conversación con un clic</li>
+                        <li>Límites por día, por hilo y presupuesto mensual</li>
+                        <li>Entrega con motivo cuando hay duda o queja</li>
+                        <li>Panel de IA por hilo con confianza, intención y costo</li>
+                    </ul>
+                </div>
 
-                <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
-                    Antes de la demo.
-                </h2>
-            </div>
-
-            <div class="mt-8 space-y-3">
-                
-                    <details class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-                        <summary class="cursor-pointer font-black text-slate-900">
-                            ¿La IA puede contestar cualquier cosa?
-                        </summary>
-
-                        <p class="mt-3 text-sm leading-6 text-slate-600">
-                            No. Solo responde lo que está en la base de conocimiento, dentro de la ventana de 24 horas de WhatsApp y con la confianza mínima que tú defines. Si falta cualquiera de esas condiciones, entrega la conversación a una persona.
-                        </p>
-                    </details>
-                
-                    <details class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-                        <summary class="cursor-pointer font-black text-slate-900">
-                            ¿Qué pasa si la IA se equivoca?
-                        </summary>
-
-                        <p class="mt-3 text-sm leading-6 text-slate-600">
-                            En modo sugerencias nada sale sin que tu equipo lo apruebe. En automático acotado, la IA solo responde preguntas cubiertas; ante una duda, una queja o un tema sensible, se detiene y avisa. Además, cualquiera puede pausarla por conversación.
-                        </p>
-                    </details>
-                
-                    <details class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-                        <summary class="cursor-pointer font-black text-slate-900">
-                            ¿Se lleva mi historial si apago la IA?
-                        </summary>
-
-                        <p class="mt-3 text-sm leading-6 text-slate-600">
-                            No. Apagarla solo deja de generar respuestas. Las conversaciones, los borradores y la base de conocimiento se conservan, y puedes volver a encenderla cuando quieras.
-                        </p>
-                    </details>
-                
-                    <details class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-                        <summary class="cursor-pointer font-black text-slate-900">
-                            ¿Tengo que cambiar de número?
-                        </summary>
-
-                        <p class="mt-3 text-sm leading-6 text-slate-600">
-                            Se usa un número dedicado de WhatsApp Business. Puede ser uno nuevo o uno que migres; el número tiene que quedar registrado en Meta con su PIN. La cuenta de Meta y su método de cobro son del cliente.
-                        </p>
-                    </details>
-                
-                    <details class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-                        <summary class="cursor-pointer font-black text-slate-900">
-                            ¿Es un SaaS mensual o una instalación?
-                        </summary>
-
-                        <p class="mt-3 text-sm leading-6 text-slate-600">
-                            Hoy es una instalación por empresa: cada operación tiene su propio espacio, su base de datos y su dominio. No es multi-inquilino ni se revende. El alcance y las condiciones se cierran antes de empezar.
-                        </p>
-                    </details>
-                
-                    <details class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-                        <summary class="cursor-pointer font-black text-slate-900">
-                            ¿Cuánto cuesta?
-                        </summary>
-
-                        <p class="mt-3 text-sm leading-6 text-slate-600">
-                            El paquete base cubre la instalación, la bandeja y la conexión con Meta. La IA se agrega en dos niveles, Esencial o Soporte, con instalación y mensualidad. Los importes vigentes están en esta página y en la propuesta; todos son MXN + IVA y no se cobra por usuario.
-                        </p>
-                    </details>
-                
+                <div class="card">
+                    <h3>Lo que ves en cada conversación</h3>
+                    <div class="plan-table-wrap mt-3">
+                        <table class="plan-table">
+                            <tbody>
+                                <tr><td>Modo</td><td>Apagado, sugerencias o automático</td></tr>
+                                <tr><td>Intención</td><td>Tema detectado por el modelo</td></tr>
+                                <tr><td>Confianza</td><td>0–100% frente al umbral</td></tr>
+                                <tr><td>Handoff</td><td>Sí/No y motivo de la entrega</td></tr>
+                                <tr><td>Pausa</td><td>Activa o reactivable por hilo</td></tr>
+                                <tr><td>Consumo</td><td>Respuestas, borradores y costo estimado</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="bg-slate-950">
-        <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-6 py-14 md:flex-row md:items-center">
+    <section class="section">
+        <div class="container">
+            <div class="section-head">
+                <p class="section-kicker">Cómo se implanta</p>
+                <h2 class="section-title">De la conexión a la primera respuesta</h2>
+            </div>
+
+            <div class="steps">
+                <div class="step">
+                    <h3>Conectamos tu WhatsApp</h3>
+                    <p>API oficial, número, webhook firmado y prueba de punta a punta. Sin WhatsApp Web ni atajos.</p>
+                </div>
+                <div class="step">
+                    <h3>Cargamos tus respuestas</h3>
+                    <p>Entre 20 y 30 preguntas frecuentes con sus respuestas reales. Es la única fuente de la que la IA puede contestar.</p>
+                </div>
+                <div class="step">
+                    <h3>Elegimos el modo</h3>
+                    <p>Empieza en sugerencias: la IA redacta y tu equipo decide. Cuando las métricas lo permiten, se enciende el automático acotado.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section--muted">
+        <div class="container">
+            <div class="grid grid--2">
+                <div>
+                    <p class="section-kicker">Límites claros</p>
+                    <h2 class="section-title">Lo que la IA no hace</h2>
+                </div>
+                <ul class="checklist">
+                    <li>No inventa precios, plazos, descuentos ni condiciones</li>
+                    <li>No negocia ni cierra acuerdos por ti</li>
+                    <li>No responde fuera de tu base de conocimiento</li>
+                    <li>No sustituye a una persona en un tema sensible</li>
+                    <li>No envía mensajes fuera de la ventana de 24 horas sin plantilla</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-band section--dark">
+        <div class="container cta-band__inner">
             <div>
-                <h2 class="text-2xl font-black text-white">
-                    ¿Quieres verlo con tus propias preguntas?
-                </h2>
-
-                <p class="mt-2 max-w-2xl text-slate-300">
-                    Mándanos tres consultas reales de tu operación y te
-                    mostramos cómo responde, cuándo entrega y qué queda
-                    registrado.
-                </p>
+                <h2>¿Quieres verlo con tus propias preguntas?</h2>
+                <p>Mándanos tres consultas reales de tu operación y te mostramos cómo responde, cuándo entrega y qué queda registrado.</p>
             </div>
-
-            <a href="https://wa.me/525538783682" class="inline-flex shrink-0 rounded-xl bg-margarita-500 px-6 py-3 text-sm font-black text-white hover:bg-margarita-400">
-                Agendar demo
-            </a>
+            <a class="btn btn--primary btn--lg" href="https://wa.me/525538783682" target="_blank" rel="noopener">Agendar demo</a>
         </div>
     </section>
-
-    <footer class="border-t border-slate-200 bg-white">
-        <div class="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
-            <p>© 2026 Margarita. Instalación por empresa sobre la API oficial de WhatsApp.</p>
-
-            <div class="flex flex-wrap gap-4 font-semibold">
-                <a href="index.html" class="hover:text-margarita-700">Inicio</a>
-                <a href="onboarding.html" class="hover:text-margarita-700">Alta en 7 días</a>
-                <a href="como-empezar.html" class="hover:text-margarita-700">Guía de conexión</a>
-                <a href="propuesta.html" class="hover:text-margarita-700">Alcance</a>
-                <a href="aviso-de-privacidad.html" class="hover:text-margarita-700">Privacidad</a>
-            </div>
-        </div>
-    </footer>
 </main>
+
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a class="brand" href="/">
+                    <img src="/assets/img/margarita-icon-128.png" alt="Margarita" />
+                    <span>Margarita</span>
+                </a>
+                <p>Automatiza WhatsApp con IA: atiende, califica y deriva. Instalación por empresa, datos cifrados y control humano.</p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Producto</h4>
+                <a href="/ia">IA con control humano</a>
+                <a href="/precios">Precios</a>
+                <a href="/demo">Demo</a>
+                <a href="/onboarding">Alta en 7 días</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Recursos</h4>
+                <a href="/guia">Guía de uso</a>
+                <a href="/plantillas">Guía de plantillas</a>
+                <a href="/privacidad">Aviso de privacidad</a>
+                <a href="/acceso">Ya tengo acceso</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Contacto</h4>
+                <a href="mailto:contacto@margaritaapp.org">contacto@margaritaapp.org</a>
+                <a href="https://wa.me/525538783682" target="_blank" rel="noopener">WhatsApp 55 3878 3682</a>
+                <a href="https://margaritaapp.org">margaritaapp.org</a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© 2026 Margarita. Todos los derechos reservados.</span>
+            <span>Precios en MXN + IVA. El consumo de WhatsApp lo factura Meta directamente al cliente.</span>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
+

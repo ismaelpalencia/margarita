@@ -1,0 +1,265 @@
+<%- include("_head") %>
+<%- include("_header") %>
+
+<main id="contenido">
+    <section class="hero">
+        <div class="container hero__grid">
+            <div>
+                <span class="eyebrow">API oficial de WhatsApp · IA con control humano</span>
+
+                <h1>Automatiza WhatsApp con IA <span>atiende, califica y deriva.</span></h1>
+
+                <p class="hero__lede">
+                    Un solo producto para atender WhatsApp: la IA responde lo que está en tu
+                    base de conocimiento, califica la conversación y la entrega a una persona
+                    cuando hace falta. Todo desde un panel, con datos cifrados y bitácora.
+                </p>
+
+                <div class="hero__actions">
+                    <a class="btn btn--primary btn--lg" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Agendar una demo</a>
+                    <a class="btn btn--secondary btn--lg" href="/precios">Ver planes y precios</a>
+                </div>
+
+                <ul class="hero__meta">
+                    <li>API oficial de Meta</li>
+                    <li>Piloto de <%= pricing.pilotDays %> días</li>
+                    <li>Sin contrato largo</li>
+                </ul>
+            </div>
+
+            <div class="mock" aria-label="Vista ilustrativa del panel de Margarita">
+                <div class="mock__bar">
+                    <span class="mock__dot"></span><span class="mock__dot"></span><span class="mock__dot"></span>
+                </div>
+                <div class="mock__body">
+                    <div class="mock__thread">
+                        <div class="bubble bubble--in">Hola, ¿hacen envíos a Monterrey y a qué hora abren?</div>
+                        <div class="bubble bubble--out">
+                            Sí, enviamos a Monterrey. Abrimos de 9:00 a 18:00. Si quieres, te paso con una persona para cotizar.
+                            <span class="bubble__meta">IA · 0.93 · respondido</span>
+                        </div>
+                        <div class="bubble bubble--in">Perfecto, quiero una cotización.</div>
+                        <div class="bubble bubble--out">
+                            Claro, te paso con el equipo. En un momento te atiende una persona.
+                            <span class="bubble__meta">Handoff · motivo: cotización</span>
+                        </div>
+                    </div>
+                    <aside class="mock__panel">
+                        <h4>Panel de IA</h4>
+                        <div class="mock__row"><span>Modo</span><strong>Sugerencias</strong></div>
+                        <div class="mock__row"><span>Intención</span><strong>Cotizar</strong></div>
+                        <div class="mock__row"><span>Confianza</span><strong>93%</strong></div>
+                        <div class="mock__row"><span>Handoff</span><strong class="pill pill--warn">Sí</strong></div>
+                        <div class="mock__row"><span>Costo</span><strong>$0.0004</strong></div>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="trust">
+        <div class="container trust__inner">
+            <span class="trust__item"><strong>API oficial</strong> de WhatsApp Business</span>
+            <span class="trust__item"><strong>Cifrado</strong> AES-256 en la base</span>
+            <span class="trust__item"><strong>Multiusuario</strong> con roles</span>
+            <span class="trust__item"><strong>Respaldos</strong> diarios verificados</span>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-head section-head--center">
+                <p class="section-kicker">Por qué Margarita</p>
+                <h2 class="section-title">Menos respuestas a mano, más conversaciones con contexto</h2>
+                <p class="section-lede">
+                    La IA se encarga de lo repetitivo y tu equipo de lo importante. Nada se
+                    envía solo si no está cubierto por tu base de conocimiento.
+                </p>
+            </div>
+
+            <div class="grid grid--3">
+                <article class="card">
+                    <div class="card__icon">API</div>
+                    <h3>WhatsApp oficial, sin atajos</h3>
+                    <p>Opera la WhatsApp Business Cloud API de Meta: webhook firmado, estados reales y ventana de 24 horas.</p>
+                </article>
+
+                <article class="card">
+                    <div class="card__icon">IA</div>
+                    <h3>IA acotada con entrega a personas</h3>
+                    <p>Responde solo lo que está en tu base de conocimiento, con umbral de confianza. Si duda, entrega el hilo con el motivo a la vista.</p>
+                </article>
+
+                <article class="card">
+                    <div class="card__icon">PNL</div>
+                    <h3>Panel completo de operación</h3>
+                    <p>Bandeja compartida, contactos, etiquetas, campañas, plantillas, respuestas rápidas y reportes de servicio.</p>
+                </article>
+
+                <article class="card">
+                    <div class="card__icon">EQ</div>
+                    <h3>Varios agentes, cada quien lo suyo</h3>
+                    <p>Roles de administrador y agente. El agente ve solo sus conversaciones; la asignación es por carga.</p>
+                </article>
+
+                <article class="card">
+                    <div class="card__icon">SEC</div>
+                    <h3>Cifrado, respaldos y bitácora</h3>
+                    <p>Datos personales cifrados en la base, respaldos diarios verificados y registro de lo importante.</p>
+                </article>
+
+                <article class="card">
+                    <div class="card__icon">HR</div>
+                    <h3>Horarios y fuera de horario</h3>
+                    <p>Define días y horas. Fuera de horario responde un mensaje, la IA si cubre la pregunta, o solo encola para la mañana.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section--muted">
+        <div class="container">
+            <div class="section-head">
+                <p class="section-kicker">Cómo funciona</p>
+                <h2 class="section-title">De la conexión a la primera respuesta en días</h2>
+            </div>
+
+            <div class="steps">
+                <div class="step">
+                    <h3>Conecta tu cuenta de Meta</h3>
+                    <p>Instalamos la app, la cuenta de WhatsApp Business, el número y el webhook firmado. Tú conservas el control de tu cuenta.</p>
+                </div>
+                <div class="step">
+                    <h3>Carga tus respuestas</h3>
+                    <p>Horarios, ubicación, catálogo, estado de un pedido o cómo agendar. Esa base es la única fuente de la que la IA puede responder.</p>
+                </div>
+                <div class="step">
+                    <h3>Atiende y deriva</h3>
+                    <p>La IA responde lo cubierto; cuando duda, hay una queja o hace falta una decisión, entrega el hilo a una persona con contexto.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="planes">
+        <div class="container">
+            <div class="section-head section-head--center">
+                <p class="section-kicker">Planes</p>
+                <h2 class="section-title">Un producto, tres planes mensuales</h2>
+                <p class="section-lede">
+                    Todos incluyen la plataforma completa. La diferencia es cuántas respuestas
+                    de IA necesitas al mes.
+                </p>
+            </div>
+
+            <div class="plans">
+                <% pricing.plans.forEach((plan) => { %>
+                    <article class="plan <%= plan.featured ? "plan--featured" : "" %>">
+                        <% if (plan.tag) { %><span class="plan__tag"><%= plan.tag %></span><% } %>
+                        <h3><%= plan.name %></h3>
+                        <p class="plan__desc"><%= plan.description %></p>
+                        <div class="plan__price">
+                            <strong>$<%= money(plan.monthly) %></strong>
+                            <small>MXN / mes + IVA</small>
+                        </div>
+                        <p class="plan__list">Lista $<%= money(plan.list) %></p>
+                        <div class="plan__replies">
+                            <strong><%= plan.replies === 0 ? "Sin IA" : money(plan.replies) + " respuestas de IA" %></strong>
+                            <%= plan.replies === 0 ? "al mes" : "incluidas al mes" %>
+                        </div>
+                        <ul>
+                            <% plan.features.forEach((feature) => { %>
+                                <li><%= feature %></li>
+                            <% }) %>
+                        </ul>
+                        <div class="plan__cta">
+                            <a class="btn <%= plan.featured ? "btn--primary" : "btn--secondary" %> btn--block" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Elegir <%= plan.name %></a>
+                        </div>
+                    </article>
+                <% }) %>
+            </div>
+
+            <div class="note mt-5">
+                <strong>Instalación:</strong> Paquete A $<%= money(pricing.install.a) %> (incluye el primer mes en Esencial, conexión con Meta y sesión de arranque de 2 h) o Paquete B $<%= money(pricing.install.b) %> si ya tienes Meta configurado. <strong>+ IVA.</strong>
+            </div>
+
+            <p class="small mt-3">
+                ¿Necesitas más respuestas de IA? El excedente cuesta $<%= money(pricing.overage) %> por cada 1,000 respuestas adicionales.
+                <a href="/precios">Ver el detalle de precios</a>.
+            </p>
+        </div>
+    </section>
+
+    <section class="section section--muted">
+        <div class="container">
+            <div class="grid grid--2">
+                <div>
+                    <p class="section-kicker">Todos los planes incluyen</p>
+                    <h2 class="section-title">La plataforma completa, sin recortes</h2>
+                    <p class="section-lede">El plan cambia la IA que incluyes, no las funciones de operación.</p>
+                </div>
+
+                <ul class="checklist">
+                    <li>Bandeja compartida, contactos y etiquetas</li>
+                    <li>Campañas con plantillas y envío en cola</li>
+                    <li>Botones y listas dentro de la ventana de 24 horas</li>
+                    <li>Horarios de atención y respuesta fuera de horario</li>
+                    <li>Flujos precargados y base de conocimiento por vertical</li>
+                    <li>Captura de leads con exportación a CSV</li>
+                    <li>Reportes de servicio: IA vs persona y primera respuesta</li>
+                    <li>Roles de administrador y agente, con bitácora</li>
+                    <li>Cifrado AES-256 y respaldos diarios verificados</li>
+                    <li>Verificación en dos pasos por cuenta</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-head">
+                <p class="section-kicker">Preguntas rápidas</p>
+                <h2 class="section-title">Lo que suelen preguntar antes de la demo</h2>
+            </div>
+
+            <div class="faq">
+                <details>
+                    <summary>¿Es la API oficial de WhatsApp?</summary>
+                    <p>Sí. Margarita opera la WhatsApp Business Cloud API de Meta, con webhook firmado y estados reales. No es WhatsApp Web ni una app no oficial.</p>
+                </details>
+                <details>
+                    <summary>¿La IA responde cualquier cosa?</summary>
+                    <p>No. Responde solo lo que está en tu base de conocimiento, con un umbral de confianza y límites. Si el dato no está, o si piden una persona, entrega la conversación.</p>
+                </details>
+                <details>
+                    <summary>¿Puedo empezar sin IA?</summary>
+                    <p>Sí. El plan Esencial incluye la plataforma completa sin respuestas de IA. Puedes subir a IA Esencial o IA Soporte cuando quieras; el cambio tiene un setup de $500 o $1,000 según el plan.</p>
+                </details>
+                <details>
+                    <summary>¿Qué incluye la instalación?</summary>
+                    <p>Paquete A: instalación, primer mes en Esencial, conexión con Meta y sesión de arranque de 2 horas. Paquete B: lo mismo si ya tienes Meta configurado. Los precios son más IVA.</p>
+                </details>
+                <details>
+                    <summary>¿El consumo de WhatsApp está incluido?</summary>
+                    <p>No. Meta factura el consumo de WhatsApp directamente al cliente. Margarita no lo incluye ni lo revende; el panel muestra una estimación, no la factura de Meta.</p>
+                </details>
+                <details>
+                    <summary>¿Hay contrato largo?</summary>
+                    <p>No. El primer mes es un piloto pagado de <%= pricing.pilotDays %> días. Al día <%= pricing.pilotDays %> decides si continúas, sin penalización y con tu respaldo. Después es mes a mes.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-band section--dark">
+        <div class="container cta-band__inner">
+            <div>
+                <h2>¿Listo para que tu WhatsApp atienda mejor?</h2>
+                <p>Agenda una demo por WhatsApp. Revisamos tu operación, tu cuenta de Meta y el plan que te conviene.</p>
+            </div>
+            <a class="btn btn--primary btn--lg" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Agendar una demo</a>
+        </div>
+    </section>
+</main>
+
+<%- include("_footer") %>

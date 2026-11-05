@@ -1,288 +1,98 @@
-<!DOCTYPE html>
-
-<html lang="es" data-theme-lock=&#34;light&#34;>
+<!doctype html>
+<html lang="es-MX">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>Guía de plantillas - Margarita</title>
-
-    
-
-
-<script>
-    (function () {
-        try {
-            var locked =
-                document.documentElement.getAttribute("data-theme-lock") === "light";
-
-            var stored = window.localStorage.getItem("marga-theme");
-            var dark =
-                !locked &&
-                (stored === "dark" ||
-                    (stored !== "light" &&
-                        window.matchMedia &&
-                        window.matchMedia("(prefers-color-scheme: dark)").matches));
-
-            if (dark) {
-                document.documentElement.classList.add("dark");
-            }
-
-            document.documentElement.style.colorScheme = dark ? "dark" : "light";
-        } catch (error) {
-            /* Sin almacenamiento disponible se queda en claro. */
-        }
-    })();
-</script>
-
-
-<meta name="theme-color" content="#0c5b4c" />
-<meta
-    name="description"
-    content="Margarita automatiza WhatsApp con IA para atender, calificar y derivar: conversaciones, campañas, base de conocimiento y control humano, con datos cifrados y bitácora."
-/>
-
-<link rel="icon" href="favicon.ico?v=1.0.0" sizes="any" />
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=1.0.0" />
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=1.0.0" />
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=1.0.0" />
-<link rel="manifest" href="site.webmanifest?v=1.0.0" />
-
-
-<meta name="marga-seal" content="brand/img/margarita-icon-128.png" />
-<meta name="marga-loader-petals" content="brand/img/margarita-loader-petals-128.png" />
-<meta name="marga-loader-face" content="brand/img/margarita-loader-face-128.png" />
-
-<style>
-    #marga-boot {
-        position: fixed;
-        inset: 0;
-        z-index: 120;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.85rem;
-        background: #f6f8f5;
-        transition: opacity 220ms ease;
-    }
-
-    #marga-boot[data-visible="false"] {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    #marga-boot .marga-boot__flower {
-        position: relative;
-        width: 3rem;
-        height: 3rem;
-        filter: drop-shadow(0 6px 14px rgb(15 111 74 / 0.16));
-    }
-
-    #marga-boot .marga-boot__petals {
-        width: 100%;
-        height: 100%;
-        animation: marga-boot-flor 7s linear infinite;
-        transform-origin: 50% 50%;
-    }
-
-    #marga-boot .marga-boot__face {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-    }
-
-    #marga-boot .marga-boot__text {
-        font: 700 0.85rem/1.2 ui-sans-serif, system-ui, sans-serif;
-        color: #10573c;
-        letter-spacing: 0.02em;
-    }
-
-    @keyframes marga-boot-flor {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        #marga-boot .marga-boot__petals {
-            animation: none;
-        }
-    }
-</style>
-
-<script>
-    /**
-     * Capa de arranque. Se crea aquí mismo, con la flor y el texto ya
-     * dibujados, y se retira cuando la página termina de cargar. Tiene un
-     * mínimo de 250 ms (para que no sea un parpadeo) y un máximo de 6 s (para
-     * que un recurso colgado no deje la pantalla tapada).
-     */
-    (function () {
-        var created = Date.now();
-        var petalsTag = document.querySelector('meta[name="marga-loader-petals"]');
-        var faceTag = document.querySelector('meta[name="marga-loader-face"]');
-        var petals = (petalsTag && petalsTag.getAttribute("content")) ||
-            "/brand/img/margarita-loader-petals-128.png";
-        var face = (faceTag && faceTag.getAttribute("content")) ||
-            "/brand/img/margarita-loader-face-128.png";
-
-        var layer = document.createElement("div");
-        layer.id = "marga-boot";
-        layer.setAttribute("role", "status");
-        layer.setAttribute("aria-live", "polite");
-        layer.innerHTML =
-            '<div class="marga-boot__flower" aria-hidden="true">' +
-            '<img src="' + petals + '" alt="" class="marga-boot__petals" />' +
-            '<img src="' + face + '" alt="" class="marga-boot__face" />' +
-            "</div>" +
-            '<p class="marga-boot__text">Cargando…</p>';
-
-        (document.body || document.documentElement).appendChild(layer);
-
-        var hidden = false;
-
-        function retire() {
-            if (hidden) {
-                return;
-            }
-
-            hidden = true;
-
-            var wait = Math.max(0, 150 - (Date.now() - created));
-
-            setTimeout(function () {
-                layer.setAttribute("data-visible", "false");
-                layer.setAttribute("aria-hidden", "true");
-
-                setTimeout(function () {
-                    if (layer.parentNode) {
-                        layer.parentNode.removeChild(layer);
-                    }
-                }, 260);
-            }, wait);
-        }
-
-        window.addEventListener("load", retire);
-        window.addEventListener("pageshow", retire);
-        setTimeout(retire, 6000);
-    })();
-</script>
-
-<script src="js/loading.js?v=1.0.0" defer></script>
-<script src="js/theme.js?v=1.0.0" defer></script>
-
-
-    <link rel="stylesheet" href="css/style.css?v=1.0.0" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Guía de plantillas — Margarita</title>
+    <meta name="description" content="Cómo crear plantillas de WhatsApp que Meta apruebe y que cuesten poco. Categorías, reglas, variables y motivos de rechazo." />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Margarita" />
+    <meta property="og:title" content="Guía de plantillas — Margarita" />
+    <meta property="og:description" content="Cómo crear plantillas de WhatsApp que Meta apruebe y que cuesten poco. Categorías, reglas, variables y motivos de rechazo." />
+    <meta property="og:url" content="https://margaritaapp.org/" />
+    <meta property="og:image" content="https://margaritaapp.org/assets/img/margarita-wordmark-512.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Guía de plantillas — Margarita" />
+    <meta name="twitter:description" content="Cómo crear plantillas de WhatsApp que Meta apruebe y que cuesten poco. Categorías, reglas, variables y motivos de rechazo." />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="stylesheet" href="/assets/css/tokens.css" />
+    <link rel="stylesheet" href="/assets/css/site.css" />
 </head>
+<body>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
 
-<body class="min-h-screen bg-slate-100 text-slate-900 antialiased">
+<header class="site-header">
+    <div class="container site-header__inner">
+        <a class="brand" href="/">
+            <img src="/assets/img/margarita-icon-128.png" alt="Margarita" />
+            <span>
+                Margarita
+                <small>Automatización de WhatsApp con IA</small>
+            </span>
+        </a>
 
-
-
-
-<main class="min-h-screen bg-white text-slate-950">
-    <section class="border-b border-slate-200 bg-white">
-        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-            <a href="index.html" class="flex items-center gap-3">
-                <img src="brand/img/margarita-wordmark-512.png" alt="Margarita" class="h-10 w-auto" />
-            </a>
-
-            <div class="flex items-center gap-3">
-                <a href="index.html" class="hidden rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 md:inline-flex">
-                    Inicio
-                </a>
-
-                <a href="acceso.html" class="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
-                    Iniciar sesión
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <section class="bg-gradient-to-b from-margarita-50 to-white">
-        <div class="mx-auto max-w-7xl px-6 py-16">
-            <div class="max-w-4xl">
-                <p class="text-sm font-bold uppercase tracking-wide text-margarita-700">
-                    Guía de plantillas
-                </p>
-
-                <h1 class="mt-3 text-5xl font-black tracking-tight text-slate-950">
-                    Plantillas que se aprueban y cuestan poco.
-                </h1>
-
-                <p class="mt-6 text-lg leading-8 text-slate-600">
-                    La plantilla es el único camino para hablarle a alguien que no
-                    escribió en las últimas 24 horas. Y la categoría que Meta le
-                    ponga decide cuánto cuesta cada mensaje. Esta guía es todo lo que
-                    hace falta para crearlas bien.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <section class="mx-auto max-w-4xl px-6 py-12">
-        <nav class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-            <p class="text-xs font-black uppercase tracking-wide text-slate-500">
-                En esta guía
-            </p>
-
-            <ol class="mt-4 grid gap-2 text-sm font-semibold text-slate-700 sm:grid-cols-2">
-                
-                    <li>
-                        <a href="#1-por-que-existen-las-plantillas" class="hover:text-margarita-700">
-                            1. Por qué existen las plantillas
-                        </a>
-                    </li>
-                
-                    <li>
-                        <a href="#2-las-cinco-reglas-que-hacen-que-se-aprueben" class="hover:text-margarita-700">
-                            2. Las cinco reglas que hacen que se aprueben
-                        </a>
-                    </li>
-                
-                    <li>
-                        <a href="#3-que-puede-llenar-la-app" class="hover:text-margarita-700">
-                            3. Qué puede llenar la app
-                        </a>
-                    </li>
-                
-                    <li>
-                        <a href="#4-paso-a-paso-en-meta" class="hover:text-margarita-700">
-                            4. Paso a paso en Meta
-                        </a>
-                    </li>
-                
-                    <li>
-                        <a href="#5-la-plantilla-de-atencion-recomendada" class="hover:text-margarita-700">
-                            5. La plantilla de atención recomendada
-                        </a>
-                    </li>
-                
-                    <li>
-                        <a href="#6-plantillas-que-sirven-para-el-dia-a-dia" class="hover:text-margarita-700">
-                            6. Plantillas que sirven para el día a día
-                        </a>
-                    </li>
-                
-                    <li>
-                        <a href="#7-cuando-meta-la-rechaza" class="hover:text-margarita-700">
-                            7. Cuando Meta la rechaza
-                        </a>
-                    </li>
-                
-                    <li>
-                        <a href="#8-cuidar-la-calidad-del-numero" class="hover:text-margarita-700">
-                            8. Cuidar la calidad del número
-                        </a>
-                    </li>
-                
-            </ol>
+        <nav class="nav" aria-label="Navegación principal">
+            <a href="/ia" >IA</a>
+            <a href="/precios" >Precios</a>
+            <a href="/demo" >Demo</a>
+            <a href="/onboarding" >Alta</a>
+            <a href="/guia" >Guía</a>
+            <a href="/plantillas" aria-current=&#34;page&#34;>Plantillas</a>
         </nav>
 
-        <div class="guia-prose mt-12">
-            <h2 id="1-por-que-existen-las-plantillas">1. Por qué existen las plantillas</h2>
+        <div class="header-actions">
+            <a class="header-login" href="/acceso">Iniciar sesión</a>
+            <a class="btn btn--primary" href="https://wa.me/525538783682" target="_blank" rel="noopener">Agendar demo</a>
+        </div>
+    </div>
+</header>
+
+
+<main id="contenido">
+    <section class="section section--tight">
+        <div class="container">
+            <span class="eyebrow">Guía de plantillas</span>
+            <h1 class="section-title" style="font-size:34px;line-height:42px;">Plantillas que se aprueban y cuestan poco</h1>
+            <p class="section-lede">
+                La plantilla es el único camino para hablarle a alguien que no escribió en las
+                últimas 24 horas. La categoría que Meta le ponga decide cuánto cuesta cada
+                mensaje.
+            </p>
+        </div>
+    </section>
+
+    <section class="section section--tight">
+        <div class="container">
+            <nav class="guide-toc" aria-label="En esta guía">
+                <p class="section-kicker">En esta guía</p>
+                <ul class="guide-toc__list">
+                    
+                        <li><a href="#1-por-que-existen-las-plantillas">1. Por qué existen las plantillas</a></li>
+                    
+                        <li><a href="#2-las-cinco-reglas-que-hacen-que-se-aprueben">2. Las cinco reglas que hacen que se aprueben</a></li>
+                    
+                        <li><a href="#3-que-puede-llenar-la-app">3. Qué puede llenar la app</a></li>
+                    
+                        <li><a href="#4-paso-a-paso-en-meta">4. Paso a paso en Meta</a></li>
+                    
+                        <li><a href="#5-la-plantilla-de-atencion-recomendada">5. La plantilla de atención recomendada</a></li>
+                    
+                        <li><a href="#6-plantillas-que-sirven-para-el-dia-a-dia">6. Plantillas que sirven para el día a día</a></li>
+                    
+                        <li><a href="#7-cuando-meta-la-rechaza">7. Cuando Meta la rechaza</a></li>
+                    
+                        <li><a href="#8-cuidar-la-calidad-del-numero">8. Cuidar la calidad del número</a></li>
+                    
+                </ul>
+            </nav>
+
+            <div class="prose">
+                <h2 id="1-por-que-existen-las-plantillas">1. Por qué existen las plantillas</h2>
 <p>WhatsApp solo deja escribir <strong>texto libre durante 24 horas</strong> después del último mensaje del cliente. Para volver a iniciar la conversación —o para escribir a alguien que no ha respondido— hace falta una <strong>plantilla aprobada por Meta</strong>.</p>
 <p>Y no todas cuestan lo mismo:</p>
 <div class="marga-table"><table><thead><tr><th>Categoría</th><th>Para qué es</th><th>Costo relativo</th></tr></thead><tbody><tr><td><strong>Utilidad</strong></td><td>Avisos sobre un pedido, una entrega, una cita o un servicio que la persona ya tiene</td><td>Bajo</td></tr><tr><td><strong>Marketing</strong></td><td>Promociones, novedades y reactivación de clientes</td><td>Varias veces más</td></tr><tr><td><strong>Autenticación</strong></td><td>Códigos de un solo uso</td><td>Bajo</td></tr></tbody></table></div>
@@ -320,66 +130,62 @@
 <h2 id="8-cuidar-la-calidad-del-numero">8. Cuidar la calidad del número</h2>
 <ul><li>Manda solo a quien dio su consentimiento.</li><li>Respeta las bajas el mismo día.</li><li>No dispares campañas enormes de golpe: la app ya pone una pausa entre mensajes, pero el volumen total también cuenta.</li><li>Revisa la calidad del número en <strong>Admin → WhatsApp</strong> y en el panel de Meta.</li></ul>
 <blockquote>Si prefieres no pelearte con esto, lo hacemos nosotros: la conexión con Meta, las plantillas y la prueba de punta a punta se cotizan aparte.</blockquote>
+            </div>
         </div>
+    </section>
 
-        <div class="mt-12 rounded-2xl bg-margarita-50 p-6 ring-1 ring-margarita-200">
-            <p class="text-sm font-bold text-margarita-900">
-                ¿Prefieres no pelearte con esto?
-            </p>
-
-            <p class="mt-1 text-sm text-margarita-800">
-                La conexión con Meta, las plantillas y la prueba de punta a punta se
-                cotizan aparte.
-            </p>
-
-            <a href="https://wa.me/525538783682" class="mt-4 inline-flex rounded-xl bg-margarita-600 px-5 py-3 text-sm font-black text-white hover:bg-margarita-700">
-                Pedir que me ayuden
-            </a>
+    <section class="cta-band section--dark">
+        <div class="container cta-band__inner">
+            <div>
+                <h2>¿Prefieres que las armemos contigo?</h2>
+                <p>La conexión con Meta, las plantillas y la prueba de punta a punta van en la instalación.</p>
+            </div>
+            <a class="btn btn--primary btn--lg" href="https://wa.me/525538783682" target="_blank" rel="noopener">Hablar por WhatsApp</a>
         </div>
     </section>
 </main>
 
-<footer class="border-t border-slate-200 bg-white">
-    <div class="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-        <p>
-            Margarita · Operación de WhatsApp Business Cloud API
-        </p>
-
-        <nav class="flex flex-wrap items-center gap-4">
-            <a href="como-empezar.html" class="hover:text-margarita-700">
-                Cómo empezar
-            </a>
-
-            <a href="guia.html" class="hover:text-margarita-700">
-                Guía de uso
-            </a>
-
-            <a href="plantillas.html" class="hover:text-margarita-700">
-                Guía de plantillas
-            </a>
-
-            <a href="aviso-de-privacidad.html" class="font-semibold text-slate-600 hover:text-margarita-700">
-                Aviso de privacidad
-            </a>
-
-            
-                <a href="mailto:contacto@margaritaapp.org" class="hover:text-margarita-700">
-                    contacto@margaritaapp.org
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a class="brand" href="/">
+                    <img src="/assets/img/margarita-icon-128.png" alt="Margarita" />
+                    <span>Margarita</span>
                 </a>
-            
-        </nav>
+                <p>Automatiza WhatsApp con IA: atiende, califica y deriva. Instalación por empresa, datos cifrados y control humano.</p>
+            </div>
 
-        
-            <p class="text-[11px] text-slate-400">
-                Dudas, sugerencias y valoraciones:
-                <a href="mailto:contacto@margaritaapp.org?subject=Valoraci%C3%B3n%20de%20Margarita" class="font-semibold hover:underline">
-                    escríbenos
-                </a>
-            </p>
-        
+            <div class="footer-col">
+                <h4>Producto</h4>
+                <a href="/ia">IA con control humano</a>
+                <a href="/precios">Precios</a>
+                <a href="/demo">Demo</a>
+                <a href="/onboarding">Alta en 7 días</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Recursos</h4>
+                <a href="/guia">Guía de uso</a>
+                <a href="/plantillas">Guía de plantillas</a>
+                <a href="/privacidad">Aviso de privacidad</a>
+                <a href="/acceso">Ya tengo acceso</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Contacto</h4>
+                <a href="mailto:contacto@margaritaapp.org">contacto@margaritaapp.org</a>
+                <a href="https://wa.me/525538783682" target="_blank" rel="noopener">WhatsApp 55 3878 3682</a>
+                <a href="https://margaritaapp.org">margaritaapp.org</a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© 2026 Margarita. Todos los derechos reservados.</span>
+            <span>Precios en MXN + IVA. El consumo de WhatsApp lo factura Meta directamente al cliente.</span>
+        </div>
     </div>
 </footer>
-
 </body>
 </html>
 

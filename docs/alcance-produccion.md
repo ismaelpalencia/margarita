@@ -9,27 +9,27 @@ pantalla, con reglas, atajos, flujos y guiones— está en
 Última revisión: 2026-11-04 (reposicionamiento: el producto se vende como automatización de WhatsApp con IA para atender, calificar y derivar; el giro por defecto de una instalación nueva es `GENERICO` y **COBRANZA deja de ofrecerse**, aunque se conserva como módulo legado para instalaciones que ya lo usan). La fase 2 de IA sigue en pie: respuesta automática acotada, pausa por conversación, límites y entrega a personas; el modo por defecto sigue siendo sugerencias y `AI_ENABLED=false`.
 
 > **Precios vigentes: estos gobiernan sobre cualquier otro documento.**
-> **Paquete A $3,500.00 MXN** (instalación, primer mes y conexión con Meta) o
-> **Paquete B $2,500.00 MXN** (instalación y primer mes); **mensualidad $699.00 MXN** (de lista $1,490.00). El
-> primer mes se paga junto con la instalación. **Todos los precios son más IVA.**
-> **El primer mes es un piloto pagado**: al día 30 el cliente decide si
-> continúa, sin penalización y con su respaldo. Después es mes a mes; los
-> compromisos de 3, 6 o 12 meses son **opcionales** y bajan la mensualidad.
-> **El cliente debe llegar con su cuenta de Meta ya configurada** (verificación,
-> número y método de pago); si no la tiene, la conexión se **cotiza aparte**.
-> La oferta se anuncia hasta el **31 de diciembre de 2026** y la página deja de
-> mostrarla sola al pasar esa fecha (`INSTALL_PROMO_UNTIL`).
+> **Un solo producto, tres planes mensuales** (todos incluyen la plataforma
+> completa): **Esencial $699 MXN/mes** (0 respuestas de IA; lista $1,290),
+> **IA Esencial $999 MXN/mes** (1,500 respuestas de IA/mes; lista $1,690) e
+> **IA Soporte $1,299 MXN/mes** (4,000 respuestas de IA/mes; lista $1,990).
 >
-> **Complemento de IA (aprobado el 2026-11-04).** Se suma al paquete base; no
-> lo sustituye. **IA Esencial: +$1,500.00 MXN de instalación y +$299.00 MXN al
-> mes.** Incluye IA en sugerencias, base de conocimiento de hasta 30 entradas,
-> handoff con motivo, pausa por conversación, panel de IA por hilo y métricas de
-> aceptación. **IA Soporte: +$3,000.00 MXN de instalación y +$599.00 MXN al
-> mes.** Incluye todo lo anterior más respuesta automática acotada para FAQ,
-> límites por día y por hilo, presupuesto mensual y entrega automática ante
-> duda, queja o falta de conocimiento. La captura de leads y las rutas a
-> recursos se cotizan aparte mientras se cierra esa fase. El piloto de 30 días
-> aplica igual: al día 30 el cliente decide si continúa.
+> **Instalación (una vez, incluye el primer mes en Esencial):**
+> **Paquete A $3,900 MXN** (instalación, primer mes, conexión con Meta y sesión
+> de arranque de 2 h) o **Paquete B $2,900 MXN** (si el cliente ya tiene Meta
+> configurado).
+>
+> **Cambios de plan después del primer mes:** Esencial → IA Esencial, **$500 MXN**
+> de setup; Esencial → IA Soporte, **$1,000 MXN** de setup. Empezar directo en
+> IA Esencial o IA Soporte no cobra setup adicional (va incluido en la
+> instalación).
+>
+> **Excedente de IA: $150 MXN por cada 1,000 respuestas adicionales.**
+> Todos los precios son **más IVA**. El consumo de WhatsApp lo factura **Meta
+> directamente al cliente**; Margarita no lo incluye ni lo revende.
+>
+> **Piloto pagado de 30 días**: al día 30 el cliente decide si continúa, sin
+> penalización y con su respaldo. Después, mes a mes.
 >
 > La propuesta y la facturación usan estos números y la página pública los
 > muestra. El panel **no** muestra precios: es información del operador. Si
@@ -42,7 +42,7 @@ Sí, como **instalación por empresa** en Railway, una vez cumplido el checklist
 | Punto | Estado |
 | --- | --- |
 | Cuenta de WhatsApp y método de pago en Meta | **Del cliente, y de entrada.** Llega con su cuenta de WhatsApp Business ya configurada (verificación del negocio, nombre visible, número registrado con PIN y método de pago). Si no la tiene, acompañarlo es una **cotización aparte**; [`guia-meta.md`](guia-meta.md) sirve para hacerlo solo. |
-| Cobro y contrato | **Del operador.** **Paquete A: $3,500** (instalación, primer mes y conexión con Meta) o **Paquete B: $2,500** (si ya tiene Meta). Mensualidad **$699** mes a mes, con compromiso opcional de 3/6/12 meses a $649/$599/$549. **Más IVA**; el consumo de Meta va aparte. **Piloto de 30 días** sin penalización. Precio de lista $4,900 y $1,490. |
+| Cobro y contrato | **Del operador.** **Paquete A: $3,900** (instalación, primer mes, conexión con Meta y sesión de arranque de 2 h) o **Paquete B: $2,900** (si ya tiene Meta). Tres planes mensuales: **Esencial $699** (sin IA, lista $1,290), **IA Esencial $999** (1,500 respuestas de IA, lista $1,690) e **IA Soporte $1,299** (4,000 respuestas de IA, lista $1,990). Cambio Esencial → IA Esencial $500 de setup; Esencial → IA Soporte $1,000. Excedente de IA $150 por 1,000 respuestas. **Más IVA**; el consumo de WhatsApp lo factura Meta aparte. **Piloto de 30 días** sin penalización. |
 | Plantillas de las campañas | **Del cliente, con nuestra guía.** Al contratar se le entrega la **guía de plantillas**, publicada en `margaritaapp.org/plantillas` (código en [`guia-plantillas.md`](guia-plantillas.md)): categorías y costo, reglas de redacción, variables, el paso a paso en Meta, la plantilla de atención recomendada y los motivos de rechazo. Armarlas en Meta es suyo; revisarlas con él es parte del arranque. Para la conexión con Meta está además [`guia-meta.md`](guia-meta.md). |
 | Guía de uso del equipo | **Escrita y publicada** en `margaritaapp.org/guia` (código en [`guia-uso.md`](guia-uso.md) y en la página `guia.ejs`): arranque, bandeja, plantillas, campañas, IA, respaldos, límites y problemas comunes. Se entrega al contratar junto con la **sesión de arranque de 2 horas** que promete la página. |
 | Opt-in de los contactos | **Del cliente.** La herramienta lo registra y respeta las bajas, pero no verifica de dónde salió el consentimiento. |

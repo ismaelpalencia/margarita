@@ -1,18 +1,15 @@
 /**
- * Arma la carpeta `landing/`: la página de venta como sitio estático, para
- * subirlo aparte de la aplicación.
+ * Arma la carpeta `landing/`: el sitio de venta estático del producto.
  *
  *     npm run landing:build
  *
- * Por qué existe: cada operación (cada cliente) vive en su propio subdominio,
- * del tipo `palencia.margaritaapp.org`, y ahí la raíz manda al inicio de
- * sesión. La oferta, la guía de Meta y el aviso de privacidad viven en el
- * dominio del producto, como sitio aparte: así un cambio de marketing no obliga
- * a desplegar en la instalación de cada cliente.
+ * Las plantillas viven en `landing/*.ejs` y se renderizan a `landing/*.html`
+ * en la misma carpeta. Así el sitio se puede editar sin tocar la aplicación y
+ * se publica tal cual en Cloudflare Pages (o cualquier hosting estático).
  *
- * Las plantillas son las mismas que usa la aplicación (`src/views/pages/home`),
- * así que la página publicada y la que sirve la app no pueden decir cosas
- * distintas. Este script sólo las pinta y las guarda.
+ * El comando y la carpeta de salida no cambian. Lo que se conserva:
+ * plantillas `.ejs`, `assets/`, `README.md`, favicons, `robots.txt` y
+ * `site.webmanifest`. Lo demás generado se reescribe.
  */
 
 import fs from "node:fs";
@@ -25,242 +22,188 @@ import { loadGuide } from "../src/content/guides";
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, "landing");
-const VIEWS = path.join(ROOT, "src", "views");
 const PUBLIC = path.join(ROOT, "src", "public");
+const BRAND = path.join(PUBLIC, "brand", "img");
 
-/** Las páginas que forman el sitio, con el archivo que produce cada una. */
-const PAGES: Array<{ view: string; file: string; title: string }> = [
+type Page = {
+    template: string;
+    file: string;
+    title: string;
+    description: string;
+    active: string;
+};
+
+const PAGES: Page[] = [
     {
-        view: "pages/home/index",
+        template: "index.ejs",
         file: "index.html",
-        title: "Margarita — Automatiza WhatsApp con IA"
+        title: "Margarita — Automatiza WhatsApp con IA",
+        description:
+            "Atiende, califica y deriva conversaciones de WhatsApp con IA acotada, control humano y panel completo. API oficial de Meta, datos cifrados y planes desde $699 MXN al mes.",
+        active: "home"
     },
     {
-        view: "pages/home/ia",
+        template: "ia.ejs",
         file: "ia.html",
-        title: "Asistente de IA para WhatsApp con control humano - Margarita"
+        title: "IA para WhatsApp con control humano — Margarita",
+        description:
+            "La IA responde solo lo que está en tu base de conocimiento, entrega a una persona cuando duda y deja todo registrado. Panel de IA por conversación, confianza y costo.",
+        active: "ia"
     },
     {
-        view: "pages/home/how-to-start",
-        file: "como-empezar.html",
-        title: "Cómo empezar - Margarita"
+        template: "precios.ejs",
+        file: "precios.html",
+        title: "Precios — Margarita",
+        description:
+            "Un producto, tres planes: Esencial $699, IA Esencial $999 e IA Soporte $1,299 MXN al mes. Instalación desde $2,900. Precios más IVA.",
+        active: "precios"
     },
     {
-        view: "pages/home/onboarding",
+        template: "demo.ejs",
+        file: "demo.html",
+        title: "Demo de WhatsApp con IA — Margarita",
+        description:
+            "Prueba la IA con una base de conocimiento real. Simulador de WhatsApp con panel de modo, intención, confianza, handoff y costo.",
+        active: "demo"
+    },
+    {
+        template: "onboarding.ejs",
         file: "onboarding.html",
-        title: "Alta en 7 días - Margarita"
+        title: "Alta en 7 días — Margarita",
+        description:
+            "Qué necesitas traer, qué configuramos y en qué orden. Tu operación de WhatsApp lista en 7 días.",
+        active: "onboarding"
     },
     {
-        view: "pages/home/guia",
+        template: "guia.ejs",
         file: "guia.html",
-        title: "Guía de uso - Margarita"
+        title: "Guía de uso — Margarita",
+        description:
+            "El manual del equipo que atiende por WhatsApp: bandeja, plantillas, campañas, IA, horarios, leads y respaldos.",
+        active: "guia"
     },
     {
-        view: "pages/home/plantillas",
+        template: "plantillas.ejs",
         file: "plantillas.html",
-        title: "Guía de plantillas - Margarita"
+        title: "Guía de plantillas — Margarita",
+        description:
+            "Cómo crear plantillas de WhatsApp que Meta apruebe y que cuesten poco. Categorías, reglas, variables y motivos de rechazo.",
+        active: "plantillas"
     },
     {
-        view: "pages/home/propuesta",
-        file: "propuesta.html",
-        title: "Propuesta comercial - Margarita"
+        template: "privacidad.ejs",
+        file: "privacidad.html",
+        title: "Aviso de privacidad — Margarita",
+        description:
+            "Cómo tratamos los datos personales en Margarita: cifrado, conservación, derechos y contacto.",
+        active: "privacidad"
     },
     {
-        view: "pages/home/access",
+        template: "acceso.ejs",
         file: "acceso.html",
-        title: "Ya tengo acceso - Margarita"
-    },
-    {
-        view: "pages/home/privacy",
-        file: "aviso-de-privacidad.html",
-        title: "Aviso de privacidad - Margarita"
+        title: "Ya tengo acceso — Margarita",
+        description:
+            "Cómo entrar al panel de tu instalación de Margarita y qué hacer si olvidaste tu dominio o contraseña.",
+        active: "acceso"
     }
 ];
 
-/** Los mismos datos que `HomeController` le pasa a las vistas. */
-function locals(title: string) {
-    return {
-        title,
-        appName: appConfig.name,
-        supportWhatsappNumber: appConfig.supportWhatsapp,
-        supportWhatsappUrl: appConfig.supportWhatsapp
-            ? `https://wa.me/${appConfig.supportWhatsapp}`
-            : "",
-        supportEmail: appConfig.supportEmail,
-        supportWhatsappDisplay: appConfig.supportWhatsappDisplay,
-        setupServicePrice: appConfig.setupServicePrice,
-        installPrice: appConfig.installPrice,
-        installPriceWithMeta: appConfig.installPriceWithMeta,
-        installPricePromo: appConfig.installPricePromo,
-        installPromoLabel: appConfig.installPromoLabel,
-        installPromoUntil: appConfig.installPromoUntil,
-        installPromoSpotsLeft: appConfig.installPromoSpotsLeft,
-        monthlyCommit3: appConfig.monthlyCommit3,
-        monthlyCommit6: appConfig.monthlyCommit6,
-        monthlyCommit12: appConfig.monthlyCommit12,
-        installSavingWithMeta: appConfig.installSavingWithMeta,
-        installSavingBasic: appConfig.installSavingBasic,
-        aiEssentialInstallPrice: appConfig.aiEssentialInstallPrice,
-        aiEssentialMonthlyPrice: appConfig.aiEssentialMonthlyPrice,
-        aiSupportInstallPrice: appConfig.aiSupportInstallPrice,
-        aiSupportMonthlyPrice: appConfig.aiSupportMonthlyPrice,
-        pilotDays: appConfig.pilotDays,
-        installMonthlyPrice: appConfig.installMonthlyPrice,
-        installMonthlyListPrice: appConfig.installMonthlyListPrice
-    };
-}
-
 /**
- * Enlaza las páginas entre sí por nombre de archivo.
- *
- * El acceso se manda a la página que explica de dónde se entra: el formulario
- * de inicio de sesión **no** se copia al sitio estático, porque vive siempre en
- * el dominio de cada operación (y así no hace falta abrir CORS ni una excepción
- * de origen).
+ * Precios vigentes del producto. La fuente que gobierna es
+ * docs/alcance-produccion.md; si cambian, se actualiza primero ahí y luego
+ * esta constante.
  */
-function rewriteLinks(html: string) {
-    /**
-     * La versión del despliegue va al final del CSS y los favicons: así, al
-     * volver a subir el sitio, el navegador de quien ya lo visitó trae los
-     * archivos nuevos en lugar de los guardados.
-     */
-    const assetTag = `?v=${appConfig.commit || appConfig.version}`;
+const PRICING = {
+    plans: [
+        {
+            name: "Esencial",
+            monthly: 699,
+            list: 1290,
+            replies: 0,
+            tag: "",
+            featured: false,
+            description: "La plataforma completa, sin respuestas de IA.",
+            features: [
+                "Bandeja, contactos y campañas",
+                "Horarios y fuera de horario",
+                "Botones, listas y flujos",
+                "Leads y reportes de servicio",
+                "Cifrado y respaldos"
+            ]
+        },
+        {
+            name: "IA Esencial",
+            monthly: 999,
+            list: 1690,
+            replies: 1500,
+            tag: "Más elegido",
+            featured: true,
+            description: "IA en sugerencias, con tu equipo al mando.",
+            features: [
+                "Todo lo de Esencial",
+                "1,500 respuestas de IA al mes",
+                "Base de conocimiento y handoff",
+                "Panel de IA por conversación",
+                "Pausa por hilo"
+            ]
+        },
+        {
+            name: "IA Soporte",
+            monthly: 1299,
+            list: 1990,
+            replies: 4000,
+            tag: "",
+            featured: false,
+            description: "Respuesta automática acotada para preguntas frecuentes.",
+            features: [
+                "Todo lo de IA Esencial",
+                "4,000 respuestas de IA al mes",
+                "Respuesta automática acotada",
+                "Límites por día y por hilo",
+                "Presupuesto mensual"
+            ]
+        }
+    ],
+    install: { a: 3900, b: 2900 },
+    upgrades: { esencialToAI: 500, esencialToSupport: 1000 },
+    overage: 150,
+    pilotDays: 30
+};
 
-    return html
-        .replace(/href="\/como-empezar"/g, 'href="como-empezar.html"')
-        .replace(/href="\/onboarding"/g, 'href="onboarding.html"')
-        .replace(/href="\/ia"/g, 'href="ia.html"')
-        .replace(/href="\/guia"/g, 'href="guia.html"')
-        .replace(/href="\/plantillas"/g, 'href="plantillas.html"')
-        .replace(/href="\/propuesta"/g, 'href="propuesta.html"')
-        .replace(/href="\/aviso-de-privacidad"/g, 'href="aviso-de-privacidad.html"')
-        .replace(/href="\/acceso"/g, 'href="acceso.html"')
-        .replace(/href="\/auth\/login"/g, 'href="acceso.html"')
-        .replace(/href="\/setup"/g, 'href="acceso.html"')
-        .replace(/href="\/"/g, 'href="index.html"')
-        /**
-         * Los archivos van con ruta relativa: así el sitio funciona igual si se
-         * sube a un dominio propio o dentro de una carpeta (`/landing/`).
-         */
-        .replace(/href="\/css\//g, `href="css/`)
-        .replace(/href="\/docs\//g, 'href="docs/')
-        .replace(/href="(css\/style\.css)"/g, `href="$1${assetTag}"`)
-        .replace(
-            /href="(css\/landing-2026\.css)"/g,
-            `href="$1${assetTag}"`
-        )
-        .replace(
-            /href="\/(favicon|apple-touch|android-chrome|site\.webmanifest)([^"]*)"/g,
-            `href="$1$2${assetTag}"`
-        )
-        /**
-         * El aviso de carga también vive en el sitio estático: la capa del
-         * sello aparece al cambiar de página, igual que dentro del panel.
-         */
-        .replace(/src="\/js\//g, 'src="js/')
-        .replace(/src="(js\/(?:loading|theme)\.js)"/g, `src="$1${assetTag}"`)
-        /**
-         * El sello del aviso de carga se toma de este `meta`: en el sitio
-         * estático la ruta tiene que ser relativa, igual que el resto.
-         */
-        .replace(/content="\/brand\//g, 'content="brand/')
-        .replace(/src="\/brand\//g, 'src="brand/')
-        .replace(/src="\/(favicon|apple-touch|android-chrome)/g, 'src="$1');
-}
+const money = (value: number) =>
+    new Intl.NumberFormat("es-MX", { maximumFractionDigits: 0 }).format(value);
+
+const demoApiBase = (process.env.DEMO_API_BASE || "https://demo.margaritaapp.org")
+    .trim()
+    .replace(/\/+$/, "");
+const demoUrl = process.env.DEMO_URL?.trim() || demoApiBase + "/demo";
 
 function copy(from: string, to: string) {
     fs.mkdirSync(path.dirname(to), { recursive: true });
     fs.copyFileSync(from, to);
 }
 
-function build() {
-    /**
-     * Se limpia todo menos el README: es de la carpeta, no algo que se genere
-     * (y no se debe perder al regenerar).
-     */
-    fs.mkdirSync(OUT, { recursive: true });
-
+function cleanGenerated() {
     for (const entry of fs.readdirSync(OUT)) {
-        if (entry !== "README.md") {
-            fs.rmSync(path.join(OUT, entry), { recursive: true, force: true });
+        if (entry.endsWith(".html") && !PAGES.some((page) => page.file === entry)) {
+            fs.rmSync(path.join(OUT, entry), { force: true });
         }
     }
 
-    fs.mkdirSync(OUT, { recursive: true });
-
-    for (const page of PAGES) {
-        const file = path.join(VIEWS, `${page.view}.ejs`);
-
-        /**
-         * Las guías salen del mismo `.md` que usa la aplicación: la página es
-         * solo la portada y el estilo. Así no se pueden separar.
-         */
-        const extra: Record<string, unknown> = {};
-
-        if (page.file === "guia.html") {
-            const guide = loadGuide("uso");
-            extra.guideHtml = guide.html;
-            extra.guideHeadings = guide.headings.filter(
-                (heading) => heading.level === 2
-            );
-        }
-
-        if (page.file === "plantillas.html") {
-            const guide = loadGuide("plantillas");
-            extra.guideHtml = guide.html;
-            extra.guideHeadings = guide.headings.filter(
-                (heading) => heading.level === 2
-            );
-        }
-
-        const html = ejs.render(fs.readFileSync(file, "utf8"), {
-            filename: file,
-            ...locals(page.title),
-            ...extra
-        });
-
-        fs.writeFileSync(path.join(OUT, page.file), rewriteLinks(html));
-        console.log("  ", page.file);
+    /** Carpetas del generador anterior que ya no se usan. */
+    for (const dir of ["css", "js", "docs", "brand"]) {
+        fs.rmSync(path.join(OUT, dir), { recursive: true, force: true });
     }
+}
 
-    /** El CSS compilado y los archivos de marca. */
-    copy(path.join(PUBLIC, "css", "style.css"), path.join(OUT, "css", "style.css"));
-    copy(
-        path.join(PUBLIC, "css", "landing-2026.css"),
-        path.join(OUT, "css", "landing-2026.css")
-    );
+function copyAssets() {
+    const imagesDir = path.join(OUT, "assets", "img");
+    fs.mkdirSync(imagesDir, { recursive: true });
 
-    /**
-     * El aviso de carga. Es el mismo archivo que usa el panel: aquí queda con
-     * rutas relativas para que el sitio funcione en cualquier carpeta.
-     */
-    copy(
-        path.join(PUBLIC, "js", "loading.js"),
-        path.join(OUT, "js", "loading.js")
-    );
-
-    /**
-     * El interruptor de tema viaja con las páginas que usan la hoja del panel.
-     * Las de venta y los textos legales llevan `data-theme-lock="light"`, así
-     * que el archivo no las cambia de color; solo evita un 404.
-     */
-    copy(
-        path.join(PUBLIC, "js", "theme.js"),
-        path.join(OUT, "js", "theme.js")
-    );
-
-    /** La propuesta en PDF, para el botón «Descargar» de la página. */
-    const propuestaPdf = path.join(PUBLIC, "docs", "propuesta-margarita.pdf");
-
-    if (fs.existsSync(propuestaPdf)) {
-        copy(propuestaPdf, path.join(OUT, "docs", "propuesta-margarita.pdf"));
-    }
-
-    for (const file of fs.readdirSync(path.join(PUBLIC, "brand", "img"))) {
-        copy(
-            path.join(PUBLIC, "brand", "img", file),
-            path.join(OUT, "brand", "img", file)
-        );
+    if (fs.existsSync(BRAND)) {
+        for (const file of fs.readdirSync(BRAND)) {
+            copy(path.join(BRAND, file), path.join(imagesDir, file));
+        }
     }
 
     for (const file of [
@@ -279,27 +222,67 @@ function build() {
         }
     }
 
-    /** Para que un servidor estático no tenga que adivinar nada. */
     fs.writeFileSync(path.join(OUT, "robots.txt"), "User-agent: *\nAllow: /\n");
+}
 
-    /**
-     * El manifiesto trae rutas absolutas pensadas para la aplicación; en el
-     * sitio estático van relativas, si no, el ícono del celular apunta al
-     * dominio equivocado.
-     */
-    const manifestPath = path.join(OUT, "site.webmanifest");
+function build() {
+    fs.mkdirSync(OUT, { recursive: true });
+    cleanGenerated();
+    copyAssets();
 
-    if (fs.existsSync(manifestPath)) {
-        const manifest = fs
-            .readFileSync(manifestPath, "utf8")
-            .replace(/"src": "\//g, '"src": "')
-            .replace(/"start_url": "\/"/, '"start_url": "index.html"');
+    const guides = {
+        uso: loadGuide("uso"),
+        plantillas: loadGuide("plantillas")
+    };
 
-        fs.writeFileSync(manifestPath, manifest);
+    for (const page of PAGES) {
+        const templatePath = path.join(OUT, page.template);
+
+        if (!fs.existsSync(templatePath)) {
+            throw new Error("Falta la plantilla " + page.template);
+        }
+
+        const extra: Record<string, unknown> = {};
+
+        if (page.file === "guia.html") {
+            extra.guideHtml = guides.uso.html;
+            extra.guideHeadings = guides.uso.headings.filter(
+                (heading) => heading.level === 2
+            );
+        }
+
+        if (page.file === "plantillas.html") {
+            extra.guideHtml = guides.plantillas.html;
+            extra.guideHeadings = guides.plantillas.headings.filter(
+                (heading) => heading.level === 2
+            );
+        }
+
+        const html = ejs.render(fs.readFileSync(templatePath, "utf8"), {
+            filename: templatePath,
+            title: page.title,
+            description: page.description,
+            active: page.active,
+            appName: appConfig.name,
+            supportEmail: appConfig.supportEmail,
+            supportWhatsappUrl: appConfig.supportWhatsapp
+                ? "https://wa.me/" + appConfig.supportWhatsapp
+                : "https://margaritaapp.org",
+            supportWhatsappDisplay: appConfig.supportWhatsappDisplay,
+            pricing: PRICING,
+            money,
+            demoApiBase,
+            demoUrl,
+            year: new Date().getFullYear(),
+            ...extra
+        });
+
+        fs.writeFileSync(path.join(OUT, page.file), html);
+        console.log("  ", page.file);
     }
 
-    console.log(`\nLanding listo en ${OUT}`);
-    console.log("Súbelo como sitio estático y apunta ahí el dominio del producto.");
+    console.log("\nLanding listo en " + OUT);
+    console.log("Súbelo a Cloudflare Pages o al hosting estático del producto.");
 }
 
 build();

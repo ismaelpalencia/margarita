@@ -1,0 +1,88 @@
+<%- include("_head") %>
+<%- include("_header") %>
+
+<main id="contenido">
+    <section class="section section--tight">
+        <div class="container">
+            <span class="eyebrow">Legal</span>
+            <h1 class="section-title" style="font-size:34px;line-height:42px;">Aviso de privacidad</h1>
+            <p class="section-lede">Cómo tratamos los datos personales en Margarita. Última actualización: noviembre de 2026.</p>
+        </div>
+    </section>
+
+    <section class="section section--tight">
+        <div class="container prose">
+            <p>
+                Margarita es una plataforma para operar la WhatsApp Business Cloud API de Meta.
+                Cada empresa opera su propia instalación, con su base de datos y su dominio.
+                Este aviso aplica al sitio público <strong>margaritaapp.org</strong> y a las
+                instalaciones que operamos.
+            </p>
+
+            <h2>Responsable</h2>
+            <p>
+                El responsable del tratamiento es el operador de la instalación contratada. Para
+                dudas sobre tus datos puedes escribir a
+                <a href="mailto:<%= supportEmail %>"><%= supportEmail %></a>.
+            </p>
+
+            <h2>Qué datos tratamos</h2>
+            <ul>
+                <li><strong>Datos de contacto:</strong> nombre de perfil de WhatsApp, número de teléfono y contenido de los mensajes que envías a la empresa.</li>
+                <li><strong>Datos de la cuenta:</strong> nombre, correo y credenciales de acceso de las personas del equipo del cliente.</li>
+                <li><strong>Datos operativos:</strong> etiquetas, notas internas, respuestas rápidas y el historial de asignaciones.</li>
+                <li><strong>Datos de uso del sitio:</strong> los necesarios para servir las páginas y prevenir abuso.</li>
+            </ul>
+
+            <h2>Para qué los usamos</h2>
+            <ul>
+                <li>Atender y dar seguimiento a las conversaciones de WhatsApp de la empresa.</li>
+                <li>Permitir que la IA responda solo lo que está en la base de conocimiento y entregue a una persona cuando hace falta.</li>
+                <li>Operar campañas, plantillas y reportes de servicio.</li>
+                <li>Cumplir obligaciones legales y de seguridad.</li>
+            </ul>
+
+            <h2>Cifrado y seguridad</h2>
+            <p>
+                Los datos personales de los contactos (teléfono, nombre, mensajes y notas) se
+                guardan cifrados con AES-256-GCM cuando la instalación tiene configurada su
+                llave de cifrado. Los teléfonos y correos usan índices ciegos para búsquedas
+                exactas sin conservar el valor en claro. Las credenciales de Meta también se
+                cifran. El acceso al panel se controla por rol y se registra en una bitácora.
+            </p>
+
+            <h2>Con quién los compartimos</h2>
+            <p>
+                Con Meta, como proveedor de la API de WhatsApp, para entregar y recibir los
+                mensajes. Con el proveedor de infraestructura donde vive la instalación. No
+                vendemos datos personales. El consumo de WhatsApp lo factura Meta directamente
+                a la empresa.
+            </p>
+
+            <h2>Conservación</h2>
+            <p>
+                La bitácora se conserva 90 días y los eventos de webhook resueltos 30 días. El
+                resto de los datos se conserva mientras la instalación esté activa. Al terminar
+                el contrato, el operador puede eliminar la instalación y sus datos, con
+                constancia en la bitácora.
+            </p>
+
+            <h2>Tus derechos</h2>
+            <p>
+                Puedes solicitar acceso, rectificación, cancelación u oposición al tratamiento
+                de tus datos escribiendo a
+                <a href="mailto:<%= supportEmail %>"><%= supportEmail %></a>. También puedes
+                pedir la baja de los mensajes respondiendo con la palabra clave configurada
+                (por ejemplo, STOP) o solicitándolo a la empresa.
+            </p>
+
+            <h2>Cambios</h2>
+            <p>
+                Si este aviso cambia, publicaremos la versión actualizada en esta misma página
+                con su fecha.
+            </p>
+        </div>
+    </section>
+</main>
+
+<%- include("_footer") %>

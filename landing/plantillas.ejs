@@ -1,0 +1,45 @@
+<%- include("_head") %>
+<%- include("_header") %>
+
+<main id="contenido">
+    <section class="section section--tight">
+        <div class="container">
+            <span class="eyebrow">Guía de plantillas</span>
+            <h1 class="section-title" style="font-size:34px;line-height:42px;">Plantillas que se aprueban y cuestan poco</h1>
+            <p class="section-lede">
+                La plantilla es el único camino para hablarle a alguien que no escribió en las
+                últimas 24 horas. La categoría que Meta le ponga decide cuánto cuesta cada
+                mensaje.
+            </p>
+        </div>
+    </section>
+
+    <section class="section section--tight">
+        <div class="container">
+            <nav class="guide-toc" aria-label="En esta guía">
+                <p class="section-kicker">En esta guía</p>
+                <ul class="guide-toc__list">
+                    <% guideHeadings.forEach((heading) => { %>
+                        <li><a href="#<%= heading.id %>"><%= heading.text %></a></li>
+                    <% }) %>
+                </ul>
+            </nav>
+
+            <div class="prose">
+                <%- guideHtml %>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-band section--dark">
+        <div class="container cta-band__inner">
+            <div>
+                <h2>¿Prefieres que las armemos contigo?</h2>
+                <p>La conexión con Meta, las plantillas y la prueba de punta a punta van en la instalación.</p>
+            </div>
+            <a class="btn btn--primary btn--lg" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Hablar por WhatsApp</a>
+        </div>
+    </section>
+</main>
+
+<%- include("_footer") %>

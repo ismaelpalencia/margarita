@@ -1,0 +1,167 @@
+<%- include("_head") %>
+<%- include("_header") %>
+
+<main id="contenido">
+    <section class="hero">
+        <div class="container hero__grid">
+            <div>
+                <span class="eyebrow">IA para atención al cliente</span>
+                <h1>Tu WhatsApp responde, entrega y registra. <span>Tu equipo manda.</span></h1>
+                <p class="hero__lede">
+                    Margarita conecta la IA a una bandeja real. Contesta lo frecuente con tu
+                    base de conocimiento, califica la conversación y la entrega a una persona
+                    cuando hace falta. Nada sale sin control y todo queda auditado.
+                </p>
+                <div class="hero__actions">
+                    <a class="btn btn--primary btn--lg" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Ver la IA en una demo</a>
+                    <a class="btn btn--secondary btn--lg" href="/precios">Comparar planes</a>
+                </div>
+            </div>
+
+            <div class="mock" aria-label="Panel de IA por conversación">
+                <div class="mock__bar"><span class="mock__dot"></span><span class="mock__dot"></span><span class="mock__dot"></span></div>
+                <div class="mock__body">
+                    <div class="mock__thread">
+                        <div class="bubble bubble--in">¿Cuál es el horario y dónde están?</div>
+                        <div class="bubble bubble--out">
+                            Atendemos de lunes a viernes de 9:00 a 18:00. Estamos en Av. Principal 123.
+                            <span class="bubble__meta">IA · 0.94 · base de conocimiento</span>
+                        </div>
+                        <div class="bubble bubble--in">Quiero hablar con una persona.</div>
+                        <div class="bubble bubble--out">
+                            Claro, te paso con el equipo.
+                            <span class="bubble__meta">Handoff · el cliente lo pidió</span>
+                        </div>
+                    </div>
+                    <aside class="mock__panel">
+                        <h4>Panel del hilo</h4>
+                        <div class="mock__row"><span>Modo</span><strong>Sugerencias</strong></div>
+                        <div class="mock__row"><span>Intención</span><strong>Horario</strong></div>
+                        <div class="mock__row"><span>Confianza</span><strong>94%</strong></div>
+                        <div class="mock__row"><span>Handoff</span><strong class="pill pill--warn">Sí</strong></div>
+                        <div class="mock__row"><span>Pausa</span><strong class="pill pill--ok">Disponible</strong></div>
+                        <div class="mock__row"><span>Costo</span><strong>$0.0003</strong></div>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-head section-head--center">
+                <p class="section-kicker">El objetivo</p>
+                <h2 class="section-title">Responde. Entrega. Registra.</h2>
+                <p class="section-lede">Tres cosas, una sola herramienta, pensada para atención al cliente.</p>
+            </div>
+
+            <div class="grid grid--3">
+                <article class="card">
+                    <div class="card__icon">1</div>
+                    <h3>Responde lo frecuente</h3>
+                    <p>Contesta en segundos las preguntas que ya están en tu base de conocimiento. Si la respuesta no está, no inventa: entrega.</p>
+                </article>
+                <article class="card">
+                    <div class="card__icon">2</div>
+                    <h3>Califica y entrega</h3>
+                    <p>Ordena el contexto y pasa el hilo a una persona con el motivo a la vista: duda, queja, cotización o el cliente lo pidió.</p>
+                </article>
+                <article class="card">
+                    <div class="card__icon">3</div>
+                    <h3>Registra todo</h3>
+                    <p>Cada borrador, respuesta automática, pausa y entrega queda en la bitácora. Ves qué contestó la IA y cuánto costó.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section--muted">
+        <div class="container">
+            <div class="grid grid--2">
+                <div>
+                    <p class="section-kicker">El control</p>
+                    <h2 class="section-title">La IA propone. Tu equipo autoriza.</h2>
+                    <p class="section-lede">No es un chatbot suelto: es una capa de IA sobre una bandeja real, con personas, permisos y bitácora.</p>
+                    <ul class="checklist mt-4">
+                        <li>Modo sugerencias: nada sale sin aprobación</li>
+                        <li>Modo automático acotado solo para preguntas cubiertas</li>
+                        <li>Pausa por conversación con un clic</li>
+                        <li>Límites por día, por hilo y presupuesto mensual</li>
+                        <li>Entrega con motivo cuando hay duda o queja</li>
+                        <li>Panel de IA por hilo con confianza, intención y costo</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>Lo que ves en cada conversación</h3>
+                    <div class="plan-table-wrap mt-3">
+                        <table class="plan-table">
+                            <tbody>
+                                <tr><td>Modo</td><td>Apagado, sugerencias o automático</td></tr>
+                                <tr><td>Intención</td><td>Tema detectado por el modelo</td></tr>
+                                <tr><td>Confianza</td><td>0–100% frente al umbral</td></tr>
+                                <tr><td>Handoff</td><td>Sí/No y motivo de la entrega</td></tr>
+                                <tr><td>Pausa</td><td>Activa o reactivable por hilo</td></tr>
+                                <tr><td>Consumo</td><td>Respuestas, borradores y costo estimado</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-head">
+                <p class="section-kicker">Cómo se implanta</p>
+                <h2 class="section-title">De la conexión a la primera respuesta</h2>
+            </div>
+
+            <div class="steps">
+                <div class="step">
+                    <h3>Conectamos tu WhatsApp</h3>
+                    <p>API oficial, número, webhook firmado y prueba de punta a punta. Sin WhatsApp Web ni atajos.</p>
+                </div>
+                <div class="step">
+                    <h3>Cargamos tus respuestas</h3>
+                    <p>Entre 20 y 30 preguntas frecuentes con sus respuestas reales. Es la única fuente de la que la IA puede contestar.</p>
+                </div>
+                <div class="step">
+                    <h3>Elegimos el modo</h3>
+                    <p>Empieza en sugerencias: la IA redacta y tu equipo decide. Cuando las métricas lo permiten, se enciende el automático acotado.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section--muted">
+        <div class="container">
+            <div class="grid grid--2">
+                <div>
+                    <p class="section-kicker">Límites claros</p>
+                    <h2 class="section-title">Lo que la IA no hace</h2>
+                </div>
+                <ul class="checklist">
+                    <li>No inventa precios, plazos, descuentos ni condiciones</li>
+                    <li>No negocia ni cierra acuerdos por ti</li>
+                    <li>No responde fuera de tu base de conocimiento</li>
+                    <li>No sustituye a una persona en un tema sensible</li>
+                    <li>No envía mensajes fuera de la ventana de 24 horas sin plantilla</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-band section--dark">
+        <div class="container cta-band__inner">
+            <div>
+                <h2>¿Quieres verlo con tus propias preguntas?</h2>
+                <p>Mándanos tres consultas reales de tu operación y te mostramos cómo responde, cuándo entrega y qué queda registrado.</p>
+            </div>
+            <a class="btn btn--primary btn--lg" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Agendar demo</a>
+        </div>
+    </section>
+</main>
+
+<%- include("_footer") %>

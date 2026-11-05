@@ -3,17 +3,17 @@
     "short_name": "Margarita",
     "description": "Operación de WhatsApp Business Cloud API: campañas, conversaciones y agentes en un solo panel.",
     "lang": "es-MX",
-    "start_url": "index.html",
+    "start_url": "/",
     "scope": "/",
     "display": "standalone",
     "icons": [
         {
-            "src": "android-chrome-192x192.png",
+            "src": "/android-chrome-192x192.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "android-chrome-512x512.png",
+            "src": "/android-chrome-512x512.png",
             "sizes": "512x512",
             "type": "image/png"
         }
