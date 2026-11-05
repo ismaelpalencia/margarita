@@ -201,3 +201,38 @@
 - Google Sheets: interfaz pendiente, sin implementar (el spec lo permite como stub documentado).
 
 ---
+
+## Batch 6 — Demo pública /demo
+
+**Estado:** completado (en pro). **Migración:** no (solo configuración en memoria + env DEMO_ENABLED).
+
+### Archivos tocados
+
+- Config: src/config/app.config.ts (demo.enabled), .env.example (DEMO_ENABLED).
+- Servicio: src/services/demo.service.ts (sesiones en memoria, límite 30 mensajes/sesión y 3 sesiones/IP/día, caducidad, chat contra la KB del vertical sin tocar la base) + demo.service.test.ts.
+- Rutas/controlador: src/controllers/demo.controller.ts, src/routes/demo.routes.ts, montaje en src/app.ts.
+- Vista: src/views/pages/demo/index.ejs (simulador + panel con modo/intención/confianza/handoff/costo).
+- Landing: enlace «Probar la demo» en src/views/pages/home/index.ejs (regenerada landing/).
+- Pruebas: tests/integration/demo.integration.test.ts, DEMO_ENABLED=true en tests/integration/run.ts.
+- Docs: docs/alcance-produccion.md, docs/catalogo-producto.md.
+
+### Pruebas nuevas
+
+- 4 unitarias de DemoService: límite de 3 sesiones por IP; respuesta con la KB del vertical; límite de 30 mensajes por sesión (31 → 429); sesión vencida → 410.
+- 1 de integración: /demo responde 200 con DEMO_ENABLED; POST /api/demo/session y /api/demo/chat responden; las tablas reales (Contact/Conversation/Message/Lead) no cambian.
+
+### Comandos y resultados
+
+- npx tsc --noEmit → OK.
+- npm run typecheck:all → OK.
+- npm test → 328 pass, 0 fail.
+- npm run test:integration → 96 pass, 2 skipped, 0 fail.
+- npm run landing:build → OK; sin menciones de cobranza.
+
+### Decisiones y notas (repo manda)
+
+- /demo es una ruta de la app (necesita sesión + API en memoria), no una página del sitio estático; se sirve cuando DEMO_ENABLED=true y responde 404 si no. El enlace de la landing apunta a /demo (asume que la app sirve la demo en el dominio del producto).
+- La demo reutiliza la política pura (decideGeneration) y el ranking de KB (rankKnowledgeEntries); sin llave de IA responde directo de la entrada más relevante de la KB del vertical.
+- No hay migración ni tablas nuevas: el aislamiento se garantiza porque el servicio nunca importa ni usa Prisma.
+
+---

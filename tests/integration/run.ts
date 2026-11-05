@@ -92,7 +92,9 @@ async function main() {
             LOGIN_RATE_LIMIT_MAX: "500",
             HEALTH_TOKEN: "token-de-prueba",
             /** El webhook se encola: así se prueba el camino completo. */
-            WEBHOOK_QUEUE_ENABLED: "true"
+            WEBHOOK_QUEUE_ENABLED: "true",
+            /** La demo pública se prueba de punta a punta. */
+            DEMO_ENABLED: "true"
         },
         stdio: ["ignore", "pipe", "pipe"]
     });

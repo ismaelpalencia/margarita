@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demo de Margarita — Automatiza WhatsApp con IA</title>
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+    <%- include("../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100 text-slate-900">
+    <header class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+            <a href="/" class="flex items-center gap-3">
+                <img src="/brand/img/margarita-icon-128.png" alt="Margarita" class="h-10 w-10" />
+                <span class="text-lg font-black">Margarita <span class="font-normal text-slate-400">· demo</span></span>
+            </a>
+
+            <select id="vertical" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold">
+                <option value="comercio">Comercio</option>
+                <option value="servicios">Servicios</option>
+                <option value="generico">Genérico</option>
+            </select>
+        </div>
+    </header>
+
+    <main class="mx-auto grid max-w-6xl gap-6 px-4 py-8 lg:grid-cols-[1fr_320px]">
+        <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+            <div class="border-b border-slate-200 bg-slate-50 px-4 py-3">
+                <p class="text-sm font-bold">Simulador de WhatsApp</p>
+                <p class="text-xs text-slate-500">Prueba la IA con la base de conocimiento del vertical. Nada se guarda en la base real.</p>
+            </div>
+
+            <div id="chat" class="flex h-[420px] flex-col gap-3 overflow-y-auto p-4"></div>
+
+            <form id="chat-form" class="flex gap-2 border-t border-slate-200 p-3">
+                <input id="message" autocomplete="off" placeholder="Escribe un mensaje…" class="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500" />
+                <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">Enviar</button>
+            </form>
+        </section>
+
+        <aside class="space-y-4">
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Panel de la conversación</p>
+
+                <dl class="mt-4 space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <dt class="text-slate-500">Modo</dt>
+                        <dd id="panel-mode" class="font-bold text-slate-800">—</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-slate-500">Intención</dt>
+                        <dd id="panel-intent" class="font-bold text-slate-800">—</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-slate-500">Confianza</dt>
+                        <dd id="panel-confidence" class="font-bold text-slate-800">—</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-slate-500">Handoff</dt>
+                        <dd id="panel-handoff" class="font-bold text-slate-800">—</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-slate-500">Costo estimado</dt>
+                        <dd id="panel-cost" class="font-bold text-slate-800">—</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="rounded-2xl bg-slate-50 p-5 text-xs leading-5 text-slate-600 ring-1 ring-slate-200">
+                La demo usa una base de conocimiento en memoria y el motor de IA real.
+                No escribe en la base de datos del producto.
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        (function () {
+            var sessionId = null;
+            var form = document.getElementById("chat-form");
+            var input = document.getElementById("message");
+            var chat = document.getElementById("chat");
+            var vertical = document.getElementById("vertical");
+
+            function addBubble(text, own) {
+                var div = document.createElement("div");
+                div.className = own
+                    ? "ml-auto max-w-[80%] rounded-2xl bg-margarita-600 px-4 py-2 text-sm text-white"
+                    : "mr-auto max-w-[80%] rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-800";
+                div.textContent = text;
+                chat.appendChild(div);
+                chat.scrollTop = chat.scrollHeight;
+            }
+
+            function setPanel(mode, intent, confidence, handoff, costMicros) {
+                document.getElementById("panel-mode").textContent = mode || "—";
+                document.getElementById("panel-intent").textContent = intent || "—";
+                document.getElementById("panel-confidence").textContent = confidence != null ? Math.round(confidence * 100) + "%" : "—";
+                document.getElementById("panel-handoff").textContent = handoff ? "Sí" : "No";
+                document.getElementById("panel-cost").textContent = costMicros != null ? "$" + (costMicros / 1000000).toFixed(4) : "—";
+            }
+
+            async function startSession() {
+                var res = await fetch("/api/demo/session", { method: "POST" });
+
+                if (!res.ok) {
+                    var err = await res.json().catch(function () { return {}; });
+                    addBubble("No se pudo iniciar la demo: " + (err.error || res.status), false);
+                    return false;
+                }
+
+                var data = await res.json();
+                sessionId = data.sessionId;
+                return true;
+            }
+
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+
+                var text = input.value.trim();
+
+                if (!text) {
+                    return;
+                }
+
+                addBubble(text, true);
+                input.value = "";
+
+                if (!sessionId) {
+                    var ok = await startSession();
+
+                    if (!ok) {
+                        return;
+                    }
+                }
+
+                var res = await fetch("/api/demo/chat", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ sessionId: sessionId, message: text, vertical: vertical.value })
+                });
+
+                if (!res.ok) {
+                    addBubble("Error " + res.status + ". Reinicia la demo.", false);
+                    setPanel("—", "—", null, false, null);
+                    return;
+                }
+
+                var data = await res.json();
+
+                addBubble(data.reply || "(sin respuesta: la conversación se entregaría a una persona)", false);
+                setPanel(data.mode, data.intent, data.confidence, data.handoff, data.costMicros);
+            });
+
+            startSession();
+        })();
+    </script>
+</body>
+</html>

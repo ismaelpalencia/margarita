@@ -290,6 +290,16 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
   flujo recibe la respuesta (con botones o lista) y se audita como
   FLOW_TRIGGERED. No hay paquete de cobranza.
 
+### 3.20 Demo pública (/demo)
+
+- Simulador de WhatsApp en el navegador con panel lateral (modo, intención,
+  confianza, handoff y costo estimado).
+- Corre contra la base de conocimiento en memoria del vertical elegido
+  (comercio, servicios o genérico); **no toca las tablas reales**.
+- Límites propios: 30 mensajes por sesión y 3 sesiones por IP al día; la sesión
+  expira por inactividad.
+- Se activa con `DEMO_ENABLED=true`; sin la variable, `/demo` responde 404.
+
 ### 3.19 Leads (Admin → Leads)
 
 - Captura: cuando un mensaje entrante trae un correo y el flag `leadsEnabled`

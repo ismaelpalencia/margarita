@@ -445,7 +445,7 @@ npm run db:encrypt-data
 Antes de declarar operativa una instalación nueva o un redeploy, confirmar:
 
 1. El commit contiene `.nvmrc`, `package.json` y `package-lock.json` actuales; el build registra **Node 22.23.4**.
-2. Railway tiene `NODE_ENV=production`, `JWT_SECRET`, `ENCRYPTION_KEY`, `DATABASE_URL`, `META_APP_SECRET`, `MEDIA_STORAGE_DIR=/data/media` y `BACKUP_DIR=/data/backups`; `NIXPACKS_NODE_VERSION=22.23.4` queda fijada explícitamente.
+2. Railway tiene `NODE_ENV=production`, `JWT_SECRET`, `ENCRYPTION_KEY`, `DATABASE_URL`, `META_APP_SECRET`, `MEDIA_STORAGE_DIR=/data/media` y `BACKUP_DIR=/data/backups`; `NIXPACKS_NODE_VERSION=22.23.4` queda fijada explícitamente. Para publicar la demo, `DEMO_ENABLED=true`; sin ella, `/demo` responde 404.
 3. El Volume está montado en `/data`; con `HEALTH_TOKEN`, `checks.mediaStoragePersistent` y `checks.encryptionKeyConfigured` son `true`.
 4. Las migraciones terminan con `[migraciones] Listo. La base quedó al día` y no hay un Build Command adicional en Railway.
 5. Si la base está vacía, el operador completa `/setup` antes de publicar o compartir la URL. Después, crea un segundo administrador y activa 2FA para ambos.

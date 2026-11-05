@@ -437,6 +437,15 @@ export const appConfig = {
      * `AI_PROVIDER=mock` existe para pruebas y CI: respuestas deterministas,
      * sin red. `deepseek` usa su API compatible con OpenAI.
      */
+    /**
+     * Demo pública (/demo + /api/demo/chat). Sin DEMO_ENABLED=true la ruta
+     * responde 404. Corre contra una base de conocimiento en memoria, nunca
+     * contra las tablas reales del workspace.
+     */
+    demo: {
+        enabled: process.env.DEMO_ENABLED === "true"
+    },
+
     ai: {
         enabled: process.env.AI_ENABLED === "true",
         provider: (process.env.AI_PROVIDER || "deepseek").trim().toLowerCase(),

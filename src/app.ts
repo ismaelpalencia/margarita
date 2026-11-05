@@ -13,6 +13,7 @@ import { installAsyncErrorHandling } from "./config/async-errors";
 import { csrfProtection } from "./middlewares/csrf.middleware";
 import indexRoutes from "./routes/index.routes";
 import healthRoutes from "./routes/health.routes";
+import demoRoutes from "./routes/demo.routes";
 
 
 const app = express();
@@ -105,6 +106,9 @@ app.set("view engine", "ejs");
 app.set("views", path.join(rootDir, "src", "views"));
 
 app.use("/health", healthRoutes);
+
+/** Demo pública: solo responde si DEMO_ENABLED=true; si no, 404. */
+app.use("/", demoRoutes);
 
 app.use("/", indexRoutes);
 
