@@ -36,6 +36,7 @@ import {
     interactiveListPayload,
     interactivePayload
 } from "../utils/interactive-message";
+import { FlowButton, FlowList } from "../utils/flow";
 import { decryptSecret } from "../utils/crypto";
 import { describeMetaError } from "../utils/meta-error";
 import {
@@ -1054,6 +1055,183 @@ export class MessageService {
             );
 
             throw new Error("No se pudo enviar la lista a Meta.");
+        }
+    }
+
+    /**
+     * Respuesta automática de un flujo precargado. La manda el sistema: source
+     * AUTOMATIC y sin userId. Lleva texto, botones o lista según el flujo.
+     */
+    static async sendFlowReply(params: {
+        workspaceId: string;
+        conversationId: string;
+        body: string;
+        buttons: FlowButton[] | null;
+        list: FlowList | null;
+    }) {
+        const conversation = await prisma.conversation.findFirst({
+            where: {
+                id: params.conversationId,
+                workspaceId: params.workspaceId
+            },
+            include: { contact: true }
+        });
+
+        if (!conversation) {
+            throw new Error("Conversación no encontrada.");
+        }
+
+        if (conversation.status !== ConversationStatus.OPEN) {
+            throw new Error("La conversación está cerrada.");
+        }
+
+        if (conversation.contact.optOutAt || conversation.contact.pausedAt) {
+            throw new Error("El contacto no admite mensajes.");
+        }
+
+        if (!isConversationWindowOpen(conversation.lastIncomingMessageAt)) {
+            throw new Error("La ventana de 24 horas está cerrada.");
+        }
+
+        const credentials = await this.getSendingCredentials(conversation);
+        const body = params.body.trim();
+
+        if (body.length === 0) {
+            throw new Error("La respuesta del flujo está vacía.");
+        }
+
+        const hasButtons = Boolean(params.buttons && params.buttons.length > 0);
+        const hasList = Boolean(params.list && params.list.rows?.length > 0);
+
+        let type: MessageType = MessageType.TEXT;
+        let interactiveType: string | null = null;
+        let payload: object;
+
+        if (hasButtons) {
+            type = MessageType.INTERACTIVE;
+            interactiveType = "buttons";
+            payload = interactivePayload({
+                to: conversation.contact.phone,
+                message: {
+                    body,
+                    footer: null,
+                    buttons: params.buttons as InteractiveButtonMessage["buttons"]
+                }
+            });
+        } else if (hasList) {
+            type = MessageType.INTERACTIVE;
+            interactiveType = "list";
+            const list = params.list as FlowList;
+            payload = interactiveListPayload({
+                to: conversation.contact.phone,
+                message: {
+                    body,
+                    footer: null,
+                    buttonLabel: list.buttonLabel,
+                    sectionTitle: list.sectionTitle || "Opciones",
+                    rows: list.rows.map((row) => ({
+                        id: row.id,
+                        title: row.title,
+                        description: row.description || null
+                    }))
+                } as InteractiveListMessage
+            });
+        } else {
+            payload = {
+                messaging_product: "whatsapp",
+                recipient_type: "individual",
+                to: conversation.contact.phone,
+                type: "text",
+                text: { preview_url: false, body }
+            };
+        }
+
+        const localMessage = await prisma.message.create({
+            data: {
+                workspaceId: params.workspaceId,
+                conversationId: conversation.id,
+                sentByUserId: null,
+                direction: MessageDirection.OUT,
+                type,
+                status: MessageStatus.SENDING,
+                source: MessageSource.AUTOMATIC,
+                body,
+                interactiveType,
+                metaPayload: toPrismaJson(payload)
+            }
+        });
+
+        try {
+            const response = await axios.post(
+                `${appConfig.graphBaseUrl}/${credentials.apiVersion}/${credentials.phoneNumberId}/messages`,
+                payload,
+                {
+                    params: { access_token: credentials.accessToken },
+                    timeout: 15000
+                }
+            );
+
+            const wamid =
+                Array.isArray(response.data?.messages) &&
+                response.data.messages[0]?.id
+                    ? String(response.data.messages[0].id)
+                    : null;
+
+            const updatedMessage = await prisma.message.update({
+                where: { id: localMessage.id },
+                data: {
+                    status: MessageStatus.SENT,
+                    wamid,
+                    metaResponse: response.data
+                }
+            });
+
+            await this.touchConversationAfterOutgoingMessage(
+                conversation.id,
+                updatedMessage.createdAt,
+                conversation.assignedUserId
+            );
+
+            this.emitOutgoingMessage(
+                params.workspaceId,
+                conversation,
+                updatedMessage
+            );
+
+            return updatedMessage;
+        } catch (error) {
+            const errorPayload = axios.isAxiosError(error)
+                ? {
+                      status: error.response?.status,
+                      data: error.response?.data,
+                      message: error.message
+                  }
+                : {
+                      message:
+                          error instanceof Error ? error.message : "Error desconocido"
+                  };
+
+            const failedMessage = await prisma.message.update({
+                where: { id: localMessage.id },
+                data: {
+                    status: MessageStatus.FAILED,
+                    metaResponse: errorPayload
+                }
+            });
+
+            await this.touchConversationAfterOutgoingMessage(
+                conversation.id,
+                failedMessage.createdAt,
+                conversation.assignedUserId
+            );
+
+            this.emitOutgoingMessage(
+                params.workspaceId,
+                conversation,
+                failedMessage
+            );
+
+            throw new Error("No se pudo enviar la respuesta del flujo a Meta.");
         }
     }
 

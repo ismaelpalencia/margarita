@@ -36,6 +36,7 @@ import { AccountHealthService } from "./account-health.service";
 import { InteractiveReplyService } from "./interactive-reply.service";
 import { enqueueSuggestion } from "./ai/queue.service";
 import { OffHoursService } from "./off-hours.service";
+import { FlowService } from "./flow.service";
 import { isWithinBusinessHours, parseBusinessHours } from "../utils/business-hours";
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
@@ -314,7 +315,8 @@ export class MetaWebhookHandlerService {
                 businessHours: true,
                 offHoursMode: true,
                 offHoursMessage: true,
-                offHoursReplyIntervalHours: true
+                offHoursReplyIntervalHours: true,
+                flowsEnabled: true
             }
         });
 
@@ -399,11 +401,42 @@ export class MetaWebhookHandlerService {
                 }
             } else {
                 /**
+                 * Flujos precargados: un flujo activo cuyo trigger aparece en
+                 * el texto responde antes que la IA (y evita el doble envío).
+                 * No aplica a respuestas de botón o lista.
+                 */
+                let flowTriggered = false;
+
+                if (workspace?.flowsEnabled && !parsed.replyId) {
+                    try {
+                        flowTriggered = await FlowService.trigger({
+                            workspaceId,
+                            conversationId: conversation.id,
+                            messageId: savedMessage.id,
+                            text: parsed.body || ""
+                        });
+                    } catch (error) {
+                        logger.warn(
+                            {
+                                error:
+                                    error instanceof Error
+                                        ? error.message
+                                        : String(error),
+                                conversationId: conversation.id
+                            },
+                            "No se pudo disparar el flujo precargado."
+                        );
+                    }
+                }
+
+                /**
                  * La IA se encola **después** de la baja: si el cliente
                  * escribió STOP, no se genera ni un borrador. El trabajo corre
                  * aparte para no retrasar el webhook; el worker vuelve a
-                 * validar la política antes de llamar al modelo.
+                 * validar la política antes de llamar al modelo. Si un flujo
+                 * ya respondió, no se encola para no mandar dos mensajes.
                  */
+                if (!flowTriggered) {
                 try {
                     await enqueueSuggestion({
                         workspaceId,
@@ -425,6 +458,7 @@ export class MetaWebhookHandlerService {
                         },
                         "No se pudo encolar el borrador de IA."
                     );
+                }
                 }
             }
         }

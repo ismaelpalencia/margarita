@@ -1,0 +1,182 @@
+{
+  "vertical": "comercio",
+  "label": "Comercio",
+  "flows": [
+    {
+      "slug": "bienvenida",
+      "name": "Bienvenida",
+      "trigger": "hola|buenos dias|buenas tardes|buenas noches",
+      "reply": "¡Hola! Gracias por escribirnos. ¿En qué podemos ayudarte hoy?",
+      "buttons": [
+        {
+          "id": "HORARIOS",
+          "title": "Horarios"
+        },
+        {
+          "id": "UBICACION",
+          "title": "Ubicación"
+        },
+        {
+          "id": "HABLAR_PERSONA",
+          "title": "Hablar con una persona"
+        }
+      ]
+    },
+    {
+      "slug": "horarios",
+      "name": "Horarios y ubicación",
+      "trigger": "horario|abren|cierran|a que hora|donde estan|direccion|ubicacion",
+      "reply": "Atendemos de lunes a viernes de 9:00 a 18:00 y sábados de 10:00 a 14:00. Estamos en Av. Principal 123.",
+      "buttons": [
+        {
+          "id": "UBICACION",
+          "title": "Ver ubicación"
+        },
+        {
+          "id": "HABLAR_PERSONA",
+          "title": "Hablar con una persona"
+        }
+      ]
+    },
+    {
+      "slug": "estado-pedido",
+      "name": "Estado del pedido",
+      "trigger": "pedido|orden|donde esta mi|seguimiento|entrega",
+      "reply": "Para revisar el estado de tu pedido necesitamos el número de orden. ¿Nos lo compartes?",
+      "buttons": [
+        {
+          "id": "HABLAR_PERSONA",
+          "title": "Pasar con una persona"
+        }
+      ]
+    },
+    {
+      "slug": "catalogo",
+      "name": "Catálogo y precios",
+      "trigger": "catalogo|precio|precios|cuanto cuesta|productos|lista de precios",
+      "reply": "Te compartimos el catálogo. Si buscas un producto en particular, cuéntanos cuál y con gusto lo cotizamos.",
+      "list": {
+        "buttonLabel": "Ver opciones",
+        "sectionTitle": "Consulta",
+        "rows": [
+          {
+            "id": "CATALOGO",
+            "title": "Ver catálogo",
+            "description": "Lista completa de productos"
+          },
+          {
+            "id": "COTIZAR",
+            "title": "Cotizar un producto",
+            "description": "Te pasamos con ventas"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "hablar-persona",
+      "name": "Hablar con una persona",
+      "trigger": "hablar con|persona|asesor|agente|humano|ejecutivo",
+      "reply": "Claro, te pasamos con una persona del equipo. En un momento te atiende.",
+      "buttons": []
+    },
+    {
+      "slug": "agradecimiento",
+      "name": "Agradecimiento",
+      "trigger": "gracias|muchas gracias",
+      "reply": "¡Con gusto! Si necesitas algo más, aquí estamos.",
+      "buttons": []
+    }
+  ],
+  "kb": [
+    {
+      "question": "¿Cuál es su horario de atención?",
+      "answer": "Atendemos de lunes a viernes de 9:00 a 18:00 y sábados de 10:00 a 14:00.",
+      "tags": [
+        "horario",
+        "atención"
+      ]
+    },
+    {
+      "question": "¿Dónde están ubicados?",
+      "answer": "Estamos en Av. Principal 123, en el centro.",
+      "tags": [
+        "ubicación",
+        "dirección"
+      ]
+    },
+    {
+      "question": "¿Cómo puedo ver el estado de mi pedido?",
+      "answer": "Comparte el número de orden y te decimos en qué va tu pedido.",
+      "tags": [
+        "pedido",
+        "orden",
+        "seguimiento"
+      ]
+    },
+    {
+      "question": "¿Hacen envíos a domicilio?",
+      "answer": "Sí, enviamos dentro de la ciudad y a ciudades cercanas. El costo depende de la zona.",
+      "tags": [
+        "envío",
+        "domicilio",
+        "entrega"
+      ]
+    },
+    {
+      "question": "¿Cuáles son sus formas de pago?",
+      "answer": "Aceptamos tarjetas, transferencia y efectivo contra entrega.",
+      "tags": [
+        "pago",
+        "forma de pago"
+      ]
+    },
+    {
+      "question": "¿Tienen catálogo de productos?",
+      "answer": "Sí, contamos con un catálogo digital. Pide verlo y te lo compartimos.",
+      "tags": [
+        "catálogo",
+        "productos"
+      ]
+    },
+    {
+      "question": "¿Puedo cotizar un producto?",
+      "answer": "Claro, cuéntanos qué producto buscas y te pasamos una cotización.",
+      "tags": [
+        "cotización",
+        "precio"
+      ]
+    },
+    {
+      "question": "¿Cómo puedo hablar con una persona?",
+      "answer": "Responde 'hablar con una persona' y te pasamos con el equipo.",
+      "tags": [
+        "persona",
+        "asesor"
+      ]
+    },
+    {
+      "question": "¿Qué necesito para comprar?",
+      "answer": "Solo dinos qué producto quieres, la cantidad y tu ubicación para el envío.",
+      "tags": [
+        "comprar",
+        "pedido"
+      ]
+    },
+    {
+      "question": "¿Cuánto tarda la entrega?",
+      "answer": "En la ciudad, normalmente de 1 a 2 días hábiles según la zona.",
+      "tags": [
+        "entrega",
+        "tiempo"
+      ]
+    },
+    {
+      "question": "¿Puedo devolver un producto?",
+      "answer": "Sí, dentro de los 7 días posteriores a la entrega, en su empaque original.",
+      "tags": [
+        "devolución",
+        "cambio"
+      ]
+    }
+  ]
+}

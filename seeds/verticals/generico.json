@@ -1,0 +1,141 @@
+{
+  "vertical": "generico",
+  "label": "Genérico",
+  "flows": [
+    {
+      "slug": "bienvenida",
+      "name": "Bienvenida y menú",
+      "trigger": "hola|buenos dias|buenas tardes|buenas noches|menu",
+      "reply": "¡Hola! Gracias por escribirnos. Elige una opción y con gusto te ayudamos.",
+      "list": {
+        "buttonLabel": "Ver opciones",
+        "sectionTitle": "Menú",
+        "rows": [
+          {
+            "id": "INFORMACION",
+            "title": "Información",
+            "description": "Preguntas generales"
+          },
+          {
+            "id": "HABLAR_PERSONA",
+            "title": "Hablar con una persona",
+            "description": "Atención personalizada"
+          },
+          {
+            "id": "HORARIOS",
+            "title": "Horarios",
+            "description": "Cuándo atendemos"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "faq",
+      "name": "Preguntas frecuentes",
+      "trigger": "informacion|duda|pregunta|como funciona|que es",
+      "reply": "Con gusto resolvemos tus dudas. Cuéntanos qué necesitas saber.",
+      "buttons": [
+        {
+          "id": "HABLAR_PERSONA",
+          "title": "Hablar con una persona"
+        }
+      ]
+    },
+    {
+      "slug": "horarios",
+      "name": "Horarios",
+      "trigger": "horario|abren|cierran|a que hora",
+      "reply": "Atendemos de lunes a viernes de 9:00 a 18:00.",
+      "buttons": []
+    },
+    {
+      "slug": "hablar-persona",
+      "name": "Hablar con una persona",
+      "trigger": "hablar con|persona|humano|asesor",
+      "reply": "Claro, te pasamos con una persona del equipo.",
+      "buttons": []
+    },
+    {
+      "slug": "gracias",
+      "name": "Agradecimiento",
+      "trigger": "gracias|muchas gracias",
+      "reply": "¡Con gusto! Si necesitas algo más, aquí estamos.",
+      "buttons": []
+    }
+  ],
+  "kb": [
+    {
+      "question": "¿Cuál es su horario de atención?",
+      "answer": "Atendemos de lunes a viernes de 9:00 a 18:00.",
+      "tags": [
+        "horario"
+      ]
+    },
+    {
+      "question": "¿Cómo me pongo en contacto?",
+      "answer": "Responde aquí mismo o escribe a nuestro correo; te respondemos en horario hábil.",
+      "tags": [
+        "contacto"
+      ]
+    },
+    {
+      "question": "¿Qué servicios ofrecen?",
+      "answer": "Cuéntanos qué necesitas y te orientamos.",
+      "tags": [
+        "servicios"
+      ]
+    },
+    {
+      "question": "¿Puedo hablar con una persona?",
+      "answer": "Sí, responde 'hablar con una persona' y te atendemos.",
+      "tags": [
+        "persona"
+      ]
+    },
+    {
+      "question": "¿Cómo empiezo?",
+      "answer": "Cuéntanos qué necesitas y te indicamos los siguientes pasos.",
+      "tags": [
+        "empezar"
+      ]
+    },
+    {
+      "question": "¿Dónde están ubicados?",
+      "answer": "Cuéntanos si necesitas la dirección y te la compartimos.",
+      "tags": [
+        "ubicación"
+      ]
+    },
+    {
+      "question": "¿Cuánto tardan en responder?",
+      "answer": "Respondemos en horario hábil, normalmente el mismo día.",
+      "tags": [
+        "respuesta",
+        "tiempo"
+      ]
+    },
+    {
+      "question": "¿Qué necesito para consultar?",
+      "answer": "Con tu consulta es suficiente; si hace falta información adicional te la pedimos.",
+      "tags": [
+        "requisitos"
+      ]
+    },
+    {
+      "question": "¿Atienden fines de semana?",
+      "answer": "Los fines de semana no atendemos; te respondemos el siguiente día hábil.",
+      "tags": [
+        "horario",
+        "fin de semana"
+      ]
+    },
+    {
+      "question": "¿Es gratis la consulta?",
+      "answer": "Las consultas generales son sin costo; los servicios se cotizan aparte.",
+      "tags": [
+        "costo",
+        "consulta"
+      ]
+    }
+  ]
+}

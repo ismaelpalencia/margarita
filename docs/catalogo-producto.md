@@ -277,7 +277,20 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
 - **Proveedor**: DeepSeek por defecto; cualquier API compatible con OpenAI
   cambiando variables. `AI_PROVIDER=mock` para pruebas sin red.
 
-### 3.17 Horarios de atención (Admin → Configuración → Horarios)
+### 3.17 Paquete inicial de flujos (Admin → IA → Paquete inicial)
+
+- Tres verticales: comercio, servicios y genérico. Cada uno trae flujos
+  (bienvenida, horarios, estado de pedido, cotizar, hablar con una persona) y
+  una base de conocimiento de 10–11 entradas.
+- Vista previa de cada flujo y cada entrada, con casillas para elegir qué
+  cargar.
+- Idempotente por slug (flujos) y por pregunta (base de conocimiento): cargar
+  dos veces no duplica y no pisa lo que el cliente ya editó.
+- Al cargar se enciende el motor de flujos; un mensaje cuyo texto dispara un
+  flujo recibe la respuesta (con botones o lista) y se audita como
+  FLOW_TRIGGERED. No hay paquete de cobranza.
+
+### 3.18 Horarios de atención (Admin → Configuración → Horarios)
 
 - Interruptor por workspace; apagado por defecto (comportamiento idéntico a
   siempre).

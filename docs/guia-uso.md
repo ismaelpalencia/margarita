@@ -225,6 +225,13 @@ conocimiento del negocio y dentro de límites.
 Con `AI_ENABLED=false` la herramienta funciona igual que antes: la IA no
 interviene.
 
+**Paquete inicial.** En **Admin → IA → Paquete inicial** puedes cargar flujos
+precargados (bienvenida, horarios, estado de un pedido, cotizar, hablar con una
+persona) y una base de conocimiento lista, por vertical (comercio, servicios o
+genérico). Un flujo responde solo cuando el mensaje contiene su palabra clave;
+la respuesta puede traer botones o lista. Cargar dos veces no duplica nada ni
+pisa lo que ya editaste.
+
 ---
 
 ## 9. El día de trabajo

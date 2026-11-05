@@ -1,0 +1,173 @@
+{
+  "vertical": "servicios",
+  "label": "Servicios",
+  "flows": [
+    {
+      "slug": "bienvenida",
+      "name": "Bienvenida",
+      "trigger": "hola|buenos dias|buenas tardes|buenas noches",
+      "reply": "¡Hola! Gracias por escribirnos. Cuéntanos en qué podemos ayudarte.",
+      "buttons": [
+        {
+          "id": "AGENDAR_CITA",
+          "title": "Agendar cita"
+        },
+        {
+          "id": "COTIZAR",
+          "title": "Cotizar"
+        },
+        {
+          "id": "SOPORTE",
+          "title": "Soporte técnico"
+        }
+      ]
+    },
+    {
+      "slug": "agendar-cita",
+      "name": "Agendar cita",
+      "trigger": "cita|agendar|agenda|disponibilidad|cuando puedo",
+      "reply": "Con gusto agendamos tu cita. Cuéntanos el servicio que necesitas y un horario tentativo.",
+      "buttons": [
+        {
+          "id": "HABLAR_ASESOR",
+          "title": "Hablar con un asesor"
+        }
+      ]
+    },
+    {
+      "slug": "cotizar",
+      "name": "Cotizar servicio",
+      "trigger": "cotizar|cotizacion|precio|cuanto cuesta|costo",
+      "reply": "Para cotizarte necesitamos algunos detalles del servicio. ¿Nos cuentas qué necesitas?",
+      "list": {
+        "buttonLabel": "Elegir",
+        "sectionTitle": "Servicio",
+        "rows": [
+          {
+            "id": "COTIZAR_BASICO",
+            "title": "Cotización básica",
+            "description": "Sin costo"
+          },
+          {
+            "id": "HABLAR_ASESOR",
+            "title": "Hablar con un asesor",
+            "description": "Atención personalizada"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "soporte",
+      "name": "Soporte técnico",
+      "trigger": "soporte|problema|falla|no funciona|error|ayuda tecnica",
+      "reply": "Lamentamos el inconveniente. Cuéntanos qué está pasando y te ayudamos a resolverlo.",
+      "buttons": [
+        {
+          "id": "HABLAR_ASESOR",
+          "title": "Hablar con soporte"
+        }
+      ]
+    },
+    {
+      "slug": "hablar-asesor",
+      "name": "Hablar con un asesor",
+      "trigger": "asesor|persona|humano|hablar con",
+      "reply": "Claro, te pasamos con un asesor. En un momento te atiende.",
+      "buttons": []
+    },
+    {
+      "slug": "gracias",
+      "name": "Agradecimiento",
+      "trigger": "gracias|muchas gracias",
+      "reply": "¡Con gusto! Si necesitas algo más, aquí estamos.",
+      "buttons": []
+    }
+  ],
+  "kb": [
+    {
+      "question": "¿Cómo agendo una cita?",
+      "answer": "Escríbenos el servicio que necesitas y un horario tentativo; confirmamos la cita contigo.",
+      "tags": [
+        "cita",
+        "agendar"
+      ]
+    },
+    {
+      "question": "¿Cuánto cuesta el servicio?",
+      "answer": "El costo depende del alcance. Cuéntanos qué necesitas y te cotizamos sin compromiso.",
+      "tags": [
+        "precio",
+        "cotización"
+      ]
+    },
+    {
+      "question": "¿Ofrecen soporte técnico?",
+      "answer": "Sí, contamos con soporte para los servicios contratados.",
+      "tags": [
+        "soporte",
+        "ayuda"
+      ]
+    },
+    {
+      "question": "¿Cuál es su horario de atención?",
+      "answer": "Atendemos de lunes a viernes de 9:00 a 18:00.",
+      "tags": [
+        "horario"
+      ]
+    },
+    {
+      "question": "¿Hacen visitas a domicilio?",
+      "answer": "Depende del servicio; en muchos casos sí podemos atender en tu ubicación.",
+      "tags": [
+        "visita",
+        "domicilio"
+      ]
+    },
+    {
+      "question": "¿Qué necesito para la primera cita?",
+      "answer": "Con el diagnóstico inicial es suficiente; si hace falta documentación te lo pedimos antes.",
+      "tags": [
+        "cita",
+        "requisitos"
+      ]
+    },
+    {
+      "question": "¿Puedo cancelar o reagendar una cita?",
+      "answer": "Sí, avísanos con anticipación y la movemos sin problema.",
+      "tags": [
+        "cancelar",
+        "reagendar"
+      ]
+    },
+    {
+      "question": "¿Cómo hablo con un asesor?",
+      "answer": "Responde 'hablar con un asesor' y te pasamos con el equipo.",
+      "tags": [
+        "asesor",
+        "persona"
+      ]
+    },
+    {
+      "question": "¿Dan garantía del trabajo?",
+      "answer": "Sí, los servicios incluyen garantía; los términos se detallan al contratar.",
+      "tags": [
+        "garantía"
+      ]
+    },
+    {
+      "question": "¿Qué formas de pago aceptan?",
+      "answer": "Aceptamos transferencia y tarjetas.",
+      "tags": [
+        "pago"
+      ]
+    },
+    {
+      "question": "¿Cuánto tarda en atenderme?",
+      "answer": "Normalmente agendamos dentro de 1 a 3 días hábiles.",
+      "tags": [
+        "tiempo",
+        "cita"
+      ]
+    }
+  ]
+}

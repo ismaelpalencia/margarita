@@ -356,9 +356,44 @@ model Workspace {
   aiSuggestions    AiSuggestion[]
   aiJobs           AiSuggestionJob[]
   aiUsage          AiUsage[]
+  flows            Flow[]
+
+  /** Flujos precargados (respuesta automática por palabra clave). */
+  flowsEnabled Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+/**
+ * Flujo precargado (una sola respuesta automática por palabra clave).
+ *
+ * No es un chatbot con pasos: al recibir un mensaje cuyo texto contiene el
+ * trigger, se envía reply con botones o lista. La respuesta del cliente entra
+ * por el circuito de interactivos ya existente. Se carga desde
+ * seeds/verticals y no se pisa si ya existe (idempotente por slug).
+ */
+model Flow {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  slug    String
+  name    String
+  trigger String
+  reply   String
+
+  /** Botones (hasta 3) o lista (1 sección, hasta 10 filas). Uno de los dos. */
+  buttons Json?
+  list    Json?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId, isActive])
 }
 
 model WorkspaceSettings {
@@ -1205,9 +1240,16 @@ model KnowledgeEntry {
   createdById String?
   createdBy   User?   @relation("KnowledgeEntryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
 
+  /**
+   * Clave de idempotencia del cargador de paquetes: la misma pregunta no se
+   * duplica al cargar dos veces el paquete de un vertical.
+   */
+  sourceKey String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([workspaceId, sourceKey])
   @@index([workspaceId, isActive])
   @@index([workspaceId, priority])
 }

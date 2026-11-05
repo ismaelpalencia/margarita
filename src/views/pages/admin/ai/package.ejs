@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Paquete inicial | Margarita</title>
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+    <%- include("../../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <%
+        const parsedCounts = counts ? JSON.parse(counts) : null;
+    %>
+
+    <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <section class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">
+                Paquete inicial por vertical
+            </h2>
+
+            <p class="mt-1 max-w-3xl text-slate-500">
+                Carga flujos (respuestas automáticas por palabra clave, con
+                botones o lista) y una base de conocimiento lista para la IA.
+                Lo que ya existe <strong>no se pisa</strong>: si ya lo editaste,
+                se conserva.
+            </p>
+
+            <p class="mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold <%= flowsEnabled ? 'bg-margarita-50 text-margarita-700' : 'bg-slate-100 text-slate-600' %>">
+                <%= loadedFlows %> flujos cargados · <%= flowsEnabled ? "motor encendido" : "motor apagado" %>
+            </p>
+        </section>
+
+        <% if (success === "loaded") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                Paquete cargado.
+                <% if (parsedCounts) { %>
+                    Flujos nuevos: <%= parsedCounts.flowsCreated %> · omitidos: <%= parsedCounts.flowsSkipped %>.
+                    Entradas nuevas: <%= parsedCounts.kbCreated %> · omitidas: <%= parsedCounts.kbSkipped %>.
+                <% } %>
+            </div>
+        <% } %>
+
+        <% if (error === "invalid") { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                Elige un vertical válido.
+            </div>
+        <% } else if (error === "load") { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                No se pudo cargar el paquete.
+            </div>
+        <% } %>
+
+        <% packages.forEach((pkg) => { %>
+            <form action="/admin/ai/package/load" method="POST" class="mb-8 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-4">
+                    <div>
+                        <h3 class="text-lg font-black text-slate-900"><%= pkg.label %></h3>
+                        <p class="text-xs text-slate-500"><%= pkg.flows.length %> flujos · <%= pkg.kb.length %> entradas de conocimiento</p>
+                    </div>
+
+                    <input type="hidden" name="vertical" value="<%= pkg.vertical %>" />
+
+                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                        Cargar selección
+                    </button>
+                </div>
+
+                <div class="grid gap-0 md:grid-cols-2">
+                    <div class="border-b border-slate-100 p-5 md:border-b-0 md:border-r">
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Flujos</p>
+
+                        <div class="mt-3 space-y-3">
+                            <% pkg.flows.forEach((flow) => { %>
+                                <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3">
+                                    <input type="checkbox" name="flows" value="<%= flow.slug %>" class="mt-1 h-4 w-4 accent-margarita-600" />
+
+                                    <span>
+                                        <span class="block text-sm font-bold text-slate-800"><%= flow.name %></span>
+                                        <span class="block text-xs text-slate-500">Dispara con: <%= flow.trigger %></span>
+                                        <span class="mt-1 block text-xs text-slate-600">«<%= flow.reply %>»</span>
+                                        <% if (flow.buttons && flow.buttons.length) { %>
+                                            <span class="mt-1 block text-xs text-margarita-700">Botones: <%= flow.buttons.map((b) => b.title).join(", ") %></span>
+                                        <% } %>
+                                        <% if (flow.list && flow.list.rows) { %>
+                                            <span class="mt-1 block text-xs text-margarita-700">Lista: <%= flow.list.rows.map((r) => r.title).join(", ") %></span>
+                                        <% } %>
+                                    </span>
+                                </label>
+                            <% }) %>
+                        </div>
+                    </div>
+
+                    <div class="p-5">
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Base de conocimiento</p>
+
+                        <div class="mt-3 space-y-3">
+                            <% pkg.kb.forEach((entry, index) => { %>
+                                <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3">
+                                    <input type="checkbox" name="kb" value="<%= index %>" class="mt-1 h-4 w-4 accent-margarita-600" />
+
+                                    <span>
+                                        <span class="block text-sm font-bold text-slate-800"><%= entry.question %></span>
+                                        <span class="mt-1 block text-xs text-slate-600"><%= entry.answer %></span>
+                                    </span>
+                                </label>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        <% }) %>
+    </main>
+</body>
+</html>

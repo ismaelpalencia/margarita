@@ -127,3 +127,41 @@
 - `list_reply` ya se interpretaba en el webhook; el batch añade la prueba de que dispara la regla y mantiene id en claro / texto cifrado (ya cubierto por la suite de interactivos).
 
 ---
+
+## Batch 4 — Flujos precargados y base de conocimiento por vertical
+
+**Estado:** completado (en pro). **Migración:** sí, aditiva: 20261104160000_flujos_precargados (CREATE TABLE Flow, ADD COLUMN flowsEnabled, ADD COLUMN sourceKey + índice único).
+
+### Archivos tocados
+
+- Esquema/migración: prisma/schema.prisma (modelo Flow, Workspace.flowsEnabled, KnowledgeEntry.sourceKey), prisma/migrations/20261104160000_flujos_precargados/migration.sql.
+- Seeds: seeds/verticals/comercio.json, servicios.json, generico.json (5–6 flujos y 10–11 entradas de KB cada uno; sin paquete de cobranza).
+- Util pura: src/utils/flow.ts (+ flow.test.ts).
+- Servicio: src/services/flow.service.ts (cargador idempotente + motor de disparo), src/services/message.service.ts (sendFlowReply).
+- Integración en el webhook: src/services/meta-webhook-handler.service.ts (el flujo responde antes que la IA y evita el doble envío).
+- UI: src/controllers/admin-flow.controller.ts, src/routes/admin-ai.routes.ts, src/views/pages/admin/ai/package.ejs, enlace en src/views/pages/admin/ai/index.ejs.
+- Docs: docs/alcance-produccion.md, docs/catalogo-producto.md, docs/guia-uso.md.
+- Pruebas: tests/integration/flows.integration.test.ts.
+
+### Pruebas nuevas
+
+- 3 unitarias de flow (normalización, trigger separado por |, textos vacíos).
+- 2 de integración: el cargador es idempotente (dos cargas no duplican) y no pisa una edición previa; un flujo cargado responde de punta a punta (respuesta automática + FLOW_TRIGGERED).
+
+### Comandos y resultados
+
+- npx tsc --noEmit → OK.
+- npm run typecheck:all → OK.
+- npm test → 323 pass, 0 fail.
+- npm run test:integration → 91 pass, 2 skipped, 0 fail.
+- Migración: solo CREATE TABLE / ADD COLUMN / CREATE INDEX / ADD CONSTRAINT; sin DROP/DELETE/TRUNCATE ni cambios de tipo.
+
+### Decisiones y notas (repo manda)
+
+- No existía modelo ni motor de flujos: se interpretó «flujo» como una sola respuesta automática por palabra clave (stateless), con botones o lista. La respuesta del cliente entra por el circuito de interactivos ya existente. No se construyó un motor multi-paso; se anota como límite.
+- El disparo se hace por trigger normalizado (contiene, alternativas separadas por |). Coincidencia determinista, sin dependencias nuevas.
+- El motor está detrás de Workspace.flowsEnabled (apagado por defecto); cargar un paquete lo enciende (opt-in explícito).
+- La idempotencia de la KB usa KnowledgeEntry.sourceKey (clave derivada de la pregunta), porque question está cifrado y no se puede deduplicar por contenido en SQL.
+- Los seeds se leen en runtime desde seeds/verticals/*.json (cwd del deploy). No se copian a dist porque Railway ejecuta desde la raíz del repo.
+
+---
