@@ -37,6 +37,8 @@ import { InteractiveReplyService } from "./interactive-reply.service";
 import { enqueueSuggestion } from "./ai/queue.service";
 import { OffHoursService } from "./off-hours.service";
 import { FlowService } from "./flow.service";
+import { LeadService } from "./lead.service";
+import { extractEmail } from "../utils/lead";
 import { isWithinBusinessHours, parseBusinessHours } from "../utils/business-hours";
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
@@ -316,7 +318,8 @@ export class MetaWebhookHandlerService {
                 offHoursMode: true,
                 offHoursMessage: true,
                 offHoursReplyIntervalHours: true,
-                flowsEnabled: true
+                flowsEnabled: true,
+                leadsEnabled: true
             }
         });
 
@@ -459,6 +462,40 @@ export class MetaWebhookHandlerService {
                         "No se pudo encolar el borrador de IA."
                     );
                 }
+                }
+            }
+        }
+
+        /**
+         * Captura de leads: si el mensaje trae un correo y el workspace lo
+         * tiene encendido, se crea el lead (idempotente por conversación +
+         * correo) y, si hay webhook, se entrega firmado. No bloquea el webhook.
+         */
+        if (workspace?.leadsEnabled && !optedOut) {
+            const email = extractEmail(parsed.body || "");
+
+            if (email) {
+                try {
+                    await LeadService.capture({
+                        workspaceId,
+                        contactId: contact.id,
+                        conversationId: conversation.id,
+                        name: contact.customName || contact.profileName || contact.phone,
+                        email,
+                        interest: (parsed.body || "").replace(email, "").trim() || null,
+                        source: "INBOUND"
+                    });
+                } catch (error) {
+                    logger.warn(
+                        {
+                            error:
+                                error instanceof Error
+                                    ? error.message
+                                    : String(error),
+                            conversationId: conversation.id
+                        },
+                        "No se pudo capturar el lead."
+                    );
                 }
             }
         }

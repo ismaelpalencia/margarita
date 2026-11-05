@@ -290,6 +290,18 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
   flujo recibe la respuesta (con botones o lista) y se audita como
   FLOW_TRIGGERED. No hay paquete de cobranza.
 
+### 3.19 Leads (Admin → Leads)
+
+- Captura: cuando un mensaje entrante trae un correo y el flag `leadsEnabled`
+  está encendido, se crea el lead de forma idempotente (por conversación +
+  correo). También se puede crear a mano.
+- Lista con filtro por estado (NUEVO, CONTACTADO, CONVERTIDO, DESCARTADO),
+  cambio de estado y exportación a CSV (solo los leads del workspace).
+- Webhook saliente opcional: se entrega firmado con HMAC-SHA256 e idempotencia
+  por `lead.id`; un fallo se guarda y se reintenta desde el panel.
+- Nombre y correo cifrados; el correo lleva índice ciego.
+- Google Sheets queda como interfaz pendiente (sin implementar).
+
 ### 3.18 Horarios de atención (Admin → Configuración → Horarios)
 
 - Interruptor por workspace; apagado por defecto (comportamiento idéntico a

@@ -21,6 +21,7 @@ import adminSystemRoutes from "./admin-system.routes";
 import adminGuideRoutes from "./admin-guide.routes";
 import adminBackupRoutes from "./admin-backup.routes";
 import adminHoursRoutes from "./admin-hours.routes";
+import adminLeadsRoutes from "./admin-leads.routes";
 import { activeNumberMiddleware } from "../middlewares/active-number.middleware";
 import { workspaceProfileMiddleware } from "../middlewares/workspace-profile.middleware";
 import { ActiveNumberController } from "../controllers/active-number.controller";
@@ -57,6 +58,8 @@ router.use("/ai", adminAiRoutes);
 router.use("/system", adminSystemRoutes);
 /** Horarios de atención y modo fuera de horario. */
 router.use("/hours", adminHoursRoutes);
+/** Leads capturados y exportación. */
+router.use("/leads", adminLeadsRoutes);
 /** Guía del producto para el equipo del cliente (antes: roadmap interno). */
 router.use("/guia", adminGuideRoutes);
 router.use("/backup", adminBackupRoutes);

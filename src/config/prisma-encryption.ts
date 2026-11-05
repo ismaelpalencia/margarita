@@ -155,9 +155,15 @@ const ENCRYPTED_FIELDS: Record<string, string[]> = {
     AiSettings: ["systemPrompt"],
     /**
      * El mensaje que se manda fuera de horario es texto del negocio que no
-     * debe quedar en claro: se cifra como el resto del contenido.
+     * debe quedar en claro: se cifra como el resto del contenido. El webhook
+     * de leads puede traer un secreto de firma, así que también se cifra.
      */
-    Workspace: ["offHoursMessage"],
+    Workspace: ["offHoursMessage", "leadWebhookUrl", "leadWebhookSecret"],
+    /**
+     * Nombre y correo del lead son datos personales. El correo lleva índice
+     * ciego para la idempotencia por conversación + correo.
+     */
+    Lead: ["name", "email"],
     KnowledgeEntry: ["question", "answer"],
     AiSuggestion: ["body", "reason"]
 };
@@ -388,7 +394,28 @@ const WRITE_RULES: Record<string, WriteRule> = {
      * en claro porque son índices de trabajo, no contenido.
      */
     Workspace(data) {
-        encryptTextFields(data, ["offHoursMessage"]);
+        encryptTextFields(data, [
+            "offHoursMessage",
+            "leadWebhookUrl",
+            "leadWebhookSecret"
+        ]);
+    },
+
+    Lead(data) {
+        const email = data.email;
+
+        if (
+            typeof email === "string" &&
+            email.length > 0 &&
+            !isEncrypted(email)
+        ) {
+            const normalized = normalizeEmail(email);
+
+            data.email = encryptSecret(normalized);
+            data.emailHash = blindIndex(normalized);
+        }
+
+        encryptTextFields(data, ["name"]);
     },
 
     AiSettings(data) {

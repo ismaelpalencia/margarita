@@ -71,6 +71,7 @@ otras. Un administrador ve las de toda la empresa.
 | **Logs / Webhooks** | Qué pasó y por qué; lo que mandó Meta tal cual |
 | **Sistema / Respaldos** | Salud del servicio y copias de la base |
 | **Horarios** | Zona horaria, días, hora de apertura y cierre, y qué responde fuera de horario |
+| **Leads** | Contactos capturados con su correo e interés, con exportación a CSV |
 
 > Algunas instalaciones antiguas muestran módulos adicionales según el giro con
 > el que nacieron. Si no ves una pantalla en tu menú, no aplica a tu operación.

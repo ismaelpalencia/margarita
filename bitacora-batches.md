@@ -165,3 +165,39 @@
 - Los seeds se leen en runtime desde seeds/verticals/*.json (cwd del deploy). No se copian a dist porque Railway ejecuta desde la raíz del repo.
 
 ---
+
+## Batch 5 — Captura de leads, exportación y webhook saliente
+
+**Estado:** completado (en pro). **Migración:** sí, aditiva: 20261104170000_leads (CREATE TYPE LeadStatus, ADD COLUMN leadsEnabled/leadWebhookUrl/leadWebhookSecret, CREATE TABLE Lead + índices).
+
+### Archivos tocados
+
+- Esquema/migración: prisma/schema.prisma (enum LeadStatus, modelo Lead, campos en Workspace), prisma/migrations/20261104170000_leads/migration.sql.
+- Cifrado (registro mínimo): src/config/prisma-encryption.ts (Lead.name/email + emailHash ciego; Workspace.leadWebhookUrl/leadWebhookSecret).
+- Servicio: src/services/lead.service.ts (captura idempotente, firma HMAC-SHA256, reintento, export CSV), src/utils/lead.ts (+ test) para extraer el correo.
+- Integración: src/services/meta-webhook-handler.service.ts (captura automática si el mensaje trae correo y leadsEnabled).
+- UI: src/controllers/admin-leads.controller.ts, src/routes/admin-leads.routes.ts, src/views/pages/admin/leads/index.ejs, enlace en el nav.
+- Docs: docs/alcance-produccion.md, docs/catalogo-producto.md, docs/guia-uso.md.
+- Pruebas: tests/integration/leads.integration.test.ts.
+
+### Pruebas nuevas
+
+- 1 unitaria de extractEmail.
+- 4 de integración: captura idempotente + cifrado + webhook firmado (verifica firma HMAC e idempotencia por lead.id); reintentar reenvía sin duplicar; sin URL no falla; el CSV solo trae los leads del workspace.
+
+### Comandos y resultados
+
+- npx tsc --noEmit → OK.
+- npm run typecheck:all → OK.
+- npm test → 324 pass, 0 fail.
+- npm run test:integration → 95 pass, 2 skipped, 0 fail.
+- Migración: solo CREATE TYPE / ADD COLUMN / CREATE TABLE / CREATE INDEX / ADD CONSTRAINT; sin DROP/DELETE/TRUNCATE ni cambios de tipo.
+
+### Decisiones y notas (repo manda)
+
+- La captura se interpreta como: mensaje entrante que contiene un correo (con leadsEnabled) crea el lead; también hay alta manual. No se construyó un diálogo multi-paso para pedir datos.
+- Idempotencia por conversación + correo vía índice ciego emailHash (índice único en (workspaceId, conversationId, emailHash)).
+- El webhook saliente usa cabecera x-margarita-signature (HMAC-SHA256 sobre el cuerpo) e idempotencia x-idempotency-key = lead.id. El reintento es manual desde el panel; no hay worker en segundo plano (brecha documentada).
+- Google Sheets: interfaz pendiente, sin implementar (el spec lo permite como stub documentado).
+
+---

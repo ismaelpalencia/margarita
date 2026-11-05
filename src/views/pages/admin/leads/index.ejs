@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leads | Margarita</title>
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+    <%- include("../../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">Leads</h2>
+                <p class="mt-1 text-sm text-slate-500">
+                    Contactos capturados con su correo e interés. Los datos sensibles van cifrados.
+                </p>
+            </div>
+
+            <a href="/admin/leads/export" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                Exportar CSV
+            </a>
+        </div>
+
+        <% if (success === "settings") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">Configuración de leads guardada.</div>
+        <% } else if (success === "created") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">Lead guardado.</div>
+        <% } else if (success === "status") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">Estado actualizado.</div>
+        <% } else if (success === "retry") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">Reintento enviado.</div>
+        <% } %>
+
+        <% if (error) { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                <% if (error === "email") { %> El correo es obligatorio. <% } else if (error === "retry") { %> No se pudo reintentar la entrega. <% } else { %> No se pudo completar la acción. <% } %>
+            </div>
+        <% } %>
+
+        <section class="mb-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h3 class="font-bold text-slate-800">Configuración</h3>
+
+            <form action="/admin/leads/settings" method="POST" class="mt-4 grid gap-4 md:grid-cols-2">
+                <label class="flex cursor-pointer items-start gap-3">
+                    <input type="checkbox" name="leadsEnabled" value="true" <%= leadsEnabled ? "checked" : "" %> class="mt-1 h-5 w-5 accent-margarita-600" />
+                    <span>
+                        <span class="block text-sm font-bold text-slate-800">Activar captura de leads</span>
+                        <span class="block text-xs text-slate-500">Cuando un mensaje trae un correo, se crea el lead automáticamente.</span>
+                    </span>
+                </label>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700">URL del webhook (opcional)</label>
+                    <input type="text" name="leadWebhookUrl" value="<%= leadWebhookUrl %>" placeholder="https://tu-crm.com/webhooks/leads" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700">Secreto de firma (opcional)</label>
+                    <input type="password" name="leadWebhookSecret" placeholder="<%= hasWebhookSecret ? 'ya configurado' : '' %>" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+                    <p class="mt-1 text-xs text-slate-500">Se envía la cabecera x-margarita-signature con HMAC-SHA256.</p>
+                </div>
+
+                <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 md:col-span-2">
+                    Guardar configuración
+                </button>
+            </form>
+        </section>
+
+        <section class="mb-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h3 class="font-bold text-slate-800">Agregar lead</h3>
+
+            <form action="/admin/leads" method="POST" class="mt-4 grid gap-3 md:grid-cols-4">
+                <input type="text" name="name" placeholder="Nombre" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+                <input type="email" name="email" required placeholder="Correo" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+                <input type="text" name="interest" placeholder="Interés" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+                <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Guardar</button>
+            </form>
+        </section>
+
+        <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+            <div class="flex flex-wrap gap-2 border-b border-slate-200 p-4">
+                <a href="/admin/leads" class="rounded-full px-3 py-1 text-xs font-bold <%= currentStatus === "ALL" ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600' %>">Todos</a>
+                <% statuses.forEach((status) => { %>
+                    <a href="/admin/leads?status=<%= status %>" class="rounded-full px-3 py-1 text-xs font-bold <%= currentStatus === status ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600' %>"><%= status %></a>
+                <% }) %>
+            </div>
+
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-slate-500">
+                    <tr>
+                        <th class="px-4 py-3">Correo</th>
+                        <th class="px-4 py-3">Nombre</th>
+                        <th class="px-4 py-3">Interés</th>
+                        <th class="px-4 py-3">Estado</th>
+                        <th class="px-4 py-3">Webhook</th>
+                        <th class="px-4 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <% leads.forEach((lead) => { %>
+                        <tr>
+                            <td class="px-4 py-3"><%= lead.email || "—" %></td>
+                            <td class="px-4 py-3"><%= lead.name || "—" %></td>
+                            <td class="px-4 py-3"><%= lead.interest || "—" %></td>
+                            <td class="px-4 py-3">
+                                <form action="/admin/leads/<%= lead.id %>/status" method="POST" class="flex items-center gap-2">
+                                    <select name="status" class="rounded-xl border border-slate-300 px-2 py-1 text-xs">
+                                        <% statuses.forEach((status) => { %>
+                                            <option value="<%= status %>" <%= lead.status === status ? "selected" : "" %>><%= status %></option>
+                                        <% }) %>
+                                    </select>
+                                    <button class="rounded-lg bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">Guardar</button>
+                                </form>
+                            </td>
+                            <td class="px-4 py-3 text-xs <%= lead.webhookFailedAt ? 'text-red-600' : lead.webhookSentAt ? 'text-emerald-600' : 'text-slate-400' %>">
+                                <%= lead.webhookFailedAt ? "falló" : lead.webhookSentAt ? "entregado" : "pendiente" %>
+                            </td>
+                            <td class="px-4 py-3">
+                                <% if (lead.webhookFailedAt) { %>
+                                    <form action="/admin/leads/<%= lead.id %>/retry" method="POST">
+                                        <button class="rounded-lg bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">Reintentar</button>
+                                    </form>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }) %>
+
+                    <% if (leads.length === 0) { %>
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-sm text-slate-400">Sin leads todavía.</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

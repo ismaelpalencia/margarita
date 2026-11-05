@@ -192,6 +192,13 @@ enum OffHoursMode {
   QUEUE_ONLY
 }
 
+enum LeadStatus {
+  NUEVO
+  CONTACTADO
+  CONVERTIDO
+  DESCARTADO
+}
+
 enum AiJobStatus {
   PENDING
   PROCESSING
@@ -327,6 +334,13 @@ model Workspace {
   /** Listas interactivas (más de 3 opciones). Apagado por defecto. */
   interactiveListsEnabled Boolean @default(false)
 
+  /** Captura de leads. Apagado por defecto. */
+  leadsEnabled Boolean @default(false)
+
+  /** URL y secreto del webhook saliente de leads (firmado con HMAC). */
+  leadWebhookUrl String?
+  leadWebhookSecret String?
+
   settings                 WorkspaceSettings?
   whatsappAccount          WhatsAppAccount?
   users                    User[]
@@ -357,6 +371,7 @@ model Workspace {
   aiJobs           AiSuggestionJob[]
   aiUsage          AiUsage[]
   flows            Flow[]
+  leads            Lead[]
 
   /** Flujos precargados (respuesta automática por palabra clave). */
   flowsEnabled Boolean @default(false)
@@ -394,6 +409,43 @@ model Flow {
 
   @@unique([workspaceId, slug])
   @@index([workspaceId, isActive])
+}
+
+
+/**
+ * Lead capturado (nombre, correo, interés). No es un CRM: solo se captura el
+ * contacto para derivarlo o exportarlo. Nombre y correo van cifrados; el
+ * correo además lleva índice ciego para la idempotencia por conversación.
+ */
+model Lead {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  contactId      String?
+  contact        Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  name      String?
+  email     String?
+  emailHash String?
+  interest  String?
+  source    String
+
+  status LeadStatus @default(NUEVO)
+
+  webhookSentAt    DateTime?
+  webhookFailedAt  DateTime?
+  webhookError     String?
+  webhookAttempts  Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, conversationId, emailHash])
+  @@index([workspaceId, status])
+  @@index([workspaceId, createdAt])
 }
 
 model WorkspaceSettings {
@@ -656,6 +708,7 @@ model Contact {
   campaignRecipients CampaignRecipient[]
   outcomes           ContactOutcome[]
   complaints         Complaint[]
+  leads              Lead[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -785,6 +838,7 @@ model Conversation {
    */
   aiSuggestions AiSuggestion[]
   aiJobs        AiSuggestionJob[]
+  leads         Lead[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
