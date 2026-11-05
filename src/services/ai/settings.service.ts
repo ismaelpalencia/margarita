@@ -18,6 +18,7 @@ export type ResolvedAiSettings = {
     /** El techo lo puso el operador desde Railway: no se edita en el panel. */
     maxRepliesPerDayLocked: boolean;
     maxRepliesPerThreadLocked: boolean;
+    monthlyBudgetLocked: boolean;
 };
 
 export type SaveAiSettingsInput = {
@@ -45,11 +46,27 @@ function cap(value: number, limit: number | null): number {
  * base: una instalación que nunca abrió la pantalla de IA no debe tener una
  * fila nueva solo por arrancar.
  *
- * Los topes `AI_MAX_REPLIES_PER_DAY`/`AI_MAX_REPLIES_PER_THREAD` de Railway
- * recortan siempre el valor efectivo: ni el cliente ni la base pueden
- * superarlos, y la pantalla los pinta como solo lectura.
+ * El operador controla los límites desde Railway:
+ * - `AI_MAX_REPLIES_PER_DAY` / `AI_MAX_REPLIES_PER_THREAD` recortan el valor.
+ * - `AI_MAX_MONTHLY_BUDGET_CENTS` recorta el presupuesto de sugerencias/auto.
+ * - `AI_LIMITS_LOCKED=true` deja los tres en solo lectura con su valor actual.
+ * - `AI_LIMITS_HIDDEN=true` oculta la tarjeta entera al cliente.
  */
 export class AiSettingsService {
+    private static locks() {
+        return {
+            maxRepliesPerDayLocked:
+                appConfig.aiLimitsLocked ||
+                appConfig.aiMaxRepliesPerDay !== null,
+            maxRepliesPerThreadLocked:
+                appConfig.aiLimitsLocked ||
+                appConfig.aiMaxRepliesPerThread !== null,
+            monthlyBudgetLocked:
+                appConfig.aiLimitsLocked ||
+                appConfig.aiMaxMonthlyBudgetCents !== null
+        };
+    }
+
     static defaults(): ResolvedAiSettings {
         return {
             enabled: false,
@@ -60,11 +77,10 @@ export class AiSettingsService {
             confidenceMin: 0.7,
             maxRepliesPerDay: cap(50, appConfig.aiMaxRepliesPerDay),
             maxRepliesPerThread: cap(5, appConfig.aiMaxRepliesPerThread),
-            monthlyBudgetCents: 500,
+            monthlyBudgetCents: cap(500, appConfig.aiMaxMonthlyBudgetCents),
             handoffKeywords: [],
             model: null,
-            maxRepliesPerDayLocked: appConfig.aiMaxRepliesPerDay !== null,
-            maxRepliesPerThreadLocked: appConfig.aiMaxRepliesPerThread !== null
+            ...this.locks()
         };
     }
 
@@ -89,11 +105,13 @@ export class AiSettingsService {
                 row.maxRepliesPerThread,
                 appConfig.aiMaxRepliesPerThread
             ),
-            monthlyBudgetCents: row.monthlyBudgetCents,
+            monthlyBudgetCents: cap(
+                row.monthlyBudgetCents,
+                appConfig.aiMaxMonthlyBudgetCents
+            ),
             handoffKeywords: row.handoffKeywords,
             model: row.model,
-            maxRepliesPerDayLocked: appConfig.aiMaxRepliesPerDay !== null,
-            maxRepliesPerThreadLocked: appConfig.aiMaxRepliesPerThread !== null
+            ...this.locks()
         };
     }
 
@@ -102,6 +120,27 @@ export class AiSettingsService {
         userId: string,
         input: SaveAiSettingsInput
     ) {
+        /**
+         * Con la tarjeta oculta o bloqueada, los límites vigentes no se
+         * tocan: aunque alguien postee el formulario a mano, se conserva
+         * lo que ya estaba (y el techo de Railway se aplica igual).
+         */
+        const preserve = appConfig.aiLimitsHidden || appConfig.aiLimitsLocked;
+        const current = preserve
+            ? await prisma.aiSettings.findUnique({ where: { workspaceId } })
+            : null;
+        const fallback = this.defaults();
+
+        const maxRepliesPerDay = preserve
+            ? current?.maxRepliesPerDay ?? fallback.maxRepliesPerDay
+            : input.maxRepliesPerDay;
+        const maxRepliesPerThread = preserve
+            ? current?.maxRepliesPerThread ?? fallback.maxRepliesPerThread
+            : input.maxRepliesPerThread;
+        const monthlyBudgetCents = preserve
+            ? current?.monthlyBudgetCents ?? fallback.monthlyBudgetCents
+            : input.monthlyBudgetCents;
+
         const data = {
             enabled: input.enabled,
             mode: input.mode,
@@ -109,12 +148,15 @@ export class AiSettingsService {
             tone: input.tone || null,
             language: input.language,
             confidenceMin: input.confidenceMin,
-            maxRepliesPerDay: cap(input.maxRepliesPerDay, appConfig.aiMaxRepliesPerDay),
+            maxRepliesPerDay: cap(maxRepliesPerDay, appConfig.aiMaxRepliesPerDay),
             maxRepliesPerThread: cap(
-                input.maxRepliesPerThread,
+                maxRepliesPerThread,
                 appConfig.aiMaxRepliesPerThread
             ),
-            monthlyBudgetCents: input.monthlyBudgetCents,
+            monthlyBudgetCents: cap(
+                monthlyBudgetCents,
+                appConfig.aiMaxMonthlyBudgetCents
+            ),
             handoffKeywords: input.handoffKeywords,
             model: input.model || null,
             updatedById: userId

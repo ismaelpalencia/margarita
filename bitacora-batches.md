@@ -556,3 +556,18 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - (d) Escalamiento: `src/jobs/handoff-escalation.job.ts` define `INTERVAL_MS = 60 * 1000`, `runHandoffEscalation()` y `startHandoffEscalationJob()`; se registra en `src/jobs/index.ts`.
 
 ---
+
+## Control del plan desde Railway
+
+- `AI_MAX_MONTHLY_BUDGET_CENTS`: techo del presupuesto mensual de IA (sugerencias y automático).
+- `AI_LIMITS_HIDDEN=true`: oculta la tarjeta de límites al cliente; el servidor conserva los valores vigentes aunque se poste el formulario.
+- `AI_LIMITS_LOCKED=true`: deja los tres límites en solo lectura (día, hilo, presupuesto) con su valor actual.
+- `AI_LIMITS_LOCKED` ahora se usa de verdad; antes solo estaba definido en `appConfig`.
+- `AiSettingsService` recorta día/hilo/presupuesto al techo y, si está bloqueado u oculto, preserva lo existente.
+- Documentado en `.env.example` y en `docs/alcance-produccion.md`.
+
+### Gates
+
+- tsc OK, 343 unit, 101 integración.
+
+---

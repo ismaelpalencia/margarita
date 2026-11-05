@@ -89,6 +89,7 @@ export class AdminAiController {
         return res.render("pages/admin/ai/index", {
             user: req.user,
             multilangLanguages: workspace?.aiMultilangLanguages ?? [],
+            aiLimitsHidden: appConfig.aiLimitsHidden,
             ...data,
             success: req.query.success || null,
             error: req.query.error || null,

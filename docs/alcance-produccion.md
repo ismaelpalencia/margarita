@@ -74,7 +74,7 @@ La app **no tiene un campo `plan` ni bloquea el modo `AUTO` según el plan**. Lo
 
 1. El operador fija en Railway `AI_MAX_REPLIES_PER_DAY` y `AI_MAX_REPLIES_PER_THREAD` (y opcionalmente `AI_LIMITS_LOCKED`).
 2. `AiSettingsService` recorta **siempre** el valor efectivo al techo (`min(valor, techo)`), tanto al leer como al guardar.
-3. En **Admin → IA** esos campos aparecen en solo lectura con la leyenda *Definido por el operador desde Railway*.
+3. En **Admin → IA** esos campos aparecen en solo lectura con la leyenda *Definido por el operador desde Railway*; con `AI_LIMITS_HIDDEN=true` la tarjeta de límites se oculta por completo y el servidor conserva los valores vigentes aunque se poste el formulario a mano.
 
 Así el cliente no puede subir su límite por encima de lo contratado aunque tenga acceso de administrador.
 
@@ -385,7 +385,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - `AI_ENABLED`, `AI_PROVIDER`, `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`, `AI_TIMEOUT_MS`.
 - `AI_MAX_CONTEXT_MESSAGES`, `AI_MAX_KNOWLEDGE_ENTRIES`, `AI_DEBOUNCE_SECONDS`, `AI_WORKER_INTERVAL_MS`, `AI_MAX_ATTEMPTS`, `AI_MAX_TOKENS`, `AI_TEMPERATURE`.
 - `AI_PRICE_INPUT_PER_MILLION`, `AI_PRICE_OUTPUT_PER_MILLION`.
-- **Techos del operador:** `AI_MAX_REPLIES_PER_DAY`, `AI_MAX_REPLIES_PER_THREAD`, `AI_LIMITS_LOCKED`.
+- **Techos del operador:** `AI_MAX_REPLIES_PER_DAY`, `AI_MAX_REPLIES_PER_THREAD`, `AI_MAX_MONTHLY_BUDGET_CENTS`, `AI_LIMITS_LOCKED`, `AI_LIMITS_HIDDEN`.
 
 ### Demo y comercial
 

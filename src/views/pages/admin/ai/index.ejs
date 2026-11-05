@@ -296,6 +296,15 @@
                         </p>
                     </div>
 
+                    <% if (aiLimitsHidden) { %>
+                        <div class="rounded-xl bg-slate-50 px-4 py-3 text-xs text-slate-500 ring-1 ring-slate-200 sm:col-span-2">
+                            Los límites de uso de IA los define el operador. No se editan desde el panel.
+                        </div>
+
+                        <input type="hidden" name="maxRepliesPerDay" value="<%= settings.maxRepliesPerDay %>" />
+                        <input type="hidden" name="maxRepliesPerThread" value="<%= settings.maxRepliesPerThread %>" />
+                        <input type="hidden" name="monthlyBudgetCents" value="<%= settings.monthlyBudgetCents %>" />
+                    <% } else { %>
                     <div>
                         <label class="mb-1 block text-sm font-medium text-slate-700">
                             Límite de respuestas automáticas por día
@@ -356,14 +365,20 @@
                             value="<%= settings.monthlyBudgetCents %>"
                             min="0"
                             max="1000000"
-                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                            <%= settings.monthlyBudgetLocked ? "readonly" : "" %>
+                            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100 <%= settings.monthlyBudgetLocked ? 'bg-slate-100 text-slate-500' : '' %>"
                         />
 
                         <p class="mt-2 text-xs text-slate-500">
-                            500 = $5.00 USD al mes. Al agotarse, el automático
-                            deja de responder; las sugerencias siguen.
+                            <% if (settings.monthlyBudgetLocked) { %>
+                                Definido por el operador desde Railway. No se puede subir desde el panel.
+                            <% } else { %>
+                                500 = $5.00 USD al mes. Al agotarse, el automático
+                                deja de responder; las sugerencias siguen.
+                            <% } %>
                         </p>
                     </div>
+                    <% } %>
                 </div>
 
                 <div>

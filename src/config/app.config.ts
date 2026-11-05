@@ -163,10 +163,16 @@ export const appConfig = {
      */
     aiMaxRepliesPerDay: optionalLimit(process.env.AI_MAX_REPLIES_PER_DAY),
     aiMaxRepliesPerThread: optionalLimit(process.env.AI_MAX_REPLIES_PER_THREAD),
+    aiMaxMonthlyBudgetCents: optionalLimit(
+        process.env.AI_MAX_MONTHLY_BUDGET_CENTS
+    ),
     aiLimitsLocked:
         process.env.AI_LIMITS_LOCKED === "true" ||
         Boolean(process.env.AI_MAX_REPLIES_PER_DAY?.trim()) ||
-        Boolean(process.env.AI_MAX_REPLIES_PER_THREAD?.trim()),
+        Boolean(process.env.AI_MAX_REPLIES_PER_THREAD?.trim()) ||
+        Boolean(process.env.AI_MAX_MONTHLY_BUDGET_CENTS?.trim()),
+    /** Oculta por completo la tarjeta de límites al cliente. */
+    aiLimitsHidden: process.env.AI_LIMITS_HIDDEN === "true",
     env: runtimeEnvironment,
     timezone: process.env.TIMEZONE || "America/Mexico_City",
 
