@@ -28,4 +28,10 @@ router.post("/test", AdminAiController.test);
 router.get("/package", AdminFlowController.index);
 router.post("/package/load", AdminFlowController.load);
 
+/** Edición y activación de flujos (bienvenida incluida). */
+router.post("/flows/toggle", AdminFlowController.toggleFlows);
+router.post("/flows/:id/toggle", AdminFlowController.toggleFlow);
+router.get("/flows/:id", AdminFlowController.edit);
+router.post("/flows/:id", AdminFlowController.update);
+
 export default router;

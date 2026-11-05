@@ -653,3 +653,14 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Prueba nueva para el ajuste de títulos.
 
 ---
+
+## Flujos editables y activables
+
+- Admin → IA → Paquete inicial ahora lista los flujos del workspace con estado y acciones.
+- Toggle global de `flowsEnabled` y toggle por flujo (`isActive`).
+- Editor de flujo: trigger, respuesta, hasta 3 botones (título máx. 20, IDs únicos) y opción de quitarlos.
+- Rutas nuevas: POST /admin/ai/flows/toggle, POST /admin/ai/flows/:id/toggle, GET/POST /admin/ai/flows/:id.
+- Auditoría: FLOWS_ENABLED_CHANGED, FLOW_ACTIVATED/DEACTIVATED, FLOW_UPDATED.
+- Con flujo disparado no se encola IA; si el flujo falla, la IA sigue (por eso el texto adicional).
+
+---
