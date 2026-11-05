@@ -248,6 +248,50 @@ export class AiAutoReplyService {
                 conversationId: params.conversationId
             }).catch(() => undefined);
 
+            /** Notificación a quien recibe la entrega: toast + badge. */
+            const assigned = await prisma.conversation.findFirst({
+                where: { id: params.conversationId, workspaceId: params.workspaceId },
+                select: {
+                    assignedUserId: true,
+                    contact: {
+                        select: { customName: true, profileName: true, phone: true }
+                    }
+                }
+            });
+
+            const contactName = assigned
+                ? assigned.contact.customName ||
+                  assigned.contact.profileName ||
+                  assigned.contact.phone
+                : null;
+
+            emitToWorkspaceAndUsers(
+                params.workspaceId,
+                [assigned?.assignedUserId ?? null],
+                "conversation:handoff",
+                {
+                    conversationId: params.conversationId,
+                    contactName,
+                    reason: params.reason,
+                    assignedUserId: assigned?.assignedUserId ?? null
+                }
+            );
+
+            if (assigned?.assignedUserId) {
+                await LogService.create({
+                    workspaceId: params.workspaceId,
+                    level: LogLevel.INFO,
+                    module: LogModule.AI,
+                    action: "AI_HANDOFF_NOTIFIED",
+                    message: "Se notificó la entrega a la persona asignada.",
+                    payload: {
+                        conversationId: params.conversationId,
+                        userId: assigned.assignedUserId,
+                        channel: "toast+badge"
+                    }
+                }).catch(() => undefined);
+            }
+
             await LogService.create({
                 workspaceId: params.workspaceId,
                 level: LogLevel.WARN,

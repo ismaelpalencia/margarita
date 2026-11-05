@@ -336,6 +336,25 @@ export class AdminConversationsController {
         }
     }
 
+    /** Reclama una conversación sin asignar. */
+    static async claim(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+
+        try {
+            await ConversationService.claim(
+                req.user!.workspaceId,
+                conversationId,
+                req.user!.id
+            );
+        } catch {
+            return res.redirect(
+                `/admin/conversations/${conversationId}?error=claim`
+            );
+        }
+
+        return res.redirect(`/admin/conversations/${conversationId}?success=claimed`);
+    }
+
     /** Lista interactiva (menú de hasta 10 opciones). */
     static async sendInteractiveList(req: Request, res: Response) {
         const conversationId = getRequiredParam(req, "id");

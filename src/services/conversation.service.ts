@@ -12,6 +12,7 @@ import {
 import { prisma } from "../config/prisma";
 import { contactSearchOr } from "../utils/contact-search";
 import { emitToWorkspaceAndUsers } from "../sockets";
+import { BadgeService } from "./badge.service";
 import { describeMetaError } from "../utils/meta-error";
 import { LogService } from "./log.service";
 
@@ -107,9 +108,11 @@ export class ConversationService {
         const search = filters.search?.trim() || "";
 
         const assignedTo =
-            params.restrictToUserId !== undefined
-                ? params.restrictToUserId
-                : filters.assignedTo;
+            filters.assignedTo === null
+                ? null
+                : params.restrictToUserId !== undefined
+                  ? params.restrictToUserId
+                  : filters.assignedTo;
 
         return {
             workspaceId: params.workspaceId,
@@ -213,6 +216,15 @@ export class ConversationService {
      * usuario tenía el hilo abierto, el aviso desaparece para todos.
      */
     static async markAsRead(workspaceId: string, conversationId: string) {
+        const conversation = await prisma.conversation.findFirst({
+            where: { id: conversationId, workspaceId },
+            select: { assignedUserId: true, unreadCount: true }
+        });
+
+        if (!conversation || conversation.unreadCount <= 0) {
+            return;
+        }
+
         await prisma.conversation.updateMany({
             where: {
                 id: conversationId,
@@ -225,6 +237,16 @@ export class ConversationService {
                 unreadCount: 0
             }
         });
+
+        /** Otras pestañas y el resto del equipo se enteran del decremento. */
+        emitToWorkspaceAndUsers(
+            workspaceId,
+            [conversation.assignedUserId],
+            "conversation:read",
+            { conversationId }
+        );
+
+        await BadgeService.broadcast(workspaceId);
     }
 
     /** Total de mensajes sin leer, para el aviso del encabezado. */
@@ -707,5 +729,74 @@ export class ConversationService {
         });
 
         return message;
+    }
+
+    /** Conversaciones abiertas sin dueño (para el badge «Sin asignar»). */
+    static async countUnassigned(workspaceId: string): Promise<number> {
+        return prisma.conversation.count({
+            where: {
+                workspaceId,
+                assignedUserId: null,
+                status: ConversationStatus.OPEN
+            }
+        });
+    }
+
+    /**
+     * Un agente o admin reclama una conversación sin asignar.
+     */
+    static async claim(
+        workspaceId: string,
+        conversationId: string,
+        userId: string
+    ) {
+        const conversation = await prisma.conversation.findFirst({
+            where: { id: conversationId, workspaceId },
+            select: { id: true, assignedUserId: true }
+        });
+
+        if (!conversation) {
+            throw new Error("Conversación no encontrada.");
+        }
+
+        const updated = await prisma.conversation.update({
+            where: { id: conversationId },
+            data: {
+                assignedUserId: userId,
+                operationalStatus: ConversationOperationalStatus.ASSIGNED,
+                status: ConversationStatus.OPEN,
+                closedAt: null
+            }
+        });
+
+        await prisma.assignmentHistory.create({
+            data: {
+                conversationId,
+                fromUserId: conversation.assignedUserId,
+                toUserId: userId,
+                assignedById: userId,
+                reason: "CLAIMED"
+            }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.CONVERSATION,
+            action: "HANDOFF_CLAIMED",
+            message: "La conversación sin asignar fue reclamada.",
+            payload: { conversationId, userId }
+        }).catch(() => undefined);
+
+        emitToWorkspaceAndUsers(workspaceId, [userId], "conversation:assigned", {
+            conversationId,
+            assignedUserId: userId,
+            reason: "CLAIMED",
+            fallback: false
+        });
+
+        await BadgeService.broadcast(workspaceId);
+
+        return updated;
     }
 }

@@ -3,6 +3,7 @@ import { UserStatus } from "@prisma/client";
 
 import { AgentService } from "../services/agent.service";
 import { DashboardService } from "../services/dashboard.service";
+import { ConversationService } from "../services/conversation.service";
 
 export class AgentDashboardController {
     static async index(req: Request, res: Response) {
@@ -14,6 +15,9 @@ export class AgentDashboardController {
         return res.render("pages/agent/dashboard", {
             user: req.user,
             dashboard,
+            unassignedCount: await ConversationService.countUnassigned(
+                req.user!.workspaceId
+            ),
             success: req.query.success || null,
             error: req.query.error || null
         });

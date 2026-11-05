@@ -48,6 +48,8 @@ router.post("/account/password", authMiddleware, AccountController.change);
  * agentes. La activación lleva dos pasos (generar la clave y confirmar un
  * código) para que nadie se quede fuera por escanear mal.
  */
+router.get("/account/notifications", authMiddleware, AccountController.showNotifications);
+router.post("/account/notifications", authMiddleware, AccountController.saveNotifications);
 router.get("/account/security", authMiddleware, AccountController.showSecurity);
 router.post(
     "/account/security/two-factor/start",

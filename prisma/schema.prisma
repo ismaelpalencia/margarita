@@ -356,6 +356,10 @@ model Workspace {
    */
   aiMultilangLanguages String[] @default([])
 
+  /** Asignación y escalamiento de handoff. */
+  handoffEscalationMinutes Int     @default(15)
+  autoAssignToAdmin        Boolean @default(true)
+
   settings                 WorkspaceSettings?
   whatsappAccount          WhatsAppAccount?
   users                    User[]
@@ -524,6 +528,10 @@ model User {
 
   role   UserRole
   status UserStatus @default(OFFLINE)
+
+  /** Preferencias de notificación (apagadas por defecto). */
+  notifySoundEnabled   Boolean @default(false)
+  notifyBrowserEnabled Boolean @default(false)
 
   isActive Boolean @default(true)
 
@@ -842,6 +850,11 @@ model Conversation {
    * este hilo. Sirve para no repetirla más de una vez por intervalo.
    */
   lastOffHoursReplyAt DateTime?
+
+  /**
+   * Última vez que se escaló este hilo sin asignar a todos los administradores.
+   */
+  handoffEscalatedAt DateTime?
 
   status            ConversationStatus            @default(OPEN)
   operationalStatus ConversationOperationalStatus @default(UNASSIGNED)

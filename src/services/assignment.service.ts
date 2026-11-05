@@ -8,7 +8,9 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
-import { emitToWorkspaceAndUsers } from "../sockets";
+import { emitToWorkspace, emitToWorkspaceAndUsers } from "../sockets";
+import { AssigneeCandidate, pickAssignee } from "../utils/assignment";
+import { BadgeService } from "./badge.service";
 import { LogService } from "./log.service";
 
 type AssignLeastBusyParams = {
@@ -18,11 +20,81 @@ type AssignLeastBusyParams = {
 };
 
 export class AssignmentService {
+    /**
+     * Candidatos a recibir la conversación, con su carga calculada.
+     * Incluye agentes ACTIVOS (AVAILABLE o BUSY) y administradores con
+     * sesión activa (estén o no marcados como OFFLINE).
+     */
+    private static async collectCandidates(workspaceId: string) {
+        const now = new Date();
+
+        const [agents, admins] = await Promise.all([
+            prisma.user.findMany({
+                where: {
+                    workspaceId,
+                    role: UserRole.AGENT,
+                    isActive: true,
+                    status: { in: [UserStatus.AVAILABLE, UserStatus.BUSY] }
+                },
+                select: { id: true, name: true, role: true, status: true }
+            }),
+            prisma.user.findMany({
+                where: {
+                    workspaceId,
+                    role: UserRole.ADMIN,
+                    isActive: true,
+                    sessions: {
+                        some: { isActive: true, expiresAt: { gt: now } }
+                    }
+                },
+                select: { id: true, name: true, role: true, status: true }
+            })
+        ]);
+
+        const users = [...agents, ...admins];
+        const ids = users.map((user) => user.id);
+
+        if (ids.length === 0) {
+            return [] as AssigneeCandidate[];
+        }
+
+        const loads = await prisma.conversation.groupBy({
+            by: ["assignedUserId"],
+            where: {
+                workspaceId,
+                assignedUserId: { in: ids },
+                status: ConversationStatus.OPEN
+            },
+            _count: { _all: true }
+        });
+
+        const loadById = new Map<string, number>();
+
+        for (const row of loads) {
+            if (row.assignedUserId) {
+                loadById.set(row.assignedUserId, row._count._all);
+            }
+        }
+
+        return users.map((user) => ({
+            id: user.id,
+            name: user.name,
+            role: user.role as "AGENT" | "ADMIN",
+            status: user.status,
+            load: loadById.get(user.id) ?? 0
+        }));
+    }
+
     static async assignLeastBusyAgent(params: AssignLeastBusyParams) {
         const conversation = await prisma.conversation.findFirst({
             where: {
                 id: params.conversationId,
                 workspaceId: params.workspaceId
+            },
+            select: {
+                id: true,
+                assignedUserId: true,
+                contact: { select: { customName: true, profileName: true, phone: true } }
             }
         });
 
@@ -31,67 +103,51 @@ export class AssignmentService {
         }
 
         if (conversation.assignedUserId) {
-            return conversation;
-        }
-
-        const availableAgents = await prisma.user.findMany({
-            where: {
-                workspaceId: params.workspaceId,
-                role: UserRole.AGENT,
-                isActive: true,
-                status: UserStatus.AVAILABLE
-            },
-            select: {
-                id: true,
-                name: true
-            },
-            orderBy: {
-                name: "asc"
-            }
-        });
-
-        if (availableAgents.length === 0) {
-            return prisma.conversation.update({
-                where: {
-                    id: conversation.id
-                },
-                data: {
-                    operationalStatus: ConversationOperationalStatus.UNASSIGNED
-                }
+            return prisma.conversation.findUniqueOrThrow({
+                where: { id: conversation.id }
             });
         }
 
-        const agentsWithCounts = await Promise.all(
-            availableAgents.map(async (agent) => {
-                const openConversations = await prisma.conversation.count({
-                    where: {
-                        workspaceId: params.workspaceId,
-                        assignedUserId: agent.id,
-                        status: ConversationStatus.OPEN
-                    }
-                });
+        const workspace = await prisma.workspace.findUnique({
+            where: { id: params.workspaceId },
+            select: { autoAssignToAdmin: true }
+        });
+        const candidates = await AssignmentService.collectCandidates(params.workspaceId);
+        const decision = pickAssignee(candidates, workspace?.autoAssignToAdmin ?? true);
+        const contactName =
+            conversation.contact.customName ||
+            conversation.contact.profileName ||
+            conversation.contact.phone;
 
-                return {
-                    ...agent,
-                    openConversations
-                };
-            })
-        );
+        if (decision.kind === "unassigned") {
+            const updated = await prisma.conversation.update({
+                where: { id: conversation.id },
+                data: { operationalStatus: ConversationOperationalStatus.UNASSIGNED }
+            });
 
-        const selectedAgent = agentsWithCounts.sort((a, b) => {
-            if (a.openConversations !== b.openConversations) {
-                return a.openConversations - b.openConversations;
-            }
+            await LogService.create({
+                workspaceId: params.workspaceId,
+                level: LogLevel.WARN,
+                module: LogModule.CONVERSATION,
+                action: "HANDOFF_UNASSIGNED",
+                message: "No hay agente disponible: la conversación quedó sin asignar.",
+                payload: { conversationId: conversation.id }
+            }).catch(() => undefined);
 
-            return a.name.localeCompare(b.name);
-        })[0];
+            emitToWorkspace(params.workspaceId, "conversation:unassigned", {
+                conversationId: conversation.id,
+                contactName
+            });
 
-        const updatedConversation = await prisma.conversation.update({
-            where: {
-                id: conversation.id
-            },
+            await BadgeService.broadcast(params.workspaceId);
+
+            return updated;
+        }
+
+        const updated = await prisma.conversation.update({
+            where: { id: conversation.id },
             data: {
-                assignedUserId: selectedAgent.id,
+                assignedUserId: decision.userId,
                 operationalStatus: ConversationOperationalStatus.ASSIGNED,
                 status: ConversationStatus.OPEN,
                 closedAt: null
@@ -102,37 +158,45 @@ export class AssignmentService {
             data: {
                 conversationId: conversation.id,
                 fromUserId: null,
-                toUserId: selectedAgent.id,
-                assignedById: params.assignedById || selectedAgent.id,
-                reason: "AUTO_LEAST_BUSY"
+                toUserId: decision.userId,
+                assignedById: params.assignedById || decision.userId,
+                reason: decision.step
             }
         });
+
+        const fallback = decision.step !== "AVAILABLE_LEAST_BUSY";
+        const action = fallback ? "HANDOFF_ASSIGNED_FALLBACK" : "AUTO_ASSIGN_LEAST_BUSY";
 
         await LogService.create({
             workspaceId: params.workspaceId,
             level: LogLevel.INFO,
             module: LogModule.CONVERSATION,
-            action: "AUTO_ASSIGN_LEAST_BUSY",
-            message: "Conversación asignada automáticamente al agente con menos carga.",
+            action,
+            message: fallback
+                ? "La conversación se asignó por fallback de handoff."
+                : "Conversación asignada automáticamente al agente con menos carga.",
             payload: {
                 conversationId: conversation.id,
-                toUserId: selectedAgent.id,
-                openConversations: selectedAgent.openConversations
+                toUserId: decision.userId,
+                step: decision.step
             }
-        });
+        }).catch(() => undefined);
 
         emitToWorkspaceAndUsers(
             params.workspaceId,
-            [selectedAgent.id],
+            [decision.userId],
             "conversation:assigned",
             {
                 conversationId: conversation.id,
-                assignedUserId: selectedAgent.id,
-                agentName: selectedAgent.name,
-                reason: "AUTO_LEAST_BUSY"
+                assignedUserId: decision.userId,
+                contactName,
+                reason: decision.step,
+                fallback
             }
         );
 
-        return updatedConversation;
+        await BadgeService.broadcast(params.workspaceId);
+
+        return updated;
     }
 }

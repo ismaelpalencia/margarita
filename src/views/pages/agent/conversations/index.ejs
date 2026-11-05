@@ -169,12 +169,21 @@
                             </td>
 
                             <td class="px-5 py-4 text-right">
-                                <a
-                                    href="/agent/conversations/<%= conversation.id %>"
-                                    class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white"
-                                >
-                                    Ver
-                                </a>
+                                <div class="flex justify-end gap-2">
+                                    <% if (!conversation.assignedUser) { %>
+                                        <form action="/agent/conversations/<%= conversation.id %>/claim" method="POST">
+                                            <button class="rounded-lg bg-margarita-600 px-3 py-2 text-xs font-medium text-white hover:bg-margarita-700">
+                                                Reclamar
+                                            </button>
+                                        </form>
+                                    <% } %>
+                                    <a
+                                        href="/agent/conversations/<%= conversation.id %>"
+                                        class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white"
+                                    >
+                                        Ver
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     <% }) %>

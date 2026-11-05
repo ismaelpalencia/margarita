@@ -54,6 +54,7 @@
             const navLinks = [
                 { href: "/agent/dashboard", label: "Dashboard" },
                 { href: "/agent/conversations", label: "Mis conversaciones", badge: unreadTotal || 0 },
+                { href: "/agent/conversations?assigned=unassigned", label: "Sin asignar", badge: unassignedCount || 0, badgeKind: "unassigned" },
                 { href: "/agent/sessions", label: "Mis sesiones" },
                 { href: "/account/password", label: "Mi cuenta" }
             ];
@@ -69,10 +70,10 @@
 
                     <% if (typeof link.badge === "number") { %>
                         <span
-                            data-unread-badge
+                            <%= link.badgeKind === "unassigned" ? 'data-badge="unassigned"' : 'data-unread-badge' %>
                             data-count="<%= link.badge %>"
-                            class="rounded-full bg-margarita-600 px-2 py-0.5 text-[11px] font-bold text-white <%= link.badge > 0 ? '' : 'hidden' %>"
-                            title="Mensajes sin leer"
+                            class="rounded-full px-2 py-0.5 text-[11px] font-bold text-white <%= link.badgeKind === "unassigned" ? 'bg-red-600' : 'bg-margarita-600' %> <%= link.badge > 0 ? '' : 'hidden' %>"
+                            title="<%= link.badgeKind === "unassigned" ? 'Sin asignar' : 'Mensajes sin leer' %>"
                         >
                             <%= link.badge %>
                         </span>
@@ -136,3 +137,9 @@
         </div>
     </div>
 </header>
+<script>
+    window.__margaritaNotifications = {
+        sound: <%= typeof notifySoundEnabled !== "undefined" && notifySoundEnabled ? "true" : "false" %>,
+        browser: <%= typeof notifyBrowserEnabled !== "undefined" && notifyBrowserEnabled ? "true" : "false" %>
+    };
+</script>

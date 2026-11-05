@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 
+import { prisma } from "../config/prisma";
 import { UserService } from "../services/user.service";
 import { SendPolicyService } from "../services/send-policy.service";
 import { getRequiredParam } from "../utils/request";
@@ -305,6 +306,34 @@ export class AccountController {
             error: req.query.error || null,
             success: req.query.success || null
         });
+    }
+
+    /** Página de preferencias de notificación (sonido y navegador). */
+    static async showNotifications(req: Request, res: Response) {
+        const user = await prisma.user.findUniqueOrThrow({
+            where: { id: req.user!.id },
+            select: { notifySoundEnabled: true, notifyBrowserEnabled: true }
+        });
+
+        return res.render("pages/account/notifications", {
+            authUser: req.user!,
+            notifySoundEnabled: user.notifySoundEnabled,
+            notifyBrowserEnabled: user.notifyBrowserEnabled,
+            error: req.query.error || null,
+            success: req.query.success || null
+        });
+    }
+
+    static async saveNotifications(req: Request, res: Response) {
+        await prisma.user.update({
+            where: { id: req.user!.id },
+            data: {
+                notifySoundEnabled: req.body?.notifySoundEnabled === "true",
+                notifyBrowserEnabled: req.body?.notifyBrowserEnabled === "true"
+            }
+        });
+
+        return res.redirect("/account/notifications?success=saved");
     }
 
     /** Genera la clave y muestra la pantalla para confirmarla. */

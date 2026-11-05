@@ -2,6 +2,7 @@ import { UserRole } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 
 import { appConfig } from "../config/app.config";
+import { prisma } from "../config/prisma";
 import { ConversationService } from "../services/conversation.service";
 import { WhatsAppNumberService } from "../services/whatsapp-number.service";
 
@@ -44,8 +45,23 @@ export async function activeNumberMiddleware(
          */
         res.locals.unreadTotal = 0;
 
+        /** Preferencias de notificación del usuario, para live.js. */
+        const me = await prisma.user.findUnique({
+            where: { id: req.user!.id },
+            select: { notifySoundEnabled: true, notifyBrowserEnabled: true }
+        });
+
+        res.locals.notifySoundEnabled = Boolean(me?.notifySoundEnabled);
+        res.locals.notifyBrowserEnabled = Boolean(me?.notifyBrowserEnabled);
+
+        res.locals.unassignedCount = 0;
+
         if (req.method === "GET") {
             try {
+                res.locals.unassignedCount =
+                    await ConversationService.countUnassigned(
+                        req.user!.workspaceId
+                    );
                 res.locals.unreadTotal = await ConversationService.countUnread({
                     workspaceId: req.user!.workspaceId,
                     whatsappNumberId: active?.id,

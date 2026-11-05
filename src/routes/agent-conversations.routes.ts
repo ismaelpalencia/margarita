@@ -22,6 +22,7 @@ router.post("/:id/messages/free-text", AgentConversationsController.sendFreeText
 router.post("/:id/messages/interactive", AgentConversationsController.sendInteractiveMessage);
 router.post("/:id/messages/interactive-list", AgentConversationsController.sendInteractiveList);
 router.post("/:id/feedback", AgentConversationsController.recordFeedback);
+router.post("/:id/claim", AgentConversationsController.claim);
 router.post(
     "/:id/outcome",
     requireCollectionsModule,

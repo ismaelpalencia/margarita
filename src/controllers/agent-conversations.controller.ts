@@ -50,6 +50,8 @@ export class AgentConversationsController {
         const status =
             typeof req.query.status === "string" ? req.query.status : "";
         const onlyUnread = req.query.unread === "1";
+        const assigned =
+            typeof req.query.assigned === "string" ? req.query.assigned : "";
 
         const conversations = await ConversationService.listForAgent(
             req.user!.workspaceId,
@@ -58,6 +60,7 @@ export class AgentConversationsController {
             {
                 search: search || undefined,
                 status: status || undefined,
+                assignedTo: assigned === "unassigned" ? null : undefined,
                 onlyUnread
             }
         );
@@ -254,6 +257,25 @@ export class AgentConversationsController {
                 `/agent/conversations/${conversationId}?error=interactive`
             );
         }
+    }
+
+    /** Reclama una conversación sin asignar. */
+    static async claim(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+
+        try {
+            await ConversationService.claim(
+                req.user!.workspaceId,
+                conversationId,
+                req.user!.id
+            );
+        } catch {
+            return res.redirect(
+                `/agent/conversations/${conversationId}?error=claim`
+            );
+        }
+
+        return res.redirect(`/agent/conversations/${conversationId}?success=claimed`);
     }
 
     /** Lista interactiva (menú de hasta 10 opciones), mismas reglas que el admin. */

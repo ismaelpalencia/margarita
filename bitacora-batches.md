@@ -396,3 +396,44 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - `alcance-produccion.md` revisado: default `GENERICO`, 3 planes, features de los 9 batches, cobranza como legado y checklist con flags; **vigente**, sin cambios en A.0.
 
 ---
+
+## Batch A — Notificaciones en tiempo real y fallback de handoff
+
+**Estado:** completado (en pro). **Migración:** sí, aditiva: 20261104200000_notifications_handoff (ADD COLUMN notifySoundEnabled/notifyBrowserEnabled en User, handoffEscalationMinutes/autoAssignToAdmin en Workspace, handoffEscalatedAt en Conversation).
+
+### Archivos tocados
+
+- Esquema/migración: prisma/schema.prisma, prisma/migrations/20261104200000_notifications_handoff/migration.sql.
+- Decisión pura: src/utils/assignment.ts (pickAssignee) + assignment.test.ts.
+- Asignación: src/services/assignment.service.ts (cadena AVAILABLE → BUSY → admin → sin asignar), src/services/conversation.service.ts (claim, countUnassigned, markAsRead emite lectura, agente ve «sin asignar»).
+- Badges servidor: src/services/badge.service.ts, src/sockets/index.ts (emitToUsers).
+- Escalamiento: src/jobs/handoff-escalation.job.ts + registro en src/jobs/index.ts.
+- Notificación de handoff: src/services/ai/auto-reply.service.ts (conversation:handoff + AI_HANDOFF_NOTIFIED).
+- Mensaje entrante: src/services/meta-webhook-handler.service.ts (broadcast de badges).
+- Cliente: src/public/js/live.js (badges, título, sonido, notificaciones de navegador, throttle, handoff, escalamiento).
+- UI: src/views/partials/admin-nav.ejs y agent-nav.ejs (badge «Sin asignar» + prefs), páginas de dashboard (banner), src/views/pages/admin/system/index.ejs (tarjeta de asignación + contador), src/views/pages/account/notifications.ejs (nueva), enlace en security.ejs, botones «Reclamar» en las bandejas, controladores y rutas de claim/notificaciones/handoff.
+- Pruebas: src/utils/assignment.test.ts, tests/integration/handoff.integration.test.ts.
+
+### Eventos nuevos de auditoría
+
+- HANDOFF_ASSIGNED_FALLBACK (con step), HANDOFF_UNASSIGNED, HANDOFF_ESCALATED, HANDOFF_CLAIMED, AI_HANDOFF_NOTIFIED.
+
+### Pruebas
+
+- 6 unitarias de pickAssignee (4 ramas + deshabilitado + empate).
+- 5 de integración: BUSY con menos carga, admin con sesión, sin nadie + reclamar, escalamiento tras minutos, y el flujo existente sigue verde.
+
+### Comandos
+
+- npx tsc --noEmit → OK.
+- npm test → 341 pass.
+- npm run test:integration → 101 pass, 2 skipped.
+
+### Decisiones
+
+- Los badges se calculan en el servidor (badges:update por usuario) para que dos pestañas no se desincronicen.
+- «Admin en línea» = administrador con sesión activa (UserSession isActive y no vencida).
+- El sonido y las notificaciones del navegador están apagadas por defecto por usuario; los toasts in-app y las badges siempre activos.
+- El escalamiento usa Conversation.handoffEscalatedAt para no repetir, con un job cada minuto.
+
+---

@@ -18,6 +18,17 @@
             </p>
         </div>
 
+        <% if (typeof unassignedCount !== "undefined" && unassignedCount > 0) { %>
+            <div class="mb-6 flex items-center justify-between gap-4 rounded-2xl bg-red-50 px-5 py-4 ring-1 ring-red-200">
+                <p class="text-sm font-semibold text-red-800">
+                    <%= unassignedCount %> conversación(es) sin asignar — reclámalas para atenderlas.
+                </p>
+                <a href="/agent/conversations?assigned=unassigned" class="shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">
+                    Ver sin asignar
+                </a>
+            </div>
+        <% } %>
+
         <% if (success === "status") { %>
             <div class="mb-6 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
                 Estado actualizado correctamente.

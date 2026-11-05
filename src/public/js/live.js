@@ -88,6 +88,146 @@
         return toastContainer;
     }
 
+    var notifications = window.__margaritaNotifications || {
+        sound: false,
+        browser: false
+    };
+    var baseTitle = document.title;
+
+    function playChime() {
+        if (!notifications.sound) {
+            return;
+        }
+
+        try {
+            var AudioContext = window.AudioContext || window.webkitAudioContext;
+
+            if (!AudioContext) {
+                return;
+            }
+
+            var context = new AudioContext();
+            var oscillator = context.createOscillator();
+            var gain = context.createGain();
+
+            oscillator.type = "sine";
+            oscillator.frequency.value = 660;
+            gain.gain.value = 0.08;
+
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+            oscillator.start();
+
+            window.setTimeout(function () {
+                oscillator.stop();
+                context.close();
+            }, 180);
+        } catch (error) {
+            /* El sonido es opcional: si falla, no interrumpe el panel. */
+        }
+    }
+
+    function notifyBrowser(title, body) {
+        if (!notifications.browser || typeof Notification === "undefined") {
+            return;
+        }
+
+        if (Notification.permission !== "granted") {
+            return;
+        }
+
+        try {
+            var notification = new Notification(title, {
+                body: body,
+                tag: "margarita"
+            });
+
+            window.setTimeout(function () {
+                notification.close();
+            }, 5000);
+        } catch (error) {
+            /* Sin permisos o bloqueada: no se muestra. */
+        }
+    }
+
+    function updateTitle(unread) {
+        var next = unread > 0 ? "(" + unread + ") " + baseTitle : baseTitle;
+
+        if (document.title !== next) {
+            document.title = next;
+        }
+    }
+
+    function setBadge(selector, count) {
+        var elements = document.querySelectorAll(selector);
+
+        elements.forEach(function (badge) {
+            var show = count > 0;
+
+            badge.setAttribute("data-count", String(count));
+            badge.textContent = String(count);
+            badge.classList.toggle("hidden", !show);
+        });
+    }
+
+    function applyBadges(payload) {
+        if (!payload) {
+            return;
+        }
+
+        var unread = Number(payload.dashboardUnread || 0);
+        var unassigned = Number(payload.unassigned || 0);
+
+        setBadge("[data-unread-badge]", unread);
+        setBadge('[data-badge="dashboard"]', unread);
+        setBadge('[data-badge="inbox"]', payload.myUnread || 0);
+        setBadge('[data-badge="unassigned"]', unassigned);
+        updateTitle(unread);
+    }
+
+    /** Agrupa ráfagas: 5+ mensajes del mismo hilo en 30 s → un solo toast. */
+    var groupedToasts = {};
+
+    function queueMessageToast(conversationId, contactName, body, href) {
+        var entry = groupedToasts[conversationId];
+
+        if (!entry) {
+            entry = { count: 1, timer: null };
+            groupedToasts[conversationId] = entry;
+        } else {
+            entry.count += 1;
+
+            if (entry.timer) {
+                window.clearTimeout(entry.timer);
+            }
+        }
+
+        entry.timer = window.setTimeout(function () {
+            var count = entry.count;
+            delete groupedToasts[conversationId];
+
+            if (count >= 5) {
+                showToast({
+                    title: count + " nuevos mensajes de " + contactName,
+                    detail: body,
+                    href: href
+                });
+            } else {
+                showToast({
+                    title: "Nuevo mensaje de " + contactName,
+                    detail: body,
+                    href: href
+                });
+            }
+
+            playChime();
+            notifyBrowser(
+                count >= 5 ? count + " nuevos mensajes" : "Nuevo mensaje de " + contactName,
+                body
+            );
+        }, 1500);
+    }
+
     function showToast(options) {
         var container = ensureToastContainer();
         var toast = document.createElement("div");
@@ -420,15 +560,28 @@
         }
 
         var contactName = payload.contact ? payload.contact.name : "Contacto";
+        var href =
+            basePath && payload.conversationId
+                ? basePath + "/" + payload.conversationId
+                : null;
 
-        showToast({
-            title: "Nuevo mensaje de " + contactName,
-            detail: payload.message.body || "[" + payload.message.type + "]",
-            href:
-                basePath && payload.conversationId
-                    ? basePath + "/" + payload.conversationId
-                    : null
-        });
+        queueMessageToast(
+            payload.conversationId,
+            contactName,
+            payload.message.body || "[" + payload.message.type + "]",
+            href
+        );
+
+        /** La bandeja reordena por actividad: sube la fila al inicio. */
+        if (page === "inbox") {
+            var row = document.querySelector(
+                '[data-conversation-id="' + payload.conversationId + '"]'
+            );
+
+            if (row && row.parentElement) {
+                row.parentElement.prepend(row);
+            }
+        }
     });
 
     socket.on("message:status", function (payload) {
@@ -459,6 +612,75 @@
                 detail: "Asignada a " + payload.agentName
             });
         }
+    });
+
+    socket.on("badges:update", function (payload) {
+        applyBadges(payload);
+    });
+
+    socket.on("conversation:read", function (payload) {
+        if (!payload) {
+            return;
+        }
+
+        var row = document.querySelector(
+            '[data-conversation-id="' + payload.conversationId + '"]'
+        );
+
+        if (row) {
+            var unread = row.querySelector("[data-row-unread]");
+
+            if (unread) {
+                unread.textContent = "0";
+                unread.classList.add("hidden");
+            }
+
+            row.classList.remove("font-bold");
+        }
+    });
+
+    socket.on("conversation:handoff", function (payload) {
+        if (!payload) {
+            return;
+        }
+
+        var name = payload.contactName || "Contacto";
+        var reason = payload.reason || "entrega de IA";
+        var href =
+            basePath && payload.conversationId
+                ? basePath + "/" + payload.conversationId
+                : null;
+
+        showToast({
+            title: "Conversación asignada — " + name,
+            detail: "motivo: " + reason,
+            href: href
+        });
+
+        playChime();
+        notifyBrowser("Conversación asignada — " + name, "motivo: " + reason);
+    });
+
+    socket.on("conversation:unassigned", function (payload) {
+        if (!payload) {
+            return;
+        }
+
+        var name = payload.contactName || "Contacto";
+
+        showToast({
+            title: "Conversación sin asignar — " + name,
+            detail: "Ningún agente en línea. Quedará visible para reclamarla."
+        });
+    });
+
+    socket.on("conversation:escalated", function () {
+        showToast({
+            title: "Sin asignar por más tiempo del límite",
+            detail: "Revisa la bandeja y asigna la conversación."
+        });
+
+        playChime();
     });
 })();
 

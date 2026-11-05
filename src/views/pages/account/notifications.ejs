@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notificaciones | Margarita</title>
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+    <%- include("../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <header class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+            <a href="/" class="flex shrink-0 items-center gap-3">
+                <img src="/brand/img/margarita-icon-128.png" alt="Margarita" class="h-9 w-9" />
+                <span class="text-base font-black leading-tight text-slate-900">Margarita</span>
+            </a>
+
+            <div class="flex items-center gap-3">
+                <a href="/account/security" class="text-sm font-semibold text-slate-600">Seguridad</a>
+                <a href="/account/password" class="text-sm font-semibold text-slate-600">Contraseña</a>
+                <form action="/auth/logout" method="POST">
+                    <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">Cerrar sesión</button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-3xl px-4 py-10">
+        <h1 class="text-2xl font-black text-slate-900">Notificaciones</h1>
+        <p class="mt-1 text-sm text-slate-500">
+            Avisos de mensajes nuevos y entregas de la IA. Las insignias siempre
+            están activas; aquí eliges el sonido y las notificaciones del navegador.
+        </p>
+
+        <% if (success === "saved") { %>
+            <div class="mt-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                Preferencias guardadas.
+            </div>
+        <% } %>
+
+        <form action="/account/notifications" method="POST" class="mt-6 space-y-4">
+            <label class="flex cursor-pointer items-start gap-3 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <input
+                    type="checkbox"
+                    name="notifySoundEnabled"
+                    value="true"
+                    <%= notifySoundEnabled ? "checked" : "" %>
+                    class="mt-1 h-5 w-5 accent-margarita-600"
+                />
+                <span>
+                    <span class="block text-sm font-bold text-slate-800">Sonido de mensaje nuevo</span>
+                    <span class="mt-1 block text-xs text-slate-500">
+                        Un tono sutil al recibir un mensaje o una entrega de la IA. Apagado por defecto.
+                    </span>
+                </span>
+            </label>
+
+            <label class="flex cursor-pointer items-start gap-3 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <input
+                    type="checkbox"
+                    name="notifyBrowserEnabled"
+                    value="true"
+                    id="browser-toggle"
+                    <%= notifyBrowserEnabled ? "checked" : "" %>
+                    class="mt-1 h-5 w-5 accent-margarita-600"
+                />
+                <span>
+                    <span class="block text-sm font-bold text-slate-800">Notificaciones del navegador</span>
+                    <span class="mt-1 block text-xs text-slate-500">
+                        Avisos del sistema operativo cuando hay un mensaje nuevo. Al activarlas, el
+                        navegador pide permiso. Apagado por defecto.
+                    </span>
+                </span>
+            </label>
+
+            <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                Guardar preferencias
+            </button>
+        </form>
+    </main>
+
+    <script>
+        (function () {
+            var toggle = document.getElementById("browser-toggle");
+
+            if (!toggle) {
+                return;
+            }
+
+            toggle.addEventListener("change", function () {
+                if (!toggle.checked || typeof Notification === "undefined") {
+                    return;
+                }
+
+                if (Notification.permission === "default") {
+                    Notification.requestPermission();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

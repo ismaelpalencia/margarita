@@ -154,6 +154,27 @@ export function initSocket(server: HttpServer): SocketServer {
     return io;
 }
 
+/** Envía un evento solo a los usuarios indicados (sin la sala del workspace). */
+export function emitToUsers(
+    userIds: Array<string | null | undefined>,
+    event: string,
+    payload: unknown
+) {
+    if (!io) {
+        return;
+    }
+
+    const rooms = [...new Set(
+        userIds.filter((id): id is string => Boolean(id)).map(userRoom)
+    )];
+
+    if (rooms.length === 0) {
+        return;
+    }
+
+    io.to(rooms).emit(event, payload);
+}
+
 export function emitToWorkspace(
     workspaceId: string,
     event: string,

@@ -33,6 +33,10 @@
             <div class="mb-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
                 Preferencia de listas interactivas guardada.
             </div>
+        <% } else if (success === "handoff") { %>
+            <div class="mb-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                Configuración de asignación guardada.
+            </div>
         <% } %>
 
         <% if (error === "profile") { %>
@@ -148,6 +152,65 @@
 
                 <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
                     Guardar preferencia
+                </button>
+            </form>
+        </section>
+
+
+        <section class="mb-8 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                <div class="max-w-2xl">
+                    <p class="text-sm font-semibold uppercase tracking-wide text-margarita-600">
+                        Asignación y handoff
+                    </p>
+
+                    <h2 class="mt-1 text-xl font-black text-slate-900">
+                        Cuándo se asigna y cuándo se escala
+                    </h2>
+
+                    <p class="mt-2 text-sm text-slate-600">
+                        Si la IA entrega una conversación y no hay agente disponible,
+                        se asigna al agente ocupado con menos carga y, si hace falta,
+                        a un administrador. Las que quedan sin asignar se escalan a
+                        los administradores pasado el tiempo que configures aquí.
+                    </p>
+                </div>
+
+                <span class="inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-bold <%= unassignedCount > 0 ? 'bg-red-50 text-red-700 ring-1 ring-red-200' : 'bg-slate-100 text-slate-600 ring-1 ring-slate-200' %>">
+                    <%= unassignedCount %> sin asignar
+                </span>
+            </div>
+
+            <form action="/admin/system/handoff" method="POST" class="mt-5 grid gap-4 md:grid-cols-2">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700">
+                        Escalar pasados (minutos)
+                    </label>
+                    <input
+                        type="number"
+                        name="handoffEscalationMinutes"
+                        min="1"
+                        max="1440"
+                        value="<%= handoffEscalationMinutes %>"
+                        class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                    />
+                </div>
+
+                <label class="flex cursor-pointer items-start gap-3 self-end rounded-xl border border-slate-200 p-4">
+                    <input
+                        type="checkbox"
+                        name="autoAssignToAdmin"
+                        value="true"
+                        <%= autoAssignToAdmin ? "checked" : "" %>
+                        class="mt-1 h-4 w-4 accent-margarita-600"
+                    />
+                    <span class="text-sm font-bold text-slate-800">
+                        Asignar a un administrador cuando no haya agente
+                    </span>
+                </label>
+
+                <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 md:col-span-2">
+                    Guardar asignación
                 </button>
             </form>
         </section>

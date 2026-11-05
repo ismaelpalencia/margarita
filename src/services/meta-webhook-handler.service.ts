@@ -37,6 +37,7 @@ import { InteractiveReplyService } from "./interactive-reply.service";
 import { enqueueSuggestion } from "./ai/queue.service";
 import { OffHoursService } from "./off-hours.service";
 import { FlowService } from "./flow.service";
+import { BadgeService } from "./badge.service";
 import { LeadService } from "./lead.service";
 import { extractEmail } from "../utils/lead";
 import { isWithinBusinessHours, parseBusinessHours } from "../utils/business-hours";
@@ -530,6 +531,9 @@ export class MetaWebhookHandlerService {
                 }
             }
         );
+
+        /** Contadores de badges en el servidor, para todas las pestañas. */
+        await BadgeService.broadcast(workspaceId);
 
         /**
          * Las imágenes se descargan de inmediato (son livianas y casi

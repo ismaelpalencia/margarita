@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 
 import { prisma } from "../config/prisma";
 import { LogService } from "../services/log.service";
+import { ConversationService } from "../services/conversation.service";
 import { SystemStatusService } from "../services/system-status.service";
 import { WorkspaceService } from "../services/workspace.service";
 import { appConfig } from "../config/app.config";
@@ -76,8 +77,15 @@ export class AdminSystemController {
         );
         const workspaceFlags = await prisma.workspace.findUnique({
             where: { id: req.user!.workspaceId },
-            select: { interactiveListsEnabled: true }
+            select: {
+                interactiveListsEnabled: true,
+                handoffEscalationMinutes: true,
+                autoAssignToAdmin: true
+            }
         });
+        const unassignedCount = await ConversationService.countUnassigned(
+            req.user!.workspaceId
+        );
 
         return res.render("pages/admin/system/index", {
             user: req.user,
@@ -90,6 +98,9 @@ export class AdminSystemController {
             profiles,
             currentProfile,
             interactiveListsEnabled: Boolean(workspaceFlags?.interactiveListsEnabled),
+            handoffEscalationMinutes: workspaceFlags?.handoffEscalationMinutes ?? 15,
+            autoAssignToAdmin: Boolean(workspaceFlags?.autoAssignToAdmin ?? true),
+            unassignedCount,
             profileLabels: WORKSPACE_PROFILE_LABELS,
             profileDescriptions: WORKSPACE_PROFILE_DESCRIPTIONS,
             success: req.query.success || null,
@@ -122,6 +133,26 @@ export class AdminSystemController {
         }
 
         return res.redirect("/admin/system?success=lists");
+    }
+
+    /** Configuración de asignación y escalamiento de handoff. */
+    static async saveHandoff(req: Request, res: Response) {
+        const minutes = Number(req.body?.handoffEscalationMinutes) || 15;
+        const autoAssignToAdmin = req.body?.autoAssignToAdmin === "true";
+
+        try {
+            await prisma.workspace.update({
+                where: { id: req.user!.workspaceId },
+                data: {
+                    handoffEscalationMinutes: Math.max(1, Math.min(1440, minutes)),
+                    autoAssignToAdmin
+                }
+            });
+        } catch {
+            return res.redirect("/admin/system?error=handoff");
+        }
+
+        return res.redirect("/admin/system?success=handoff");
     }
 
     /**
