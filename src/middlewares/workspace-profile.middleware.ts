@@ -25,6 +25,7 @@ export async function workspaceProfileMiddleware(
     let profile: WorkspaceProfile = WorkspaceProfile.COBRANZA;
     let offHoursNow = false;
     let interactiveListsEnabled = false;
+    let feedbackEnabled = false;
 
     try {
         const workspace = await prisma.workspace.findUnique({
@@ -33,12 +34,14 @@ export async function workspaceProfileMiddleware(
                 profile: true,
                 businessHoursEnabled: true,
                 businessHours: true,
-                interactiveListsEnabled: true
+                interactiveListsEnabled: true,
+                feedbackEnabled: true
             }
         });
 
         profile = workspace?.profile ?? WorkspaceProfile.COBRANZA;
         interactiveListsEnabled = Boolean(workspace?.interactiveListsEnabled);
+        feedbackEnabled = Boolean(workspace?.feedbackEnabled);
 
         const hours = workspace?.businessHoursEnabled
             ? parseBusinessHours(workspace.businessHours)
@@ -58,6 +61,7 @@ export async function workspaceProfileMiddleware(
     res.locals.offHoursNow = offHoursNow;
     /** Si el workspace tiene encendidas las listas interactivas. */
     res.locals.interactiveListsEnabled = interactiveListsEnabled;
+    res.locals.feedbackEnabled = feedbackEnabled;
 
     return next();
 }

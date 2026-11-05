@@ -22,6 +22,7 @@ import adminGuideRoutes from "./admin-guide.routes";
 import adminBackupRoutes from "./admin-backup.routes";
 import adminHoursRoutes from "./admin-hours.routes";
 import adminLeadsRoutes from "./admin-leads.routes";
+import { AdminServiceMetricsController } from "../controllers/admin-service-metrics.controller";
 import { activeNumberMiddleware } from "../middlewares/active-number.middleware";
 import { workspaceProfileMiddleware } from "../middlewares/workspace-profile.middleware";
 import { ActiveNumberController } from "../controllers/active-number.controller";
@@ -45,6 +46,8 @@ router.use("/contacts", adminContactsRoutes);
 router.use("/quick-replies", adminQuickRepliesRoutes);
 /** Respuestas de botón: qué significa cada toque del deudor. */
 router.use("/replies", adminRepliesRoutes);
+/** Métricas de servicio (todos los giros), antes del módulo legado de reportes. */
+router.get("/reports/service", AdminServiceMetricsController.index);
 router.use("/reports", adminReportsRoutes);
 router.use("/sessions", adminSessionsRoutes);
 router.use("/tags", adminTagsRoutes);

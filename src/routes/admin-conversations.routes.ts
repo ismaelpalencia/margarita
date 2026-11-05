@@ -24,6 +24,7 @@ router.post("/:id/messages/free-text", AdminConversationsController.sendFreeText
 /** Botones dentro de la ventana de 24 horas. */
 router.post("/:id/messages/interactive", AdminConversationsController.sendInteractiveMessage);
 router.post("/:id/messages/interactive-list", AdminConversationsController.sendInteractiveList);
+router.post("/:id/feedback", AdminConversationsController.recordFeedback);
 router.post(
     "/:id/outcome",
     requireCollectionsModule,

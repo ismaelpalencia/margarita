@@ -290,6 +290,18 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
   flujo recibe la respuesta (con botones o lista) y se audita como
   FLOW_TRIGGERED. No hay paquete de cobranza.
 
+### 3.21 Reportes de servicio (Admin → Reportes de servicio)
+
+- Disponible en todos los giros (no depende del módulo legado de cobranza).
+- Conversaciones por IA y por persona, por día, con hilos distintos y el cruce
+  "ambas".
+- Primera respuesta: mediana y p90 en minutos.
+- Resolución sin persona: hilos con respuesta automática, cerrados y sin
+  mensaje humano (global y aproximada por entrada de KB vía intención).
+- Top 10 de preguntas sin cobertura (trabajos de IA omitidos por NO_KNOWLEDGE).
+- Valoración 👍/👎 al cerrar la conversación cuando `feedbackEnabled` está
+  encendido; el reporte muestra los conteos.
+
 ### 3.20 Demo pública (/demo)
 
 - Simulador de WhatsApp en el navegador con panel lateral (modo, intención,

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reportes de servicio | Margarita</title>
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+    <%- include("../../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <%
+        const minutes = (value) => value == null ? "—" : (Math.round(Number(value) * 10) / 10) + " min";
+        const percent = (value) => value == null ? "—" : Math.round(Number(value) * 100) + "%";
+    %>
+
+    <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">Reportes de servicio</h2>
+            <p class="mt-1 text-sm text-slate-500">
+                Cómo atiende la IA y cómo atiende el equipo. Zona horaria: <%= timezone %>.
+            </p>
+        </div>
+
+        <section class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Hilos con IA</p>
+                <p class="mt-2 text-3xl font-black text-slate-900"><%= metrics.resolution.autoHandled %></p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Resueltos sin persona</p>
+                <p class="mt-2 text-3xl font-black text-slate-900"><%= metrics.resolution.resolvedWithoutHuman %></p>
+                <p class="text-xs text-slate-500"><%= percent(metrics.resolution.rate) %> de los hilos con IA</p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Primera respuesta</p>
+                <p class="mt-2 text-xl font-black text-slate-900">Mediana <%= minutes(metrics.firstResponse.medianMinutes) %></p>
+                <p class="text-xs text-slate-500">p90 <%= minutes(metrics.firstResponse.p90Minutes) %> · <%= metrics.firstResponse.samples %> hilos</p>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Valoración</p>
+                <p class="mt-2 text-xl font-black text-slate-900">👍 <%= metrics.feedback.up %> · 👎 <%= metrics.feedback.down %></p>
+                <p class="text-xs text-slate-500"><%= metrics.feedback.enabled ? "Activada" : "Apagada en el workspace" %></p>
+            </div>
+        </section>
+
+        <section class="mb-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+            <div class="border-b border-slate-200 px-5 py-4">
+                <h3 class="font-bold text-slate-800">Conversaciones por IA y por persona</h3>
+                <p class="text-xs text-slate-500">Hilos distintos con al menos un mensaje saliente ese día.</p>
+            </div>
+
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-slate-500">
+                    <tr>
+                        <th class="px-4 py-3">Día</th>
+                        <th class="px-4 py-3">IA</th>
+                        <th class="px-4 py-3">Persona</th>
+                        <th class="px-4 py-3">Ambas</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <% metrics.aiHuman.forEach((row) => { %>
+                        <tr>
+                            <td class="px-4 py-3"><%= row.day %></td>
+                            <td class="px-4 py-3 font-semibold"><%= row.ai %></td>
+                            <td class="px-4 py-3 font-semibold"><%= row.human %></td>
+                            <td class="px-4 py-3 text-slate-500"><%= row.both %></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </section>
+
+        <div class="grid gap-6 lg:grid-cols-2">
+            <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                <div class="border-b border-slate-200 px-5 py-4">
+                    <h3 class="font-bold text-slate-800">Preguntas sin cobertura (top 10)</h3>
+                    <p class="text-xs text-slate-500">Para cargar en la base de conocimiento.</p>
+                </div>
+
+                <ul class="divide-y divide-slate-100 text-sm">
+                    <% metrics.uncovered.forEach((item) => { %>
+                        <li class="flex items-start justify-between gap-3 px-5 py-3">
+                            <span class="text-slate-700"><%= item.question %></span>
+                            <span class="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600"><%= item.count %></span>
+                        </li>
+                    <% }) %>
+
+                    <% if (metrics.uncovered.length === 0) { %>
+                        <li class="px-5 py-6 text-sm text-slate-400">Sin preguntas sin cobertura.</li>
+                    <% } %>
+                </ul>
+            </section>
+
+            <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                <div class="border-b border-slate-200 px-5 py-4">
+                    <h3 class="font-bold text-slate-800">Resolución sin persona por entrada</h3>
+                    <p class="text-xs text-slate-500">Aproximado por intención de la IA y palabras clave.</p>
+                </div>
+
+                <ul class="divide-y divide-slate-100 text-sm">
+                    <% metrics.kbResolution.forEach((item) => { %>
+                        <li class="px-5 py-3">
+                            <p class="font-semibold text-slate-800"><%= item.question %></p>
+                            <p class="text-xs text-slate-500">
+                                <%= item.autoSent %> de <%= item.matched %> resueltos sin persona · <%= percent(item.rate) %>
+                            </p>
+                        </li>
+                    <% }) %>
+
+                    <% if (metrics.kbResolution.length === 0) { %>
+                        <li class="px-5 py-6 text-sm text-slate-400">Sin datos de intención todavía.</li>
+                    <% } %>
+                </ul>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

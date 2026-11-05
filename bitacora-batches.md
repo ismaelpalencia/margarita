@@ -236,3 +236,37 @@
 - No hay migración ni tablas nuevas: el aislamiento se garantiza porque el servicio nunca importa ni usa Prisma.
 
 ---
+
+## Batch 7 — Métricas de servicio
+
+**Estado:** completado (en flash). **Migración:** sí, aditiva: 20261104180000_feedback (CREATE TYPE FeedbackValue, ADD COLUMN feedbackEnabled, CREATE TABLE ConversationFeedback).
+
+### Archivos tocados
+
+- Esquema/migración: prisma/schema.prisma (FeedbackValue, ConversationFeedback, Workspace.feedbackEnabled), prisma/migrations/20261104180000_feedback/migration.sql.
+- Servicio: src/services/service-metrics.service.ts, src/utils/metrics.ts (+ test) para mediana/p90.
+- UI: src/controllers/admin-service-metrics.controller.ts, ruta /admin/reports/service (antes del módulo legado) en src/routes/admin.routes.ts, src/views/pages/admin/service-metrics/index.ejs, enlace en el nav.
+- Feedback: métodos recordFeedback en los controladores admin/agente, rutas /:id/feedback, formulario en src/views/partials/conversation-tools.ejs, flag en src/middlewares/workspace-profile.middleware.ts.
+- Docs: docs/alcance-produccion.md, docs/catalogo-producto.md, docs/guia-uso.md.
+- Pruebas: src/utils/metrics.test.ts, tests/integration/service-metrics.integration.test.ts.
+
+### Pruebas nuevas
+
+- 3 unitarias de percentil (vacío, mediana/p90, no muta).
+- 1 de integración con dataset: IA vs persona por día, primera respuesta mediana/p90, resolución sin persona, top de preguntas sin cobertura, resolución por KB (aproximada) y feedback 👍.
+
+### Comandos y resultados
+
+- npx tsc --noEmit → OK.
+- npm run typecheck:all → OK.
+- npm test → 331 pass, 0 fail.
+- npm run test:integration → 97 pass, 2 skipped, 0 fail.
+- Migración: solo CREATE TYPE / ADD COLUMN / CREATE TABLE / CREATE INDEX / ADD CONSTRAINT.
+
+### Decisiones y notas (repo manda)
+
+- Los reportes de gestión de cobranza siguen protegidos por el módulo legado; las métricas de servicio viven en /admin/reports/service, disponible para todos los giros.
+- La resolución sin persona por entrada de KB es **aproximada**: el esquema no guarda qué entradas usó cada respuesta, así que se cruza la intención del modelo con las palabras clave de la entrada. Se documenta como límite; una medición exacta exigiría registrar las entradas usadas en el motor de IA (fuera de alcance).
+- No se tocaron los reportes ni las exportaciones de cobranza.
+
+---

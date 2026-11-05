@@ -72,6 +72,7 @@ otras. Un administrador ve las de toda la empresa.
 | **Sistema / Respaldos** | Salud del servicio y copias de la base |
 | **Horarios** | Zona horaria, días, hora de apertura y cierre, y qué responde fuera de horario |
 | **Leads** | Contactos capturados con su correo e interés, con exportación a CSV |
+| **Reportes de servicio** | IA vs persona, primera respuesta, resolución sin persona y preguntas sin cobertura |
 
 > Algunas instalaciones antiguas muestran módulos adicionales según el giro con
 > el que nacieron. Si no ves una pantalla en tu menú, no aplica a tu operación.

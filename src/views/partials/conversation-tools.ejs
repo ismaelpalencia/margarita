@@ -444,3 +444,31 @@
         </button>
     </form>
 </section>
+
+<% if (typeof feedbackEnabled !== "undefined" && feedbackEnabled && conversation.status === "CLOSED") { %>
+    <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+        <h3 class="font-bold text-slate-800">
+            ¿Cómo estuvo esta conversación?
+        </h3>
+
+        <p class="mt-1 text-xs text-slate-500">
+            La valoración es opcional y ayuda a medir la calidad del servicio.
+        </p>
+
+        <div class="mt-4 flex gap-2">
+            <form action="<%= basePath %>/<%= conversation.id %>/feedback" method="POST">
+                <input type="hidden" name="value" value="UP" />
+                <button class="rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 ring-1 ring-emerald-100 hover:bg-emerald-100">
+                    👍 Buena
+                </button>
+            </form>
+
+            <form action="<%= basePath %>/<%= conversation.id %>/feedback" method="POST">
+                <input type="hidden" name="value" value="DOWN" />
+                <button class="rounded-xl bg-rose-50 px-4 py-2 text-sm font-bold text-rose-700 ring-1 ring-rose-100 hover:bg-rose-100">
+                    👎 Mejorable
+                </button>
+            </form>
+        </div>
+    </section>
+<% } %>

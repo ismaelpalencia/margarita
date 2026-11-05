@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { AiMode } from "@prisma/client";
+import { AiMode, FeedbackValue } from "@prisma/client";
 
 import { appConfig } from "../config/app.config";
 import { prisma } from "../config/prisma";
@@ -384,6 +384,41 @@ export class AdminConversationsController {
                 `/admin/conversations/${conversationId}?error=list`
             );
         }
+    }
+
+    /** Valoración 👍/👎 al cerrar una conversación. */
+    static async recordFeedback(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+        const value =
+            req.body?.value === "DOWN" ? FeedbackValue.DOWN : FeedbackValue.UP;
+
+        const conversation = await prisma.conversation.findFirst({
+            where: {
+                id: conversationId,
+                workspaceId: req.user!.workspaceId
+            },
+            select: { id: true }
+        });
+
+        if (!conversation) {
+            return res.redirect(
+                `/admin/conversations/${conversationId}?error=feedback`
+            );
+        }
+
+        await prisma.conversationFeedback.upsert({
+            where: { conversationId },
+            create: {
+                workspaceId: req.user!.workspaceId,
+                conversationId,
+                value
+            },
+            update: { value }
+        });
+
+        return res.redirect(
+            `/admin/conversations/${conversationId}?success=feedback`
+        );
     }
 
     static async sendLocalMessage(req: Request, res: Response) {
