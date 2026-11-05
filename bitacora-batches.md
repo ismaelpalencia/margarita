@@ -637,3 +637,10 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - tsc OK, unit OK, landing:build OK; sin teléfono viejo ni textos de reembolso en landing/*.html.
 
 ---
+
+## Ajuste — WhatsApp de soporte +1
+
+- Número corregido a +1 (555) 933-7514 → wa.me/15559337514.
+- Actualizados appConfig (default), panel de plantillas, landing regenerada, contrato, guía, aviso de privacidad y README.
+
+---

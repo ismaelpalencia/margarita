@@ -339,7 +339,7 @@ Para no prometer de más:
 
 ## 14. Soporte y condiciones
 
-- **WhatsApp de soporte**: 55 5933 7514.
+- **WhatsApp de soporte**: +1 555 933 7514.
 - **Correo**: contacto@margaritaapp.org.
 - Atención en horario hábil. Incluye correcciones y actualizaciones mientras la
   mensualidad esté activa.

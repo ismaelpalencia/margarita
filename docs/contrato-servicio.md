@@ -14,7 +14,7 @@
 
 **Prestador:** Eduardo Ismael Fernández Palencia, con domicilio en Candelaria,
 Oyoacán, C.P. 04380, Ciudad de México, correo contacto@margaritaapp.org,
-teléfono 55 5933 7514.
+teléfono +1 555 933 7514.
 
 **Cliente:** [RAZÓN SOCIAL], RFC [RFC], domicilio [DOMICILIO], representada por
 [REPRESENTANTE].
