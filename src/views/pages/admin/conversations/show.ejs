@@ -39,9 +39,34 @@
 
     <%- include("../../../partials/admin-nav", { user }) %>
 
-    <main class="mx-auto grid w-full max-w-7xl gap-4 px-3 py-4 lg:h-[calc(100dvh-72px)] lg:grid-cols-[1fr_340px] lg:px-4">
-        <section class="flex h-[70dvh] min-h-[420px] flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 lg:h-full lg:min-h-0">
+    <main class="mx-auto grid w-full max-w-7xl gap-4 px-3 py-4 lg:grid-cols-[240px_minmax(0,1fr)] xl:h-[calc(100dvh-72px)] xl:grid-cols-[240px_minmax(0,1fr)_340px] lg:px-4">
+        <aside class="hidden min-h-0 overflow-y-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 lg:block" style="max-height: calc(100dvh - 140px)">
+            <div class="border-b px-3 py-2.5" style="border-color: var(--surface-border)">
+                <h2 class="text-[13px] font-bold" style="color: var(--text-primary)">Bandeja</h2>
+            </div>
+
+            <% (typeof conversations !== "undefined" ? conversations : []).forEach((item) => { %>
+                <% const itemName = item.contact.customName || item.contact.profileName || item.contact.phone; %>
+                <% const lastItem = item.messages[0]; %>
+
+                <a href="/admin/conversations/<%= item.id %>" class="inbox-rail__item <%= item.id === conversation.id ? "is-active" : "" %>">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="truncate text-[12px] font-semibold"><%= itemName %></span>
+                        <% if (item.unreadCount > 0) { %>
+                            <span class="panel-sidebar__count panel-sidebar__count--unread"><%= item.unreadCount %></span>
+                        <% } %>
+                    </div>
+                    <div class="truncate text-[11px]" style="color: var(--text-tertiary)">
+                        <% if (lastItem) { %><%= lastItem.body || lastItem.type %><% } else { %>—<% } %>
+                    </div>
+                </a>
+            <% }) %>
+        </aside>
+
+        <section class="flex h-[70dvh] min-h-[420px] flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 lg:h-[calc(100dvh-140px)] xl:h-full xl:min-h-0">
             <div class="flex shrink-0 flex-wrap items-center gap-3 border-b border-slate-200 px-4 py-3">
+                <a href="/admin/conversations" class="btn btn--secondary btn--sm lg:hidden">← Bandeja</a>
+
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-margarita-100 text-sm font-bold text-margarita-700">
                     <%= initials %>
                 </div>
@@ -290,7 +315,7 @@
             </div>
         </section>
 
-        <aside class="space-y-4 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+        <aside class="space-y-4 lg:col-span-2 xl:col-span-1 xl:min-h-0 xl:overflow-y-auto xl:pr-1">
             <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
             <%- include("../../../partials/outcome-panel", {
                 contact: conversation.contact,

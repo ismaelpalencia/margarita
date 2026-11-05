@@ -170,9 +170,17 @@ export class AdminConversationsController {
             [conversation.contactId]
         );
 
+        /** Lista para la columna izquierda de la bandeja de 3 paneles. */
+        const conversations = await ConversationService.listForAdmin(
+            req.user!.workspaceId,
+            conversation.whatsappNumberId,
+            {}
+        );
+
         return res.render("pages/admin/conversations/show", {
             user: req.user,
             conversation,
+            conversations,
             agents,
             templates,
             quickReplies,

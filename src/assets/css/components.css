@@ -77,6 +77,13 @@
 .inbox-row:last-child { border-bottom: 0; }
 .inbox-row:hover { background: var(--surface-hover); }
 
+/* Rail de conversaciones (3 columnas) */
+.inbox-rail__item {
+  display: block; padding: 9px 12px; border-bottom: 1px solid var(--surface-border);
+}
+.inbox-rail__item:hover { background: var(--surface-hover); }
+.inbox-rail__item.is-active { background: var(--surface-selected); border-left: 3px solid var(--brand-500); padding-left: 9px; }
+
 /* Estados vacíos */
 .empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: var(--space-10) var(--space-6); color: var(--text-tertiary); }
 .empty__icon { font-size: 40px; line-height: 1; }

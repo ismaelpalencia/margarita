@@ -491,3 +491,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - npx tsc --noEmit → OK; npm test → 341 pass; npm run test:integration → 101 pass, 2 skipped.
 
 ---
+
+## Batch B — Bandeja de 3 columnas (cierre)
+
+- Controladores show (admin/agente): pasan `conversations` (misma consulta del index) al render; único cambio de controlador autorizado.
+- show.ejs: grid de 3 columnas en xl (`240px | 1fr | 340/320px`), 2 columnas en lg (lista + hilo, panel debajo) y 1 columna con botón «← Bandeja» por debajo de lg.
+- Rail izquierdo compacto con no leídos y conversación activa; CSS .inbox-rail__item.
+- Gates: tsc OK, 341 unit, 101 integration.
+
+---

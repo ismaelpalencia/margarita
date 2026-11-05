@@ -141,7 +141,16 @@ export class AgentConversationsController {
             [conversation.contactId]
         );
 
+        /** Lista para la columna izquierda de la bandeja de 3 paneles. */
+        const conversations = await ConversationService.listForAgent(
+            req.user!.workspaceId,
+            req.user!.id,
+            conversation.whatsappNumberId,
+            {}
+        );
+
         return res.render("pages/agent/conversations/show", {
+            conversations,
             user: req.user,
             conversation,
             templates,
