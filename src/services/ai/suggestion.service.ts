@@ -27,6 +27,11 @@ import {
     ParsedAiReply
 } from "./prompt";
 import { estimateCostMicros } from "./pricing";
+import {
+    detectLanguage,
+    LANGUAGE_LABELS,
+    resolveReplyLanguage
+} from "../../utils/language";
 import { createAiProvider, isProviderConfigured } from "./provider";
 import { AiSettingsService } from "./settings.service";
 
@@ -205,13 +210,22 @@ export class AiSuggestionService {
             }
         });
 
+        /** Multilingüe: si el idioma detectado está habilitado, responde en él. */
+        const enabledLanguages = job.workspace.aiMultilangLanguages || [];
+        const detectedLanguage = detectLanguage(decision.text);
+        const replyLanguage = resolveReplyLanguage(
+            enabledLanguages,
+            detectedLanguage
+        );
+
         const system = buildSystemPrompt({
             workspaceName: job.workspace.name,
             settings,
             knowledge: knowledge.map((entry) => ({
                 question: entry.question,
                 answer: entry.answer
-            }))
+            })),
+            replyLanguage: LANGUAGE_LABELS[replyLanguage]
         });
 
         const messages = [
@@ -312,6 +326,23 @@ export class AiSuggestionService {
                 latencyMs: completion.latencyMs
             }
         });
+
+        if (enabledLanguages.length > 0) {
+            await LogService.create({
+                workspaceId: job.workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.AI,
+                action: "AI_MULTILANG_REPLY",
+                message: "La IA respondió en el idioma detectado del cliente.",
+                payload: {
+                    suggestionId: suggestion.id,
+                    conversationId: job.conversationId,
+                    detectedLanguage,
+                    replyLanguage,
+                    model: completion.model
+                }
+            }).catch(() => undefined);
+        }
 
         if (automatic) {
             await this.processAutoReply({

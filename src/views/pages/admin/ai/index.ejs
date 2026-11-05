@@ -38,6 +38,8 @@
                     Ajustes de IA guardados.
                 <% } else if (success === "knowledge") { %>
                     Base de conocimiento actualizada.
+                <% } else if (success === "languages") { %>
+                    Idiomas de respuesta actualizados.
                 <% } else { %>
                     Acción realizada.
                 <% } %>
@@ -629,6 +631,33 @@
                     </article>
                 <% }) %>
             </div>
+        </section>
+        <section class="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h3 class="font-bold text-slate-800">
+                Idiomas de respuesta
+            </h3>
+
+            <p class="mt-1 max-w-3xl text-sm text-slate-500">
+                El español siempre está activo. Marca inglés y/o portugués para
+                que la IA conteste en el idioma del cliente. La interfaz sigue
+                en español y las plantillas de Meta no cambian.
+            </p>
+
+            <form action="/admin/ai/languages" method="POST" class="mt-4 space-y-3">
+                <label class="flex cursor-pointer items-center gap-3">
+                    <input type="checkbox" name="english" value="true" <%= (typeof multilangLanguages !== "undefined" && multilangLanguages.includes("en")) ? "checked" : "" %> class="h-4 w-4 accent-margarita-600" />
+                    <span class="text-sm font-semibold text-slate-700">Inglés</span>
+                </label>
+
+                <label class="flex cursor-pointer items-center gap-3">
+                    <input type="checkbox" name="portuguese" value="true" <%= (typeof multilangLanguages !== "undefined" && multilangLanguages.includes("pt")) ? "checked" : "" %> class="h-4 w-4 accent-margarita-600" />
+                    <span class="text-sm font-semibold text-slate-700">Portugués</span>
+                </label>
+
+                <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                    Guardar idiomas
+                </button>
+            </form>
         </section>
     </main>
 </body>

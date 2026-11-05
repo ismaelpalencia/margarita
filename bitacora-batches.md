@@ -270,3 +270,36 @@
 - No se tocaron los reportes ni las exportaciones de cobranza.
 
 ---
+
+## Batch 8 — Respuestas de IA multilingües
+
+**Estado:** completado (en flash). **Migración:** sí, aditiva: 20261104190000_ai_multilang (ADD COLUMN aiMultilangLanguages TEXT[] DEFAULT vacío).
+
+### Archivos tocados
+
+- Esquema/migración: prisma/schema.prisma (Workspace.aiMultilangLanguages), prisma/migrations/20261104190000_ai_multilang/migration.sql.
+- Util: src/utils/language.ts (detección es/en/pt y resolveReplyLanguage) + language.test.ts.
+- IA: src/services/ai/prompt.ts (replyLanguage opcional), src/services/ai/suggestion.service.ts (detección + prompt + log AI_MULTILANG_REPLY), src/services/off-hours.service.ts (mismo idioma en la respuesta fuera de horario).
+- UI: Admin → IA → Idiomas (src/controllers/admin-ai.controller.ts, src/routes/admin-ai.routes.ts, sección en src/views/pages/admin/ai/index.ejs).
+- Docs: docs/alcance-produccion.md, docs/catalogo-producto.md.
+
+### Pruebas nuevas
+
+- 4 unitarias: detección es/en/pt, empate/texto vacío → español, resolveReplyLanguage respeta idiomas habilitados, y el prompt incluye “Escribe en inglés”.
+
+### Comandos y resultados
+
+- npx tsc --noEmit → OK.
+- npm run typecheck:all → OK.
+- npm test → 335 pass, 0 fail.
+- npm run test:integration → 97 pass, 2 skipped, 0 fail.
+- Migración: solo ADD COLUMN con default vacío.
+
+### Decisiones y notas (repo manda)
+
+- El flag es por workspace como arreglo aiMultilangLanguages (["en"], ["pt"] o ambos); vacío = solo español. No se agregó variable de entorno AI_MULTILANG porque el spec lo pide “en el workspace” y así se controla por instalación.
+- La detección es heurística determinista (léxica + acentos), sin dependencias nuevas.
+- No se tocó la i18n de la interfaz ni los textos de plantillas de Meta.
+- Con proveedor mock la respuesta de prueba no cambia de idioma; la prueba verifica la instrucción del prompt y la resolución del idioma. La auditoría se escribe en el camino real de generación.
+
+---

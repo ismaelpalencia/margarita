@@ -62,10 +62,12 @@ export function buildSystemPrompt(params: {
     workspaceName: string;
     settings: PromptSettings;
     knowledge: PromptKnowledge[];
+    /** Idioma de la respuesta cuando la multilingüe está activa. */
+    replyLanguage?: string | null;
 }): string {
     const { workspaceName, settings, knowledge } = params;
 
-    const language = line(settings.language) || "es-MX";
+    const language = line(params.replyLanguage) || line(settings.language) || "es-MX";
     const tone = line(settings.tone) || "cercano, claro y breve";
     const business = line(settings.systemPrompt);
     const handoffKeywords = (settings.handoffKeywords || [])

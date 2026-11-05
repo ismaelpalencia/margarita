@@ -319,7 +319,8 @@ export class MetaWebhookHandlerService {
                 offHoursMessage: true,
                 offHoursReplyIntervalHours: true,
                 flowsEnabled: true,
-                leadsEnabled: true
+                leadsEnabled: true,
+                aiMultilangLanguages: true
             }
         });
 
@@ -384,7 +385,9 @@ export class MetaWebhookHandlerService {
                             offHoursMode: workspace?.offHoursMode ?? OffHoursMode.TEXT_ONLY,
                             offHoursMessage: workspace?.offHoursMessage ?? null,
                             offHoursReplyIntervalHours:
-                                workspace?.offHoursReplyIntervalHours ?? 12
+                                workspace?.offHoursReplyIntervalHours ?? 12,
+                            aiMultilangLanguages:
+                                workspace?.aiMultilangLanguages ?? []
                         },
                         conversationId: conversation.id,
                         inboundMessageId: savedMessage.id,

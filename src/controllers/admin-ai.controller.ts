@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { LogLevel, LogModule } from "@prisma/client";
 
 import { appConfig } from "../config/app.config";
+import { prisma } from "../config/prisma";
 import { aiProviderLabel, isProviderConfigured } from "../services/ai/provider";
 import { AiSettingsService } from "../services/ai/settings.service";
 import { KnowledgeService } from "../services/ai/knowledge";
@@ -80,8 +81,14 @@ export class AdminAiController {
         /** Se nombra la clase a propósito: Express llama al handler sin `this`. */
         const data = await AdminAiController.loadIndexData(req);
 
+        const workspace = await prisma.workspace.findUnique({
+            where: { id: req.user!.workspaceId },
+            select: { aiMultilangLanguages: true }
+        });
+
         return res.render("pages/admin/ai/index", {
             user: req.user,
+            multilangLanguages: workspace?.aiMultilangLanguages ?? [],
             ...data,
             success: req.query.success || null,
             error: req.query.error || null,
@@ -89,6 +96,26 @@ export class AdminAiController {
             testResult: null,
             testError: null
         });
+    }
+
+    /** Idiomas de respuesta de la IA: español siempre; inglés/portugués opt-in. */
+    static async saveLanguages(req: Request, res: Response) {
+        const languages: string[] = [];
+
+        if (req.body?.english === "true") {
+            languages.push("en");
+        }
+
+        if (req.body?.portuguese === "true") {
+            languages.push("pt");
+        }
+
+        await prisma.workspace.update({
+            where: { id: req.user!.workspaceId },
+            data: { aiMultilangLanguages: languages }
+        });
+
+        return res.redirect("/admin/ai?success=languages");
     }
 
     static async saveSettings(req: Request, res: Response) {

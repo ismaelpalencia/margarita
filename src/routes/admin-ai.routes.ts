@@ -14,6 +14,7 @@ const router = Router();
 
 router.get("/", AdminAiController.index);
 router.post("/settings", AdminAiController.saveSettings);
+router.post("/languages", AdminAiController.saveLanguages);
 
 router.post("/knowledge", AdminAiController.createEntry);
 router.get("/knowledge/:id", AdminAiController.showEditEntry);

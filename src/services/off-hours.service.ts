@@ -19,6 +19,11 @@ import {
     parseModelOutput
 } from "./ai/prompt";
 import { createAiProvider, isAiConfigured } from "./ai/provider";
+import {
+    detectLanguage,
+    LANGUAGE_LABELS,
+    resolveReplyLanguage
+} from "../utils/language";
 
 type OffHoursWorkspace = {
     id: string;
@@ -26,6 +31,7 @@ type OffHoursWorkspace = {
     offHoursMode: OffHoursMode;
     offHoursMessage: string | null;
     offHoursReplyIntervalHours: number;
+    aiMultilangLanguages: string[];
 };
 
 type OffHoursInbound = {
@@ -298,13 +304,20 @@ export class OffHoursService {
             select: { direction: true, body: true, createdAt: true }
         });
 
+        const detectedLanguage = detectLanguage(decision.text);
+        const replyLanguage = resolveReplyLanguage(
+            params.workspace.aiMultilangLanguages || [],
+            detectedLanguage
+        );
+
         const system = buildSystemPrompt({
             workspaceName: params.workspace.name,
             settings,
             knowledge: knowledge.map((entry) => ({
                 question: entry.question,
                 answer: entry.answer
-            }))
+            })),
+            replyLanguage: LANGUAGE_LABELS[replyLanguage]
         });
 
         const messages = [

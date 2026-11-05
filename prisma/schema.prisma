@@ -350,6 +350,12 @@ model Workspace {
   feedbackEnabled Boolean @default(false)
   feedback         ConversationFeedback[]
 
+  /**
+   * Idiomas de respuesta de la IA además del español. Vacío = solo español.
+   * Valores admitidos: "en" y "pt".
+   */
+  aiMultilangLanguages String[] @default([])
+
   settings                 WorkspaceSettings?
   whatsappAccount          WhatsAppAccount?
   users                    User[]

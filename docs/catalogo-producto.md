@@ -290,6 +290,15 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
   flujo recibe la respuesta (con botones o lista) y se audita como
   FLOW_TRIGGERED. No hay paquete de cobranza.
 
+### 3.22 IA multilingüe (Admin → IA → Idiomas)
+
+- Español siempre; inglés y portugués opt-in por workspace.
+- Si el mensaje entrante está en un idioma habilitado, el prompt de la IA le
+  indica responder en ese idioma. La interfaz y las plantillas de Meta no
+  cambian.
+- Cada respuesta multilingüe se audita como `AI_MULTILANG_REPLY` con el idioma
+  detectado. Sin idiomas habilitados, la IA responde en español como antes.
+
 ### 3.21 Reportes de servicio (Admin → Reportes de servicio)
 
 - Disponible en todos los giros (no depende del módulo legado de cobranza).
