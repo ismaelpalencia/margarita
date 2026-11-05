@@ -267,7 +267,8 @@ export class AiAutoReplyService {
                     assignedUserId: true,
                     contact: {
                         select: { customName: true, profileName: true, phone: true }
-                    }
+                    },
+                    assignedUser: { select: { name: true } }
                 }
             });
 
@@ -285,7 +286,8 @@ export class AiAutoReplyService {
                     conversationId: params.conversationId,
                     contactName,
                     reason: params.reason,
-                    assignedUserId: assigned?.assignedUserId ?? null
+                    assignedUserId: assigned?.assignedUserId ?? null,
+                    assignedUserName: assigned?.assignedUser?.name ?? null
                 }
             );
 

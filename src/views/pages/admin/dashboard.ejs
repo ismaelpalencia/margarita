@@ -37,6 +37,46 @@
             </div>
         <% } %>
 
+        <% if (typeof handoffCount !== "undefined" && handoffCount > 0) { %>
+            <section class="card mb-6" style="padding: 0; overflow: hidden">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-3" style="border-color: var(--surface-border)">
+                    <div>
+                        <h2 class="card__title">Atención: entregas de la IA</h2>
+                        <p class="text-xs" style="color: var(--text-tertiary)">Conversaciones que la IA pasó a una persona y siguen abiertas.</p>
+                    </div>
+                    <span class="badge badge--warning"><%= handoffCount %> pendiente(s)</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr><th>Contacto</th><th>Motivo</th><th>Asignada a</th><th>Cuándo</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            <% handoffs.forEach((item) => { %>
+                                <% const name = item.contact.customName || item.contact.profileName || item.contact.phone; %>
+                                <tr>
+                                    <td><strong><%= name %></strong></td>
+                                    <td><%= item.aiHandoffReason || "Entrega de la IA" %></td>
+                                    <td>
+                                        <% if (item.assignedUser) { %>
+                                            <span class="badge badge--info"><%= item.assignedUser.name %></span>
+                                        <% } else { %>
+                                            <span class="badge badge--danger">Sin asignar</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-xs" style="color: var(--text-tertiary)"><%= formatDateTimeMX(item.aiHandoffAt) %></td>
+                                    <td class="text-right">
+                                        <a href="/admin/conversations/<%= item.id %>" class="btn btn--secondary btn--sm">Abrir</a>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        <% } %>
+
         <section class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div class="card">
                 <div class="flex items-center justify-between">
@@ -327,5 +367,78 @@
         </section>
     </main>
 </div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+(function () {
+    if (typeof window.io !== "function") {
+        return;
+    }
+
+    var socket = window.io({ withCredentials: true });
+    var host = null;
+
+    function ensureHost() {
+        if (host) {
+            return host;
+        }
+
+        host = document.createElement("div");
+        host.style.cssText = "position:fixed;right:18px;bottom:18px;z-index:80;display:flex;flex-direction:column;gap:8px;width:320px";
+        document.body.appendChild(host);
+
+        return host;
+    }
+
+    function notify(payload, unassigned) {
+        var box = ensureHost();
+        var toast = document.createElement("div");
+        toast.style.cssText = "background:var(--surface-card);border:1px solid var(--surface-border);border-left:4px solid var(--warning);border-radius:8px;box-shadow:var(--shadow-lg);padding:12px 14px;font-size:13px";
+
+        var title = document.createElement("strong");
+        title.textContent = "Atención: " + (payload.contactName || "Contacto");
+        title.style.display = "block";
+        toast.appendChild(title);
+
+        var detail = document.createElement("span");
+        detail.textContent = unassigned
+            ? "Sin asignar — necesita una persona"
+            : payload.assignedUserName
+              ? "Asignada a " + payload.assignedUserName
+              : "Asignada a una persona";
+        detail.style.display = "block";
+        detail.style.marginTop = "2px";
+        detail.style.color = "var(--text-secondary)";
+        toast.appendChild(detail);
+
+        var link = document.createElement("a");
+        link.href = "/admin/conversations/" + payload.conversationId;
+        link.textContent = "Abrir conversación";
+        link.style.display = "inline-block";
+        link.style.marginTop = "6px";
+        link.style.fontWeight = "600";
+        link.style.color = "var(--brand-500)";
+        toast.appendChild(link);
+
+        box.appendChild(toast);
+
+        window.setTimeout(function () {
+            toast.remove();
+        }, 12000);
+    }
+
+    socket.on("conversation:handoff", function (payload) {
+        if (payload) {
+            notify(payload, false);
+        }
+    });
+
+    socket.on("conversation:unassigned", function (payload) {
+        if (payload) {
+            notify(payload, true);
+        }
+    });
+})();
+</script>
 
 <%- include("../../partials/footer") %>

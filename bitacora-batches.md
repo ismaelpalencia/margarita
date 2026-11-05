@@ -664,3 +664,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Con flujo disparado no se encola IA; si el flujo falla, la IA sigue (por eso el texto adicional).
 
 ---
+
+## Atención de handoffs en el dashboard
+
+- Dashboard admin: tarjeta «Atención: entregas de la IA» con contacto, motivo, asignado (o «Sin asignar»), hora y enlace.
+- Toast en vivo en el dashboard para `conversation:handoff` y `conversation:unassigned`, con nombre del asignado.
+- `conversation:handoff` ahora incluye `assignedUserName`.
+- La asignación sigue la cadena AVAILABLE → BUSY → admin → sin asignar; un agente OFFLINE no recibe.
+
+---
