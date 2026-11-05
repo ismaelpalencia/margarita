@@ -383,3 +383,16 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - `npx serve` no pudo usarse por permisos del caché de npm; la verificación local se hizo con un servidor Node equivalente (URLs limpias) y Chrome headless.
 
 ---
+
+## Baseline — Panel, notificaciones y handoff (2026-11-04)
+
+- **Rama:** `feat/panel-notifications-redesign` (creada desde `main`).
+- **Commit base:** `5d49eba` (incluye los 9 batches + landing final).
+- **Fecha:** 2026-11-04.
+- **Comandos de verificación:**
+  - `npx tsc --noEmit` → OK.
+  - `npm test` → 335 pass, 0 fail.
+  - `npm run test:integration` → 97 pass, 2 skipped, 0 fail.
+- `alcance-produccion.md` revisado: default `GENERICO`, 3 planes, features de los 9 batches, cobranza como legado y checklist con flags; **vigente**, sin cambios en A.0.
+
+---
