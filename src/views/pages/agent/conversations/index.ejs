@@ -111,7 +111,7 @@
                                 <%= name %>
                             </a>
                             <span class="shrink-0 text-[11px]" style="color: var(--text-tertiary)">
-                                <% if (lastMessage) { %><%= new Date(lastMessage.createdAt).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }) %><% } %>
+                                <% if (lastMessage) { %><%= formatTimeMX(lastMessage.createdAt) %><% } %>
                             </span>
                         </div>
 

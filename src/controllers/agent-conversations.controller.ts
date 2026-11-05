@@ -192,6 +192,7 @@ export class AgentConversationsController {
                 conversation.contact.outcomeDueAt,
                 startOfTodayIn(timezone)
             ),
+            timezone,
             formatDateTimeMX,
             formatDayLabelMX,
             formatTimeMX,

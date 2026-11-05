@@ -2,8 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+    formatDateIn,
+    formatDateTimeIn,
     formatDayLabelMX,
     formatDateTimeMX,
+    formatTimeIn,
     formatTimeMX,
     formatWaitingTime,
     parseLocalDateTime
@@ -34,6 +37,24 @@ test("las horas y fechas respetan la zona de la aplicación", () => {
 
     assert.equal(formatTimeMX(date), "12:00");
     assert.equal(formatDateTimeMX(date), "05/03/2024 12:00");
+});
+
+test("un mensaje de las 8:46 en México no se muestra como 2:46", () => {
+    /** 14:46 UTC = 08:46 en Ciudad de México (UTC-6). */
+    const date = new Date("2026-11-05T14:46:00.000Z");
+
+    assert.equal(formatTimeIn(date, "America/Mexico_City"), "08:46");
+    assert.equal(
+        formatDateTimeIn(date, "America/Mexico_City"),
+        "05/11/2026 08:46"
+    );
+});
+
+test("la fecha se calcula en la zona del workspace, no en UTC", () => {
+    /** 02:00 UTC del 6 de noviembre sigue siendo 5 de noviembre en México. */
+    const date = new Date("2026-11-06T02:00:00.000Z");
+
+    assert.equal(formatDateIn(date, "America/Mexico_City"), "05/11/2026");
 });
 
 test("la espera se cuenta en minutos, horas y días", () => {

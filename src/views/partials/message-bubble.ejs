@@ -157,7 +157,7 @@
         <% } %>
 
         <div class="mt-1 flex items-center justify-end gap-1.5 text-[10px] <%= isNote ? 'text-amber-600' : isOut ? 'text-margarita-100' : 'text-slate-400' %>">
-            <span><%= message.createdAt.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }) %></span>
+            <span><%= formatTimeMX(message.createdAt) %></span>
 
             <% if (isNote) { %>
                 <span title="No se envía a WhatsApp">📝</span>

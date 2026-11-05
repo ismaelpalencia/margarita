@@ -223,13 +223,13 @@
 
                                 <% if (item.dueAt) { %>
                                     <span class="text-xs text-slate-500">
-                                        Compromiso: <%= item.dueAt.toLocaleDateString("es-MX") %>
+                                        Compromiso: <%= formatDateMX(item.dueAt) %>
                                     </span>
                                 <% } %>
 
                                 <% if (item.paidAt) { %>
                                     <span class="text-xs text-slate-500">
-                                        Pagó: <%= item.paidAt.toLocaleDateString("es-MX") %>
+                                        Pagó: <%= formatDateMX(item.paidAt) %>
                                     </span>
                                 <% } %>
 

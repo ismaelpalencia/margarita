@@ -54,20 +54,52 @@ export function formatDateForApp(date: Date) {
     return dayjs(date).tz(appConfig.timezone).format("YYYY-MM-DD HH:mm:ss");
 }
 
-export function formatDateTimeMX(date: Date | string | null | undefined): string {
+/** Fecha y hora en una zona concreta (la del workspace). */
+export function formatDateTimeIn(
+    date: Date | string | null | undefined,
+    timezone: string
+): string {
     if (!date) {
         return "Sin fecha";
     }
 
-    return dayjs(date).tz(appConfig.timezone).format("DD/MM/YYYY HH:mm");
+    return dayjs(date).tz(timezone).format("DD/MM/YYYY HH:mm");
 }
 
-export function formatTimeMX(date: Date | string | null | undefined): string {
+/** Hora en una zona concreta (la del workspace). */
+export function formatTimeIn(
+    date: Date | string | null | undefined,
+    timezone: string
+): string {
     if (!date) {
         return "";
     }
 
-    return dayjs(date).tz(appConfig.timezone).format("HH:mm");
+    return dayjs(date).tz(timezone).format("HH:mm");
+}
+
+/** Solo fecha en una zona concreta (la del workspace). */
+export function formatDateIn(
+    date: Date | string | null | undefined,
+    timezone: string
+): string {
+    if (!date) {
+        return "Sin fecha";
+    }
+
+    return dayjs(date).tz(timezone).format("DD/MM/YYYY");
+}
+
+export function formatDateTimeMX(date: Date | string | null | undefined): string {
+    return formatDateTimeIn(date, appConfig.timezone);
+}
+
+export function formatTimeMX(date: Date | string | null | undefined): string {
+    return formatTimeIn(date, appConfig.timezone);
+}
+
+export function formatDateMX(date: Date | string | null | undefined): string {
+    return formatDateIn(date, appConfig.timezone);
 }
 
 /**
@@ -110,15 +142,16 @@ export function formatWaitingTime(
 /**
  * Etiqueta del separador de fecha en el chat: "Hoy", "Ayer" o la fecha.
  */
-export function formatDayLabelMX(
-    date: Date | string | null | undefined
+export function formatDayLabelIn(
+    date: Date | string | null | undefined,
+    timezone: string
 ): string {
     if (!date) {
         return "";
     }
 
-    const value = dayjs(date).tz(appConfig.timezone);
-    const today = dayjs().tz(appConfig.timezone);
+    const value = dayjs(date).tz(timezone);
+    const today = dayjs().tz(timezone);
 
     if (value.isSame(today, "day")) {
         return "Hoy";
@@ -129,4 +162,10 @@ export function formatDayLabelMX(
     }
 
     return value.format("DD/MM/YYYY");
+}
+
+export function formatDayLabelMX(
+    date: Date | string | null | undefined
+): string {
+    return formatDayLabelIn(date, appConfig.timezone);
 }

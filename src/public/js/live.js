@@ -22,6 +22,8 @@
     var conversationId = body.dataset.conversationId || null;
     var basePath = body.dataset.liveBase || null;
     var onlyForUserId = body.dataset.liveUserId || null;
+    /** Zona del workspace; sin esto el navegador usa la zona del equipo. */
+    var timezone = body.dataset.liveTimezone || null;
     var hasConnectedBefore = false;
     var toastContainer = null;
 
@@ -36,7 +38,9 @@
             return "";
         }
 
-        return date.toLocaleString("es-MX");
+        return timezone
+            ? date.toLocaleString("es-MX", { timeZone: timezone })
+            : date.toLocaleString("es-MX");
     }
 
     function formatTime(value) {
@@ -46,10 +50,16 @@
             return "";
         }
 
-        return date.toLocaleTimeString("es-MX", {
+        var options = {
             hour: "2-digit",
             minute: "2-digit"
-        });
+        };
+
+        if (timezone) {
+            options.timeZone = timezone;
+        }
+
+        return date.toLocaleTimeString("es-MX", options);
     }
 
     var TICKS = {

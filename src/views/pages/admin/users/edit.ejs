@@ -40,7 +40,7 @@
             <div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200">
                 <p>
                     <strong>Cuenta bloqueada</strong> por intentos fallidos hasta
-                    el <%= new Date(member.lockedUntil).toLocaleString("es-MX") %>.
+                    el <%= formatDateTimeMX(member.lockedUntil) %>.
                     Puede venir de un bot probando correos, no de la persona.
                 </p>
 

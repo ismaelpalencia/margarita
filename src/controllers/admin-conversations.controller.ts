@@ -223,6 +223,7 @@ export class AdminConversationsController {
                 startOfTodayIn(timezone)
             ),
             showDeleted: includeDeleted,
+            timezone,
             formatDateTimeMX,
             formatDayLabelMX,
             formatTimeMX,

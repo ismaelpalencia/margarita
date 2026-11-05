@@ -523,3 +523,17 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - No se editó `alcance-produccion.md`; el nuevo documento lo declara superseded.
 
 ---
+
+## Fix — horas en la zona del workspace
+
+- Las vistas usaban `toLocaleString`/`toLocaleTimeString` sin zona: en Railway (UTC) un mensaje de las 08:46 en México se veía a las 02:46.
+- Nuevos helpers `formatDateTimeIn`, `formatTimeIn`, `formatDateIn`, `formatDayLabelIn` en `src/utils/date.ts`; `workspaceProfileMiddleware` los expone con la zona de `WorkspaceSettings.timezone` (fallback `America/Mexico_City`).
+- Reemplazados todos los `toLocale*` de fechas en vistas (burbujas, bandeja, bitácora, webhooks, plantillas, bloqueos, resultados y compromisos).
+- El hilo pasa `data-live-timezone` y `live.js` formatea con la zona del workspace.
+- Pruebas nuevas: 08:46 en México y fecha de madrugada UTC.
+
+### Gates
+
+- tsc OK, 343 unit, 101 integración.
+
+---

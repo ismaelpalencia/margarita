@@ -63,7 +63,7 @@
                             </span>
 
                             <span class="text-xs text-slate-400">
-                                <%= event.createdAt.toLocaleString("es-MX") %>
+                                <%= formatDateTimeMX(event.createdAt) %>
                             </span>
 
                             <% if (event.phoneNumberId) { %>

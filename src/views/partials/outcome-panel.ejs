@@ -41,13 +41,13 @@
 
             <% if (contact.outcomeDueAt) { %>
                 <span class="text-xs text-slate-500">
-                    Compromiso: <%= contact.outcomeDueAt.toLocaleDateString("es-MX") %>
+                    Compromiso: <%= formatDateMX(contact.outcomeDueAt) %>
                 </span>
             <% } %>
 
             <% if (contact.outcomePaidAt) { %>
                 <span class="text-xs text-slate-500">
-                    Pagó: <%= contact.outcomePaidAt.toLocaleDateString("es-MX") %>
+                    Pagó: <%= formatDateMX(contact.outcomePaidAt) %>
                 </span>
             <% } %>
 

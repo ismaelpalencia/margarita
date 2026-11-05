@@ -1,8 +1,15 @@
 import { WorkspaceProfile } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 
+import { appConfig } from "../config/app.config";
 import { prisma } from "../config/prisma";
 import { isWithinBusinessHours, parseBusinessHours } from "../utils/business-hours";
+import {
+    formatDateIn,
+    formatDateTimeIn,
+    formatDayLabelIn,
+    formatTimeIn
+} from "../utils/date";
 import {
     isCollectionsProfile,
     modulesForProfile
@@ -26,6 +33,7 @@ export async function workspaceProfileMiddleware(
     let offHoursNow = false;
     let interactiveListsEnabled = false;
     let feedbackEnabled = false;
+    let timezone = appConfig.timezone;
 
     try {
         const workspace = await prisma.workspace.findUnique({
@@ -35,7 +43,8 @@ export async function workspaceProfileMiddleware(
                 businessHoursEnabled: true,
                 businessHours: true,
                 interactiveListsEnabled: true,
-                feedbackEnabled: true
+                feedbackEnabled: true,
+                settings: { select: { timezone: true } }
             }
         });
 
@@ -48,6 +57,7 @@ export async function workspaceProfileMiddleware(
             : null;
 
         offHoursNow = hours ? !isWithinBusinessHours(hours, new Date()) : false;
+        timezone = workspace?.settings?.timezone || appConfig.timezone;
     } catch (error) {
         console.error("No se pudo leer el giro de la instalación:", error);
     }
@@ -62,6 +72,21 @@ export async function workspaceProfileMiddleware(
     /** Si el workspace tiene encendidas las listas interactivas. */
     res.locals.interactiveListsEnabled = interactiveListsEnabled;
     res.locals.feedbackEnabled = feedbackEnabled;
+
+    /**
+     * Fechas siempre en la zona del workspace, no en la del servidor.
+     * Railway corre en UTC; sin esto un mensaje de las 8:46 se veía a las
+     * 2:46. Las vistas usan estos helpers en lugar de toLocaleString().
+     */
+    res.locals.workspaceTimezone = timezone;
+    res.locals.formatDateTimeMX = (date: Date | string | null | undefined) =>
+        formatDateTimeIn(date, timezone);
+    res.locals.formatTimeMX = (date: Date | string | null | undefined) =>
+        formatTimeIn(date, timezone);
+    res.locals.formatDateMX = (date: Date | string | null | undefined) =>
+        formatDateIn(date, timezone);
+    res.locals.formatDayLabelMX = (date: Date | string | null | undefined) =>
+        formatDayLabelIn(date, timezone);
 
     return next();
 }

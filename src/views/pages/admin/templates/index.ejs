@@ -203,7 +203,7 @@
                                         <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700"><%= template.status %></span>
                                     <% } %>
                                 </td>
-                                <td class="px-5 py-4 text-slate-600"><%= template.lastSyncedAt ? template.lastSyncedAt.toLocaleString("es-MX") : "—" %></td>
+                                <td class="px-5 py-4 text-slate-600"><%= template.lastSyncedAt ? formatDateTimeMX(template.lastSyncedAt) : "—" %></td>
                             </tr>
                         <% }) %>
                     </tbody>

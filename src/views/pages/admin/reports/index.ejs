@@ -315,7 +315,7 @@
                                     <%= item.amount === null ? "—" : formatAmount(item.amount) %>
                                 </td>
                                 <td class="px-5 py-4 text-slate-600">
-                                    <%= item.dueAt.toLocaleDateString("es-MX") %>
+                                    <%= formatDateMX(item.dueAt) %>
                                 </td>
                                 <td class="px-5 py-4">
                                     <% if (item.daysLate > 0) { %>
@@ -609,7 +609,7 @@
                                             <%= item.amount === null ? "—" : formatAmount(item.amount) %>
                                         </td>
                                         <td class="px-5 py-3 text-slate-600">
-                                            <%= item.dueAt.toLocaleDateString("es-MX") %>
+                                            <%= formatDateMX(item.dueAt) %>
                                         </td>
                                         <td class="px-5 py-3">
                                             <% if (item.daysLate > 0) { %>
@@ -812,7 +812,7 @@
                                     <%= row.amount === null ? "—" : formatAmount(row.amount) %>
                                 </td>
                                 <td class="px-5 py-4 text-slate-600">
-                                    <%= row.dueAt ? row.dueAt.toLocaleDateString("es-MX") : "—" %>
+                                    <%= row.dueAt ? formatDateMX(row.dueAt) : "—" %>
                                 </td>
                                 <td class="px-5 py-4 text-slate-500"><%= row.note || "—" %></td>
                                 <td class="px-5 py-4 text-slate-500"><%= row.userName || "—" %></td>
