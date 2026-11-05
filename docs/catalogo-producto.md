@@ -495,3 +495,21 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
   habilitado en Meta.
 - «Es un CRM» (no maneja ventas ni facturación).
 - «Cero riesgo de bloqueo» (la calidad del número depende del uso y de Meta).
+
+---
+
+## Apéndice — Pantallas legado de cobranza
+
+Estas pantallas se conservan **solo para instalaciones que ya nacieron con el
+giro `COBRANZA`**. No se ofrecen en el alta ni en la oferta nueva; sus rutas
+siguen existiendo para no romper datos ni operación existente.
+
+| Pantalla / ruta | Qué hace |
+| --- | --- |
+| `Admin → Reportes` (`/admin/reports`) | Gestiones, promesas, sin contestación, tendencias y detalle exportable |
+| `Admin → Botones y listas` (`/admin/replies`) | Reglas que traducen un botón o lista a un resultado de gestión |
+| Resultados en el hilo y en la ficha | Promesa, convenio, pagado, pago reportado, etc. |
+| Reportes → Hoy | Llamadas pedidas, agenda y lista de trabajo |
+
+El resto de las pantallas (bandeja, contactos, campañas, plantillas, IA,
+horarios, leads, flujos y reportes de servicio) aplica a cualquier giro.

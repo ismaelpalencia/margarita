@@ -303,3 +303,41 @@
 - Con proveedor mock la respuesta de prueba no cambia de idioma; la prueba verifica la instrucción del prompt y la resolución del idioma. La auditoría se escribe en el camino real de generación.
 
 ---
+
+## Apéndice final — cierre del reposicionamiento
+
+### Los 9 batches
+
+```
+feat(batch-9): docs, landing y release del reposicionamiento (este commit)
+346d5ff feat(batch-8): respuestas de IA multilingues es/en/pt
+1635177 feat(batch-7): metricas de servicio y valoracion al cierre
+65d17ff feat(batch-6): demo publica /demo aislada de la base real
+3d9f0dc feat(batch-5): captura de leads con exportacion y webhook firmado
+8e1fdf4 feat(batch-4): flujos precargados y base de conocimiento por vertical
+2069641 feat(batch-3): listas interactivas de hasta diez opciones
+c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
+880dbdb feat(batch-1): default GENERICO y reposicionamiento del producto
+```
+
+### Checklist final
+
+- [x] `npx tsc --noEmit` limpio.
+- [x] `npm test` limpio (335 pruebas).
+- [x] `npm run test:integration` limpio (97 pasan, 2 omitidas).
+- [x] `npm run landing:build` limpio; `/health` cubierto por la suite de integración.
+- [x] Cero menciones de cobranza en `landing/`; no existe `landing/cobranza`.
+- [x] Todas las migraciones son aditivas (CREATE TABLE / ADD COLUMN / CREATE TYPE / CREATE INDEX / ADD CONSTRAINT).
+- [x] Cada feature nuevo detrás de flag por workspace o env, apagado por defecto.
+- [x] Precios sin cambios (Paquete A/B, mensualidad, IA Esencial/Soporte).
+
+### Brechas honestas
+
+- La resolución sin persona por entrada de KB es aproximada por intención (el esquema no registra qué entradas usó cada respuesta).
+- Los flujos son de un solo paso (trigger → respuesta); no hay motor multi-paso.
+- El reintento del webhook de leads es manual (botón), sin worker en segundo plano.
+- La integración con Google Sheets para leads quedó como interfaz pendiente.
+- La demo `/demo` vive como ruta de la app (necesita sesión + API), no como página del sitio estático; requiere `DEMO_ENABLED=true`.
+- El fixture de integración del módulo legado crea su workspace con `COBRANZA` explícito; el alta real de una instalación nueva queda en `GENERICO`.
+
+---

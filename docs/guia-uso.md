@@ -227,6 +227,11 @@ conocimiento del negocio y dentro de límites.
 Con `AI_ENABLED=false` la herramienta funciona igual que antes: la IA no
 interviene.
 
+**Idiomas.** En **Admin → IA → Idiomas** puedes activar inglés y/o portugués;
+el español siempre está disponible. Si el cliente escribe en un idioma
+habilitado, la IA responde en ese idioma. La interfaz y las plantillas siguen en
+español.
+
 **Paquete inicial.** En **Admin → IA → Paquete inicial** puedes cargar flujos
 precargados (bienvenida, horarios, estado de un pedido, cotizar, hablar con una
 persona) y una base de conocimiento lista, por vertical (comercio, servicios o

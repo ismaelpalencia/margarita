@@ -484,3 +484,26 @@ Multi-tenant con SuperAdmin, billing, integración con CRM externo, IA o chatbot
 > evaluando como la siguiente capa del producto. La propuesta técnica vive en
 > [`ia-respuestas.md`](ia-respuestas.md). Este documento sigue siendo
 > histórico; el estado vigente está en [`alcance-produccion.md`](alcance-produccion.md).
+
+---
+
+## Reposicionamiento 2026-11-04 — 9 batches
+
+Cierre del pivote de producto: la cobranza deja de ser el modelo de negocio (el
+código y el giro `COBRANZA` se conservan como legado para instalaciones
+existentes) y el producto se vende como automatización de WhatsApp con IA.
+
+| Batch | Qué entregó | Migración |
+| --- | --- | --- |
+| 1 | Default `GENERICO`, alta sin cobranza, landing y docs reposicionadas | sí |
+| 2 | Horarios de atención y respuesta fuera de horario | sí |
+| 3 | Listas interactivas de hasta 10 opciones | sí |
+| 4 | Flujos precargados y base de conocimiento por vertical | sí |
+| 5 | Captura de leads, CSV y webhook saliente firmado | sí |
+| 6 | Demo pública `/demo` aislada de la base real | no |
+| 7 | Reportes de servicio y valoración 👍/👎 | sí |
+| 8 | Respuestas de IA multilingües es/en/pt | sí |
+| 9 | Docs, landing y release final | no |
+
+El detalle por batch, con archivos, pruebas y comandos, está en
+`bitacora-batches.md`.
