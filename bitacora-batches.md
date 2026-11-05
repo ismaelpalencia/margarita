@@ -89,3 +89,41 @@
 - El envío fuera de horario va por `MessageService.sendOffHoursReply` (source AUTOMATIC); la idempotencia la da `Conversation.lastOffHoursReplyAt`, no `aiSuggestionId`.
 
 ---
+
+## Batch 3 — Listas interactivas
+
+**Estado:** completado (en flash). **Migración:** sí, aditiva: `20261104150000_listas_interactivas` (solo `ADD COLUMN interactiveListsEnabled`).
+
+### Archivos tocados
+
+- Esquema/migración: `prisma/schema.prisma`, `prisma/migrations/20261104150000_listas_interactivas/migration.sql`.
+- Builder y payload: `src/utils/interactive-message.ts` (`buildInteractiveList`, `interactiveListPayload`, límites 10/24/72/20).
+- Validación: `src/validations/interactive-message.validation.ts` (`sendInteractiveListSchema`, `listRowsFromInput`).
+- Envío: `src/services/message.service.ts` (`sendInteractiveList`).
+- Controladores/rutas: `src/controllers/admin-conversations.controller.ts`, `src/controllers/agent-conversations.controller.ts`, `src/routes/admin-conversations.routes.ts`, `src/routes/agent-conversations.routes.ts` (POST `/messages/interactive-list`).
+- Flag y UI: `src/middlewares/workspace-profile.middleware.ts` (expone `interactiveListsEnabled`), `src/controllers/admin-system.controller.ts` + `src/routes/admin-system.routes.ts` + `src/views/pages/admin/system/index.ejs` (interruptor), `src/views/partials/conversation-tools.ejs` (editor + vista previa), `src/views/partials/admin-nav.ejs` y `src/views/pages/admin/replies/index.ejs` (renombre a «Botones y listas»).
+- Alertas: `src/views/pages/admin/conversations/show.ejs`, `src/views/pages/agent/conversations/show.ejs`.
+- Docs: `docs/alcance-produccion.md`, `docs/catalogo-producto.md`, `docs/guia-uso.md`.
+- Pruebas: `src/utils/interactive-message.test.ts`, `tests/integration/interactive-lists.integration.test.ts`.
+
+### Pruebas nuevas
+
+- 5 unitarias del builder de listas (payload válido, 11 opciones rechazadas, título 24 / descripción 72 / botón 20, sin opciones o sin texto, id explícito).
+- 3 de integración: envío válido por la misma ruta que los botones (Graph simulado); rechazo por más de 10 opciones sin crear ni mandar nada; una respuesta `list_reply` dispara la misma regla y registra el resultado.
+
+### Comandos y resultados
+
+- `npx tsc --noEmit` → **OK**.
+- `npm run typecheck:all` → **OK**.
+- `npm test` → **320 pass, 0 fail**.
+- `npm run test:integration` → **89 pass, 2 skipped, 0 fail**.
+- Migración: solo `ADD COLUMN`; sin DROP/DELETE/TRUNCATE ni cambios de tipo.
+
+### Decisiones y notas
+
+- El flag es `Workspace.interactiveListsEnabled` (apagado por defecto). El interruptor vive en **Admin → Sistema** porque `/admin/replies` sigue protegido por el módulo legado de cobranza; así cualquier giro puede encender listas sin cambiar el gating existente.
+- `/admin/replies` conserva ruta y modelo; solo cambia la etiqueta visible a «Botones y listas».
+- El «template builder» no existe en este repo: las plantillas se sincronizan desde Meta. El editor y la vista previa de listas se implementaron en el hilo (columna lateral), que es el único builder real. Se anota como brecha de nomenclatura.
+- `list_reply` ya se interpretaba en el webhook; el batch añade la prueba de que dispara la regla y mantiene id en claro / texto cifrado (ya cubierto por la suite de interactivos).
+
+---

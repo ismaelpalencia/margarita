@@ -94,6 +94,7 @@ lo necesita.
 | Plantilla aprobada | Siempre; es la única forma de escribir con la ventana cerrada |
 | Plantilla con variables | Pide encabezado (1), cuerpo (n) y botón de URL (1) según la plantilla |
 | **Botones** (hasta 3, 20 caracteres) | Solo con ventana abierta |
+| **Listas** (hasta 10 opciones; título 24, descripción 72) | Solo con ventana abierta y con el flag de listas encendido |
 | Nota interna | Nunca sale a WhatsApp |
 | Respuestas rápidas | Insertan `{nombre}` y `{telefono}` |
 | Ocultar mensaje | Reversible; el admin los ve en «Ver eliminados» y los restaura |
@@ -143,11 +144,12 @@ inmutable por marcado:
 **Reglas**: una promesa con fecha pasada aparece vencida sola; marcar **pagado**
 la cierra; **pago reportado** no cuenta como recuperación.
 
-### 3.7 Botones (reglas de gestión, legado)
+### 3.7 Botones y listas (reglas de gestión, legado)
 
-- Enviar botones dentro de la ventana de 24 horas está disponible para cualquier
-  giro; las **reglas que traducen un botón a un resultado de gestión** son del
-  módulo legado de cobranza.
+- Enviar botones (hasta 3) y listas (hasta 10 opciones) dentro de la ventana de
+  24 horas está disponible para cualquier giro; las listas se encienden por
+  workspace. Las **reglas que traducen un botón o una lista a un resultado de
+  gestión** son del módulo legado de cobranza.
 - Tabla **identificador / texto del botón → resultado → efecto**.
 - Efectos: ninguno, **pausa** la cuenta, **baja** al contacto.
 - Seis reglas recomendadas con un clic (ya pagué, llámame, necesito plazo, no
@@ -341,8 +343,8 @@ Todas se **exportan a CSV** con los filtros puestos (con BOM para Excel).
   y lada. Meta valida que el número exista y pueda recibir mensajes.
 - La **ventana de 24 horas** es de WhatsApp, no de la app.
 - Fuera de la ventana de 24 horas solo se inicia con una **plantilla aprobada**
-  (que puede traer botones). Dentro de la ventana se envían **botones** (hasta
-  3); las **listas desplegables** todavía no se envían desde el panel.
+  (que puede traer botones). Dentro de la ventana se envían **botones** (hasta 3)
+  y **listas** (hasta 10 opciones, con el flag del workspace encendido).
 - **Sí se programan campañas** por fecha y hora, además de enviarse ya, con pausa y reanudación.
 - No hay **permisos por número**: todos los agentes ven todos los números.
 - El **tramo** y el costo son una **estimación**, no la factura de Meta.

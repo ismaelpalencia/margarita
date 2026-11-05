@@ -51,10 +51,10 @@ Sí, como **instalación por empresa** en Railway, una vez cumplido el checklist
 | Verificación en dos pasos | **Disponible y opcional.** Se activa por cuenta; conviene dejarla puesta en las de administrador (el panel dice cuántas están cubiertas). |
 | Runtime y dependencias | **Actualizados para el redeploy.** La configuración fija Node 22.23.4 LTS y el lockfile fija Axios 1.20.0, Multer 2.5.0 y Express 4.22.3; no se debe desplegar con versiones previas del repositorio. |
 
-Lo que **no** está en el producto y no se debe prometer: **listas desplegables**
-desde el panel (los botones sí se envían dentro de la ventana y sus respuestas
-sí se interpretan), recordatorios automáticos de la agenda de llamadas,
-permisos por número y multi-instancia.
+Lo que **no** está en el producto y no se debe prometer: recordatorios
+automáticos de la agenda de llamadas, permisos por número y multi-instancia.
+Los botones y las listas sí se envían dentro de la ventana de 24 horas y sus
+respuestas se interpretan; las listas se encienden por workspace.
 
 ### Cómo está repartido el producto entre dominios
 
@@ -170,7 +170,7 @@ Una instalación que ya es `COBRANZA` conserva esa opción en Sistema. Es un
 - **Enviar botones dentro de la ventana de 24 horas**: desde el hilo (admin y agente) se manda un mensaje con **hasta 3 botones** de 20 caracteres. Los límites de Meta se validan antes de llamarla —texto de 1,024, pie de 60 y botones únicos— y la respuesta del cliente entra al mismo circuito de reglas que un botón de plantilla.
 - **Plantillas con botones**: se envían —desde el hilo y en **campañas**— resolviendo las **tres variables** que admite Meta: una en el encabezado, las del cuerpo y una al final de la URL de un botón. El formulario muestra solo los campos que la plantilla pide, para no mandar un componente de más (que Meta rechaza), y los valores quedan guardados **por destinatario** (con `{nombre}`, `{telefono}` y columnas del Excel).
 - **Aviso de plantilla reclasificada**: si Meta marca una plantilla como **marketing** (cuesta varias veces más por mensaje), la lista de plantillas lo advierte y una campaña **no se crea** con ella, con el motivo a la vista.
-- **Respuestas que se traducen solas**: cada botón se mapea a un resultado de gestión en **Admin → Botones** (por el identificador que manda Meta o por el texto del botón, como respaldo). Al tocar, la respuesta **registra el resultado sin intervención del agente**, con tres efectos posibles: nada, **pausar la cuenta** o **dar de baja**. Los mapeos recomendados para cobranza se crean de un clic y no pisan lo que ya se editó. **Solo con el giro `COBRANZA` encendido.**
+- **Respuestas que se traducen solas**: cada botón o lista se mapea a un resultado de gestión en **Admin → Botones y listas** (por el identificador que manda Meta o por el texto del botón, como respaldo). Al tocar, la respuesta **registra el resultado sin intervención del agente**, con tres efectos posibles: nada, **pausar la cuenta** o **dar de baja**. Los mapeos recomendados para cobranza se crean de un clic y no pisan lo que ya se editó. **Solo con el giro `COBRANZA` encendido.**
   - **«Ya pagué» no marca pagado**: entra como **pago reportado, por confirmar**, y los reportes lo cuentan aparte de la recuperación.
   - **«No reconozco la deuda»**: deja el contacto **en pausa** (no se le escribe, ni en campañas) y el incidente queda en la bitácora **con nivel de error**, que es lo que dispara las alertas.
   - **«No quiero ser contactado»**: registra la baja el mismo día, sin depender de la palabra clave.
@@ -229,7 +229,7 @@ oferta a instalaciones nuevas.
 | --- | --- |
 | **Teléfonos internacionales** | En México, 10 dígitos se normalizan al formato de WhatsApp (`521…`). Para otro país hay que capturar el número completo con `+` y lada (E.164); no se adivina la lada. Meta sigue siendo quien valida que el número exista y pueda recibir mensajes. |
 | **Archivos con caducidad** | Meta conserva lo que envían los clientes alrededor de 30 días. Un archivo que nadie abrió en ese plazo ya no se puede recuperar; el hilo lo avisa en lugar de fallar. |
-| **Botones sí, listas no** | Dentro de la ventana de 24 horas ya se mandan **mensajes con hasta 3 botones** (con validación de límites antes de llamar a Meta, y con la respuesta del cliente interpretada como cualquier botón). Las **listas** desplegables todavía no se envían desde el panel; se construirán encima de la misma ruta. |
+| **Botones y listas** | Dentro de la ventana de 24 horas se mandan **hasta 3 botones** o **listas de hasta 10 opciones** (título 24, descripción 72, botón 20), con validación de límites antes de llamar a Meta. La respuesta se interpreta por la misma ruta. Las listas están detrás del flag por workspace `interactiveListsEnabled`, apagado por defecto; con el flag apagado, los botones funcionan igual que antes. |
 | **Plantillas reclasificadas a marketing** | Meta puede reclasificar una plantilla de cobranza como marketing si el texto suena promocional, y entonces cuesta varias veces más. La herramienta lo avisa (lista de plantillas) y lo bloquea (campañas), pero **la redacción es responsabilidad de quien la crea**: al crear plantillas, el encabezado admite **exactamente una** variable y la URL del botón **una sola, al final**. |
 | **La llamada se agenda, pero no avisa** | La llamada pedida **es una tarea** y se puede **agendar** con fecha y hora (hora de la empresa), incluidas las citas de hoy y las vencidas, que suben al principio de la lista; y se puede quitar. Lo que no hay es recordatorio automático al cliente ni notificación push al equipo: el aviso es la pantalla. La herramienta tampoco sabe si la llamada se hizo: eso lo registra una persona. |
 | **El costo del tramo es una estimación** | El panel cuenta servicio, plantillas de utilidad y de marketing, y estima el costo con las tarifas configuradas (`SERVICE_MESSAGE_RATE`, `UTILITY_TEMPLATE_RATE`, `MARKETING_TEMPLATE_RATE`). **No es la factura**: Meta cobra con sus propias tarifas por país y puede cambiar precios. Se cuentan solo los mensajes **entregados o leídos**, nunca los fallidos. |

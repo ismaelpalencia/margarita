@@ -24,6 +24,7 @@ export async function workspaceProfileMiddleware(
 ) {
     let profile: WorkspaceProfile = WorkspaceProfile.COBRANZA;
     let offHoursNow = false;
+    let interactiveListsEnabled = false;
 
     try {
         const workspace = await prisma.workspace.findUnique({
@@ -31,11 +32,13 @@ export async function workspaceProfileMiddleware(
             select: {
                 profile: true,
                 businessHoursEnabled: true,
-                businessHours: true
+                businessHours: true,
+                interactiveListsEnabled: true
             }
         });
 
         profile = workspace?.profile ?? WorkspaceProfile.COBRANZA;
+        interactiveListsEnabled = Boolean(workspace?.interactiveListsEnabled);
 
         const hours = workspace?.businessHoursEnabled
             ? parseBusinessHours(workspace.businessHours)
@@ -53,6 +56,8 @@ export async function workspaceProfileMiddleware(
     res.locals.collectionsEnabled = isCollectionsProfile(profile);
     /** Badge "Fuera de horario" en el panel y en el hilo. */
     res.locals.offHoursNow = offHoursNow;
+    /** Si el workspace tiene encendidas las listas interactivas. */
+    res.locals.interactiveListsEnabled = interactiveListsEnabled;
 
     return next();
 }

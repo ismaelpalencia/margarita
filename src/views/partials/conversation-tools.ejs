@@ -63,7 +63,7 @@
             <p class="mt-1 text-xs text-slate-500">
                 Hasta 3 botones de 20 caracteres. Solo dentro de las 24 horas:
                 cuando el cliente los toca, la respuesta llega al hilo y puede
-                disparar su regla en <strong>Admin → Botones</strong>.
+                disparar su regla en <strong>Admin → Botones y listas</strong>.
             </p>
 
             <form
@@ -113,6 +113,138 @@
                 </button>
             </form>
         </section>
+
+        <% if (typeof interactiveListsEnabled !== "undefined" && interactiveListsEnabled) { %>
+            <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <h3 class="font-bold text-slate-800">
+                    Enviar lista
+                </h3>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Hasta 10 opciones en una sección. Título de la opción: 24
+                    caracteres; descripción: 72. Solo dentro de las 24 horas y
+                    con las listas activadas en el workspace.
+                </p>
+
+                <form
+                    action="<%= basePath %>/<%= conversation.id %>/messages/interactive-list"
+                    method="POST"
+                    class="mt-4 space-y-2"
+                    id="list-form"
+                >
+                    <textarea
+                        name="body"
+                        id="list-body"
+                        rows="2"
+                        maxlength="1024"
+                        required
+                        placeholder="Texto del mensaje"
+                        class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    ></textarea>
+
+                    <input
+                        name="footer"
+                        id="list-footer"
+                        maxlength="60"
+                        placeholder="Pie (opcional)"
+                        class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    />
+
+                    <div class="grid gap-2 sm:grid-cols-2">
+                        <input
+                            name="buttonLabel"
+                            id="list-button"
+                            maxlength="20"
+                            required
+                            placeholder="Botón que abre la lista"
+                            class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                        />
+
+                        <input
+                            name="sectionTitle"
+                            id="list-section"
+                            maxlength="24"
+                            placeholder="Título de la sección (opcional)"
+                            class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                        />
+                    </div>
+
+                    <% for (let index = 1; index <= 10; index += 1) { %>
+                        <div class="grid gap-2 sm:grid-cols-2">
+                            <input
+                                name="rowTitle"
+                                data-row-title
+                                maxlength="24"
+                                placeholder="Opción <%= index %>"
+                                class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                            />
+
+                            <input
+                                name="rowDescription"
+                                data-row-description
+                                maxlength="72"
+                                placeholder="Descripción (opcional)"
+                                class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                            />
+                        </div>
+                    <% } %>
+
+                    <div class="rounded-xl bg-slate-50 p-3 text-sm text-slate-700 ring-1 ring-slate-200" id="list-preview">
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Vista previa</p>
+                        <p class="mt-1" id="list-preview-body">Texto del mensaje</p>
+                        <p class="mt-2 inline-flex rounded-lg bg-white px-3 py-1 text-xs font-bold text-margarita-700 ring-1 ring-margarita-200" id="list-preview-button">Ver opciones</p>
+                        <ul class="mt-2 space-y-1 text-xs" id="list-preview-rows"></ul>
+                    </div>
+
+                    <button class="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                        Enviar lista
+                    </button>
+                </form>
+
+                <script>
+                    (function () {
+                        var form = document.getElementById("list-form");
+
+                        if (!form) {
+                            return;
+                        }
+
+                        var body = document.getElementById("list-body");
+                        var button = document.getElementById("list-button");
+                        var previewBody = document.getElementById("list-preview-body");
+                        var previewButton = document.getElementById("list-preview-button");
+                        var previewRows = document.getElementById("list-preview-rows");
+
+                        function renderPreview() {
+                            previewBody.textContent = body.value.trim() || "Texto del mensaje";
+                            previewButton.textContent = button.value.trim() || "Ver opciones";
+
+                            var titles = Array.prototype.slice.call(form.querySelectorAll("[data-row-title]"));
+                            var descriptions = Array.prototype.slice.call(form.querySelectorAll("[data-row-description]"));
+
+                            previewRows.innerHTML = "";
+
+                            titles.forEach(function (titleInput, index) {
+                                var title = titleInput.value.trim();
+
+                                if (!title) {
+                                    return;
+                                }
+
+                                var description = (descriptions[index] && descriptions[index].value.trim()) || "";
+                                var item = document.createElement("li");
+                                item.className = "rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200";
+                                item.textContent = description ? title + " — " + description : title;
+                                previewRows.appendChild(item);
+                            });
+                        }
+
+                        form.addEventListener("input", renderPreview);
+                        renderPreview();
+                    })();
+                </script>
+            </section>
+        <% } %>
     <% } %>
 
     <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">

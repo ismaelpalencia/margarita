@@ -1,6 +1,8 @@
-import { WorkspaceProfile } from "@prisma/client";
+import { LogLevel, LogModule, WorkspaceProfile } from "@prisma/client";
 import { Request, Response } from "express";
 
+import { prisma } from "../config/prisma";
+import { LogService } from "../services/log.service";
 import { SystemStatusService } from "../services/system-status.service";
 import { WorkspaceService } from "../services/workspace.service";
 import { appConfig } from "../config/app.config";
@@ -72,6 +74,10 @@ export class AdminSystemController {
                 profile !== WorkspaceProfile.COBRANZA ||
                 currentProfile === WorkspaceProfile.COBRANZA
         );
+        const workspaceFlags = await prisma.workspace.findUnique({
+            where: { id: req.user!.workspaceId },
+            select: { interactiveListsEnabled: true }
+        });
 
         return res.render("pages/admin/system/index", {
             user: req.user,
@@ -83,11 +89,39 @@ export class AdminSystemController {
             humanBytes,
             profiles,
             currentProfile,
+            interactiveListsEnabled: Boolean(workspaceFlags?.interactiveListsEnabled),
             profileLabels: WORKSPACE_PROFILE_LABELS,
             profileDescriptions: WORKSPACE_PROFILE_DESCRIPTIONS,
             success: req.query.success || null,
             error: req.query.error || null
         });
+    }
+
+    /** Interruptor de listas interactivas (no depende del giro). */
+    static async updateInteractiveLists(req: Request, res: Response) {
+        const enabled = req.body?.interactiveListsEnabled === "true";
+
+        try {
+            await prisma.workspace.update({
+                where: { id: req.user!.workspaceId },
+                data: { interactiveListsEnabled: enabled }
+            });
+
+            await LogService.create({
+                workspaceId: req.user!.workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.SYSTEM,
+                action: "WORKSPACE_INTERACTIVE_LISTS_CHANGED",
+                message: enabled
+                    ? "Se activaron las listas interactivas."
+                    : "Se desactivaron las listas interactivas.",
+                payload: { enabled }
+            }).catch(() => undefined);
+        } catch {
+            return res.redirect("/admin/system?error=lists");
+        }
+
+        return res.redirect("/admin/system?success=lists");
     }
 
     /**

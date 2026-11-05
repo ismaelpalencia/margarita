@@ -324,6 +324,9 @@ model Workspace {
   offHoursMessage           String?
   offHoursReplyIntervalHours Int          @default(12)
 
+  /** Listas interactivas (más de 3 opciones). Apagado por defecto. */
+  interactiveListsEnabled Boolean @default(false)
+
   settings                 WorkspaceSettings?
   whatsappAccount          WhatsAppAccount?
   users                    User[]

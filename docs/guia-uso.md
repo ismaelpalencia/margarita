@@ -130,6 +130,10 @@ que alguien la quite.
   mensaje con hasta **3 botones** de 20 caracteres. Sirve para pedir un sí/no o
   dirigir a una opción sin gastar plantilla. Cuando el cliente toca, la respuesta
   entra al hilo con su identificador y su texto.
+- **Listas dentro de las 24 horas** (si el workspace las tiene encendidas): hasta
+  **10 opciones**, con título de 24 caracteres y descripción de 72. La respuesta
+  entra por el mismo circuito que un botón. Si el límite se pasa, la app no llama
+  a Meta y muestra el motivo.
 - **Ocultar o borrar**: ocultar un mensaje es reversible (el administrador lo
   ve y lo restaura); borrar el hilo completo exige escribir `BORRAR`.
 - El contador de no leídos es **por conversación**, no por persona.
@@ -281,9 +285,9 @@ Para no prometer de más:
 - No procesa cobros ni concilia transacciones.
 - En México se capturan **10 dígitos**; para otro país, el número completo con
   `+` y lada. Meta valida que el número exista y pueda recibir mensajes.
-- Dentro de la ventana de 24 horas **sí** manda botones (hasta 3); las **listas
-  desplegables** todavía no se envían desde el panel. Las plantillas con botones
-  también se envían.
+- Dentro de la ventana de 24 horas **sí** manda botones (hasta 3) y listas
+  (hasta 10 opciones, si el workspace las tiene encendidas). Las plantillas con
+  botones también se envían.
 - No restringe qué números ve cada agente: con varios números, todos ven todos.
 - Los archivos que envía el cliente caducan en Meta a los ~30 días si nadie los
   abrió antes.

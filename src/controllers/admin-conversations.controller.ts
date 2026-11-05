@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { AiMode } from "@prisma/client";
 
 import { appConfig } from "../config/app.config";
+import { prisma } from "../config/prisma";
 import { ConversationService } from "../services/conversation.service";
 import { MessageService } from "../services/message.service";
 import { TemplateService } from "../services/template.service";
@@ -27,8 +28,15 @@ import { getRequiredParam } from "../utils/request";
 import { sendFreeTextMessageSchema } from "../validations/free-text-message.validation";
 import { sendLocalMessageSchema } from "../validations/message.validation";
 import { sendTemplateMessageSchema } from "../validations/template-message.validation";
-import { sendInteractiveMessageSchema } from "../validations/interactive-message.validation";
-import { buildInteractiveButtons } from "../utils/interactive-message";
+import {
+    listRowsFromInput,
+    sendInteractiveListSchema,
+    sendInteractiveMessageSchema
+} from "../validations/interactive-message.validation";
+import {
+    buildInteractiveButtons,
+    buildInteractiveList
+} from "../utils/interactive-message";
 import {
     formatDateTimeMX,
     formatDayLabelMX,
@@ -324,6 +332,56 @@ export class AdminConversationsController {
              */
             return res.redirect(
                 `/admin/conversations/${conversationId}?error=interactive`
+            );
+        }
+    }
+
+    /** Lista interactiva (menú de hasta 10 opciones). */
+    static async sendInteractiveList(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+
+        const workspace = await prisma.workspace.findUnique({
+            where: { id: req.user!.workspaceId },
+            select: { interactiveListsEnabled: true }
+        });
+
+        if (!workspace?.interactiveListsEnabled) {
+            return res.redirect(
+                `/admin/conversations/${conversationId}?error=lists_disabled`
+            );
+        }
+
+        const parsed = sendInteractiveListSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.redirect(
+                `/admin/conversations/${conversationId}?error=list`
+            );
+        }
+
+        try {
+            const message = buildInteractiveList({
+                body: parsed.data.body,
+                footer: parsed.data.footer,
+                buttonLabel: parsed.data.buttonLabel,
+                sectionTitle: parsed.data.sectionTitle,
+                rows: listRowsFromInput(parsed.data)
+            });
+
+            await MessageService.sendInteractiveList({
+                workspaceId: req.user!.workspaceId,
+                conversationId,
+                userId: req.user!.id,
+                role: req.user!.role,
+                message
+            });
+
+            return res.redirect(
+                `/admin/conversations/${conversationId}?success=list`
+            );
+        } catch {
+            return res.redirect(
+                `/admin/conversations/${conversationId}?error=list`
             );
         }
     }
