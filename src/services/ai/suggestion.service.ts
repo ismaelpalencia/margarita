@@ -34,6 +34,7 @@ import {
 } from "../../utils/language";
 import { createAiProvider, isProviderConfigured } from "./provider";
 import { AiSettingsService } from "./settings.service";
+import { InteractiveButton } from "../../utils/interactive-message";
 import { AiUsageService } from "../aiUsage.service";
 import { SendPolicyService } from "../send-policy.service";
 import { startOfTodayIn } from "../../utils/date";
@@ -262,6 +263,17 @@ export class AiSuggestionService {
 
         const parsed = parseModelOutput(completion.text);
 
+        /**
+         * Los botones se toman de la entrada de conocimiento cuando la
+         * coincidencia es única: si la IA mezcló varias entradas, no se
+         * arriesga a ofrecer opciones que no correspondan.
+         */
+        const autoButtons =
+            knowledge.length === 1 && !parsed.handoff
+                ? ((knowledge[0].buttons as unknown as InteractiveButton[] | null) ??
+                  null)
+                : null;
+
         const suggestion = await prisma.aiSuggestion.upsert({
             where: { inboundMessageId: inbound.id },
             create: {
@@ -377,6 +389,7 @@ export class AiSuggestionService {
                 suggestion,
                 parsed,
                 knowledgeUsed: knowledge.length,
+                buttons: autoButtons,
                 settings
             });
         }
@@ -398,6 +411,7 @@ export class AiSuggestionService {
         suggestion: { id: string; body: string; confidence: number; handoff: boolean; model: string };
         parsed: ParsedAiReply;
         knowledgeUsed: number;
+        buttons: InteractiveButton[] | null;
         settings: Awaited<ReturnType<typeof AiSettingsService.get>>;
     }) {
         const [conversation, humanReply, counters] = await Promise.all([
@@ -493,6 +507,7 @@ export class AiSuggestionService {
                 workspaceId: params.workspaceId,
                 conversationId: params.conversationId,
                 body: decision.text,
+                buttons: params.buttons,
                 aiSuggestionId: params.suggestion.id,
                 aiModel: params.suggestion.model
             });

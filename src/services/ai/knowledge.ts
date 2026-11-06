@@ -1,4 +1,7 @@
+import { Prisma } from "@prisma/client";
+
 import { prisma } from "../../config/prisma";
+import { InteractiveButton } from "../../utils/interactive-message";
 
 const STOPWORDS = new Set([
     "a",
@@ -86,6 +89,7 @@ export type RankableKnowledgeEntry = {
     id: string;
     question: string;
     answer: string;
+    buttons?: unknown;
     keywords: string[];
     priority: number;
 };
@@ -228,6 +232,7 @@ export class KnowledgeService {
         input: {
             question: string;
             answer: string;
+            buttons: InteractiveButton[] | null;
             keywords: string[];
             priority: number;
         }
@@ -238,6 +243,9 @@ export class KnowledgeService {
                 createdById: userId,
                 question: input.question,
                 answer: input.answer,
+                buttons: input.buttons
+                    ? (input.buttons as unknown as Prisma.InputJsonValue)
+                    : undefined,
                 keywords: input.keywords,
                 priority: input.priority,
                 isActive: true
@@ -251,6 +259,7 @@ export class KnowledgeService {
         input: {
             question: string;
             answer: string;
+            buttons: InteractiveButton[] | null;
             keywords: string[];
             priority: number;
         }
@@ -262,6 +271,9 @@ export class KnowledgeService {
             data: {
                 question: input.question,
                 answer: input.answer,
+                buttons: input.buttons
+                    ? (input.buttons as unknown as Prisma.InputJsonValue)
+                    : Prisma.DbNull,
                 keywords: input.keywords,
                 priority: input.priority
             }

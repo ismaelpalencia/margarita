@@ -1347,6 +1347,11 @@ model KnowledgeEntry {
 
   question String
   answer   String
+  /**
+   * Botones de respuesta rápida que acompañan a la respuesta (máx. 3,
+   * título de 20). Se envían cuando la IA contesta en modo automático.
+   */
+  buttons  Json?
   keywords String[] @default([])
   priority Int      @default(0)
   isActive Boolean  @default(true)

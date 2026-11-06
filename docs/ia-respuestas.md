@@ -243,8 +243,12 @@ La IA solo debe responder con información que la empresa cargó.
 
 **Fase 1 — base de conocimiento estructurada**
 
-- `KnowledgeEntry`: pregunta, respuesta, palabras clave, prioridad, activa.
+- `KnowledgeEntry`: pregunta, respuesta, palabras clave, prioridad, activa y
+  **botones opcionales** (hasta 3, título de 20).
 - Se administra desde el panel (igual que las respuestas rápidas).
+- Los botones se envían cuando la IA responde sola y la coincidencia es única;
+  si mezcla varias entradas, no se arriesga a ofrecer opciones que no
+  correspondan. En modo sugerencia no se envían solos; el asesor puede escribir la respuesta.
 - Recuperación por palabras clave + título; se envían al modelo los 5–8
   fragmentos más relevantes.
 - Sirve para el 80 % de los casos reales: horarios, dirección, precios,

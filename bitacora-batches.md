@@ -691,3 +691,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Sin ID el pixel no se renderiza.
 
 ---
+
+## Botones en respuestas de la IA
+
+- `KnowledgeEntry.buttons` (JSONB): hasta 3 botones de respuesta rápida por entrada.
+- Editor de conocimiento (crear y editar) con títulos de 20 caracteres; validación y IDs estables.
+- En modo automático, si la pregunta coincide con una sola entrada, la respuesta sale como interactivo con esos botones.
+- Si la IA mezcla varias entradas o recomienda handoff, no se adjuntan botones para no ofrecer opciones incorrectas.
+- El cuerpo del interactivo respeta el límite de 1024 de Meta; si se pasa, cae a texto.
+
+---

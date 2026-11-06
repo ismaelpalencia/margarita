@@ -32,6 +32,7 @@ import {
 } from "../utils/template";
 import { isConversationWindowOpen } from "../utils/conversation-window";
 import {
+    InteractiveButton,
     InteractiveButtonMessage,
     InteractiveListMessage,
     interactiveListPayload,
@@ -92,6 +93,7 @@ type SendAutomaticReplyParams = {
     workspaceId: string;
     conversationId: string;
     body: string;
+    buttons?: InteractiveButton[] | null;
     aiSuggestionId: string;
     aiModel: string | null;
 };
@@ -514,36 +516,56 @@ export class MessageService {
             throw new Error("La respuesta automática está vacía.");
         }
 
+        const buttons = params.buttons ?? [];
+        /** Meta limita el cuerpo de un interactivo a 1024 caracteres. */
+        const useButtons = buttons.length > 0 && body.length <= 1024;
+
         const localMessage = await prisma.message.create({
             data: {
                 workspaceId: params.workspaceId,
                 conversationId: conversation.id,
                 sentByUserId: null,
                 direction: MessageDirection.OUT,
-                type: MessageType.TEXT,
+                type: useButtons ? MessageType.INTERACTIVE : MessageType.TEXT,
                 status: MessageStatus.SENDING,
                 source: MessageSource.AUTOMATIC,
                 body,
                 aiSuggestionId: params.aiSuggestionId,
                 aiModel: params.aiModel,
-                metaPayload: {
-                    type: "text",
-                    body,
-                    automatic: true
-                }
+                metaPayload: useButtons
+                    ? {
+                          type: "interactive",
+                          body,
+                          buttons,
+                          automatic: true
+                      }
+                    : {
+                          type: "text",
+                          body,
+                          automatic: true
+                      }
             }
         });
 
-        const payload = {
-            messaging_product: "whatsapp",
-            recipient_type: "individual",
-            to: conversation.contact.phone,
-            type: "text",
-            text: {
-                preview_url: false,
-                body
-            }
-        };
+        const payload = useButtons
+            ? interactivePayload({
+                  to: conversation.contact.phone,
+                  message: {
+                      body,
+                      footer: null,
+                      buttons
+                  }
+              })
+            : {
+                  messaging_product: "whatsapp",
+                  recipient_type: "individual",
+                  to: conversation.contact.phone,
+                  type: "text",
+                  text: {
+                      preview_url: false,
+                      body
+                  }
+              };
 
         try {
             const response = await axios.post(

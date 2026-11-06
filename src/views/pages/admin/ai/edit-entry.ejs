@@ -26,9 +26,15 @@
         <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <% if (error) { %>
                 <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-                    <%= error %>
+                    <% if (error === "buttons") { %>
+                        Revisa los botones: máximo 3 y 20 caracteres por título.
+                    <% } else { %>
+                        <%= error %>
+                    <% } %>
                 </div>
             <% } %>
+
+            <% const entryButtons = Array.isArray(entry.buttons) ? entry.buttons : []; %>
 
             <form action="/admin/ai/knowledge/<%= entry.id %>" method="POST" class="space-y-5">
                 <div>
@@ -61,6 +67,29 @@
                     <p class="mt-2 text-xs text-slate-500">
                         Es lo único que la IA puede afirmar sobre este tema.
                     </p>
+                </div>
+
+                <div class="rounded-xl border border-slate-200 p-4">
+                    <p class="text-sm font-medium text-slate-700">
+                        Botones de respuesta (opcional)
+                    </p>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Hasta 3, título de 20 caracteres. Solo se envían cuando la IA responde sola
+                        (modo automático).
+                    </p>
+
+                    <div class="mt-3 grid gap-2 sm:grid-cols-3">
+                        <% for (let index = 0; index < 3; index += 1) { %>
+                            <% const button = entryButtons[index] || null; %>
+                            <input
+                                name="buttonTitle"
+                                maxlength="20"
+                                value="<%= button ? button.title : "" %>"
+                                placeholder="<%= index === 0 ? "Iniciar simulación" : index === 1 ? "Sí quiero empezar" : "Hablar con asesor" %>"
+                                class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                            />
+                        <% } %>
+                    </div>
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">

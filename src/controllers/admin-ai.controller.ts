@@ -12,10 +12,12 @@ import { aiProviderLabel, isProviderConfigured } from "../services/ai/provider";
 import { AiSettingsService } from "../services/ai/settings.service";
 import { AiUsageService } from "../services/aiUsage.service";
 import { KnowledgeService } from "../services/ai/knowledge";
+import { parseKnowledgeButtons } from "../services/ai/knowledge-buttons";
 import { AiSuggestionService } from "../services/ai/suggestion.service";
 import { LogService } from "../services/log.service";
 import { SendPolicyService } from "../services/send-policy.service";
 import { getRequiredParam } from "../utils/request";
+import { InteractiveButton } from "../utils/interactive-message";
 import { startOfMonthIn, startOfTodayIn } from "../utils/date";
 import {
     aiSettingsSchema,
@@ -26,6 +28,14 @@ import {
 } from "../validations/ai.validation";
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+function toStringArray(value: unknown): string[] {
+    if (Array.isArray(value)) {
+        return value.map((item) => String(item));
+    }
+
+    return typeof value === "string" ? [value] : [];
+}
 
 const EMPTY_STATS = {
     total: 0,
@@ -220,6 +230,16 @@ export class AdminAiController {
             return res.redirect("/admin/ai?error=validation");
         }
 
+        let buttons: InteractiveButton[] | null;
+
+        try {
+            buttons = parseKnowledgeButtons(
+                toStringArray(req.body?.buttonTitle)
+            );
+        } catch {
+            return res.redirect("/admin/ai?error=buttons");
+        }
+
         try {
             const entry = await KnowledgeService.create(
                 req.user!.workspaceId,
@@ -227,6 +247,7 @@ export class AdminAiController {
                 {
                     question: parsed.data.question,
                     answer: parsed.data.answer,
+                    buttons,
                     keywords: splitKeywords(parsed.data.keywords),
                     priority: parsed.data.priority
                 }
@@ -259,7 +280,7 @@ export class AdminAiController {
             return res.render("pages/admin/ai/edit-entry", {
                 user: req.user,
                 entry,
-                error: null
+                error: req.query.error || null
             });
         } catch {
             return res.redirect("/admin/ai?error=knowledge");
@@ -287,6 +308,18 @@ export class AdminAiController {
             });
         }
 
+        let buttons: InteractiveButton[] | null;
+
+        try {
+            buttons = parseKnowledgeButtons(
+                toStringArray(req.body?.buttonTitle)
+            );
+        } catch {
+            return res.redirect(
+                `/admin/ai/knowledge/${entryId}?error=buttons`
+            );
+        }
+
         try {
             await KnowledgeService.update(
                 req.user!.workspaceId,
@@ -294,6 +327,7 @@ export class AdminAiController {
                 {
                     question: parsed.data.question,
                     answer: parsed.data.answer,
+                    buttons,
                     keywords: splitKeywords(parsed.data.keywords),
                     priority: parsed.data.priority
                 }
