@@ -1,7 +1,12 @@
 # Decisión de runtime: ¿hace falta Go?
 
-**Estado:** propuesta para revisión (2026-11-03).
+**Estado:** propuesta para revisión (2026-11-03; actualizada 2026-11-06).
 **Aplica a:** el núcleo de Margarita y a los servicios nuevos de IA.
+
+> **Actualización 2026-11-06:** la demo pública ya vive en un microservicio Go
+> aparte (`margaritademo`), sin base de datos ni Meta. Esta decisión sigue
+> aplicando al **núcleo** (panel, webhook, campañas, IA); la demo se extrajo
+> precisamente porque no comparte estado con la app.
 
 ---
 

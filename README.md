@@ -6,6 +6,8 @@ Margarita permite enviar campañas con plantillas aprobadas, recibir respuestas,
 
 No es un CRM, no es un chatbot y no administra ventas: es una herramienta especializada para operar el canal oficial de WhatsApp.
 
+La página pública `margaritaapp.org/demo` corre en un **microservicio Go aparte** (`margaritademo`): sin base de datos, sin Meta y sin PII. Este repo sigue siendo el panel y el motor de WhatsApp; la demo solo lo muestra.
+
 ---
 
 ## Tabla de contenido
@@ -35,7 +37,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 
 - Dashboard con conversaciones abiertas, mensajes recientes y estado de la operación.
 - Cuenta de WhatsApp: ver número, calidad, `phoneNumberId` y probar conexión contra Meta.
-- Varios números por cuenta: agregar, editar, activar o desactivar números de la misma WABA, y elegir el **número activo** en el encabezado para trabajar desde él.
+- Varios números por cuenta: agregar, editar, activar o desactivar números de la misma WABA, elegir el **número activo** en el encabezado y **apagar la IA o los flujos por número** (Admin → WhatsApp).
 - Plantillas: sincronizar las aprobadas desde Meta y verlas con su estado real.
 - Contactos: crear, editar, buscar, etiquetar y desactivar, con consentimiento (opt-in), bajas y filtro de "solo bajas".
 - Teléfonos de México con 10 dígitos e internacionales con `+` y lada; el número se guarda normalizado para WhatsApp.
@@ -43,7 +45,8 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 - Equipo: crear **administradores y agentes**, cambiar el rol, activar o desactivar y **restablecer contraseñas**. Nunca se puede dejar la instalación sin un administrador activo. Los agentes tienen permisos y **límite diario** de mensajes manuales aplicado de verdad, con el uso de hoy a la vista.
 - Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo), búsqueda por nombre completo o teléfono completo, filtros por estado, asignación y no leídos, y contador de pendientes por hilo y en el encabezado.
 - Respuestas rápidas: textos guardados que se insertan con un clic (con `{nombre}` y `{telefono}` del contacto), editables en Admin → Respuestas.
-- IA de respuestas (sugerencias y automático acotado): con `AI_ENABLED=true` y una llave de DeepSeek (o cualquier API compatible con OpenAI), cada mensaje entrante puede generar una respuesta. En **sugerencias**, aparece como borrador en la bandeja con su confianza y su motivo; el equipo lo usa —se copia al compositor— o lo descarta, y nada se envía solo. En **automático acotado**, la IA responde sola únicamente cuando la pregunta está cubierta por la base de conocimiento, la confianza alcanza el mínimo, no hay baja ni pausa, la ventana de 24 horas está abierta, no intervino una persona y quedan límites y presupuesto; si duda, entrega el hilo a una persona. Admin → IA permite ajustar modo, tono, umbral, límites, presupuesto y base de conocimiento, y probar preguntas sin tocar un hilo real. Se puede pausar o reactivar la IA por conversación; responder a mano la pausa sola. Con `AI_ENABLED=false` la herramienta funciona igual que antes.
+- Botones y listas: enviar hasta 3 botones o una lista de 10 opciones dentro de la ventana de 24 horas, con sus respuestas interpretadas.
+- IA de respuestas (sugerencias y automático acotado): con `AI_ENABLED=true` y una llave de DeepSeek (o cualquier API compatible con OpenAI), cada mensaje entrante puede generar una respuesta. En **sugerencias**, aparece como borrador en la bandeja con su confianza y su motivo; el equipo lo usa —se copia al compositor— o lo descarta, y nada se envía solo. En **automático acotado**, la IA responde sola únicamente cuando la pregunta está cubierta por la base de conocimiento, la confianza alcanza el mínimo, no hay baja ni pausa, la ventana de 24 horas está abierta, no intervino una persona y quedan límites y presupuesto; si duda, entrega el hilo a una persona. Admin → IA permite ajustar modo, tono, umbral, límites, presupuesto y base de conocimiento, y probar preguntas sin tocar un hilo real. Se puede pausar o reactivar la IA por conversación; responder a mano la pausa sola. Con `AI_ENABLED=false` la herramienta funciona igual que antes. La base de conocimiento admite **botones de respuesta rápida** (hasta 3) y los flujos se editan desde Admin → IA → Paquete inicial; ambos se pueden apagar por número. La IA y los flujos son independientes, y un flujo que responde evita el doble envío de la IA.
 - Bajas automáticas: si el cliente escribe `STOP`, el contacto queda dado de baja y deja de recibir mensajes y campañas; reactivarlo es una decisión explícita y queda auditada.
 - Resultado de la gestión (cobranza): marca en qué quedó cada cliente —promesa de pago, pagado, convenio, incumplida, sin contestación, número inválido, no le interesa, volver a llamar— con monto, fecha compromiso y nota, desde el hilo, la ficha del contacto o en bloque desde la lista. Cada marcado deja historial con quién y cuándo. Este módulo se puede apagar por giro en **Sistema → Giro de la operación**: la bandeja, campañas y contactos siguen funcionando y los datos de cobranza no se borran.
 - Reportes: gestiones del periodo por resultado, persona y día; promesas con lo vencido arriba, cumplimiento y prometido contra pagado; clientes sin contestación tras X intentos; y detalle exportable a CSV.
@@ -101,6 +104,7 @@ No es un CRM, no es un chatbot y no administra ventas: es una herramienta especi
 | Validación | Zod |
 | Auth | JWT en cookie httpOnly + tabla `UserSession` revocable |
 | Integración | WhatsApp Business Cloud API (Graph API) vía Axios |
+| Demo pública | Go 1.22+ (biblioteca estándar, `//go:embed`), repo `margaritademo` en Railway |
 | Archivos | Multer (Excel/CSV hasta 5 MB) + ExcelJS para parseo |
 | Logs | Pino a stdout y auditoría persistida en la tabla `Log` |
 
@@ -164,6 +168,19 @@ Message actualizado con wamid y status SENT (o FAILED con el error de Meta)
         ↓
 webhook de status → DELIVERED / READ / FAILED
 ```
+
+### Demo pública (servicio aparte)
+
+`margaritaapp.org/demo` no se sirve desde este repositorio. Es un microservicio
+en **Go** (`github.com/ismaelpalencia/margaritademo`) con biblioteca estándar:
+
+- `POST /api/demo/session` y `POST /api/demo/chat`; `GET /health`.
+- `kb.json` embebido con `//go:embed` y matching por palabras clave; verticales
+  `comercio`, `servicios`, `generico` + capa `margarita`.
+- Sesiones y límites en memoria: 30 min, 40 mensajes, 20 sesiones/IP/día,
+  30 chat/min/IP. **Una sola réplica.**
+- Sin base de datos, sin Meta, sin login ni PII. CORS con `ALLOWED_ORIGINS`.
+- Se despliega aparte en Railway y el landing lo consume por `DEMO_API_BASE`.
 
 ---
 
@@ -621,11 +638,19 @@ En una base nueva, `npx prisma migrate deploy` crea todo desde cero. Hoy Railway
 
 El modelo es **single-tenant por despliegue**: un cliente, un proyecto, una base de datos, un workspace. Todos los clientes usan el mismo repositorio y se diferencian solo por variables de entorno, dominio y cuenta de WhatsApp.
 
+### Demo pública
+
+La demo es **otro servicio de Railway** con su propio repo (`margaritademo`),
+imagen Go y dominio `demo.margaritaapp.org`. No comparte base, variables de Meta
+ni sesión con la app. Se configura con `ALLOWED_ORIGINS`, `DEMO_TIMEZONE`,
+`DEMO_TRUST_PROXY` y los límites `DEMO_*`. Al ser sesiones en memoria, debe
+correr con **una sola réplica**.
+
 ---
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay **252 pruebas unitarias en 39 archivos** y una **suite de integración** contra PostgreSQL (esta última corre en CI con una base desechable), y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, verificación en dos pasos (desafío sin sesión, código válido y rescate por administrador), cifrado en reposo de todos los campos sensibles —incluidos nombres y correos— (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas, **restauración de un respaldo probada borrando datos a propósito** y **alta de una instalación vacía recorriendo el asistente como un cliente nuevo**.
+Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay **353 pruebas unitarias en 54 archivos** y una **suite de integración** contra PostgreSQL (esta última corre en CI con una base desechable), y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, verificación en dos pasos (desafío sin sesión, código válido y rescate por administrador), cifrado en reposo de todos los campos sensibles —incluidos nombres y correos— (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas, **restauración de un respaldo probada borrando datos a propósito** y **alta de una instalación vacía recorriendo el asistente como un cliente nuevo**.
 
 Lo que se cerró en el sprint de endurecimiento:
 
@@ -654,11 +679,11 @@ Lo que se cerró en el sprint de endurecimiento:
 
 Pendientes conocidos, en orden de impacto:
 
-1. **Listas desplegables**: los botones ya se envían dentro de la ventana de 24 horas (hasta 3) y sus respuestas se interpretan; las listas todavía no se pueden enviar desde el panel.
-2. **Baja con otras palabras**: solo se detecta la palabra clave al inicio del mensaje; el resto se marca a mano desde la ficha del contacto.
-3. **No leídos por persona**: el contador es del hilo, no de cada usuario.
-4. **Restauración desde R2**: los respaldos se suben cifrados al bucket, pero restaurar directamente desde R2 en un entorno limpio todavía se hace a mano.
-5. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
+1. **Baja con otras palabras**: solo se detecta la palabra clave al inicio del mensaje; el resto se marca a mano desde la ficha del contacto.
+2. **No leídos por persona**: el contador es del hilo, no de cada usuario.
+3. **Restauración desde R2**: los respaldos se suben cifrados al bucket, pero restaurar directamente desde R2 en un entorno limpio todavía se hace a mano.
+4. **Escalado**: socket.io funciona con una sola réplica. Con varias instancias hace falta el adaptador de Redis.
+5. **Permisos por número**: todos los agentes ven todos los números; la IA y los flujos sí se pueden apagar por número, pero la visibilidad no está restringida.
 
 El límite vigente, con su explicación, está en [`docs/alcance-produccion.md`](docs/alcance-produccion.md). El panel muestra la guía del producto en `/admin/guia`.
 
@@ -681,7 +706,10 @@ El límite vigente, con su explicación, está en [`docs/alcance-produccion.md`]
 | [`docs/dominios.md`](docs/dominios.md) | Cómo conectar el dominio de una operación, dónde vive la landing y qué comprobar después |
 | [`docs/plan-interactivos.md`](docs/plan-interactivos.md) | Cómo entrar en dos sprints a la evolución de botones e interacciones: alcance, bloqueante de Meta, decisiones y mapa técnico |
 | [`nuevo_roadmap.md`](nuevo_roadmap.md) | Documento de trabajo original de botones, plantillas interactivas, tramo y llamadas (histórico) |
-| [`docs/alcance-produccion.md`](docs/alcance-produccion.md) | Alcance actual, límites, seguridad y responsabilidades para uso en producción |
+| [`docs/alcance-produccion.md`](docs/alcance-produccion.md) | Alcance actual, límites, seguridad, demo Go y responsabilidades para uso en producción |
+| [`docs/marca-colores.md`](docs/marca-colores.md) | Paleta real de la app/landing y prompt para diseños publicitarios |
+| [`docs/venta/propuesta-workana.md`](docs/venta/propuesta-workana.md) | Propuestas para proyectos de IA + WhatsApp en Workana |
+| [`margaritademo`](https://github.com/ismaelpalencia/margaritademo) | Repositorio del microservicio Go de la demo pública |
 | [`docs/multinumero.md`](docs/multinumero.md) | Diseño del multinúmero: modelo, migración, uso y pendientes |
 | [`docs/aviso-privacidad.md`](docs/aviso-privacidad.md) | Aviso de privacidad para revisar y publicar (la versión pública vive en `/aviso-de-privacidad`) |
 | [`docs/modelo-comercial.md`](docs/modelo-comercial.md) | Runbook de alta por cliente, actualización de instalaciones, cierre de contrato y paquete legal |

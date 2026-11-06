@@ -1,6 +1,6 @@
 # Margarita — Alcance real de la aplicación
 
-**Estado:** foto del código al **2026-11-05**. Este documento es la referencia única del producto: describe lo que la app hace **hoy**, no lo que se planeó.
+**Estado:** foto del código al **2026-11-06**. Este documento es la referencia única del producto: describe lo que la app hace **hoy**, no lo que se planeó.
 
 **Fuentes usadas para escribirlo:** `prisma/schema.prisma`, `src/routes/*.ts`, `src/controllers`, `src/services`, `src/jobs`, `landing/` + `scripts/build-landing.ts`, `.env.example` y la suite de pruebas.
 
@@ -38,6 +38,7 @@ Margarita es una aplicación web para **operar la WhatsApp Business Cloud API de
 | Runtime | Node **22.23.4** LTS |
 | Alojamiento probado | Railway |
 | Archivos | Volume en `/data/media`; respaldos en `/data/backups`; opcionalmente Cloudflare R2 |
+| Demo pública | Microservicio **Go** independiente en `demo.margaritaapp.org` (sin DB ni Meta) |
 
 ### Dominios
 
@@ -47,8 +48,32 @@ Margarita es una aplicación web para **operar la WhatsApp Business Cloud API de
 
 ### Rutas de la aplicación
 
-- Públicas: `/setup`, `/auth/login`, `/auth/login/2fa`, `/demo` (solo con `DEMO_ENABLED=true`), `/api/demo/session`, `/api/demo/chat`, `/health`, `/webhooks/meta/whatsapp`, `/media/:id` (exige sesión).
+- Públicas: `/setup`, `/auth/login`, `/auth/login/2fa`, `/health`, `/webhooks/meta/whatsapp`, `/media/:id` (exige sesión). La ruta `/demo` y `/api/demo/*` son legacy de la app (solo con `DEMO_ENABLED=true`); la demo pública real vive en `demo.margaritaapp.org` (servicio Go aparte).
 - Panel: `/admin/*`, `/agent/*`, `/account/*`.
+
+### Demo pública (microservicio Go)
+
+La demo de `margaritaapp.org/demo` **no corre en esta app**: es un servicio
+independiente en **Go** (repo `margaritademo`) pensado para enseñar la IA sin
+tocar datos reales.
+
+| Aspecto | Implementación |
+| --- | --- |
+| Runtime | Go 1.22+ (biblioteca estándar; `net/http`) |
+| Persistencia | Ninguna: sesiones y contadores en memoria; **una sola réplica** |
+| Conocimiento | `kb.json` embebido con `//go:embed`; se actualiza con rebuild/deploy |
+| Meta / DB / login | No usa ninguno; no guarda PII |
+| Endpoints | `POST /api/demo/session`, `POST /api/demo/chat`, `GET /health` |
+| Verticales | `comercio`, `servicios`, `generico` + capa `margarita` (precio, plan, plazos) |
+| Límites | Sesión 30 min, 40 mensajes/sesión, 20 sesiones/IP/día, 30 chat/min/IP |
+| CORS | `ALLOWED_ORIGINS` con comodines (`https://*.pages.dev`) |
+| Zona horaria | `DEMO_TIMEZONE` (`America/Mexico_City`) con `time/tzdata` |
+| Proxy | `DEMO_TRUST_PROXY=true` para `X-Forwarded-For` / `X-Real-IP` |
+| Calidad | `go test ./...` y `go vet ./...` |
+
+La demo **no** reemplaza la app: es un escaparate público. El landing la consume
+por `DEMO_API_BASE` y no comparte sesión, base ni credenciales con la
+instalación del cliente.
 
 ---
 
@@ -99,7 +124,7 @@ La restricción del agente se aplica **en la consulta a la base**, no solo en la
 
 | Pantalla | Qué hace |
 | --- | --- |
-| **Dashboard** | KPIs de conversaciones abiertas/sin asignar/asignadas/en progreso, banner rojo si hay sin asignar, últimos mensajes y errores. |
+| **Dashboard** | KPIs de conversaciones abiertas/sin asignar/asignadas/en progreso, banner rojo si hay sin asignar, **tarjeta de handoffs de la IA** (asignado o sin asignar) y toast en vivo, últimos mensajes y errores. |
 | **Conversaciones** | Bandeja de 3 columnas en escritorio (lista, hilo, panel de contacto/IA), 2 columnas en tablet y 1 en móvil con botón de regreso. Filtros por estado, asignación, no leídos y búsqueda. |
 | **Contactos** | Alta, edición, búsqueda por nombre completo o teléfono completo, etiquetas, opt-in/opt-out, pausa. |
 | **Etiquetas** | CRUD y asignación a contactos. |
@@ -109,12 +134,12 @@ La restricción del agente se aplica **en la consulta a la base**, no solo en la
 | **Botones y listas** | Enviar hasta 3 botones o una lista de hasta 10 opciones dentro de la ventana de 24 h. General en todos los giros. |
 | **Reglas de botones → resultado** | Mapean una respuesta interactiva a un resultado de gestión. Solo con el giro `COBRANZA` (legado). |
 | **Equipo** | Crear admins/agentes, cambiar rol, activar/desactivar, restablecer contraseña, desbloquear, desactivar 2FA, permiso de envío manual y tope diario por agente. |
-| **IA** | Modo, tono, idioma, umbral, límites, presupuesto, palabras de handoff, base de conocimiento, prueba sin conversación real, paquete inicial por vertical y panel por hilo. |
+| **IA** | Modo, tono, idioma, umbral, límites, presupuesto, palabras de handoff, base de conocimiento **con botones de respuesta rápida**, editor de flujos, prueba sin conversación real, paquete inicial por vertical y panel por hilo. |
 | **Horarios** | Horario de atención y modo fuera de horario. |
 | **Leads** | Captura por correo, estado, exportación CSV y webhook firmado. |
 | **Reportes de servicio** | IA vs persona, primera respuesta (mediana/p90), resolución sin persona, top de preguntas sin cobertura, valoración. |
 | **Reportes** | Reportes de gestión y resultados. **Solo giro `COBRANZA`** (legado). |
-| **WhatsApp** | Cuenta, credenciales cifradas, números, calidad, prueba de conexión. |
+| **WhatsApp** | Cuenta, credenciales cifradas, números, calidad, prueba de conexión e **interruptores de IA y flujos por número**. |
 | **Sistema** | Giro, listas interactivas, asignación/handoff, estado de R2, checklist de seguridad, versión y commit. |
 | **Logs / Webhooks** | Bitácora filtrable y últimos 20 webhooks crudos. |
 | **Respaldos** | Copias automáticas/manuales, descarga, verificación y purga. |
@@ -177,6 +202,7 @@ Cuando la IA entrega una conversación (o llega un mensaje y hay que asignar), l
 - **`AI_ENABLED`** (env): interruptor maestro de la instalación. Con `false`, la app funciona igual que sin IA.
 - **`AiSettings.enabled` + `AiSettings.mode`** por workspace: `OFF`, `SUGGEST`, `AUTO`.
 - **`AI_LIMITS_LOCKED`** y los techos `AI_MAX_REPLIES_PER_DAY` / `AI_MAX_REPLIES_PER_THREAD` (env) recortan los límites del workspace y los dejan en solo lectura.
+- **`WhatsAppNumber.aiEnabled`**: interruptor por número. Si el número lo tiene apagado, no se generan sugerencias ni respuestas automáticas en sus hilos, aunque el workspace las tenga encendidas; los trabajos en cola se omiten con `NUMBER_AI_DISABLED`.
 
 ### Modos
 
@@ -195,10 +221,24 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 
 ### Base de conocimiento, idiomas y paquete
 
-- **Base de conocimiento**: única fuente de la que la IA puede responder. Preguntas y respuestas cifradas; palabras clave en claro para recuperación.
+- **Base de conocimiento**: única fuente de la que la IA puede responder. Preguntas y respuestas cifradas; palabras clave en claro para recuperación. Cada entrada puede llevar **hasta 3 botones** de respuesta rápida (título de 20); se envían en modo automático cuando la coincidencia es única.
 - **Idiomas**: español siempre; inglés y portugués opt-in por workspace (`aiMultilangLanguages`). Se audita `AI_MULTILANG_REPLY`.
 - **Paquete inicial por vertical** (comercio, servicios, genérico): carga flujos por palabra clave y 10–11 entradas de conocimiento. Idempotente; enciende `flowsEnabled`. No hay paquete de cobranza.
 - **Panel por hilo**: modo, intención, confianza, motivo de handoff, respuestas automáticas, borradores aprobados y costo estimado.
+
+### Flujos por palabra clave
+
+- Un flujo es una respuesta automática por trigger (alternativas separadas por
+  `|`), con texto, hasta 3 botones o una lista de hasta 10 opciones.
+- Se editan en **Admin → IA → Paquete inicial**: trigger, respuesta, botones y
+  activación por flujo. El paquete por vertical solo siembra flujos que no
+  existan; no pisa los editados.
+- `Workspace.flowsEnabled` es el interruptor maestro. Además,
+  `WhatsAppNumber.flowsEnabled` permite apagarlos por número.
+- El flujo corre **antes** que la IA. Si responde, la IA no se encola para ese
+  mensaje; si falla, la IA sigue su curso.
+- Los botones y listas de un flujo se envían como interactivos y sus respuestas
+  entran por el mismo webhook.
 
 ### Proveedor y costos
 
@@ -226,7 +266,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - **Contactos y conversaciones** se crean o reabren al recibir un mensaje.
 - **Multimedia entrante**: imágenes se descargan al recibir; audio/video/documentos al abrirse. Si R2 está configurado, se copian al bucket.
 - **Envío de archivos** dentro de la ventana de 24 h con límites de Meta (imagen 5 MB, video/audio 16 MB, documento 100 MB).
-- **Varios números** de la misma WABA; el panel trabaja “desde” un número activo.
+- **Varios números** de la misma WABA; el panel trabaja “desde” un número activo. La IA y los flujos se pueden apagar por número.
 - **Ventana de 24 h**: fuera de ella solo plantillas aprobadas.
 - **Borrado de mensajes**: ocultar (reversible) o borrar el hilo definitivamente escribiendo `BORRAR`.
 - **Baja automática** por palabra clave (`STOP` por defecto; `OPT_OUT_KEYWORDS`).
@@ -323,7 +363,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Límite | Detalle |
 | --- | --- |
 | Una sola instancia | Tiempo real y cola funcionan en una instancia; varias requieren Redis. |
-| Sin permisos por número | Todos los agentes ven todos los números. |
+| Sin permisos por número | Todos los agentes ven todos los números. La IA y los flujos sí se pueden apagar por número; la visibilidad no. |
 | No leídos por conversación | El contador es del hilo, no por persona; al abrirlo baja para todos. El servidor calcula el contador; sigue siendo del hilo, no por usuario. |
 | Búsqueda exacta | Teléfono/nombre cifrados: solo coincidencia completa, no parcial. |
 | Sin correo saliente | No hay “recuperar contraseña por correo”; se resuelve con otro admin o `npm run admin:reset-password`. |
@@ -344,8 +384,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | --- | --- | --- |
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
-| Pruebas | 302 unitarias / 82 integración | **347 unitarias** (53 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
-| Migraciones | 23 | **31** |
+| Pruebas | 302 unitarias / 82 integración | **353 unitarias** (54 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
+| Migraciones | 23 | **35** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
 | Precios | Repetidos en varios documentos | Fuente en `landing/` + `PRICING`; el panel no los muestra |
@@ -398,8 +438,10 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 
 ### Demo y comercial
 
-- `DEMO_ENABLED` (sin `true`, `/demo` responde 404).
-- `SUPPORT_WHATSAPP`, `SUPPORT_EMAIL`.
+- `DEMO_ENABLED` (sin `true`, la ruta heredada `/demo` de la app responde 404).
+- **Demo Go (servicio aparte):** `PORT`, `ALLOWED_ORIGINS`, `DEMO_SESSION_TTL_MIN`, `DEMO_MAX_MESSAGES`, `DEMO_MAX_SESSIONS_PER_IP`, `DEMO_RATE_LIMIT_PER_MIN`, `DEMO_TIMEZONE`, `DEMO_TRUST_PROXY`.
+- **Landing:** `META_PIXEL_ID` (build), `SUPPORT_WHATSAPP_TEXT` (build).
+- `SUPPORT_WHATSAPP`, `SUPPORT_WHATSAPP_DISPLAY`, `SUPPORT_EMAIL`.
 - `SERVICE_MESSAGE_RATE`, `UTILITY_TEMPLATE_RATE`, `MARKETING_TEMPLATE_RATE` (solo estimación).
 
 ---
@@ -409,9 +451,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Aspecto | Estado |
 | --- | --- |
 | Tipos | `npx tsc --noEmit` limpio |
-| Unitarias | **347** en 53 archivos |
+| Unitarias | **353** en 54 archivos |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
-| Migraciones | **31** versionadas en `prisma/migrations` |
+| Migraciones | **35** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |
 | Linter/formateador | No hay |
 | Pruebas de interfaz | No hay automatizadas |
@@ -426,7 +468,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 4. Migraciones al día (`[migraciones] Listo`).
 5. Si la base está vacía, el operador completa `/setup` antes de publicar el dominio; después crea un segundo admin y activa 2FA.
 6. Plan único: fijar `AI_MONTHLY_REPLIES_LIMIT=2000`, `AI_MAX_REPLIES_PER_DAY=67`, `AI_MAX_REPLIES_PER_THREAD=5`, `AI_MONTHLY_BUDGET_CENTS=2800` (≈$28 USD) y `AI_LIMITS_HIDDEN=true` si el operador gestiona el plan conversacionalmente. `AI_LIMITS_ENFORCE=false` por defecto.
-7. Si se publica la demo, `DEMO_ENABLED=true` y la API de demo accesible.
+7. Si se publica la demo, desplegar el servicio Go (`margaritademo`) en `demo.margaritaapp.org` con `ALLOWED_ORIGINS`, `DEMO_TIMEZONE` y una sola réplica; el `DEMO_ENABLED` de la app solo aplica a la ruta legacy.
 8. Si la oferta vive en Cloudflare, el landing se despliega aparte (`landing/`) y `PRODUCT_DOMAIN` ya no es necesario (es legado).
 9. Los logs de Railway no se comparten ni se commitean.
 
