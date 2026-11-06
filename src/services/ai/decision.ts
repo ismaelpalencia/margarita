@@ -11,6 +11,7 @@
 
 export type SuggestionSkipReason =
     | "AI_DISABLED"
+    | "NUMBER_AI_DISABLED"
     | "WORKSPACE_OFF"
     | "MODE_NOT_SUGGEST"
     | "MODE_NOT_ACTIVE"
@@ -37,6 +38,8 @@ export type SuggestionSkipReason =
 
 export type SuggestionDecisionInput = {
     globalEnabled: boolean;
+    /** El número de WhatsApp tiene la IA apagada. */
+    numberEnabled?: boolean;
     settings: {
         enabled: boolean;
         mode: "OFF" | "SUGGEST" | "AUTO";
@@ -119,6 +122,10 @@ export function decideSuggestion(
 ): SuggestionDecision {
     if (!input.globalEnabled) {
         return { generate: false, reason: "AI_DISABLED" };
+    }
+
+    if (input.numberEnabled === false) {
+        return { generate: false, reason: "NUMBER_AI_DISABLED" };
     }
 
     if (!input.settings?.enabled) {
@@ -298,6 +305,7 @@ export function decideAutoReply(
 
 const REASON_LABELS: Record<SuggestionSkipReason, string> = {
     AI_DISABLED: "La IA está apagada en la instalación.",
+    NUMBER_AI_DISABLED: "La IA está apagada en este número de WhatsApp.",
     WORKSPACE_OFF: "La IA está apagada en este workspace.",
     MODE_NOT_SUGGEST: "El workspace no está en modo sugerencia.",
     MODE_NOT_ACTIVE: "La IA está apagada en este workspace.",

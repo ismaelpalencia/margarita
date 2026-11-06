@@ -47,6 +47,21 @@ Si algo no se pudiera asignar (porque la cuenta no tuviera número configurado),
 
 Las credenciales (token, verify token, business account) se editan una sola vez para toda la cuenta.
 
+## IA por número
+
+Cada número tiene su propio interruptor de IA en **Admin → WhatsApp**. Sirve
+para dejar la IA activa solo en el número de primer contacto y apagada en los
+de seguimiento, o al revés.
+
+- El interruptor del workspace (`AiSettings.enabled`) sigue mandando: si la IA
+  está apagada en todo el workspace, ningún número responde.
+- Si el número tiene la IA apagada, no se generan sugerencias ni respuestas
+  automáticas para sus conversaciones. Los flujos de bienvenida siguen
+  funcionando, porque son independientes de la IA.
+- Los trabajos que ya estaban en cola se omiten con el motivo
+  `NUMBER_AI_DISABLED`.
+- La preferencia se audita como `NUMBER_AI_ENABLED` / `NUMBER_AI_DISABLED`.
+
 ## Pendiente
 
 ### Asignar números a agentes

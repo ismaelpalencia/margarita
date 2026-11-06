@@ -161,6 +161,7 @@ export class MetaWebhookHandlerService {
                     await this.handleIncomingMessage({
                         workspaceId: number.whatsappAccount.workspaceId,
                         whatsappNumberId: number.id,
+                        numberAiEnabled: number.aiEnabled,
                         message,
                         profileName: contacts.find(
                             (contact) => contact.wa_id === message.from
@@ -181,10 +182,17 @@ export class MetaWebhookHandlerService {
     private static async handleIncomingMessage(params: {
         workspaceId: string;
         whatsappNumberId: string;
+        numberAiEnabled: boolean;
         message: MetaWebhookMessage;
         profileName?: string;
     }) {
-        const { workspaceId, whatsappNumberId, message, profileName } = params;
+        const {
+            workspaceId,
+            whatsappNumberId,
+            numberAiEnabled,
+            message,
+            profileName
+        } = params;
 
         if (!message.id || !message.from) {
             await LogService.create({
@@ -443,7 +451,7 @@ export class MetaWebhookHandlerService {
                  * validar la política antes de llamar al modelo. Si un flujo
                  * ya respondió, no se encola para no mandar dos mensajes.
                  */
-                if (!flowTriggered) {
+                if (!flowTriggered && numberAiEnabled) {
                 try {
                     await enqueueSuggestion({
                         workspaceId,

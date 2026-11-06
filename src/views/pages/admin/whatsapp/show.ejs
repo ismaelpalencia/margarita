@@ -19,7 +19,7 @@
             </p>
         </div>
 
-        <% if (success === "connection" || success === "updated" || success === "encrypted" || success === "already_encrypted" || success === "number_created" || success === "number_updated" || success === "account_created") { %>
+        <% if (success === "connection" || success === "updated" || success === "encrypted" || success === "already_encrypted" || success === "number_created" || success === "number_updated" || success === "number_ai" || success === "account_created") { %>
             <p class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm font-semibold text-margarita-700">
                 <% if (success === "account_created") { %>
                     Cuenta configurada. Ahora registra tu primer número aquí abajo.
@@ -29,6 +29,8 @@
                     Número agregado. Ya puedes elegirlo en el encabezado.
                 <% } else if (success === "number_updated") { %>
                     Número actualizado.
+                <% } else if (success === "number_ai") { %>
+                    Preferencia de IA del número actualizada.
                 <% } else if (success === "encrypted") { %>
                     Credenciales cifradas en la base de datos.
                 <% } else if (success === "already_encrypted") { %>
@@ -202,6 +204,10 @@
                                             <%= number.isActive ? "Activo" : "Inactivo" %>
                                         </span>
 
+                                        <span class="rounded-full px-3 py-1 font-semibold <%= number.aiEnabled ? 'bg-margarita-50 text-margarita-700' : 'bg-amber-50 text-amber-800' %>">
+                                            IA <%= number.aiEnabled ? "activa" : "apagada" %>
+                                        </span>
+
                                         <% if (number.status === "CONNECTED") { %>
                                             <span class="rounded-full bg-margarita-50 px-3 py-1 font-semibold text-margarita-700">
                                                 Conectado
@@ -234,6 +240,13 @@
                                     <form action="/admin/whatsapp/numbers/<%= number.id %>/toggle" method="POST">
                                         <button class="rounded-xl bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200">
                                             <%= number.isActive ? "Desactivar" : "Activar" %>
+                                        </button>
+                                    </form>
+
+                                    <form action="/admin/whatsapp/numbers/<%= number.id %>/ai" method="POST">
+                                        <input type="hidden" name="enabled" value="<%= number.aiEnabled ? "false" : "true" %>" />
+                                        <button class="rounded-xl px-4 py-2 text-xs font-semibold <%= number.aiEnabled ? 'bg-amber-50 text-amber-800 hover:bg-amber-100' : 'bg-margarita-600 text-white hover:bg-margarita-700' %>">
+                                            <%= number.aiEnabled ? "Apagar IA" : "Encender IA" %>
                                         </button>
                                     </form>
                                 </div>

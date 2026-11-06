@@ -56,6 +56,13 @@ describe("decideSuggestion", () => {
         );
     });
 
+    it("omite si el número tiene la IA apagada", () => {
+        assert.deepEqual(
+            decideSuggestion(baseInput({ numberEnabled: false })),
+            { generate: false, reason: "NUMBER_AI_DISABLED" }
+        );
+    });
+
     it("omite si el modo no es sugerencia", () => {
         assert.deepEqual(
             decideSuggestion(

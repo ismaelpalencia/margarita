@@ -234,6 +234,23 @@ export class WhatsAppNumberService {
         });
     }
 
+    static async setAiEnabled(
+        workspaceId: string,
+        numberId: string,
+        aiEnabled: boolean
+    ) {
+        const number = await this.getById(workspaceId, numberId);
+
+        if (!number) {
+            throw new Error("Número no encontrado.");
+        }
+
+        return prisma.whatsAppNumber.update({
+            where: { id: number.id },
+            data: { aiEnabled }
+        });
+    }
+
     static async setActive(
         workspaceId: string,
         numberId: string,

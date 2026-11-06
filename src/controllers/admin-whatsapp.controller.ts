@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
+import { LogLevel, LogModule } from "@prisma/client";
 
 import { appConfig } from "../config/app.config";
 import { WhatsAppAccountService } from "../services/whatsapp-account.service";
 import { NumberUsageService } from "../services/number-usage.service";
 import { SendPolicyService } from "../services/send-policy.service";
 import { WhatsAppNumberService } from "../services/whatsapp-number.service";
+import { LogService } from "../services/log.service";
 import { monthKeyIn, startOfMonthIn } from "../utils/date";
 import { getRequiredParam } from "../utils/request";
 import { updateWhatsAppCredentialsSchema } from "../validations/whatsapp-account.validation";
@@ -175,6 +177,43 @@ export class AdminWhatsAppController {
             );
 
             return res.redirect("/admin/whatsapp?success=number_updated");
+        } catch {
+            return res.redirect("/admin/whatsapp?error=number_update");
+        }
+    }
+
+    static async toggleNumberAi(req: Request, res: Response) {
+        const numberId = getRequiredParam(req, "numberId");
+        const enabled = req.body?.enabled === "true";
+
+        try {
+            const number = await WhatsAppNumberService.getById(
+                req.user!.workspaceId,
+                numberId
+            );
+
+            if (!number) {
+                return res.redirect("/admin/whatsapp?error=number_update");
+            }
+
+            await WhatsAppNumberService.setAiEnabled(
+                req.user!.workspaceId,
+                numberId,
+                enabled
+            );
+
+            await LogService.create({
+                workspaceId: req.user!.workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.AI,
+                action: enabled ? "NUMBER_AI_ENABLED" : "NUMBER_AI_DISABLED",
+                message: enabled
+                    ? "Se encendió la IA en un número."
+                    : "Se apagó la IA en un número.",
+                payload: { numberId, phoneNumber: number.phoneNumber }
+            }).catch(() => undefined);
+
+            return res.redirect("/admin/whatsapp?success=number_ai");
         } catch {
             return res.redirect("/admin/whatsapp?error=number_update");
         }

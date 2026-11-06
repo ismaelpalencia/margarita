@@ -661,6 +661,12 @@ model WhatsAppNumber {
   isActive Boolean @default(true)
 
   /**
+   * Interruptor de IA por número. El workspace puede tener la IA encendida
+   * y este número apagado (o al revés, pero el workspace manda).
+   */
+  aiEnabled Boolean @default(true)
+
+  /**
    * Mes ("2026-11") en el que ya se avisó que el número pasó el umbral del
    * tramo mensual. Sirve para no repetir la alerta cada vez que se abre el
    * panel.

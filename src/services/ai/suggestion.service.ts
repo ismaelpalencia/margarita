@@ -113,7 +113,8 @@ export class AiSuggestionService {
                 workspace: true,
                 conversation: {
                     include: {
-                        contact: true
+                        contact: true,
+                        whatsappNumber: { select: { aiEnabled: true } }
                     }
                 }
             }
@@ -172,6 +173,7 @@ export class AiSuggestionService {
 
         const decision = decideGeneration({
             globalEnabled: appConfig.ai.enabled,
+            numberEnabled: job.conversation.whatsappNumber.aiEnabled,
             settings: {
                 enabled: settings.enabled,
                 mode: settings.mode
@@ -390,6 +392,7 @@ export class AiSuggestionService {
                 parsed,
                 knowledgeUsed: knowledge.length,
                 buttons: autoButtons,
+                numberEnabled: job.conversation.whatsappNumber.aiEnabled,
                 settings
             });
         }
@@ -412,6 +415,7 @@ export class AiSuggestionService {
         parsed: ParsedAiReply;
         knowledgeUsed: number;
         buttons: InteractiveButton[] | null;
+        numberEnabled: boolean;
         settings: Awaited<ReturnType<typeof AiSettingsService.get>>;
     }) {
         const [conversation, humanReply, counters] = await Promise.all([
@@ -438,6 +442,17 @@ export class AiSuggestionService {
         ]);
 
         if (!conversation) {
+            return;
+        }
+
+        if (!params.numberEnabled) {
+            await this.registerAutoSkip({
+                workspaceId: params.workspaceId,
+                conversationId: params.conversationId,
+                suggestionId: params.suggestion.id,
+                reason: "NUMBER_AI_DISABLED"
+            });
+
             return;
         }
 
@@ -627,7 +642,8 @@ export class AiSuggestionService {
             params.reason === "CONTACT_PAUSED" ||
             params.reason === "CONVERSATION_CLOSED" ||
             params.reason === "WINDOW_CLOSED" ||
-            params.reason === "MODE_NOT_AUTO";
+            params.reason === "MODE_NOT_AUTO" ||
+            params.reason === "NUMBER_AI_DISABLED";
         const needsPerson = !alreadyHandled && !cannotReply;
         /**
          * Los límites y el presupuesto son capacidad, no contenido: se avisa

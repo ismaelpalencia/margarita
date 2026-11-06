@@ -701,3 +701,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - El cuerpo del interactivo respeta el límite de 1024 de Meta; si se pasa, cae a texto.
 
 ---
+
+## IA por número de WhatsApp
+
+- `WhatsAppNumber.aiEnabled` (default true) con interruptor en Admin → WhatsApp.
+- El workspace sigue mandando: si AiSettings está apagado, ningún número responde.
+- Webhook no encola IA para números apagados; el worker omite trabajos ya encolados con `NUMBER_AI_DISABLED`.
+- Los flujos de bienvenida siguen activos: son independientes de la IA.
+- Auditoría: NUMBER_AI_ENABLED / NUMBER_AI_DISABLED.
+
+---
