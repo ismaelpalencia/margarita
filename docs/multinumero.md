@@ -62,6 +62,20 @@ de seguimiento, o al revés.
   `NUMBER_AI_DISABLED`.
 - La preferencia se audita como `NUMBER_AI_ENABLED` / `NUMBER_AI_DISABLED`.
 
+## Flujos por número
+
+Los flujos del paquete inicial también tienen interruptor por número, en la
+misma pantalla de **Admin → WhatsApp**.
+
+- El interruptor del workspace (`Workspace.flowsEnabled`) es el maestro: si
+  está apagado, ningún número ejecuta flujos.
+- Con el maestro encendido, cada número puede apagarlos por separado.
+- Sirve para dejar los flujos solo en el número de primer contacto y apagarlos
+  en los de seguimiento, sin apagar la IA del workspace.
+- La IA y los flujos son independientes: puedes tener IA en un número y flujos
+  en otro, o ambos en el mismo.
+- La preferencia se audita como `NUMBER_FLOWS_ENABLED` / `NUMBER_FLOWS_DISABLED`.
+
 ## Pendiente
 
 ### Asignar números a agentes

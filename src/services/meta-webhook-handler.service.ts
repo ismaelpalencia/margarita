@@ -162,6 +162,7 @@ export class MetaWebhookHandlerService {
                         workspaceId: number.whatsappAccount.workspaceId,
                         whatsappNumberId: number.id,
                         numberAiEnabled: number.aiEnabled,
+                        numberFlowsEnabled: number.flowsEnabled,
                         message,
                         profileName: contacts.find(
                             (contact) => contact.wa_id === message.from
@@ -183,6 +184,7 @@ export class MetaWebhookHandlerService {
         workspaceId: string;
         whatsappNumberId: string;
         numberAiEnabled: boolean;
+        numberFlowsEnabled: boolean;
         message: MetaWebhookMessage;
         profileName?: string;
     }) {
@@ -190,6 +192,7 @@ export class MetaWebhookHandlerService {
             workspaceId,
             whatsappNumberId,
             numberAiEnabled,
+            numberFlowsEnabled,
             message,
             profileName
         } = params;
@@ -422,7 +425,11 @@ export class MetaWebhookHandlerService {
                  */
                 let flowTriggered = false;
 
-                if (workspace?.flowsEnabled && !parsed.replyId) {
+                if (
+                    workspace?.flowsEnabled &&
+                    numberFlowsEnabled &&
+                    !parsed.replyId
+                ) {
                     try {
                         flowTriggered = await FlowService.trigger({
                             workspaceId,

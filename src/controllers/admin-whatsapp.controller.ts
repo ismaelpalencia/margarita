@@ -219,6 +219,43 @@ export class AdminWhatsAppController {
         }
     }
 
+    static async toggleNumberFlows(req: Request, res: Response) {
+        const numberId = getRequiredParam(req, "numberId");
+        const enabled = req.body?.enabled === "true";
+
+        try {
+            const number = await WhatsAppNumberService.getById(
+                req.user!.workspaceId,
+                numberId
+            );
+
+            if (!number) {
+                return res.redirect("/admin/whatsapp?error=number_update");
+            }
+
+            await WhatsAppNumberService.setFlowsEnabled(
+                req.user!.workspaceId,
+                numberId,
+                enabled
+            );
+
+            await LogService.create({
+                workspaceId: req.user!.workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.AI,
+                action: enabled ? "NUMBER_FLOWS_ENABLED" : "NUMBER_FLOWS_DISABLED",
+                message: enabled
+                    ? "Se encendieron los flujos en un número."
+                    : "Se apagaron los flujos en un número.",
+                payload: { numberId, phoneNumber: number.phoneNumber }
+            }).catch(() => undefined);
+
+            return res.redirect("/admin/whatsapp?success=number_flows");
+        } catch {
+            return res.redirect("/admin/whatsapp?error=number_update");
+        }
+    }
+
     static async testConnection(req: Request, res: Response) {
         const numberId = getRequiredParam(req, "numberId");
 

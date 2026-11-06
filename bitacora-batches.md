@@ -711,3 +711,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Auditoría: NUMBER_AI_ENABLED / NUMBER_AI_DISABLED.
 
 ---
+
+## Flujos por número de WhatsApp
+
+- `WhatsAppNumber.flowsEnabled` (default true) con interruptor en Admin → WhatsApp.
+- `Workspace.flowsEnabled` sigue siendo el maestro; si está apagado, ningún número ejecuta flujos.
+- Webhook solo dispara flujos si el workspace y el número los tienen encendidos.
+- IA y flujos quedan independientes por número.
+- Auditoría: NUMBER_FLOWS_ENABLED / NUMBER_FLOWS_DISABLED.
+
+---
