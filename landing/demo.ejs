@@ -33,6 +33,9 @@
 
                 <div class="demo-chat__log" id="chat-log" aria-live="polite"></div>
 
+                <div id="demo-profile" class="container" style="padding:0 12px 4px;"></div>
+                <div id="demo-suggestions" class="container" style="display:flex;flex-wrap:wrap;gap:8px;padding:0 12px 10px;"></div>
+
                 <form class="demo-chat__form" id="chat-form">
                     <input id="message" autocomplete="off" placeholder="Escribe un mensaje…" aria-label="Mensaje para la demo" />
                     <button class="btn btn--primary" type="submit">Enviar</button>
@@ -86,6 +89,9 @@
     var log = document.getElementById("chat-log");
     var vertical = document.getElementById("vertical");
     var errorBox = document.getElementById("demo-error");
+    var profileBox = document.getElementById("demo-profile");
+    var suggestionsBox = document.getElementById("demo-suggestions");
+    var profileSlug = (new URLSearchParams(window.location.search).get("perfil") || "").trim();
 
     function showError() {
         errorBox.hidden = false;
@@ -115,7 +121,11 @@
     bubble("Hola, soy la IA de Margarita. Escribe un mensaje para probar la atención, la calificación y la entrega a una persona.", false);
 
     function startSession() {
-        return fetch(API_BASE + "/api/demo/session", { method: "POST" })
+        return fetch(API_BASE + "/api/demo/session", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(profileSlug ? { profile: profileSlug } : {})
+        })
             .then(function (res) {
                 if (!res.ok) {
                     throw new Error("session");
@@ -172,7 +182,63 @@
         });
     });
 
-    startSession();
+    function loadProfile() {
+        if (!profileSlug) {
+            return Promise.resolve(true);
+        }
+
+        return fetch(API_BASE + "/api/demo/profile?slug=" + encodeURIComponent(profileSlug))
+            .then(function (res) {
+                if (!res.ok) {
+                    throw new Error("profile");
+                }
+                return res.json();
+            })
+            .then(function (data) {
+                var business = data.business || {};
+
+                if (business.vertical) {
+                    vertical.value = business.vertical;
+                    vertical.disabled = true;
+                }
+
+                if (business.name) {
+                    profileBox.innerHTML = "";
+                    var title = document.createElement("p");
+                    title.className = "small";
+                    title.style.margin = "0";
+                    title.textContent = "Demo de " + business.name + (data.disclaimer ? " · " + data.disclaimer : "");
+                    profileBox.appendChild(title);
+                }
+
+                if (Array.isArray(data.suggestedQuestions) && data.suggestedQuestions.length > 0) {
+                    suggestionsBox.innerHTML = "";
+                    data.suggestedQuestions.slice(0, 6).forEach(function (question) {
+                        var button = document.createElement("button");
+                        button.type = "button";
+                        button.className = "btn btn--secondary btn--sm";
+                        button.textContent = question;
+                        button.addEventListener("click", function () {
+                            input.value = question;
+                            form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+                        });
+                        suggestionsBox.appendChild(button);
+                    });
+                }
+
+                return true;
+            })
+            .catch(function () {
+                showError();
+                return false;
+            });
+    }
+
+    loadProfile().then(function (ok) {
+        if (ok) {
+            startSession();
+        }
+    });
 })();
 </script>
 

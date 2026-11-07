@@ -183,6 +183,7 @@ en **Go** (`github.com/ismaelpalencia/margaritademo`) con biblioteca estándar:
   30 chat/min/IP. **Una sola réplica.**
 - Sin base de datos, sin Meta, sin login ni PII. CORS con `ALLOWED_ORIGINS`.
 - Se despliega aparte en Railway y el landing lo consume por `DEMO_API_BASE`.
+- Soporta **perfiles por cliente** en `profiles/<slug>.json`; `/d/<slug>` abre la demo de ese negocio con sus preguntas sugeridas.
 
 ---
 

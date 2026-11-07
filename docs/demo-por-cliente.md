@@ -10,6 +10,10 @@ cliente ni aislamiento.
 Para clientes que quieran "su demo", hace falta un **perfil** con su información
 y una ruta o despliegue separado.
 
+**Implementado (2026-11-07):** el servicio Go ya lee perfiles desde
+`DEMO_PROFILES_DIR` (por defecto `profiles/`) y expone `/d/<slug>`. Sin perfil,
+la demo usa `kb.json` como antes.
+
 ## Lo que necesitamos del cliente
 
 ### Identidad
@@ -130,9 +134,20 @@ Reglas:
 | Opción | Cómo funciona | Esfuerzo | Cuándo conviene |
 | --- | --- | --- | --- |
 | **A. Manual** | Editar `kb.json`, commit y redeploy | Minutos por cliente | 1–5 demos, sin prisa |
-| **B. Perfiles por slug** | `profiles/<slug>.json` + ruta `/d/<slug>` | 1–2 días | Varios clientes, una sola demo desplegada |
+| **B. Perfiles por slug** | `profiles/<slug>.json` + ruta `/d/<slug>` | **Implementado** | Varios clientes, una sola demo desplegada |
 | **C. Panel + API** | El panel del producto publica el perfil y la demo lo consume | ~1 semana | Escala, autoservicio, historial |
 | **D. Un deploy por cliente** | Servicio/dominio separado por cliente | Más operación | Aislamiento total |
+
+## Cómo se carga hoy
+
+1. Crea `profiles/<slug>.json` con el formato de arriba.
+2. Valida el JSON y arranca el servicio; si un perfil está mal, no arranca.
+3. Comparte `https://demo.margaritaapp.org/d/<slug>`.
+4. El landing lee `?perfil=<slug>`, muestra el nombre y las preguntas sugeridas,
+   y la sesión queda atada a ese perfil.
+
+No hay que tocar `kb.json` ni el código para agregar un cliente. En Railway, el
+directorio de perfiles puede vivir en un Volume (`DEMO_PROFILES_DIR`).
 
 ## Mi recomendación
 
