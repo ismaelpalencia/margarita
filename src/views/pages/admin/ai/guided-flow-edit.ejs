@@ -107,6 +107,7 @@
                             <button type="button" id="add-message" class="btn btn--secondary btn--sm">+ Mensaje</button>
                             <button type="button" id="add-question" class="btn btn--secondary btn--sm">+ Pregunta</button>
                             <button type="button" id="add-input" class="btn btn--secondary btn--sm">+ Datos</button>
+                            <button type="button" id="add-file" class="btn btn--secondary btn--sm">+ Archivo</button>
                             <button type="button" id="add-end" class="btn btn--secondary btn--sm">+ Cierre</button>
                         </div>
                     </div>
@@ -236,6 +237,7 @@
                         { value: "message", label: "Mensaje" },
                         { value: "question", label: "Pregunta" },
                         { value: "input", label: "Datos" },
+                        { value: "file", label: "Archivo" },
                         { value: "end", label: "Cierre" }
                     ],
                     step.type,
@@ -332,7 +334,85 @@
                     );
                 }
 
+                if (step.type === "file") {
+                    card.appendChild(
+                        labeled(
+                            "Nombre del archivo",
+                            textInput(
+                                step.label || step.field || "archivo",
+                                "ej. INE, talón, estado de cuenta",
+                                80,
+                                function () {
+                                    step.label = this.value.trim();
+                                    sync();
+                                },
+                                "input mt-1 text-xs"
+                            )
+                        )
+                    );
+
+                    card.appendChild(
+                        labeled(
+                            "Identificador del dato",
+                            textInput(
+                                step.field || "archivo",
+                                "ej. ine, talon",
+                                40,
+                                function () {
+                                    step.field = this.value.trim();
+                                    sync();
+                                },
+                                "input mt-1 font-mono text-xs"
+                            )
+                        )
+                    );
+
+                    card.appendChild(
+                        labeled(
+                            "Qué acepta",
+                            optionSelect(
+                                [
+                                    { value: "both", label: "Foto o documento" },
+                                    { value: "image", label: "Solo foto" },
+                                    { value: "document", label: "Solo documento" }
+                                ],
+                                step.accept || "both",
+                                function (value) {
+                                    step.accept = value;
+                                    sync();
+                                }
+                            )
+                        )
+                    );
+
+                    card.appendChild(
+                        labeled(
+                            "Siguiente paso",
+                            nextSelect(step.next, step.id, function (value) {
+                                step.next = value;
+                                sync();
+                            })
+                        )
+                    );
+                }
+
                 if (step.type === "input") {
+                    card.appendChild(
+                        labeled(
+                            "Etiqueta visible",
+                            textInput(
+                                step.label || "",
+                                "ej. Edad, monto, meses",
+                                80,
+                                function () {
+                                    step.label = this.value.trim();
+                                    sync();
+                                },
+                                "input mt-1 text-xs"
+                            )
+                        )
+                    );
+
                     card.appendChild(
                         labeled(
                             "Nombre del dato (minúsculas)",
@@ -539,12 +619,25 @@
                     };
                 }
 
+                if (type === "file") {
+                    return {
+                        id: step.id,
+                        type: "file",
+                        text: step.text || "",
+                        field: step.field || "archivo",
+                        label: step.label || "",
+                        accept: step.accept || "both",
+                        next: step.next || ""
+                    };
+                }
+
                 if (type === "input") {
                     return {
                         id: step.id,
                         type: "input",
                         text: step.text || "",
                         field: step.field || "dato",
+                        label: step.label || "",
                         inputType: step.inputType || "text",
                         next: step.next || ""
                     };
@@ -576,6 +669,7 @@
             document.getElementById("add-message").addEventListener("click", function () { addStep("message"); });
             document.getElementById("add-question").addEventListener("click", function () { addStep("question"); });
             document.getElementById("add-input").addEventListener("click", function () { addStep("input"); });
+            document.getElementById("add-file").addEventListener("click", function () { addStep("file"); });
             document.getElementById("add-end").addEventListener("click", function () { addStep("end"); });
             form.addEventListener("submit", sync);
             render();

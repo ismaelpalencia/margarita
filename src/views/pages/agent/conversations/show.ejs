@@ -303,6 +303,9 @@
         </section>
 
         <aside class="space-y-4 lg:col-span-2 xl:col-span-1 xl:min-h-0 xl:overflow-y-auto xl:pr-1">
+            <% if (typeof guidedFlowRun !== "undefined" && guidedFlowRun) { %>
+                <%- include("../../../partials/guided-flow-panel", { panel: guidedFlowRun }) %>
+            <% } %>
             <% if (typeof collectionsEnabled === "undefined" || collectionsEnabled) { %>
             <%- include("../../../partials/outcome-panel", {
                 contact: conversation.contact,

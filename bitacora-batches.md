@@ -769,3 +769,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Constructor visual soporta Datos, botones, enlaces, orden y borrado.
 
 ---
+
+## Datos y archivos en flujos guiados
+
+- Nuevo paso `file` para pedir INE, talón, estado de cuenta o comprobante; acepta foto/documento y guarda messageId/mimeType.
+- `input` y `file` guardan en `GuidedFlowRun.data`; el panel del hilo muestra datos y enlaces a los archivos.
+- Panel agregado en conversaciones de admin y agente.
+- El constructor visual permite agregar/editar Datos y Archivo.
+- La IA puede generar estos pasos, pero no procesa documentos ni calcula simulaciones: eso queda en handoff/missing.
+
+---

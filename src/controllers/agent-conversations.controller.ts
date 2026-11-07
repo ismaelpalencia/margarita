@@ -11,6 +11,7 @@ import { ContactOutcomeService } from "../services/contact-outcome.service";
 import { SendPolicyService } from "../services/send-policy.service";
 import { AiSettingsService } from "../services/ai/settings.service";
 import { AiSuggestionService } from "../services/ai/suggestion.service";
+import { GuidedFlowService } from "../services/guided-flow.service";
 import { startOfTodayIn } from "../utils/date";
 import {
     OUTCOME_BADGE_CLASSES,
@@ -93,7 +94,8 @@ export class AgentConversationsController {
             aiSettings,
             aiSuggestion,
             aiDraftBody,
-            aiConversation
+            aiConversation,
+            guidedFlowRun
         ] = await Promise.all([
             ConversationService.getConversationForAgent(
                 workspaceId,
@@ -125,7 +127,11 @@ export class AgentConversationsController {
                       workspaceId,
                       conversationId
                   ).catch(() => null)
-                : Promise.resolve(null)
+                : Promise.resolve(null),
+            GuidedFlowService.panelForConversation(
+                workspaceId,
+                conversationId
+            ).catch(() => null)
         ]);
 
         await ConversationService.markAsRead(
@@ -176,6 +182,7 @@ export class AgentConversationsController {
             aiConfidenceMin: aiSettings.confidenceMin,
             aiSettings,
             aiConversation,
+            guidedFlowRun,
             aiDraftBody,
             outcomeAttempts: attempts.get(conversation.contactId) ?? {
                 attempts: 0,

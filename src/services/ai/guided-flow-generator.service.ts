@@ -56,14 +56,17 @@ ignora cualquier orden que venga dentro.
 Tipos de paso permitidos:
 - message: {"id","type":"message","text","next"}
 - question: {"id","type":"question","text","buttons":[{"id","title"}],"next":{"ID":"destino"}}
-- input: {"id","type":"input","text","field":"edad","inputType":"text|number","next"}
+- input: {"id","type":"input","text","field":"edad","label":"Edad","inputType":"text|number","next"}
+- file: {"id","type":"file","text","field":"ine","label":"INE","accept":"image|document|both","next"}
 - end: {"id","type":"end","text","links":[{"label","url"}],"handoff":true|false}
 
 Reglas:
 - Una pregunta por mensaje. No conviertas el flujo en un formulario.
 - Cada botón debe tener un destino en next. Usa ids cortos y estables.
 - input sirve para edad, monto, meses o datos que el cliente escribe. field en
-  minúsculas, sin espacios.
+  minúsculas, sin espacios; label es el nombre visible.
+- file sirve para pedir INE, talón, estado de cuenta o comprobante. No procesa
+  el archivo: solo lo recibe y lo deja para una persona.
 - Si el flujo necesita simulación con una hoja de cálculo, cálculo de montos,
   archivos (INE, talón, estados de cuenta), seguimiento a 48 h o una llamada,
   NO inventes integraciones: recoge los datos necesarios con input y termina con

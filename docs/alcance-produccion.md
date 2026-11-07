@@ -246,8 +246,14 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
   integraciones que faltan). No se guarda nada hasta que el operador revisa en
   el constructor y pulsa Guardar.
 - **Paso `input`:** captura edad, monto, meses u otro dato de texto/número y lo
-  guarda en `GuidedFlowRun.data`. No procesa archivos ni calcula simulaciones:
-  si el flujo las necesita, debe terminar en `handoff` y anotarlo en `missing`.
+  guarda en `GuidedFlowRun.data`.
+- **Paso `file`:** pide una foto o documento (INE, talón, estado de cuenta) y
+  guarda el mensaje recibido en `GuidedFlowRun.data`; el agente puede abrirlo
+  desde el panel del hilo.
+- **Panel del hilo:** muestra el flujo, su estado y los datos/archivos
+  capturados. No procesa ni valida el contenido de los documentos.
+- No calcula simulaciones ni integra instituciones: si el flujo las necesita,
+  debe terminar en `handoff` y anotarlo en `missing`.
 
 ### Importación de negocio
 
@@ -420,7 +426,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | --- | --- | --- |
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
-| Pruebas | 302 unitarias / 82 integración | **363 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
+| Pruebas | 302 unitarias / 82 integración | **364 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
 | Migraciones | 23 | **38** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
@@ -487,7 +493,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Aspecto | Estado |
 | --- | --- |
 | Tipos | `npx tsc --noEmit` limpio |
-| Unitarias | **363** en 57 archivos |
+| Unitarias | **364** en 57 archivos |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
 | Migraciones | **38** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |

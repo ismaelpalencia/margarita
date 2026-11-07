@@ -60,6 +60,23 @@ test("acepta un paso de dato numérico", () => {
     assert.equal(parsed.success, true);
 });
 
+test("acepta un paso de archivo", () => {
+    const parsed = parseGuidedSteps([
+        {
+            id: "ine",
+            type: "file",
+            text: "Envía tu INE",
+            field: "ine",
+            label: "INE",
+            accept: "image",
+            next: "fin"
+        },
+        { id: "fin", type: "end", text: "Gracias", links: [], handoff: false }
+    ]);
+
+    assert.equal(parsed.success, true);
+});
+
 test("el trigger ignora acentos y mayúsculas", () => {
     assert.equal(
         guidedTriggerMatches("pension|jubilado", "¿Soy PENSIONADO del IMSS?"),

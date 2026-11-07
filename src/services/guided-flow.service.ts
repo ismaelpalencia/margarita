@@ -23,6 +23,12 @@ export class GuidedFlowService {
         workspaceId: string;
         conversationId: string;
         text: string;
+        messageId: string;
+        media: {
+            type: string;
+            mediaId: string | null;
+            mimeType: string | null;
+        };
         replyId?: string | null;
         replyTitle?: string | null;
     }): Promise<boolean> {
@@ -37,6 +43,8 @@ export class GuidedFlowService {
                 conversationId: params.conversationId,
                 run,
                 text: params.text,
+                messageId: params.messageId,
+                media: params.media,
                 replyId: params.replyId ?? null,
                 replyTitle: params.replyTitle ?? null
             });
@@ -98,6 +106,87 @@ export class GuidedFlowService {
         });
     }
 
+    static async panelForConversation(
+        workspaceId: string,
+        conversationId: string
+    ): Promise<{
+        flowName: string;
+        status: string;
+        currentStepId: string;
+        fields: Array<{
+            label: string;
+            value: string;
+            file: boolean;
+            messageId?: string;
+        }>;
+    } | null> {
+        const run = await prisma.guidedFlowRun.findFirst({
+            where: { workspaceId, conversationId },
+            include: { flow: true }
+        });
+
+        if (!run) {
+            return null;
+        }
+
+        const parsed = guidedStepsSchema.safeParse(run.flow.steps);
+        const steps = parsed.success ? parsed.data : [];
+        const raw =
+            run.data &&
+            typeof run.data === "object" &&
+            !Array.isArray(run.data)
+                ? (run.data as Record<string, unknown>)
+                : {};
+        const fields: Array<{
+            label: string;
+            value: string;
+            file: boolean;
+            messageId?: string;
+        }> = [];
+
+        for (const [key, value] of Object.entries(raw)) {
+            const step = steps.find(
+                (item) =>
+                    (item.type === "input" || item.type === "file") &&
+                    item.field === key
+            );
+            const label = step && "label" in step ? step.label || key : key;
+
+            if (
+                value &&
+                typeof value === "object" &&
+                !Array.isArray(value) &&
+                "messageId" in value
+            ) {
+                const file = value as {
+                    messageId?: string;
+                    mimeType?: string | null;
+                    type?: string;
+                };
+                fields.push({
+                    label,
+                    value: file.mimeType || file.type || "Archivo recibido",
+                    file: true,
+                    messageId: file.messageId
+                });
+                continue;
+            }
+
+            fields.push({
+                label,
+                value: String(value ?? ""),
+                file: false
+            });
+        }
+
+        return {
+            flowName: run.flow.name,
+            status: run.status,
+            currentStepId: run.currentStepId,
+            fields
+        };
+    }
+
     private static async findMatching(workspaceId: string, text: string) {
         const flows = await prisma.guidedFlow.findMany({
             where: { workspaceId, isActive: true },
@@ -120,6 +209,12 @@ export class GuidedFlowService {
             flow: { name: string; steps: Prisma.JsonValue };
         };
         text: string;
+        messageId: string;
+        media: {
+            type: string;
+            mediaId: string | null;
+            mimeType: string | null;
+        };
         replyId: string | null;
         replyTitle: string | null;
     }): Promise<boolean> {
@@ -135,6 +230,20 @@ export class GuidedFlowService {
         if (!current) {
             await this.complete(params.conversationId, params.run.currentStepId);
             return true;
+        }
+
+        if (current.type === "file") {
+            return this.handleFile({
+                workspaceId: params.workspaceId,
+                conversationId: params.conversationId,
+                flowId: params.run.flowId,
+                flowName: params.run.flow.name,
+                steps: parsed.data,
+                current,
+                data: params.run.data,
+                messageId: params.messageId,
+                media: params.media
+            });
         }
 
         if (current.type === "input") {
@@ -201,6 +310,81 @@ export class GuidedFlowService {
             flowName: params.run.flow.name,
             steps: parsed.data,
             stepId: next
+        });
+    }
+
+    private static async handleFile(params: {
+        workspaceId: string;
+        conversationId: string;
+        flowId: string;
+        flowName: string;
+        steps: GuidedStep[];
+        current: Extract<GuidedStep, { type: "file" }>;
+        data: Prisma.JsonValue;
+        messageId: string;
+        media: {
+            type: string;
+            mediaId: string | null;
+            mimeType: string | null;
+        };
+    }): Promise<boolean> {
+        const isImage = params.media.type === "IMAGE";
+        const isDocument = params.media.type === "DOCUMENT";
+        const accepted =
+            Boolean(params.media.mediaId) &&
+            (params.current.accept === "both"
+                ? isImage || isDocument
+                : params.current.accept === "image"
+                  ? isImage
+                  : isDocument);
+
+        if (!accepted) {
+            await MessageService.sendFlowReply({
+                workspaceId: params.workspaceId,
+                conversationId: params.conversationId,
+                body:
+                    params.current.accept === "image"
+                        ? "Envía una foto, por favor."
+                        : params.current.accept === "document"
+                          ? "Envía el documento, por favor."
+                          : "Envía una foto o un documento, por favor.",
+                buttons: null,
+                list: null
+            });
+            return true;
+        }
+
+        const base =
+            params.data &&
+            typeof params.data === "object" &&
+            !Array.isArray(params.data)
+                ? (params.data as Record<string, unknown>)
+                : {};
+        const nextData = {
+            ...base,
+            [params.current.field]: {
+                messageId: params.messageId,
+                mediaId: params.media.mediaId,
+                type: params.media.type,
+                mimeType: params.media.mimeType
+            }
+        };
+
+        await prisma.guidedFlowRun.update({
+            where: { conversationId: params.conversationId },
+            data: {
+                currentStepId: params.current.next,
+                data: nextData as Prisma.InputJsonValue
+            }
+        });
+
+        return this.sendFrom({
+            workspaceId: params.workspaceId,
+            conversationId: params.conversationId,
+            flowId: params.flowId,
+            flowName: params.flowName,
+            steps: params.steps,
+            stepId: params.current.next
         });
     }
 
@@ -298,6 +482,21 @@ export class GuidedFlowService {
 
                 current = findStep(params.steps, current.next);
                 continue;
+            }
+
+            if (current.type === "file") {
+                await MessageService.sendFlowReply({
+                    workspaceId: params.workspaceId,
+                    conversationId: params.conversationId,
+                    body: current.text,
+                    buttons: null,
+                    list: null
+                });
+                await prisma.guidedFlowRun.update({
+                    where: { conversationId: params.conversationId },
+                    data: { currentStepId: current.id }
+                });
+                return true;
             }
 
             if (current.type === "input") {

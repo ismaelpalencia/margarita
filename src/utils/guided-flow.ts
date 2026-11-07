@@ -41,7 +41,22 @@ const inputStep = z.object({
         .trim()
         .regex(/^[a-z][a-z0-9_]{0,39}$/, "El campo debe ser un identificador en minúsculas.")
         .default("dato"),
+    label: z.string().trim().max(80).optional(),
     inputType: z.enum(["text", "number"]).default("text"),
+    next: z.string().trim().min(1).max(40)
+});
+
+const fileStep = z.object({
+    id: z.string().trim().min(1).max(40),
+    type: z.literal("file"),
+    text: z.string().trim().min(1).max(1000),
+    field: z
+        .string()
+        .trim()
+        .regex(/^[a-z][a-z0-9_]{0,39}$/, "El campo debe ser un identificador en minúsculas.")
+        .default("archivo"),
+    label: z.string().trim().max(80).optional(),
+    accept: z.enum(["image", "document", "both"]).default("both"),
     next: z.string().trim().min(1).max(40)
 });
 
@@ -57,6 +72,7 @@ export const guidedStepSchema = z.discriminatedUnion("type", [
     messageStep,
     questionStep,
     inputStep,
+    fileStep,
     endStep
 ]);
 
@@ -88,7 +104,7 @@ export const guidedStepsSchema = z
                 continue;
             }
 
-            if (step.type === "input") {
+            if (step.type === "input" || step.type === "file") {
                 if (!ids.has(step.next)) {
                     ctx.addIssue({
                         code: "custom",

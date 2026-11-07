@@ -437,6 +437,12 @@ export class MetaWebhookHandlerService {
                         workspaceId,
                         conversationId: conversation.id,
                         text: (parsed.body || parsed.replyTitle || "").trim(),
+                        messageId: savedMessage.id,
+                        media: {
+                            type: parsed.type,
+                            mediaId: parsed.mediaId,
+                            mimeType: parsed.mimeType
+                        },
                         replyId: parsed.replyId ?? null,
                         replyTitle: parsed.replyTitle ?? null
                     });

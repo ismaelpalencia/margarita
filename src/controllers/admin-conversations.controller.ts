@@ -12,6 +12,7 @@ import { ContactOutcomeService } from "../services/contact-outcome.service";
 import { SendPolicyService } from "../services/send-policy.service";
 import { AiSettingsService } from "../services/ai/settings.service";
 import { AiSuggestionService } from "../services/ai/suggestion.service";
+import { GuidedFlowService } from "../services/guided-flow.service";
 import { monthKeyIn, startOfMonthIn, startOfTodayIn } from "../utils/date";
 import { NumberUsageService } from "../services/number-usage.service";
 import { templateVariableShape } from "../utils/template";
@@ -120,7 +121,8 @@ export class AdminConversationsController {
             aiSettings,
             aiSuggestion,
             aiDraftBody,
-            aiConversation
+            aiConversation,
+            guidedFlowRun
         ] = await Promise.all([
             ConversationService.getConversationForAdmin(
                 workspaceId,
@@ -153,7 +155,11 @@ export class AdminConversationsController {
                       workspaceId,
                       conversationId
                   ).catch(() => null)
-                : Promise.resolve(null)
+                : Promise.resolve(null),
+            GuidedFlowService.panelForConversation(
+                workspaceId,
+                conversationId
+            ).catch(() => null)
         ]);
 
         /** Abrir el hilo quita el aviso de no leídos. */
@@ -206,6 +212,7 @@ export class AdminConversationsController {
             aiConfidenceMin: aiSettings.confidenceMin,
             aiSettings,
             aiConversation,
+            guidedFlowRun,
             aiDraftBody,
             outcomeAttempts: attempts.get(conversation.contactId) ?? {
                 attempts: 0,
