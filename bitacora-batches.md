@@ -751,3 +751,11 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Migración 20261107000000_number_guided_flows.
 
 ---
+
+## Fix: apagar horario de atención
+
+- El checkbox no enviaba `businessHoursEnabled` al desmarcarse; Zod fallaba y no guardaba.
+- Se agregó hidden `false` y la validación acepta el arreglo `[false, true]` cuando está marcado.
+- Pruebas de encendido, apagado y campo ausente.
+
+---

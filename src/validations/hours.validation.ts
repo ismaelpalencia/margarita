@@ -5,7 +5,15 @@ const timeRegex = /^\d{2}:\d{2}$/;
 
 export const hoursSchema = z.object({
     businessHoursEnabled: z
-        .enum(["true", "false"])
+        .preprocess(
+            (value) =>
+                Array.isArray(value)
+                    ? value.includes("true")
+                        ? "true"
+                        : "false"
+                    : value,
+            z.enum(["true", "false"]).default("false")
+        )
         .transform((value) => value === "true"),
     timezone: z
         .string()
