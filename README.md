@@ -711,6 +711,7 @@ El límite vigente, con su explicación, está en [`docs/alcance-produccion.md`]
 | [`docs/plan-interactivos.md`](docs/plan-interactivos.md) | Cómo entrar en dos sprints a la evolución de botones e interacciones: alcance, bloqueante de Meta, decisiones y mapa técnico |
 | [`nuevo_roadmap.md`](nuevo_roadmap.md) | Documento de trabajo original de botones, plantillas interactivas, tramo y llamadas (histórico) |
 | [`docs/alcance-produccion.md`](docs/alcance-produccion.md) | Alcance actual, límites, seguridad, demo Go y responsabilidades para uso en producción |
+| [`docs/demo-por-cliente.md`](docs/demo-por-cliente.md) | Qué datos pedir y cómo cargar una demo por cliente (perfil JSON, revisión y publicación) |
 | [`docs/marca-colores.md`](docs/marca-colores.md) | Paleta real de la app/landing y prompt para diseños publicitarios |
 | [`docs/venta/propuesta-workana.md`](docs/venta/propuesta-workana.md) | Propuestas para proyectos de IA + WhatsApp en Workana |
 | [`margaritademo`](https://github.com/ismaelpalencia/margaritademo) | Repositorio del microservicio Go de la demo pública |
