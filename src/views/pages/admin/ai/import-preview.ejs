@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Revisar importación | Margarita</title>
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+    <%- include("../../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <div class="mb-6">
+            <a href="/admin/ai/import" class="text-sm font-semibold text-slate-500">← Volver al documento</a>
+            <h2 class="mt-2 text-2xl font-bold text-slate-800">Revisar lo que entendió la IA</h2>
+            <p class="mt-1 text-sm text-slate-500">
+                Nada se ha guardado en la base de conocimiento todavía. Revisa y aplica.
+            </p>
+        </div>
+
+        <section class="card mb-5">
+            <div class="grid gap-3 sm:grid-cols-3">
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Negocio</p>
+                    <p class="mt-1 font-semibold text-slate-900"><%= data.business.name || "Sin nombre" %></p>
+                    <p class="mt-1 text-xs text-slate-500"><%= data.business.tone || "Tono no especificado" %></p>
+                </div>
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Conocimiento</p>
+                    <p class="mt-1 text-2xl font-black text-slate-900"><%= data.knowledge.length %></p>
+                    <p class="text-xs text-slate-500">entradas propuestas</p>
+                </div>
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Flujos</p>
+                    <p class="mt-1 text-2xl font-black text-slate-900"><%= data.flows.length %></p>
+                    <p class="text-xs text-slate-500">respuestas automáticas</p>
+                </div>
+            </div>
+
+            <% if (data.business.description) { %>
+                <p class="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600"><%= data.business.description %></p>
+            <% } %>
+        </section>
+
+        <section class="card mb-5">
+            <h3 class="font-bold text-slate-800">Base de conocimiento</h3>
+            <div class="mt-3 space-y-3">
+                <% data.knowledge.forEach((entry) => { %>
+                    <article class="rounded-xl border border-slate-200 p-4">
+                        <p class="font-semibold text-slate-800"><%= entry.question %></p>
+                        <p class="mt-1 whitespace-pre-wrap text-sm text-slate-600"><%= entry.answer %></p>
+                        <% if (entry.buttons && entry.buttons.length > 0) { %>
+                            <p class="mt-2 text-xs text-slate-500">
+                                Botones:
+                                <% entry.buttons.forEach((button) => { %>
+                                    <span class="ml-1 rounded-full bg-margarita-50 px-2 py-0.5 font-semibold text-margarita-700"><%= button.title %></span>
+                                <% }) %>
+                            </p>
+                        <% } %>
+                    </article>
+                <% }) %>
+            </div>
+        </section>
+
+        <% if (data.flows.length > 0) { %>
+            <section class="card mb-5">
+                <h3 class="font-bold text-slate-800">Flujos</h3>
+                <div class="mt-3 space-y-3">
+                    <% data.flows.forEach((flow) => { %>
+                        <article class="rounded-xl border border-slate-200 p-4">
+                            <p class="font-semibold text-slate-800"><%= flow.name %></p>
+                            <p class="mt-1 text-xs text-slate-500">Dispara con: <%= flow.trigger %></p>
+                            <p class="mt-2 whitespace-pre-wrap text-sm text-slate-600"><%= flow.reply %></p>
+                        </article>
+                    <% }) %>
+                </div>
+            </section>
+        <% } %>
+
+        <% if (data.handoffKeywords.length > 0) { %>
+            <section class="card mb-5">
+                <h3 class="font-bold text-slate-800">Palabras que pasan a una persona</h3>
+                <p class="mt-2 text-sm text-slate-600"><%= data.handoffKeywords.join(" · ") %></p>
+            </section>
+        <% } %>
+
+        <section class="card">
+            <p class="text-sm text-slate-600">
+                Al aplicar se crean entradas nuevas y flujos nuevos. Lo que ya existe no se sobrescribe.
+                Los flujos quedan activos, pero el interruptor global de flujos y el de cada número siguen mandando.
+            </p>
+
+            <form action="/admin/ai/import/<%= importId %>/apply" method="POST" class="mt-4 flex flex-wrap gap-3">
+                <button class="btn btn--primary">Aplicar a Margarita</button>
+                <a href="/admin/ai/import" class="btn btn--secondary">Volver</a>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

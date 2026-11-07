@@ -721,3 +721,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Auditoría: NUMBER_FLOWS_ENABLED / NUMBER_FLOWS_DISABLED.
 
 ---
+
+## Importar negocio con IA
+
+- Nuevo asistente Admin → IA → Importar negocio: documento de texto + instrucciones.
+- La IA devuelve JSON validado (negocio, conocimiento, flujos, handoff); se revisa antes de aplicar.
+- Al aplicar crea KnowledgeEntry y Flow con claves de idempotencia; no sobrescribe lo existente.
+- Guarda el JSON crudo validado, no el documento original.
+- Migración BusinessImport y pruebas del normalizador.
+
+---

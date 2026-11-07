@@ -235,6 +235,7 @@ export class KnowledgeService {
             buttons: InteractiveButton[] | null;
             keywords: string[];
             priority: number;
+            sourceKey?: string | null;
         }
     ) {
         return prisma.knowledgeEntry.create({
@@ -248,6 +249,7 @@ export class KnowledgeService {
                     : undefined,
                 keywords: input.keywords,
                 priority: input.priority,
+                sourceKey: input.sourceKey ?? null,
                 isActive: true
             }
         });

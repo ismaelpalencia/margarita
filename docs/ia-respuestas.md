@@ -254,6 +254,16 @@ La IA solo debe responder con información que la empresa cargó.
 - Sirve para el 80 % de los casos reales: horarios, dirección, precios,
   formas de pago, garantías, estado de un pedido.
 
+**Importación asistida (documento → JSON)**
+
+- En **Admin → IA → Importar negocio** se pega o sube un documento de texto
+  (máx. 30,000 caracteres) con la información del negocio.
+- La IA devuelve un JSON validado con negocio, preguntas/respuestas, botones,
+  flujos y palabras de handoff. Se revisa en una vista previa antes de aplicar.
+- Al aplicar se crean entradas y flujos nuevos con claves de idempotencia; no se
+  sobrescribe lo existente. El documento original no se guarda.
+- No activa el modo automático: el operador decide modo, límites y flujos.
+
 **Fase 2 — búsqueda semántica**
 
 - Embeddings por entrada y similitud coseno **en memoria** (la base de

@@ -134,7 +134,7 @@ La restricción del agente se aplica **en la consulta a la base**, no solo en la
 | **Botones y listas** | Enviar hasta 3 botones o una lista de hasta 10 opciones dentro de la ventana de 24 h. General en todos los giros. |
 | **Reglas de botones → resultado** | Mapean una respuesta interactiva a un resultado de gestión. Solo con el giro `COBRANZA` (legado). |
 | **Equipo** | Crear admins/agentes, cambiar rol, activar/desactivar, restablecer contraseña, desbloquear, desactivar 2FA, permiso de envío manual y tope diario por agente. |
-| **IA** | Modo, tono, idioma, umbral, límites, presupuesto, palabras de handoff, base de conocimiento **con botones de respuesta rápida**, editor de flujos, prueba sin conversación real, paquete inicial por vertical y panel por hilo. |
+| **IA** | Modo, tono, idioma, umbral, límites, presupuesto, palabras de handoff, base de conocimiento **con botones de respuesta rápida**, editor de flujos, prueba sin conversación real, paquete inicial por vertical, **importación de negocio** y panel por hilo. |
 | **Horarios** | Horario de atención y modo fuera de horario. |
 | **Leads** | Captura por correo, estado, exportación CSV y webhook firmado. |
 | **Reportes de servicio** | IA vs persona, primera respuesta (mediana/p90), resolución sin persona, top de preguntas sin cobertura, valoración. |
@@ -225,6 +225,19 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - **Idiomas**: español siempre; inglés y portugués opt-in por workspace (`aiMultilangLanguages`). Se audita `AI_MULTILANG_REPLY`.
 - **Paquete inicial por vertical** (comercio, servicios, genérico): carga flujos por palabra clave y 10–11 entradas de conocimiento. Idempotente; enciende `flowsEnabled`. No hay paquete de cobranza.
 - **Panel por hilo**: modo, intención, confianza, motivo de handoff, respuestas automáticas, borradores aprobados y costo estimado.
+
+### Importación de negocio
+
+- **Admin → IA → Importar negocio**: se pega o sube un documento de texto
+  (máx. 30,000 caracteres) y, opcionalmente, instrucciones para la IA.
+- La IA devuelve un JSON validado con negocio, base de conocimiento, flujos y
+  palabras de handoff. Se revisa en una pantalla de vista previa antes de
+  aplicar; el documento original no se guarda.
+- Al aplicar se crean entradas y flujos nuevos con claves de idempotencia. Lo
+  existente no se sobrescribe; los duplicados se omiten.
+- Puede ajustar `systemPrompt`, `tone` y `handoffKeywords` del workspace.
+- No activa el modo automático por sí sola: el operador sigue decidiendo modo,
+  límites y si enciende los flujos.
 
 ### Flujos por palabra clave
 
@@ -384,8 +397,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | --- | --- | --- |
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
-| Pruebas | 302 unitarias / 82 integración | **353 unitarias** (54 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
-| Migraciones | 23 | **35** |
+| Pruebas | 302 unitarias / 82 integración | **355 unitarias** (55 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
+| Migraciones | 23 | **36** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
 | Precios | Repetidos en varios documentos | Fuente en `landing/` + `PRICING`; el panel no los muestra |
@@ -451,9 +464,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Aspecto | Estado |
 | --- | --- |
 | Tipos | `npx tsc --noEmit` limpio |
-| Unitarias | **353** en 54 archivos |
+| Unitarias | **355** en 55 archivos |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
-| Migraciones | **35** versionadas en `prisma/migrations` |
+| Migraciones | **36** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |
 | Linter/formateador | No hay |
 | Pruebas de interfaz | No hay automatizadas |

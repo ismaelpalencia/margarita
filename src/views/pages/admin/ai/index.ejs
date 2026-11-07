@@ -27,9 +27,15 @@
                 Nada se activa sin marcar la casilla del workspace.
             </p>
 
-            <a href="/admin/ai/package" class="inline-flex rounded-xl bg-white px-4 py-2 text-sm font-bold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">
-                Paquete inicial por vertical →
-            </a>
+            <div class="flex flex-wrap gap-2">
+                <a href="/admin/ai/package" class="inline-flex rounded-xl bg-white px-4 py-2 text-sm font-bold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">
+                    Paquete inicial por vertical →
+                </a>
+
+                <a href="/admin/ai/import" class="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
+                    Importar negocio con IA →
+                </a>
+            </div>
         </section>
 
         <% if (aiUsage) { %>
@@ -121,6 +127,8 @@
                     Base de conocimiento actualizada.
                 <% } else if (success === "languages") { %>
                     Idiomas de respuesta actualizados.
+                <% } else if (success === "import") { %>
+                    Importación aplicada a la base de conocimiento y a los flujos.
                 <% } else { %>
                     Acción realizada.
                 <% } %>

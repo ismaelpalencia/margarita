@@ -397,6 +397,7 @@ model Workspace {
   aiSettings       AiSettings?
   aiUsageMonthly   AiUsageMonthly[]
   knowledgeEntries KnowledgeEntry[]
+  businessImports  BusinessImport[]
   aiSuggestions    AiSuggestion[]
   aiJobs           AiSuggestionJob[]
   aiUsage          AiUsage[]
@@ -1522,4 +1523,33 @@ model AiUsageMonthly {
 
   @@unique([workspaceId, year, month])
   @@index([workspaceId, year, month])
+}
+
+
+enum BusinessImportStatus {
+  DRAFT
+  APPLIED
+}
+
+/**
+ * Borrador de importación de negocio: la IA convierte un documento en
+ * conocimiento y flujos. Se guarda el resultado validado, no el documento
+ * original, para no conservar información que el cliente no necesita.
+ */
+model BusinessImport {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdById String?
+  status      BusinessImportStatus @default(DRAFT)
+
+  result  Json
+  summary Json?
+
+  createdAt DateTime  @default(now())
+  appliedAt DateTime?
+
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, status])
 }

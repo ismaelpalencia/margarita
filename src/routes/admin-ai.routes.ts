@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { AdminAiController } from "../controllers/admin-ai.controller";
 import { AdminFlowController } from "../controllers/admin-flow.controller";
+import { AdminAiImportController } from "../controllers/admin-ai-import.controller";
 
 /**
  * Capa de IA (fase 1: sugerencias).
@@ -20,6 +21,11 @@ router.post("/knowledge", AdminAiController.createEntry);
 router.get("/knowledge/:id", AdminAiController.showEditEntry);
 router.post("/knowledge/:id", AdminAiController.updateEntry);
 router.post("/knowledge/:id/active", AdminAiController.setEntryActive);
+
+/** Importar un documento de negocio y convertirlo en conocimiento/flujos. */
+router.get("/import", AdminAiImportController.form);
+router.post("/import", AdminAiImportController.analyze);
+router.post("/import/:id/apply", AdminAiImportController.apply);
 
 /** Consola de prueba: no guarda nada ni toca una conversación real. */
 router.post("/test", AdminAiController.test);
