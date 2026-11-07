@@ -1,6 +1,6 @@
 # Margarita — Alcance real de la aplicación
 
-**Estado:** foto del código al **2026-11-06**. Este documento es la referencia única del producto: describe lo que la app hace **hoy**, no lo que se planeó.
+**Estado:** foto del código al **2026-11-07**. Este documento es la referencia única del producto: describe lo que la app hace **hoy**, no lo que se planeó.
 
 **Fuentes usadas para escribirlo:** `prisma/schema.prisma`, `src/routes/*.ts`, `src/controllers`, `src/services`, `src/jobs`, `landing/` + `scripts/build-landing.ts`, `.env.example` y la suite de pruebas.
 
@@ -37,8 +37,21 @@ Margarita es una aplicación web para **operar la WhatsApp Business Cloud API de
 | Base de datos | PostgreSQL |
 | Runtime | Node **22.23.4** LTS |
 | Alojamiento probado | Railway |
-| Archivos | Volume en `/data/media`; respaldos en `/data/backups`; opcionalmente Cloudflare R2 |
+| Archivos | Volume en `/data/media`; respaldos en `/data/backups`; Cloudflare R2 opcional (se activa con las cuatro `R2_*`) |
 | Demo pública | Microservicio **Go** independiente en `demo.margaritaapp.org` (sin DB ni Meta) |
+
+### Almacenamiento R2 (opcional)
+
+- Se activa únicamente cuando existen `R2_ACCOUNT_ID`, `R2_BUCKET`,
+  `R2_ACCESS_KEY_ID` y `R2_SECRET_ACCESS_KEY`. No hay un flag aparte.
+- El Volume sigue siendo obligatorio: es la caché local y el respaldo antes de
+  subir a R2. Si R2 se apaga, los respaldos nuevos quedan locales.
+- Apagar R2 **no borra** el bucket ni sus archivos; solo deja de leerlos. Un
+  adjunto que no esté en el Volume no se podrá abrir hasta reactivarlo.
+- Reactivar no requiere migración: se vuelven a poner las cuatro variables,
+  redeploy, **Admin → Sistema → Probar Cloudflare R2** y un respaldo manual.
+- El bucket es privado y el token se limita a ese bucket. No se comparte entre
+  instalaciones.
 
 ### Dominios
 
@@ -513,6 +526,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 7. Si se publica la demo, desplegar el servicio Go (`margaritademo`) en `demo.margaritaapp.org` con `ALLOWED_ORIGINS`, `DEMO_TIMEZONE` y una sola réplica; el `DEMO_ENABLED` de la app solo aplica a la ruta legacy.
 8. Si la oferta vive en Cloudflare, el landing se despliega aparte (`landing/`) y `PRODUCT_DOMAIN` ya no es necesario (es legado).
 9. Los logs de Railway no se comparten ni se commitean.
+10. Si R2 está activo, **Admin → Sistema → Probar Cloudflare R2** debe pasar y
+    el bucket debe ser privado. Si se apagó, no borres el bucket: los adjuntos
+    remotos no se leen hasta reactivarlo.
 
 ---
 

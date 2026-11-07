@@ -182,6 +182,13 @@ respaldos no incluyen el workspace, así que dos instalaciones en el mismo bucke
 pueden pisarse. Crea `margarita-<slug-del-cliente>` y un token de R2 limitado a
 ese bucket.
 
+R2 se activa solo con esas cuatro variables; no hay un flag aparte. Si lo
+apagas eliminándolas, el bucket no se borra, pero los adjuntos que no estén en
+el Volume dejan de abrirse hasta que vuelvas a configurarlo. Para reconectar:
+pega las cuatro, redeploy, prueba en **Admin → Sistema → Probar Cloudflare R2**
+y crea un respaldo manual. No requiere migración. El detalle está en
+[`cloudflare.md`](cloudflare.md).
+
 ### 3.6 Variables que solo usa el seed
 
 Estas **no** hacen falta si usas el asistente `/setup` y Admin → WhatsApp:

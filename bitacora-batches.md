@@ -779,3 +779,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - La IA puede generar estos pasos, pero no procesa documentos ni calcula simulaciones: eso queda en handoff/missing.
 
 ---
+
+## R2: apagar y reconectar
+
+- Documentado que R2 se activa solo con las cuatro variables R2_*; no hay flag aparte.
+- Guía de apagado (no borrar bucket/token) y reconexión (redeploy, Probar Cloudflare R2, respaldo manual).
+- Aclarado que al apagarlo los adjuntos fuera del Volume no se leen hasta reactivar.
+- Mensaje de error de object-storage corregido para no mencionar MEDIA_STORAGE.
+
+---

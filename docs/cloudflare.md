@@ -50,12 +50,13 @@ probar WebSockets y certificado de origen; no se hace el día de un alta.
 
 ---
 
-## 4. R2 (respaldos; archivos en el siguiente paso)
+## 4. R2 (respaldos y adjuntos)
 
 **Hoy**: en cuanto las cuatro variables existen, los **respaldos** se suben
 cifrados a `backups/` y los **archivos de las conversaciones** se copian a
 `media/`. El disco (`MEDIA_STORAGE_DIR`) sigue siendo la caché local: la app
-lee primero de ahí y, si el archivo ya no está, lo trae de R2.
+lee primero de ahí y, si el archivo ya no está, lo trae de R2. No hay que
+activar ningún flag extra: las cuatro variables son el interruptor.
 
 ### Crear el bucket
 
@@ -125,7 +126,8 @@ Cloudflare inyecta el script en Pages; no usa cookies.
 1. En Railway, las cuatro variables `R2_*` de **esa instalación** apuntan a su
    bucket exclusivo.
 2. Admin → Sistema muestra el resumen de R2 con objetos, tamaño y fecha del
-   último.
+   último. Usa **Probar Cloudflare R2** para validar bucket, token y permisos
+   sin esperar al siguiente respaldo.
 3. Crea un respaldo a mano desde Admin → Respaldos y comprueba que aparece en
    R2 bajo `backups/`.
 4. Abre una conversación con un adjunto y verifica que el archivo se ve; la app
@@ -133,3 +135,56 @@ Cloudflare inyecta el script en Pages; no usa cookies.
 
 > Los secretos van en **Variables de Railway**, nunca en el repositorio, y el
 > bucket se queda privado. Un token de R2 no debe servir para dos clientes.
+
+
+---
+
+## 8. Apagar y volver a encender R2
+
+R2 es **opcional**. Si lo apagaste por un problema de plataforma, el bucket y
+los archivos siguen existiendo; solo se deja de usar desde la app.
+
+### Apagarlo
+
+1. En Railway, elimina las cuatro variables del servicio:
+   `R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID` y
+   `R2_SECRET_ACCESS_KEY`.
+2. Redeploy del servicio.
+3. No borres el bucket ni el token de Cloudflare. Los respaldos y adjuntos que
+   ya estaban en R2 se conservan.
+4. La app vuelve a usar solo el Volume (`MEDIA_STORAGE_DIR`). Los adjuntos que
+   ya no estén en ese Volume **no se podrán abrir** hasta que reactives R2.
+   Los respaldos nuevos se quedan en `BACKUP_DIR`.
+
+### Volver a encenderlo
+
+1. En Cloudflare, confirma que el bucket sigue privado y que el token tiene
+   **Object Read & Write** solo sobre ese bucket. Si el token se revocó, crea
+   uno nuevo.
+2. En Railway, agrega otra vez las cuatro variables:
+   ```
+   R2_ACCOUNT_ID=...
+   R2_BUCKET=margarita-<slug-del-cliente>
+   R2_ACCESS_KEY_ID=...
+   R2_SECRET_ACCESS_KEY=...
+   ```
+3. Redeploy.
+4. Admin → Sistema → **Probar Cloudflare R2**. Debe decir que subió, leyó y
+   borró un archivo de prueba.
+5. Crea un respaldo manual y confirma que aparece en `backups/`.
+6. Abre un adjunto antiguo: si estaba en R2, debe volver a verse.
+
+No hay migración ni cambio de código. `MEDIA_STORAGE_DIR` se queda igual.
+
+### Si falla al reconectar
+
+| Síntoma | Revisa |
+| --- | --- |
+| 403 / AccessDenied | Token revocado, sin permiso *Object Read & Write*, o de otro bucket |
+| 404 / NoSuchBucket | `R2_BUCKET` no coincide exactamente con el nombre |
+| Error de host o DNS | `R2_ACCOUNT_ID` incorrecto; el endpoint se deriva de la cuenta |
+| Funciona el token pero no en la app | Variables puestas en otro servicio de Railway, o falta redeploy |
+| El archivo antiguo no abre | Se apagó R2 y el archivo no estaba en el Volume; reactiva R2 |
+
+> No pongas las credenciales en el repositorio ni en el landing. Van solo en las
+> variables del servicio de Railway.

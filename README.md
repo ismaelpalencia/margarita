@@ -331,6 +331,8 @@ Copia `.env.example` a `.env`. Ninguna de estas variables debe subirse al reposi
 | `AI_MAX_ATTEMPTS` | No | Reintentos de un borrador fallido. Default `2` |
 | `AI_MAX_TOKENS` / `AI_TEMPERATURE` | No | Límite de salida y creatividad del modelo. Default `400` y `0.3` |
 
+R2 es opcional: se activa solo con las cuatro variables `R2_*`. Si las quitas, la app vuelve a usar solo el Volume; el bucket no se borra, pero los adjuntos que no estén en el Volume dejan de abrirse hasta reactivarlo. No requiere migración. La guía de reconexión está en [`docs/cloudflare.md`](docs/cloudflare.md).
+
 Sin `META_APP_SECRET` el webhook no valida el origen: en desarrollo solo registra un aviso, pero **en producción responde 401** y la app deja de recibir mensajes.
 
 Sin `ENCRYPTION_KEY` la app funciona igual, pero **nada se cifra en la base**: los tokens de Meta, los teléfonos, los mensajes y la bitácora quedan en texto plano. El panel de sistema lo marca como pendiente.

@@ -103,7 +103,9 @@ async function request(
     const config = objectStorageConfig();
 
     if (!config) {
-        throw new Error("R2 no está configurado (MEDIA_STORAGE=r2 y credenciales).");
+        throw new Error(
+            "R2 no está configurado. Define R2_ACCOUNT_ID, R2_BUCKET, R2_ACCESS_KEY_ID y R2_SECRET_ACCESS_KEY."
+        );
     }
 
     const host = `${config.accountId}.r2.cloudflarestorage.com`;
