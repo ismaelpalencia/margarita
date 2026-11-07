@@ -33,8 +33,37 @@
             </p>
         </div>
 
+        <% if (!flow) { %>
+            <section class="card mb-5">
+                <h3 class="font-bold text-slate-800">Generar con IA</h3>
+                <p class="mt-1 text-xs text-slate-500">
+                    Pega la estructura del flujo. La IA propone pasos, preguntas, datos y ramas;
+                    tú los revisas abajo antes de guardar. No se manda nada solo.
+                </p>
+
+                <form action="/admin/ai/guided-flows/generate" method="POST" class="mt-3 space-y-3">
+                    <textarea name="source" rows="10" required maxlength="20000" class="input text-xs" placeholder="Pega aquí la estructura: pasos, preguntas, datos que debe pedir, reglas y cierres…"><%= typeof aiSource !== "undefined" ? aiSource : "" %></textarea>
+                    <textarea name="instructions" rows="3" maxlength="2000" class="input text-xs" placeholder="Instrucciones opcionales: tono, número máximo de preguntas, qué hacer si no califica…"><%= typeof aiInstructions !== "undefined" ? aiInstructions : "" %></textarea>
+                    <button class="btn btn--primary btn--sm">Generar borrador</button>
+                </form>
+            </section>
+        <% } %>
+
         <% if (error) { %>
             <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"><%= error %></div>
+        <% } %>
+
+        <% if (typeof summary !== "undefined" && summary) { %>
+            <div class="mb-5 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700"><%= summary %></div>
+        <% } %>
+
+        <% if (typeof missing !== "undefined" && Array.isArray(missing) && missing.length > 0) { %>
+            <div class="mb-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <p class="font-semibold">La IA marcó datos que faltan:</p>
+                <ul class="mt-1 list-disc pl-5">
+                    <% missing.forEach((item) => { %><li><%= item %></li><% }) %>
+                </ul>
+            </div>
         <% } %>
 
         <form id="guided-form" action="<%= flow ? "/admin/ai/guided-flows/" + flow.id : "/admin/ai/guided-flows" %>" method="POST" class="space-y-5">
@@ -77,6 +106,7 @@
                         <div class="flex flex-wrap gap-2">
                             <button type="button" id="add-message" class="btn btn--secondary btn--sm">+ Mensaje</button>
                             <button type="button" id="add-question" class="btn btn--secondary btn--sm">+ Pregunta</button>
+                            <button type="button" id="add-input" class="btn btn--secondary btn--sm">+ Datos</button>
                             <button type="button" id="add-end" class="btn btn--secondary btn--sm">+ Cierre</button>
                         </div>
                     </div>
@@ -205,6 +235,7 @@
                     [
                         { value: "message", label: "Mensaje" },
                         { value: "question", label: "Pregunta" },
+                        { value: "input", label: "Datos" },
                         { value: "end", label: "Cierre" }
                     ],
                     step.type,
@@ -290,6 +321,51 @@
                 );
 
                 if (step.type === "message") {
+                    card.appendChild(
+                        labeled(
+                            "Siguiente paso",
+                            nextSelect(step.next, step.id, function (value) {
+                                step.next = value;
+                                sync();
+                            })
+                        )
+                    );
+                }
+
+                if (step.type === "input") {
+                    card.appendChild(
+                        labeled(
+                            "Nombre del dato (minúsculas)",
+                            textInput(
+                                step.field || "dato",
+                                "ej. edad, monto, meses",
+                                40,
+                                function () {
+                                    step.field = this.value.trim();
+                                    sync();
+                                },
+                                "input mt-1 font-mono text-xs"
+                            )
+                        )
+                    );
+
+                    card.appendChild(
+                        labeled(
+                            "Tipo de dato",
+                            optionSelect(
+                                [
+                                    { value: "text", label: "Texto" },
+                                    { value: "number", label: "Número" }
+                                ],
+                                step.inputType || "text",
+                                function (value) {
+                                    step.inputType = value;
+                                    sync();
+                                }
+                            )
+                        )
+                    );
+
                     card.appendChild(
                         labeled(
                             "Siguiente paso",
@@ -463,6 +539,17 @@
                     };
                 }
 
+                if (type === "input") {
+                    return {
+                        id: step.id,
+                        type: "input",
+                        text: step.text || "",
+                        field: step.field || "dato",
+                        inputType: step.inputType || "text",
+                        next: step.next || ""
+                    };
+                }
+
                 return {
                     id: step.id,
                     type: "end",
@@ -488,6 +575,7 @@
 
             document.getElementById("add-message").addEventListener("click", function () { addStep("message"); });
             document.getElementById("add-question").addEventListener("click", function () { addStep("question"); });
+            document.getElementById("add-input").addEventListener("click", function () { addStep("input"); });
             document.getElementById("add-end").addEventListener("click", function () { addStep("end"); });
             form.addEventListener("submit", sync);
             render();

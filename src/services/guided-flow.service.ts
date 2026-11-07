@@ -116,6 +116,7 @@ export class GuidedFlowService {
         run: {
             flowId: string;
             currentStepId: string;
+            data: Prisma.JsonValue;
             flow: { name: string; steps: Prisma.JsonValue };
         };
         text: string;
@@ -131,7 +132,25 @@ export class GuidedFlowService {
 
         const current = findStep(parsed.data, params.run.currentStepId);
 
-        if (!current || current.type !== "question") {
+        if (!current) {
+            await this.complete(params.conversationId, params.run.currentStepId);
+            return true;
+        }
+
+        if (current.type === "input") {
+            return this.handleInput({
+                workspaceId: params.workspaceId,
+                conversationId: params.conversationId,
+                flowId: params.run.flowId,
+                flowName: params.run.flow.name,
+                steps: parsed.data,
+                current,
+                data: params.run.data,
+                text: params.text
+            });
+        }
+
+        if (current.type !== "question") {
             await this.complete(params.conversationId, params.run.currentStepId);
             return true;
         }
@@ -185,6 +204,78 @@ export class GuidedFlowService {
         });
     }
 
+    private static async handleInput(params: {
+        workspaceId: string;
+        conversationId: string;
+        flowId: string;
+        flowName: string;
+        steps: GuidedStep[];
+        current: Extract<GuidedStep, { type: "input" }>;
+        data: Prisma.JsonValue;
+        text: string;
+    }): Promise<boolean> {
+        const value = params.text.trim();
+
+        if (!value) {
+            await MessageService.sendFlowReply({
+                workspaceId: params.workspaceId,
+                conversationId: params.conversationId,
+                body: params.current.text,
+                buttons: null,
+                list: null
+            });
+            return true;
+        }
+
+        let stored = value;
+
+        if (params.current.inputType === "number") {
+            const normalized = value.replace(/,/g, ".").replace(/[^0-9.-]/g, "");
+            const number = Number(normalized);
+
+            if (!Number.isFinite(number) || number <= 0) {
+                await MessageService.sendFlowReply({
+                    workspaceId: params.workspaceId,
+                    conversationId: params.conversationId,
+                    body: "Escribe un número válido, por favor.",
+                    buttons: null,
+                    list: null
+                });
+                return true;
+            }
+
+            stored = String(number);
+        }
+
+        const base =
+            params.data &&
+            typeof params.data === "object" &&
+            !Array.isArray(params.data)
+                ? (params.data as Record<string, unknown>)
+                : {};
+        const nextData = {
+            ...base,
+            [params.current.field]: stored
+        };
+
+        await prisma.guidedFlowRun.update({
+            where: { conversationId: params.conversationId },
+            data: {
+                currentStepId: params.current.next,
+                data: nextData as Prisma.InputJsonValue
+            }
+        });
+
+        return this.sendFrom({
+            workspaceId: params.workspaceId,
+            conversationId: params.conversationId,
+            flowId: params.flowId,
+            flowName: params.flowName,
+            steps: params.steps,
+            stepId: params.current.next
+        });
+    }
+
     private static async sendFrom(params: {
         workspaceId: string;
         conversationId: string;
@@ -207,6 +298,21 @@ export class GuidedFlowService {
 
                 current = findStep(params.steps, current.next);
                 continue;
+            }
+
+            if (current.type === "input") {
+                await MessageService.sendFlowReply({
+                    workspaceId: params.workspaceId,
+                    conversationId: params.conversationId,
+                    body: current.text,
+                    buttons: null,
+                    list: null
+                });
+                await prisma.guidedFlowRun.update({
+                    where: { conversationId: params.conversationId },
+                    data: { currentStepId: current.id }
+                });
+                return true;
             }
 
             if (current.type === "question") {

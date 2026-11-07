@@ -7,6 +7,10 @@ import { LogService } from "../services/log.service";
 import { getRequiredParam } from "../utils/request";
 import { parseGuidedSteps } from "../utils/guided-flow";
 import { PENSION_GUIDED_TEMPLATE } from "../utils/guided-flow.template";
+import {
+    GuidedFlowGenerationError,
+    GuidedFlowGeneratorService
+} from "../services/ai/guided-flow-generator.service";
 
 const formSchema = z.object({
     name: z.string().trim().min(2, "El nombre es obligatorio.").max(80),
@@ -59,6 +63,56 @@ export class AdminGuidedFlowController {
             success: req.query.success || null,
             error: req.query.error || null
         });
+    }
+
+    static async generate(req: Request, res: Response) {
+        const source = String(req.body?.source || "").trim();
+        const instructions = String(req.body?.instructions || "").trim();
+
+        try {
+            const result = await GuidedFlowGeneratorService.generate({
+                workspaceId: req.user!.workspaceId,
+                source,
+                instructions
+            });
+
+            return res.render("pages/admin/ai/guided-flow-edit", {
+                user: req.user,
+                flow: null,
+                stepsJson: JSON.stringify(result.steps, null, 2),
+                values: {
+                    name: result.name,
+                    slug: "",
+                    trigger: result.trigger,
+                    isActive: true
+                },
+                error: null,
+                summary: result.summary,
+                missing: result.missing,
+                aiSource: source,
+                aiInstructions: instructions
+            });
+        } catch (error) {
+            return res.status(400).render("pages/admin/ai/guided-flow-edit", {
+                user: req.user,
+                flow: null,
+                stepsJson: "[]",
+                values: {
+                    name: "",
+                    slug: "",
+                    trigger: "",
+                    isActive: true
+                },
+                error:
+                    error instanceof GuidedFlowGenerationError
+                        ? error.message
+                        : "No se pudo generar el flujo. Intenta de nuevo.",
+                summary: null,
+                missing: [],
+                aiSource: source,
+                aiInstructions: instructions
+            });
+        }
     }
 
     static async newForm(req: Request, res: Response) {

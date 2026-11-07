@@ -759,3 +759,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Pruebas de encendido, apagado y campo ausente.
 
 ---
+
+## Generador IA de flujos guiados y paso input
+
+- Admin → IA → Flujos guiados: pegar estructura y generar borrador con IA.
+- La IA devuelve nombre, trigger, pasos, resumen y lista de `missing`; no guarda hasta revisar.
+- Nuevo paso `input` para capturar texto/número (edad, monto, meses) en `GuidedFlowRun.data`.
+- El prompt prohíbe inventar simulaciones, archivos o seguimientos; esos casos terminan en handoff y se listan en missing.
+- Constructor visual soporta Datos, botones, enlaces, orden y borrado.
+
+---

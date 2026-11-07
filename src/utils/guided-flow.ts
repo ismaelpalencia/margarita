@@ -32,6 +32,19 @@ const questionStep = z.object({
     next: z.record(z.string(), z.string().trim().min(1).max(40))
 });
 
+const inputStep = z.object({
+    id: z.string().trim().min(1).max(40),
+    type: z.literal("input"),
+    text: z.string().trim().min(1).max(1000),
+    field: z
+        .string()
+        .trim()
+        .regex(/^[a-z][a-z0-9_]{0,39}$/, "El campo debe ser un identificador en minúsculas.")
+        .default("dato"),
+    inputType: z.enum(["text", "number"]).default("text"),
+    next: z.string().trim().min(1).max(40)
+});
+
 const endStep = z.object({
     id: z.string().trim().min(1).max(40),
     type: z.literal("end"),
@@ -43,6 +56,7 @@ const endStep = z.object({
 export const guidedStepSchema = z.discriminatedUnion("type", [
     messageStep,
     questionStep,
+    inputStep,
     endStep
 ]);
 
@@ -65,6 +79,16 @@ export const guidedStepsSchema = z
 
         for (const step of steps) {
             if (step.type === "message") {
+                if (!ids.has(step.next)) {
+                    ctx.addIssue({
+                        code: "custom",
+                        message: `El paso «${step.id}» apunta a «${step.next}», que no existe.`
+                    });
+                }
+                continue;
+            }
+
+            if (step.type === "input") {
                 if (!ids.has(step.next)) {
                     ctx.addIssue({
                         code: "custom",

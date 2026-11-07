@@ -44,6 +44,22 @@ test("rechaza una pregunta sin destino para un botón", () => {
     assert.equal(parsed.success, false);
 });
 
+test("acepta un paso de dato numérico", () => {
+    const parsed = parseGuidedSteps([
+        {
+            id: "edad",
+            type: "input",
+            text: "¿Cuántos años tienes?",
+            field: "edad",
+            inputType: "number",
+            next: "fin"
+        },
+        { id: "fin", type: "end", text: "Gracias", links: [], handoff: false }
+    ]);
+
+    assert.equal(parsed.success, true);
+});
+
 test("el trigger ignora acentos y mayúsculas", () => {
     assert.equal(
         guidedTriggerMatches("pension|jubilado", "¿Soy PENSIONADO del IMSS?"),

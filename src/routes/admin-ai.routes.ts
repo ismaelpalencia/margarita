@@ -26,6 +26,7 @@ router.post("/knowledge/:id/active", AdminAiController.setEntryActive);
 /** Importar un documento de negocio y convertirlo en conocimiento/flujos. */
 router.get("/guided-flows", AdminGuidedFlowController.index);
 router.get("/guided-flows/new", AdminGuidedFlowController.newForm);
+router.post("/guided-flows/generate", AdminGuidedFlowController.generate);
 router.post("/guided-flows", AdminGuidedFlowController.create);
 router.get("/guided-flows/:id", AdminGuidedFlowController.editForm);
 router.post("/guided-flows/:id", AdminGuidedFlowController.update);
