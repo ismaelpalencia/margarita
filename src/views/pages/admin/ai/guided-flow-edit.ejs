@@ -4,12 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= flow ? "Editar" : "Nuevo" %> flujo guiado | Margarita</title>
-    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+    <link rel="stylesheet" href="/css/style.css" />
     <%- include("../../../partials/brand-head") %>
 </head>
 
 <body class="min-h-screen bg-slate-100">
     <%- include("../../../partials/admin-nav", { user }) %>
+
+    <%
+        let initialSteps = null;
+        try {
+            initialSteps = JSON.parse(stepsJson);
+        } catch {
+            initialSteps = null;
+        }
+        const initialStepsJson = JSON.stringify(Array.isArray(initialSteps) ? initialSteps : []).replace(/</g, "\\u003c");
+        const hasVisualSteps = Array.isArray(initialSteps);
+    %>
 
     <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <div class="mb-6">
@@ -18,7 +29,7 @@
                 <%= flow ? "Editar flujo guiado" : "Nuevo flujo guiado" %>
             </h2>
             <p class="mt-1 text-sm text-slate-500">
-                No usa IA. Cada paso se ejecuta en orden y las respuestas de botón deciden la rama.
+                No usa IA. Arma los pasos, asigna los botones y decide a dónde va cada respuesta.
             </p>
         </div>
 
@@ -26,7 +37,7 @@
             <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"><%= error %></div>
         <% } %>
 
-        <form action="<%= flow ? `/admin/ai/guided-flows/${flow.id}` : "/admin/ai/guided-flows" %>" method="POST" class="space-y-5">
+        <form id="guided-form" action="<%= flow ? "/admin/ai/guided-flows/" + flow.id : "/admin/ai/guided-flows" %>" method="POST" class="space-y-5">
             <section class="card grid gap-3 sm:grid-cols-2">
                 <div>
                     <label class="text-sm font-bold text-slate-800">Nombre</label>
@@ -38,7 +49,7 @@
                 </div>
                 <div class="sm:col-span-2">
                     <label class="text-sm font-bold text-slate-800">Dispara cuando el mensaje contiene</label>
-                    <input name="trigger" value="<%= values.trigger %>" required maxlength="200" class="input mt-1" placeholder="pension|jubilado|ley 73" />
+                    <input name="trigger" value="<%= values.trigger %>" required maxlength="200" class="input mt-1" placeholder="hola|pension|jubilado" />
                     <p class="mt-1 text-xs text-slate-500">Separa alternativas con <code>|</code>.</p>
                 </div>
                 <label class="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
@@ -47,26 +58,33 @@
                 </label>
             </section>
 
-            <section class="card">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <label class="text-sm font-bold text-slate-800">Pasos (JSON)</label>
-                    <span class="text-xs text-slate-500">Máximo 40 pasos, 3 botones por pregunta.</span>
-                </div>
+            <% if (!hasVisualSteps) { %>
+                <section class="card">
+                    <p class="text-sm font-semibold text-red-700">
+                        El JSON guardado no se pudo leer. Corrígelo aquí abajo o vuelve a crear el flujo.
+                    </p>
+                    <textarea name="steps" rows="22" required class="input mt-2 font-mono text-xs"><%= stepsJson %></textarea>
+                </section>
+            <% } else { %>
+                <section class="card">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h3 class="font-bold text-slate-800">Pasos del flujo</h3>
+                            <p class="mt-1 text-xs text-slate-500">
+                                Primero un mensaje de bienvenida, luego preguntas. El cierre puede llevar enlaces.
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" id="add-message" class="btn btn--secondary btn--sm">+ Mensaje</button>
+                            <button type="button" id="add-question" class="btn btn--secondary btn--sm">+ Pregunta</button>
+                            <button type="button" id="add-end" class="btn btn--secondary btn--sm">+ Cierre</button>
+                        </div>
+                    </div>
 
-                <textarea name="steps" rows="24" required class="input mt-2 font-mono text-xs"><%= stepsJson %></textarea>
-
-                <details class="mt-3 rounded-xl bg-slate-50 p-4 text-xs text-slate-600">
-                    <summary class="cursor-pointer font-semibold">Ver formato y ejemplo</summary>
-                    <pre class="mt-2 overflow-x-auto whitespace-pre-wrap">[
-  {"id":"bienvenida","type":"message","text":"Hola...","next":"p1"},
-  {"id":"p1","type":"question","text":"¿Eres pensionado?","buttons":[
-    {"id":"SI","title":"Sí"},{"id":"NO","title":"No"}
-  ],"next":{"SI":"p2","NO":"cierre"}},
-  {"id":"cierre","type":"end","text":"Gracias...","links":[],"handoff":false}
-]</pre>
-                    <p class="mt-2">En <code>end</code>, <code>links</code> puede llevar hasta 3 enlaces con <code>label</code> y <code>url</code>.</p>
-                </details>
-            </section>
+                    <div id="guided-builder" class="mt-4 space-y-3"></div>
+                    <input type="hidden" name="steps" id="guided-steps" value="<%= initialStepsJson %>" />
+                </section>
+            <% } %>
 
             <div class="flex flex-wrap gap-3">
                 <button class="btn btn--primary">Guardar flujo</button>
@@ -74,5 +92,406 @@
             </div>
         </form>
     </main>
+
+    <script>
+        (function () {
+            var initial = <%- initialStepsJson %>;
+            var form = document.getElementById("guided-form");
+            var container = document.getElementById("guided-builder");
+            var hidden = document.getElementById("guided-steps");
+
+            if (!container || !hidden || !form) {
+                return;
+            }
+
+            var steps = Array.isArray(initial)
+                ? initial.filter(function (step) {
+                      return step && typeof step === "object";
+                  })
+                : [];
+
+            if (steps.length === 0) {
+                steps.push({ id: "bienvenida", type: "message", text: "", next: "" });
+            }
+
+            function sync() {
+                hidden.value = JSON.stringify(steps);
+            }
+
+            function el(tag, className, text) {
+                var node = document.createElement(tag);
+                if (className) {
+                    node.className = className;
+                }
+                if (text !== undefined) {
+                    node.textContent = text;
+                }
+                return node;
+            }
+
+            function labeled(text, control) {
+                var wrap = el("label", "block text-xs font-semibold text-slate-600", text);
+                wrap.appendChild(control);
+                return wrap;
+            }
+
+            function textInput(value, placeholder, maxLength, onInput, className) {
+                var input = document.createElement("input");
+                input.type = "text";
+                input.value = value || "";
+                input.placeholder = placeholder || "";
+                input.maxLength = maxLength;
+                input.className = className || "input mt-1";
+                input.addEventListener("input", onInput);
+                return input;
+            }
+
+            function textArea(value, placeholder, rows, onInput) {
+                var input = document.createElement("textarea");
+                input.value = value || "";
+                input.placeholder = placeholder || "";
+                input.rows = rows;
+                input.className = "input mt-1";
+                input.addEventListener("input", onInput);
+                return input;
+            }
+
+            function optionSelect(options, value, onChange, className) {
+                var select = document.createElement("select");
+                select.className = className || "input mt-1";
+                options.forEach(function (option) {
+                    var item = document.createElement("option");
+                    item.value = option.value;
+                    item.textContent = option.label;
+                    if (option.value === value) {
+                        item.selected = true;
+                    }
+                    select.appendChild(item);
+                });
+                select.addEventListener("change", function () {
+                    onChange(select.value);
+                });
+                return select;
+            }
+
+            function ids(exclude) {
+                return steps
+                    .map(function (step) { return step.id; })
+                    .filter(function (id) { return id && id !== exclude; });
+            }
+
+            function nextOptions(value, exclude) {
+                var list = [{ value: "", label: "— Elegir paso —" }];
+                ids(exclude).forEach(function (id) {
+                    list.push({ value: id, label: id });
+                });
+                return optionSelect(list, value || "", function (next) {
+                    return next;
+                });
+            }
+
+            function nextSelect(value, exclude, onChange) {
+                var list = [{ value: "", label: "— Elegir paso —" }];
+                ids(exclude).forEach(function (id) {
+                    list.push({ value: id, label: id });
+                });
+                return optionSelect(list, value || "", onChange);
+            }
+
+            function stepCard(step, index) {
+                var card = el("section", "rounded-xl border border-slate-200 p-4 space-y-3");
+                var head = el("div", "flex flex-wrap items-center gap-2");
+                var type = optionSelect(
+                    [
+                        { value: "message", label: "Mensaje" },
+                        { value: "question", label: "Pregunta" },
+                        { value: "end", label: "Cierre" }
+                    ],
+                    step.type,
+                    function (value) {
+                        steps[index] = changeType(step, value);
+                        render();
+                    },
+                    "rounded-lg border border-slate-300 px-2 py-1 text-xs"
+                );
+                head.appendChild(type);
+
+                var idInput = textInput(
+                    step.id,
+                    "id del paso",
+                    40,
+                    function () {
+                        var previous = step.id;
+                        step.id = idInput.value.trim();
+                        if (previous && step.id) {
+                            steps.forEach(function (item) {
+                                if (item.type === "message" && item.next === previous) {
+                                    item.next = step.id;
+                                }
+                                if (item.type === "question") {
+                                    Object.keys(item.next || {}).forEach(function (key) {
+                                        if (item.next[key] === previous) {
+                                            item.next[key] = step.id;
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        sync();
+                    },
+                    "rounded-lg border border-slate-300 px-2 py-1 text-xs font-mono"
+                );
+                head.appendChild(idInput);
+
+                var up = el("button", "rounded-lg px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100", "↑");
+                up.type = "button";
+                up.addEventListener("click", function () {
+                    if (index > 0) {
+                        var temp = steps[index - 1];
+                        steps[index - 1] = steps[index];
+                        steps[index] = temp;
+                        render();
+                    }
+                });
+                head.appendChild(up);
+
+                var down = el("button", "rounded-lg px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100", "↓");
+                down.type = "button";
+                down.addEventListener("click", function () {
+                    if (index < steps.length - 1) {
+                        var temp = steps[index + 1];
+                        steps[index + 1] = steps[index];
+                        steps[index] = temp;
+                        render();
+                    }
+                });
+                head.appendChild(down);
+
+                var remove = el("button", "ml-auto rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50", "Eliminar");
+                remove.type = "button";
+                remove.addEventListener("click", function () {
+                    steps.splice(index, 1);
+                    if (steps.length === 0) {
+                        steps.push({ id: "bienvenida", type: "message", text: "", next: "" });
+                    }
+                    render();
+                });
+                head.appendChild(remove);
+                card.appendChild(head);
+
+                card.appendChild(
+                    labeled(
+                        "Texto",
+                        textArea(step.text, "Lo que recibe el cliente…", 3, function () {
+                            step.text = this.value;
+                            sync();
+                        })
+                    )
+                );
+
+                if (step.type === "message") {
+                    card.appendChild(
+                        labeled(
+                            "Siguiente paso",
+                            nextSelect(step.next, step.id, function (value) {
+                                step.next = value;
+                                sync();
+                            })
+                        )
+                    );
+                }
+
+                if (step.type === "question") {
+                    if (!Array.isArray(step.buttons)) {
+                        step.buttons = [];
+                    }
+                    if (!step.next || typeof step.next !== "object") {
+                        step.next = {};
+                    }
+
+                    var buttonsWrap = el("div", "space-y-2");
+                    buttonsWrap.appendChild(el("p", "text-xs font-bold text-slate-600", "Botones"));
+
+                    step.buttons.forEach(function (button, buttonIndex) {
+                        var row = el("div", "grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]");
+                        var buttonId = textInput(
+                            button.id,
+                            "ID",
+                            40,
+                            function () {
+                                var previous = button.id;
+                                button.id = buttonId.value.trim();
+                                if (previous && button.id && previous !== button.id) {
+                                    step.next[button.id] = step.next[previous] || "";
+                                    delete step.next[previous];
+                                }
+                                sync();
+                            },
+                            "input text-xs font-mono"
+                        );
+                        var title = textInput(
+                            button.title,
+                            "Título (20)",
+                            20,
+                            function () {
+                                button.title = title.value;
+                                sync();
+                            },
+                            "input text-xs"
+                        );
+                        var next = nextSelect(step.next[button.id], step.id, function (value) {
+                            step.next[button.id] = value;
+                            sync();
+                        });
+                        var removeButton = el("button", "rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50", "Quitar");
+                        removeButton.type = "button";
+                        removeButton.addEventListener("click", function () {
+                            delete step.next[button.id];
+                            step.buttons.splice(buttonIndex, 1);
+                            render();
+                        });
+                        row.appendChild(buttonId);
+                        row.appendChild(title);
+                        row.appendChild(next);
+                        row.appendChild(removeButton);
+                        buttonsWrap.appendChild(row);
+                    });
+
+                    if (step.buttons.length < 3) {
+                        var addButton = el("button", "rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200", "+ Agregar botón");
+                        addButton.type = "button";
+                        addButton.addEventListener("click", function () {
+                            var number = step.buttons.length + 1;
+                            step.buttons.push({ id: "OPCION_" + number, title: "" });
+                            render();
+                        });
+                        buttonsWrap.appendChild(addButton);
+                    }
+
+                    card.appendChild(buttonsWrap);
+                }
+
+                if (step.type === "end") {
+                    if (!Array.isArray(step.links)) {
+                        step.links = [];
+                    }
+
+                    var linksWrap = el("div", "space-y-2");
+                    linksWrap.appendChild(el("p", "text-xs font-bold text-slate-600", "Enlaces (opcional)"));
+
+                    step.links.forEach(function (link, linkIndex) {
+                        var row = el("div", "grid gap-2 sm:grid-cols-[1fr_2fr_auto]");
+                        var label = textInput(
+                            link.label,
+                            "Texto del enlace",
+                            30,
+                            function () {
+                                link.label = label.value;
+                                sync();
+                            },
+                            "input text-xs"
+                        );
+                        var url = textInput(
+                            link.url,
+                            "https://…",
+                            500,
+                            function () {
+                                link.url = url.value;
+                                sync();
+                            },
+                            "input text-xs"
+                        );
+                        var removeLink = el("button", "rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50", "Quitar");
+                        removeLink.type = "button";
+                        removeLink.addEventListener("click", function () {
+                            step.links.splice(linkIndex, 1);
+                            render();
+                        });
+                        row.appendChild(label);
+                        row.appendChild(url);
+                        row.appendChild(removeLink);
+                        linksWrap.appendChild(row);
+                    });
+
+                    if (step.links.length < 3) {
+                        var addLink = el("button", "rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200", "+ Agregar enlace");
+                        addLink.type = "button";
+                        addLink.addEventListener("click", function () {
+                            step.links.push({ label: "", url: "" });
+                            render();
+                        });
+                        linksWrap.appendChild(addLink);
+                    }
+
+                    var handoff = document.createElement("label");
+                    handoff.className = "flex items-center gap-2 text-xs text-slate-600";
+                    var handoffInput = document.createElement("input");
+                    handoffInput.type = "checkbox";
+                    handoffInput.checked = Boolean(step.handoff);
+                    handoffInput.addEventListener("change", function () {
+                        step.handoff = handoffInput.checked;
+                        sync();
+                    });
+                    handoff.appendChild(handoffInput);
+                    handoff.appendChild(document.createTextNode("Entregar a una persona al terminar"));
+                    linksWrap.appendChild(handoff);
+                    card.appendChild(linksWrap);
+                }
+
+                return card;
+            }
+
+            function changeType(step, type) {
+                if (type === "message") {
+                    return {
+                        id: step.id,
+                        type: "message",
+                        text: step.text || "",
+                        next: step.next || ""
+                    };
+                }
+
+                if (type === "question") {
+                    return {
+                        id: step.id,
+                        type: "question",
+                        text: step.text || "",
+                        buttons: Array.isArray(step.buttons) && step.buttons.length
+                            ? step.buttons
+                            : [{ id: "SI", title: "Sí" }],
+                        next: step.next && typeof step.next === "object" ? step.next : {}
+                    };
+                }
+
+                return {
+                    id: step.id,
+                    type: "end",
+                    text: step.text || "",
+                    links: Array.isArray(step.links) ? step.links : [],
+                    handoff: Boolean(step.handoff)
+                };
+            }
+
+            function addStep(type) {
+                var number = steps.length + 1;
+                steps.push(changeType({ id: "paso" + number, type: type }, type));
+                render();
+            }
+
+            function render() {
+                container.innerHTML = "";
+                steps.forEach(function (step, index) {
+                    container.appendChild(stepCard(step, index));
+                });
+                sync();
+            }
+
+            document.getElementById("add-message").addEventListener("click", function () { addStep("message"); });
+            document.getElementById("add-question").addEventListener("click", function () { addStep("question"); });
+            document.getElementById("add-end").addEventListener("click", function () { addStep("end"); });
+            form.addEventListener("submit", sync);
+            render();
+        })();
+    </script>
 </body>
 </html>

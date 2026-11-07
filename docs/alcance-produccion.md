@@ -234,6 +234,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
   respuesta de botón avanza el paso y no se manda a la IA.
 - No dependen de `AI_ENABLED`, del modo de IA ni de `flowsEnabled`: cada
   flujo guiado se apaga con su propio `isActive`.
+- Cada número tiene `guidedFlowsEnabled`; si está apagado, no inicia ni avanza
+  flujos guiados en ese número.
 - El estado vive en `GuidedFlowRun` por conversación; al terminar queda
   `COMPLETED` y un nuevo trigger puede reiniciar el flujo.
 - Sirven para calificar leads (pensión, crédito, seguros), explicar pasos y
@@ -412,7 +414,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
 | Pruebas | 302 unitarias / 82 integración | **359 unitarias** (56 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
-| Migraciones | 23 | **37** |
+| Migraciones | 23 | **38** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
 | Precios | Repetidos en varios documentos | Fuente en `landing/` + `PRICING`; el panel no los muestra |
@@ -480,7 +482,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Tipos | `npx tsc --noEmit` limpio |
 | Unitarias | **359** en 56 archivos |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
-| Migraciones | **37** versionadas en `prisma/migrations` |
+| Migraciones | **38** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |
 | Linter/formateador | No hay |
 | Pruebas de interfaz | No hay automatizadas |

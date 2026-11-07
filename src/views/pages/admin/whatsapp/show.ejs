@@ -19,7 +19,7 @@
             </p>
         </div>
 
-        <% if (success === "connection" || success === "updated" || success === "encrypted" || success === "already_encrypted" || success === "number_created" || success === "number_updated" || success === "number_ai" || success === "number_flows" || success === "account_created") { %>
+        <% if (success === "connection" || success === "updated" || success === "encrypted" || success === "already_encrypted" || success === "number_created" || success === "number_updated" || success === "number_ai" || success === "number_flows" || success === "number_guided_flows" || success === "account_created") { %>
             <p class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm font-semibold text-margarita-700">
                 <% if (success === "account_created") { %>
                     Cuenta configurada. Ahora registra tu primer número aquí abajo.
@@ -33,6 +33,8 @@
                     Preferencia de IA del número actualizada.
                 <% } else if (success === "number_flows") { %>
                     Preferencia de flujos del número actualizada.
+                <% } else if (success === "number_guided_flows") { %>
+                    Preferencia de flujos guiados del número actualizada.
                 <% } else if (success === "encrypted") { %>
                     Credenciales cifradas en la base de datos.
                 <% } else if (success === "already_encrypted") { %>
@@ -214,6 +216,10 @@
                                             Flujos <%= number.flowsEnabled ? "activos" : "apagados" %>
                                         </span>
 
+                                        <span class="rounded-full px-3 py-1 font-semibold <%= number.guidedFlowsEnabled ? 'bg-margarita-50 text-margarita-700' : 'bg-amber-50 text-amber-800' %>">
+                                            Guiados <%= number.guidedFlowsEnabled ? "activos" : "apagados" %>
+                                        </span>
+
                                         <% if (number.status === "CONNECTED") { %>
                                             <span class="rounded-full bg-margarita-50 px-3 py-1 font-semibold text-margarita-700">
                                                 Conectado
@@ -260,6 +266,13 @@
                                         <input type="hidden" name="enabled" value="<%= number.flowsEnabled ? "false" : "true" %>" />
                                         <button class="rounded-xl px-4 py-2 text-xs font-semibold <%= number.flowsEnabled ? 'bg-amber-50 text-amber-800 hover:bg-amber-100' : 'bg-margarita-600 text-white hover:bg-margarita-700' %>">
                                             <%= number.flowsEnabled ? "Apagar flujos" : "Encender flujos" %>
+                                        </button>
+                                    </form>
+
+                                    <form action="/admin/whatsapp/numbers/<%= number.id %>/guided-flows" method="POST">
+                                        <input type="hidden" name="enabled" value="<%= number.guidedFlowsEnabled ? "false" : "true" %>" />
+                                        <button class="rounded-xl px-4 py-2 text-xs font-semibold <%= number.guidedFlowsEnabled ? 'bg-amber-50 text-amber-800 hover:bg-amber-100' : 'bg-margarita-600 text-white hover:bg-margarita-700' %>">
+                                            <%= number.guidedFlowsEnabled ? "Apagar guiados" : "Encender guiados" %>
                                         </button>
                                     </form>
                                 </div>

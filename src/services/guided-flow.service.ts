@@ -3,6 +3,7 @@ import { LogLevel, LogModule, Prisma } from "@prisma/client";
 import { prisma } from "../config/prisma";
 import { MessageService } from "./message.service";
 import { LogService } from "./log.service";
+import { AiAutoReplyService } from "./ai/auto-reply.service";
 import {
     findStep,
     guidedStepsSchema,
@@ -235,6 +236,14 @@ export class GuidedFlowService {
             });
 
             await this.complete(params.conversationId, current.id);
+
+            if (current.handoff) {
+                await AiAutoReplyService.handoff({
+                    workspaceId: params.workspaceId,
+                    conversationId: params.conversationId,
+                    reason: "GUIDED_FLOW"
+                }).catch(() => undefined);
+            }
 
             await LogService.create({
                 workspaceId: params.workspaceId,

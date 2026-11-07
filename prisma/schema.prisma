@@ -676,6 +676,12 @@ model WhatsAppNumber {
   flowsEnabled Boolean @default(true)
 
   /**
+   * Interruptor de flujos guiados por número. Es independiente de la IA y
+   * de los flujos de una sola respuesta.
+   */
+  guidedFlowsEnabled Boolean @default(true)
+
+  /**
    * Mes ("2026-11") en el que ya se avisó que el número pasó el umbral del
    * tramo mensual. Sirve para no repetir la alerta cada vez que se abre el
    * panel.

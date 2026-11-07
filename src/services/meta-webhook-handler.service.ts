@@ -164,6 +164,7 @@ export class MetaWebhookHandlerService {
                         whatsappNumberId: number.id,
                         numberAiEnabled: number.aiEnabled,
                         numberFlowsEnabled: number.flowsEnabled,
+                        numberGuidedFlowsEnabled: number.guidedFlowsEnabled,
                         message,
                         profileName: contacts.find(
                             (contact) => contact.wa_id === message.from
@@ -186,6 +187,7 @@ export class MetaWebhookHandlerService {
         whatsappNumberId: string;
         numberAiEnabled: boolean;
         numberFlowsEnabled: boolean;
+        numberGuidedFlowsEnabled: boolean;
         message: MetaWebhookMessage;
         profileName?: string;
     }) {
@@ -194,6 +196,7 @@ export class MetaWebhookHandlerService {
             whatsappNumberId,
             numberAiEnabled,
             numberFlowsEnabled,
+            numberGuidedFlowsEnabled,
             message,
             profileName
         } = params;
@@ -428,6 +431,7 @@ export class MetaWebhookHandlerService {
                 let guidedTriggered = false;
 
                 /** Flujos guiados: secuencia determinista, sin IA. */
+                if (numberGuidedFlowsEnabled) {
                 try {
                     guidedTriggered = await GuidedFlowService.handleIncoming({
                         workspaceId,
@@ -447,6 +451,7 @@ export class MetaWebhookHandlerService {
                         },
                         "No se pudo ejecutar el flujo guiado."
                     );
+                }
                 }
 
                 if (

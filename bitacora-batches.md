@@ -741,3 +741,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Migración 20261106220000_guided_flows y pruebas del esquema/plantilla.
 
 ---
+
+## Flujos guiados: por número y constructor visual
+
+- `WhatsAppNumber.guidedFlowsEnabled` (default true) con interruptor en Admin → WhatsApp.
+- El webhook omite los flujos guiados del número cuando está apagado.
+- El editor de flujos guiados dejó el JSON como formato interno y agregó constructor visual: pasos, tipos, botones, enlaces, orden y borrado.
+- La validación sigue en servidor; el constructor solo arma el JSON.
+- Migración 20261107000000_number_guided_flows.
+
+---

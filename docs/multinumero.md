@@ -76,6 +76,16 @@ misma pantalla de **Admin → WhatsApp**.
   en otro, o ambos en el mismo.
 - La preferencia se audita como `NUMBER_FLOWS_ENABLED` / `NUMBER_FLOWS_DISABLED`.
 
+### Flujos guiados
+
+Los flujos guiados (secuencias de preguntas sin IA) también tienen un
+interruptor por número: `guidedFlowsEnabled`.
+
+- Es independiente de la IA y de los flujos de una sola respuesta.
+- Si el número lo tiene apagado, no inicia ni avanza flujos guiados.
+- Se activa o desactiva en **Admin → WhatsApp**, junto a IA y flujos.
+- Se audita como `NUMBER_GUIDED_FLOWS_ENABLED` / `NUMBER_GUIDED_FLOWS_DISABLED`.
+
 ## Pendiente
 
 ### Asignar números a agentes

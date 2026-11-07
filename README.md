@@ -37,7 +37,7 @@ La página pública `margaritaapp.org/demo` corre en un **microservicio Go apart
 
 - Dashboard con conversaciones abiertas, mensajes recientes y estado de la operación.
 - Cuenta de WhatsApp: ver número, calidad, `phoneNumberId` y probar conexión contra Meta.
-- Varios números por cuenta: agregar, editar, activar o desactivar números de la misma WABA, elegir el **número activo** en el encabezado y **apagar la IA o los flujos por número** (Admin → WhatsApp).
+- Varios números por cuenta: agregar, editar, activar o desactivar números de la misma WABA, elegir el **número activo** en el encabezado y **apagar la IA, los flujos o los flujos guiados por número** (Admin → WhatsApp).
 - Plantillas: sincronizar las aprobadas desde Meta y verlas con su estado real.
 - Contactos: crear, editar, buscar, etiquetar y desactivar, con consentimiento (opt-in), bajas y filtro de "solo bajas".
 - Teléfonos de México con 10 dígitos e internacionales con `+` y lada; el número se guarda normalizado para WhatsApp.

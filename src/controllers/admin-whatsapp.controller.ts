@@ -256,6 +256,45 @@ export class AdminWhatsAppController {
         }
     }
 
+    static async toggleNumberGuidedFlows(req: Request, res: Response) {
+        const numberId = getRequiredParam(req, "numberId");
+        const enabled = req.body?.enabled === "true";
+
+        try {
+            const number = await WhatsAppNumberService.getById(
+                req.user!.workspaceId,
+                numberId
+            );
+
+            if (!number) {
+                return res.redirect("/admin/whatsapp?error=number_update");
+            }
+
+            await WhatsAppNumberService.setGuidedFlowsEnabled(
+                req.user!.workspaceId,
+                numberId,
+                enabled
+            );
+
+            await LogService.create({
+                workspaceId: req.user!.workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.AI,
+                action: enabled
+                    ? "NUMBER_GUIDED_FLOWS_ENABLED"
+                    : "NUMBER_GUIDED_FLOWS_DISABLED",
+                message: enabled
+                    ? "Se encendieron los flujos guiados en un número."
+                    : "Se apagaron los flujos guiados en un número.",
+                payload: { numberId, phoneNumber: number.phoneNumber }
+            }).catch(() => undefined);
+
+            return res.redirect("/admin/whatsapp?success=number_guided_flows");
+        } catch {
+            return res.redirect("/admin/whatsapp?error=number_update");
+        }
+    }
+
     static async testConnection(req: Request, res: Response) {
         const numberId = getRequiredParam(req, "numberId");
 
