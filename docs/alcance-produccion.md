@@ -226,6 +226,20 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - **Paquete inicial por vertical** (comercio, servicios, genérico): carga flujos por palabra clave y 10–11 entradas de conocimiento. Idempotente; enciende `flowsEnabled`. No hay paquete de cobranza.
 - **Panel por hilo**: modo, intención, confianza, motivo de handoff, respuestas automáticas, borradores aprobados y costo estimado.
 
+### Flujos guiados (sin IA)
+
+- **Admin → IA → Flujos guiados**: secuencia de pasos `message`,
+  `question` (hasta 3 botones) y `end` (hasta 3 enlaces), con ramas por botón.
+- Se ejecutan antes que los flujos de una sola respuesta y que la IA; una
+  respuesta de botón avanza el paso y no se manda a la IA.
+- No dependen de `AI_ENABLED`, del modo de IA ni de `flowsEnabled`: cada
+  flujo guiado se apaga con su propio `isActive`.
+- El estado vive en `GuidedFlowRun` por conversación; al terminar queda
+  `COMPLETED` y un nuevo trigger puede reiniciar el flujo.
+- Sirven para calificar leads (pensión, crédito, seguros), explicar pasos y
+  llevar a Calendly o a solicitar un documento. No usan IA ni inventan texto.
+- El editor valida IDs, destinos, botones y URLs antes de guardar.
+
 ### Importación de negocio
 
 - **Admin → IA → Importar negocio**: se pega o sube un documento de texto
@@ -397,8 +411,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | --- | --- | --- |
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
-| Pruebas | 302 unitarias / 82 integración | **355 unitarias** (55 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
-| Migraciones | 23 | **36** |
+| Pruebas | 302 unitarias / 82 integración | **359 unitarias** (56 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
+| Migraciones | 23 | **37** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
 | Precios | Repetidos en varios documentos | Fuente en `landing/` + `PRICING`; el panel no los muestra |
@@ -464,9 +478,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Aspecto | Estado |
 | --- | --- |
 | Tipos | `npx tsc --noEmit` limpio |
-| Unitarias | **355** en 55 archivos |
+| Unitarias | **359** en 56 archivos |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
-| Migraciones | **36** versionadas en `prisma/migrations` |
+| Migraciones | **37** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |
 | Linter/formateador | No hay |
 | Pruebas de interfaz | No hay automatizadas |

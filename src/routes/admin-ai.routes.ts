@@ -3,6 +3,7 @@ import { Router } from "express";
 import { AdminAiController } from "../controllers/admin-ai.controller";
 import { AdminFlowController } from "../controllers/admin-flow.controller";
 import { AdminAiImportController } from "../controllers/admin-ai-import.controller";
+import { AdminGuidedFlowController } from "../controllers/admin-guided-flow.controller";
 
 /**
  * Capa de IA (fase 1: sugerencias).
@@ -23,6 +24,13 @@ router.post("/knowledge/:id", AdminAiController.updateEntry);
 router.post("/knowledge/:id/active", AdminAiController.setEntryActive);
 
 /** Importar un documento de negocio y convertirlo en conocimiento/flujos. */
+router.get("/guided-flows", AdminGuidedFlowController.index);
+router.get("/guided-flows/new", AdminGuidedFlowController.newForm);
+router.post("/guided-flows", AdminGuidedFlowController.create);
+router.get("/guided-flows/:id", AdminGuidedFlowController.editForm);
+router.post("/guided-flows/:id", AdminGuidedFlowController.update);
+router.post("/guided-flows/:id/toggle", AdminGuidedFlowController.toggle);
+
 router.get("/import", AdminAiImportController.form);
 router.post("/import", AdminAiImportController.analyze);
 router.post("/import/:id/apply", AdminAiImportController.apply);

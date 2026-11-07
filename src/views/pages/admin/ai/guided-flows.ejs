@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flujos guiados | Margarita</title>
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+    <%- include("../../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <div class="mb-6">
+            <a href="/admin/ai" class="text-sm font-semibold text-slate-500">← IA</a>
+            <h2 class="mt-2 text-2xl font-bold text-slate-800">Flujos guiados</h2>
+            <p class="mt-1 max-w-3xl text-sm text-slate-500">
+                Secuencias deterministas de preguntas y respuestas, sin IA. Sirven para calificar,
+                explicar pasos o llevar a una cita. Corren antes que la IA y que los flujos de una
+                sola respuesta.
+            </p>
+        </div>
+
+        <% if (success) { %>
+            <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm font-semibold text-margarita-700">
+                <%= success === "created" ? "Flujo creado." : success === "updated" ? "Flujo actualizado." : "Flujo actualizado." %>
+            </div>
+        <% } %>
+
+        <% if (error) { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                <%= error === "not_found" ? "El flujo no existe." : "No se pudo completar la acción." %>
+            </div>
+        <% } %>
+
+        <div class="mb-5 flex flex-wrap gap-2">
+            <a href="/admin/ai/guided-flows/new" class="btn btn--primary">Nuevo flujo</a>
+            <a href="/admin/ai/guided-flows/new?template=pension" class="btn btn--secondary">Crear ejemplo Pensión IMSS</a>
+        </div>
+
+        <section class="card" style="padding: 0; overflow: hidden">
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr><th>Flujo</th><th>Dispara con</th><th>Estado</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        <% if (flows.length === 0) { %>
+                            <tr><td colspan="4" class="text-sm text-slate-500">Todavía no hay flujos guiados.</td></tr>
+                        <% } %>
+                        <% flows.forEach((flow) => { %>
+                            <tr>
+                                <td>
+                                    <strong><%= flow.name %></strong>
+                                    <span class="block text-xs text-slate-500"><%= flow.slug %></span>
+                                </td>
+                                <td class="text-xs text-slate-600"><%= flow.trigger %></td>
+                                <td>
+                                    <span class="badge <%= flow.isActive ? "badge--success" : "badge--neutral" %>">
+                                        <%= flow.isActive ? "Activo" : "Apagado" %>
+                                    </span>
+                                </td>
+                                <td class="text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <a href="/admin/ai/guided-flows/<%= flow.id %>" class="btn btn--secondary btn--sm">Editar</a>
+                                        <form action="/admin/ai/guided-flows/<%= flow.id %>/toggle" method="POST">
+                                            <button class="btn btn--ghost btn--sm"><%= flow.isActive ? "Apagar" : "Encender" %></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

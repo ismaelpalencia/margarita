@@ -731,3 +731,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Migración BusinessImport y pruebas del normalizador.
 
 ---
+
+## Flujos guiados sin IA
+
+- Modelo GuidedFlow/GuidedFlowRun: pasos message/question/end y ramas por botón.
+- Motor determinista previo a flujos de una respuesta y a la IA; no depende de AI_ENABLED ni flowsEnabled.
+- Editor JSON con validación de IDs, destinos, botones y URLs; plantilla de pensión IMSS.
+- Los runs se guardan por conversación y terminan en COMPLETED.
+- Migración 20261106220000_guided_flows y pruebas del esquema/plantilla.
+
+---

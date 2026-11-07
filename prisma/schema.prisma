@@ -398,6 +398,8 @@ model Workspace {
   aiUsageMonthly   AiUsageMonthly[]
   knowledgeEntries KnowledgeEntry[]
   businessImports  BusinessImport[]
+  guidedFlows      GuidedFlow[]
+  guidedFlowRuns   GuidedFlowRun[]
   aiSuggestions    AiSuggestion[]
   aiJobs           AiSuggestionJob[]
   aiUsage          AiUsage[]
@@ -912,6 +914,7 @@ model Conversation {
   aiJobs        AiSuggestionJob[]
   leads         Lead[]
   feedback      ConversationFeedback?
+  guidedFlowRun GuidedFlowRun?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1551,5 +1554,57 @@ model BusinessImport {
   appliedAt DateTime?
 
   @@index([workspaceId, createdAt])
+  @@index([workspaceId, status])
+}
+
+
+enum GuidedFlowRunStatus {
+  ACTIVE
+  COMPLETED
+}
+
+/**
+ * Flujo guiado determinista (sin IA): una secuencia de pasos con preguntas,
+ * botones y ramas. Se ejecuta antes que los flujos de una sola respuesta y
+ * que la IA.
+ */
+model GuidedFlow {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  name    String
+  slug    String
+  trigger String
+  steps   Json
+  isActive Boolean @default(true)
+
+  runs GuidedFlowRun[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId, isActive])
+}
+
+model GuidedFlowRun {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  flowId         String
+  flow           GuidedFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+
+  conversationId String    @unique
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  currentStepId String
+  status        GuidedFlowRunStatus @default(ACTIVE)
+  data          Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([workspaceId, status])
 }

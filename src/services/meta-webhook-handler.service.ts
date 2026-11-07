@@ -37,6 +37,7 @@ import { InteractiveReplyService } from "./interactive-reply.service";
 import { enqueueSuggestion } from "./ai/queue.service";
 import { OffHoursService } from "./off-hours.service";
 import { FlowService } from "./flow.service";
+import { GuidedFlowService } from "./guided-flow.service";
 import { BadgeService } from "./badge.service";
 import { LeadService } from "./lead.service";
 import { extractEmail } from "../utils/lead";
@@ -424,10 +425,34 @@ export class MetaWebhookHandlerService {
                  * No aplica a respuestas de botón o lista.
                  */
                 let flowTriggered = false;
+                let guidedTriggered = false;
+
+                /** Flujos guiados: secuencia determinista, sin IA. */
+                try {
+                    guidedTriggered = await GuidedFlowService.handleIncoming({
+                        workspaceId,
+                        conversationId: conversation.id,
+                        text: (parsed.body || parsed.replyTitle || "").trim(),
+                        replyId: parsed.replyId ?? null,
+                        replyTitle: parsed.replyTitle ?? null
+                    });
+                } catch (error) {
+                    logger.warn(
+                        {
+                            error:
+                                error instanceof Error
+                                    ? error.message
+                                    : String(error),
+                            conversationId: conversation.id
+                        },
+                        "No se pudo ejecutar el flujo guiado."
+                    );
+                }
 
                 if (
                     workspace?.flowsEnabled &&
                     numberFlowsEnabled &&
+                    !guidedTriggered &&
                     !parsed.replyId
                 ) {
                     try {
@@ -458,7 +483,7 @@ export class MetaWebhookHandlerService {
                  * validar la política antes de llamar al modelo. Si un flujo
                  * ya respondió, no se encola para no mandar dos mensajes.
                  */
-                if (!flowTriggered && numberAiEnabled) {
+                if (!flowTriggered && !guidedTriggered && numberAiEnabled) {
                 try {
                     await enqueueSuggestion({
                         workspaceId,
