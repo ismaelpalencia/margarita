@@ -201,7 +201,7 @@ function copyAssets() {
 
     fs.writeFileSync(
         path.join(OUT, "robots.txt"),
-        "User-agent: *\nAllow: /\nDisallow: /mockups/\n\nSitemap: https://margaritaapp.org/sitemap.xml\n"
+        "User-agent: *\nAllow: /\n\nSitemap: https://margaritaapp.org/sitemap.xml\n"
     );
 }
 
