@@ -1,2 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /mockups/
+
+Sitemap: https://margaritaapp.org/sitemap.xml

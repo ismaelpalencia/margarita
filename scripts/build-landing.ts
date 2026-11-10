@@ -53,9 +53,9 @@ const PAGES: Page[] = [
     {
         template: "precios.ejs",
         file: "precios.html",
-        title: "Precios — Margarita",
+        title: "Precios de WhatsApp con IA — Margarita",
         description:
-            "Margarita IA: $1,299 MXN al mes, 2,000 respuestas de IA incluidas, sin instalación y con onboarding incluido. Precios más IVA.",
+            "Margarita IA: $1,299 MXN al mes + IVA, 2,000 respuestas de IA incluidas, sin instalación y con onboarding. Un solo plan para operar WhatsApp con IA y control humano.",
         active: "precios"
     },
     {
@@ -199,7 +199,10 @@ function copyAssets() {
         }
     }
 
-    fs.writeFileSync(path.join(OUT, "robots.txt"), "User-agent: *\nAllow: /\n");
+    fs.writeFileSync(
+        path.join(OUT, "robots.txt"),
+        "User-agent: *\nAllow: /\nDisallow: /mockups/\n\nSitemap: https://margaritaapp.org/sitemap.xml\n"
+    );
 }
 
 function build() {
@@ -235,10 +238,19 @@ function build() {
             );
         }
 
+        const siteUrl = (
+            process.env.SITE_URL || "https://margaritaapp.org"
+        ).replace(/\/$/, "");
+        const canonicalUrl =
+            page.file === "index.html"
+                ? siteUrl + "/"
+                : siteUrl + "/" + page.file.replace(/\.html$/, "");
+
         const html = ejs.render(fs.readFileSync(templatePath, "utf8"), {
             filename: templatePath,
             title: page.title,
             description: page.description,
+            canonicalUrl,
             active: page.active,
             appName: appConfig.name,
             supportEmail: appConfig.supportEmail,
@@ -261,6 +273,26 @@ function build() {
         fs.writeFileSync(path.join(OUT, page.file), html);
         console.log("  ", page.file);
     }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const sitemap = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        ...PAGES.map((page) => {
+            const loc =
+                "https://margaritaapp.org/" +
+                (page.file === "index.html"
+                    ? ""
+                    : page.file.replace(/\.html$/, ""));
+            const priority = page.file === "index.html" ? "1.0" : "0.8";
+            return `  <url><loc>${loc}</loc><lastmod>${today}</lastmod><changefreq>monthly</changefreq><priority>${priority}</priority></url>`;
+        }),
+        "</urlset>",
+        ""
+    ].join("\n");
+
+    fs.writeFileSync(path.join(OUT, "sitemap.xml"), sitemap);
+    console.log("   sitemap.xml");
 
     console.log("\nLanding listo en " + OUT);
     console.log("Súbelo a Cloudflare Pages o al hosting estático del producto.");

@@ -253,6 +253,54 @@
             <a class="btn btn--primary btn--lg" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Agendar una demo</a>
         </div>
     </section>
+    <script type="application/ld+json">
+    <%- JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "¿Es la API oficial de WhatsApp?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sí. Margarita opera la WhatsApp Business Cloud API de Meta, con webhook firmado y estados reales. No es WhatsApp Web ni una app no oficial."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "¿La IA responde cualquier cosa?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. Responde solo lo que está en tu base de conocimiento, con un umbral de confianza y límites. Si el dato no está, o si piden una persona, entrega la conversación."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "¿Hay costo de instalación o setup?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. El plan incluye la puesta en marcha y el onboarding: sesión de arranque de 2 h y guía publicada. Solo pagas la mensualidad."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "¿El consumo de WhatsApp está incluido?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. Meta factura el consumo de WhatsApp directamente al cliente. Margarita no lo incluye ni lo revende; el panel muestra una estimación, no la factura de Meta."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "¿Puedo cancelar?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sí. Puedes cancelar cuando quieras, sin compromiso ni penalización. El primer mes se paga si usas el servicio; después, mes a mes."
+                }
+            }
+        ]
+    }) %>
+    </script>
 </main>
 
 <%- include("_footer") %>
