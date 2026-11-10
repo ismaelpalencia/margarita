@@ -162,7 +162,11 @@ function copy(from: string, to: string) {
 
 function cleanGenerated() {
     for (const entry of fs.readdirSync(OUT)) {
-        if (entry.endsWith(".html") && !PAGES.some((page) => page.file === entry)) {
+        const keep =
+            entry === "propuesta.html" ||
+            PAGES.some((page) => page.file === entry);
+
+        if (entry.endsWith(".html") && !keep) {
             fs.rmSync(path.join(OUT, entry), { force: true });
         }
     }
