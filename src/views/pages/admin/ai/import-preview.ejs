@@ -93,13 +93,23 @@
 
         <section class="card">
             <p class="text-sm text-slate-600">
-                Al aplicar se crean entradas nuevas y flujos nuevos. Lo que ya existe no se sobrescribe.
-                Los flujos quedan activos, pero el interruptor global de flujos y el de cada número siguen mandando.
+                <strong>Aplicar y sumar:</strong> crea entradas y flujos nuevos; lo que ya existe no se sobrescribe.
+                <strong>Aplicar y reemplazar:</strong> desactiva el conocimiento y los flujos actuales del workspace
+                y deja activos solo los de este borrador. Los datos anteriores no se borran, solo se desactivan.
+                En ambos casos, los interruptores globales y por número siguen mandando.
             </p>
 
             <div class="mt-4 flex flex-wrap gap-3">
-                <form action="/admin/ai/import/<%= importId %>/apply" method="POST">
-                    <button class="btn btn--primary">Aplicar a Margarita</button>
+                <form action="/admin/ai/import/<%= importId %>/apply" method="POST" class="flex flex-wrap gap-3">
+                    <button name="mode" value="merge" class="btn btn--primary">Aplicar y sumar</button>
+                    <button
+                        name="mode"
+                        value="replace"
+                        class="btn btn--danger"
+                        onclick="return confirm('Esto desactiva todo el conocimiento y los flujos actuales del workspace, y deja activos solo los de este borrador. No se borran los datos. ¿Continuar?');"
+                    >
+                        Aplicar y reemplazar
+                    </button>
                 </form>
                 <a href="/admin/ai/import/<%= importId %>/edit" class="btn btn--secondary">Editar borrador</a>
                 <a href="/admin/ai/import" class="btn btn--secondary">Volver a importaciones</a>

@@ -376,11 +376,15 @@ export class BusinessImportService {
         workspaceId: string;
         userId: string;
         importId: string;
+        mode?: "merge" | "replace";
     }): Promise<{
         knowledgeCreated: number;
         knowledgeSkipped: number;
+        knowledgeDeactivated: number;
         flowsCreated: number;
         flowsSkipped: number;
+        flowsDeactivated: number;
+        mode: "merge" | "replace";
     }> {
         const record = await prisma.businessImport.findFirst({
             where: {
@@ -405,6 +409,7 @@ export class BusinessImportService {
         }
 
         const data = normalizeBusinessImport(parsed.data);
+        const mode = params.mode === "replace" ? "replace" : "merge";
         const settings = await AiSettingsService.get(params.workspaceId);
         const systemPrompt = [
             data.business.name ? `Negocio: ${data.business.name}` : "",
@@ -436,6 +441,23 @@ export class BusinessImportService {
 
         let knowledgeCreated = 0;
         let knowledgeSkipped = 0;
+        let knowledgeDeactivated = 0;
+        let flowsDeactivated = 0;
+
+        if (mode === "replace") {
+            const [knowledge, flows] = await Promise.all([
+                prisma.knowledgeEntry.updateMany({
+                    where: { workspaceId: params.workspaceId, isActive: true },
+                    data: { isActive: false }
+                }),
+                prisma.flow.updateMany({
+                    where: { workspaceId: params.workspaceId, isActive: true },
+                    data: { isActive: false }
+                })
+            ]);
+            knowledgeDeactivated = knowledge.count;
+            flowsDeactivated = flows.count;
+        }
 
         for (let index = 0; index < data.knowledge.length; index += 1) {
             const entry = data.knowledge[index];
@@ -451,7 +473,24 @@ export class BusinessImportService {
             });
 
             if (existing) {
-                knowledgeSkipped += 1;
+                if (mode === "replace") {
+                    await prisma.knowledgeEntry.update({
+                        where: { id: existing.id },
+                        data: {
+                            question: entry.question,
+                            answer: entry.answer,
+                            buttons: entry.buttons
+                                ? (entry.buttons as unknown as Prisma.InputJsonValue)
+                                : Prisma.DbNull,
+                            keywords: entry.keywords,
+                            priority: 0,
+                            isActive: true
+                        }
+                    });
+                    knowledgeCreated += 1;
+                } else {
+                    knowledgeSkipped += 1;
+                }
                 continue;
             }
 
@@ -485,7 +524,26 @@ export class BusinessImportService {
             });
 
             if (existing) {
-                flowsSkipped += 1;
+                if (mode === "replace") {
+                    await prisma.flow.update({
+                        where: { id: existing.id },
+                        data: {
+                            name: flow.name,
+                            trigger: flow.trigger,
+                            reply: flow.reply,
+                            buttons: flow.buttons
+                                ? (flow.buttons as unknown as Prisma.InputJsonValue)
+                                : Prisma.DbNull,
+                            list: flow.list
+                                ? (flow.list as unknown as Prisma.InputJsonValue)
+                                : Prisma.DbNull,
+                            isActive: true
+                        }
+                    });
+                    flowsCreated += 1;
+                } else {
+                    flowsSkipped += 1;
+                }
                 continue;
             }
 
@@ -521,18 +579,24 @@ export class BusinessImportService {
             message: "Se aplicó una importación de negocio asistida por IA.",
             payload: {
                 importId: record.id,
+                mode,
                 knowledgeCreated,
                 knowledgeSkipped,
+                knowledgeDeactivated,
                 flowsCreated,
-                flowsSkipped
+                flowsSkipped,
+                flowsDeactivated
             }
         }).catch(() => undefined);
 
         return {
             knowledgeCreated,
             knowledgeSkipped,
+            knowledgeDeactivated,
             flowsCreated,
-            flowsSkipped
+            flowsSkipped,
+            flowsDeactivated,
+            mode
         };
     }
 }

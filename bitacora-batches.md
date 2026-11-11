@@ -788,3 +788,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Mensaje de error de object-storage corregido para no mencionar MEDIA_STORAGE.
 
 ---
+
+## Importación de negocio: borradores y reemplazo
+
+- Los análisis quedan en BusinessImport DRAFT; lista de borradores recientes y reapertura.
+- Editor visual por tarjetas: negocio, conocimiento, botones, flujos con botones o listas y handoff.
+- Modo Aplicar y sumar (idempotente) y Aplicar y reemplazar (desactiva conocimiento/flujos activos, no borra filas).
+- Validación de JSON/schema al guardar el borrador y al aplicar.
+
+---

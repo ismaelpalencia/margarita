@@ -174,12 +174,14 @@ export class AdminAiImportController {
 
     static async apply(req: Request, res: Response) {
         const importId = getRequiredParam(req, "id");
+        const mode = req.body?.mode === "replace" ? "replace" : "merge";
 
         try {
             await BusinessImportService.apply({
                 workspaceId: req.user!.workspaceId,
                 userId: req.user!.id,
-                importId
+                importId,
+                mode
             });
 
             return res.redirect("/admin/ai?success=import");

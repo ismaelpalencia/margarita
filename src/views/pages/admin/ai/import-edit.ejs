@@ -4,19 +4,36 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Editar borrador de negocio | Margarita</title>
-    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+    <link rel="stylesheet" href="/css/style.css" />
     <%- include("../../../partials/brand-head") %>
 </head>
 
 <body class="min-h-screen bg-slate-100">
     <%- include("../../../partials/admin-nav", { user }) %>
 
+    <%
+        let initial = null;
+        try {
+            initial = JSON.parse(resultJson);
+        } catch {
+            initial = null;
+        }
+        const visual =
+            initial &&
+            typeof initial === "object" &&
+            initial.business &&
+            typeof initial.business === "object" &&
+            Array.isArray(initial.knowledge) &&
+            Array.isArray(initial.flows);
+        const initialJson = JSON.stringify(initial || null).replace(/</g, "\\u003c");
+    %>
+
     <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <div class="mb-6">
             <a href="/admin/ai/import/<%= importId %>" class="text-sm font-semibold text-slate-500">← Volver al borrador</a>
             <h2 class="mt-2 text-2xl font-bold text-slate-800">Editar negocio con IA</h2>
             <p class="mt-1 text-sm text-slate-500">
-                Ajusta preguntas, respuestas, palabras clave, botones o flujos. Se valida al guardar.
+                Ajusta el negocio, las preguntas y los flujos. Se valida al guardar.
             </p>
         </div>
 
@@ -25,13 +42,17 @@
         <% } %>
 
         <form action="/admin/ai/import/<%= importId %>/edit" method="POST" class="space-y-5">
-            <section class="card">
-                <p class="text-sm text-slate-600">
-                    El objeto debe conservar <code>business</code>, <code>knowledge</code>,
-                    <code>flows</code> y <code>handoffKeywords</code>.
-                </p>
-                <textarea name="result" rows="30" required class="input mt-3 font-mono text-xs"><%= resultJson %></textarea>
-            </section>
+            <% if (!visual) { %>
+                <section class="card">
+                    <p class="text-sm font-semibold text-red-700">
+                        El JSON guardado no se pudo leer. Corrígelo aquí o genera otro borrador.
+                    </p>
+                    <textarea name="result" rows="28" required class="input mt-3 font-mono text-xs"><%= resultJson %></textarea>
+                </section>
+            <% } else { %>
+                <div id="import-builder" class="space-y-5"></div>
+                <input type="hidden" name="result" id="import-result" value="<%= initialJson %>" />
+            <% } %>
 
             <div class="flex flex-wrap gap-3">
                 <button class="btn btn--primary">Guardar borrador</button>
@@ -39,5 +60,253 @@
             </div>
         </form>
     </main>
+
+    <% if (visual) { %>
+    <script>
+        (function () {
+            var data = <%- initialJson %>;
+            var root = document.getElementById("import-builder");
+            var hidden = document.getElementById("import-result");
+
+            function sync() {
+                hidden.value = JSON.stringify(data);
+            }
+
+            function el(tag, className, text) {
+                var node = document.createElement(tag);
+                if (className) { node.className = className; }
+                if (text !== undefined) { node.textContent = text; }
+                return node;
+            }
+
+            function labeled(text, control) {
+                var label = el("label", "block text-xs font-semibold text-slate-600", text);
+                label.appendChild(control);
+                return label;
+            }
+
+            function input(value, placeholder, maxLength, onInput, className) {
+                var node = document.createElement("input");
+                node.type = "text";
+                node.value = value || "";
+                node.placeholder = placeholder || "";
+                node.maxLength = maxLength || 500;
+                node.className = className || "input mt-1";
+                node.addEventListener("input", onInput);
+                return node;
+            }
+
+            function textarea(value, placeholder, onInput) {
+                var node = document.createElement("textarea");
+                node.value = value || "";
+                node.placeholder = placeholder || "";
+                node.rows = 3;
+                node.className = "input mt-1";
+                node.addEventListener("input", onInput);
+                return node;
+            }
+
+            function comma(value) {
+                return String(value || "")
+                    .split(",")
+                    .map(function (item) { return item.trim(); })
+                    .filter(Boolean);
+            }
+
+            function card(title, onRemove) {
+                var section = el("section", "card space-y-3");
+                var head = el("div", "flex items-center justify-between gap-2");
+                head.appendChild(el("h3", "font-bold text-slate-800", title));
+                if (onRemove) {
+                    var remove = el("button", "rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50", "Eliminar");
+                    remove.type = "button";
+                    remove.addEventListener("click", onRemove);
+                    head.appendChild(remove);
+                }
+                section.appendChild(head);
+                return section;
+            }
+
+            function renderBusiness() {
+                var section = el("section", "card space-y-3");
+                section.appendChild(el("h3", "font-bold text-slate-800", "Negocio"));
+
+                section.appendChild(labeled("Nombre", input(data.business.name, "Nombre del negocio", 120, function () {
+                    data.business.name = this.value; sync();
+                })));
+
+                section.appendChild(labeled("Descripción", textarea(data.business.description, "Qué hace el negocio, tono, límites…", function () {
+                    data.business.description = this.value; sync();
+                })));
+
+                section.appendChild(labeled("Tono", input(data.business.tone, "Cercano, formal, directo…", 120, function () {
+                    data.business.tone = this.value; sync();
+                })));
+
+                return section;
+            }
+
+            function renderKnowledge() {
+                var section = el("section", "space-y-3");
+                var head = el("div", "flex items-center justify-between gap-2");
+                head.appendChild(el("h3", "font-bold text-slate-800", "Base de conocimiento"));
+                var add = el("button", "btn btn--secondary btn--sm", "+ Pregunta");
+                add.type = "button";
+                add.addEventListener("click", function () {
+                    data.knowledge.push({ question: "", answer: "", keywords: [], buttons: [] });
+                    render();
+                });
+                head.appendChild(add);
+                section.appendChild(head);
+
+                data.knowledge.forEach(function (entry, index) {
+                    var box = card("Pregunta " + (index + 1), function () {
+                        data.knowledge.splice(index, 1);
+                        render();
+                    });
+
+                    box.appendChild(labeled("Pregunta", input(entry.question, "¿Cuál es el horario?", 200, function () {
+                        entry.question = this.value; sync();
+                    })));
+
+                    box.appendChild(labeled("Respuesta", textarea(entry.answer, "Respuesta aprobada…", function () {
+                        entry.answer = this.value; sync();
+                    })));
+
+                    box.appendChild(labeled("Palabras clave (separadas por coma)", input((entry.keywords || []).join(", "), "horario, abren, cierran", 400, function () {
+                        entry.keywords = comma(this.value); sync();
+                    })));
+
+                    box.appendChild(labeled("Botones (títulos separados por coma, máx. 3)", input((entry.buttons || []).join(", "), "Agendar cita, Ver precios", 120, function () {
+                        entry.buttons = comma(this.value).slice(0, 3); sync();
+                    })));
+
+                    section.appendChild(box);
+                });
+
+                return section;
+            }
+
+            function renderFlows() {
+                var section = el("section", "space-y-3");
+                var head = el("div", "flex items-center justify-between gap-2");
+                head.appendChild(el("h3", "font-bold text-slate-800", "Flujos"));
+                var add = el("button", "btn btn--secondary btn--sm", "+ Flujo");
+                add.type = "button";
+                add.addEventListener("click", function () {
+                    data.flows.push({ name: "", trigger: "", reply: "", buttons: [], list: null });
+                    render();
+                });
+                head.appendChild(add);
+                section.appendChild(head);
+
+                data.flows.forEach(function (flow, index) {
+                    var isList = Boolean(flow.list);
+                    var box = card("Flujo " + (index + 1), function () {
+                        data.flows.splice(index, 1);
+                        render();
+                    });
+
+                    box.appendChild(labeled("Nombre", input(flow.name, "Bienvenida", 80, function () {
+                        flow.name = this.value; sync();
+                    })));
+
+                    box.appendChild(labeled("Dispara con", input(flow.trigger, "hola|buenas|precio", 200, function () {
+                        flow.trigger = this.value; sync();
+                    })));
+
+                    box.appendChild(labeled("Respuesta", textarea(flow.reply, "Texto de la respuesta…", function () {
+                        flow.reply = this.value; sync();
+                    })));
+
+                    var typeLabel = el("label", "block text-xs font-semibold text-slate-600", "Tipo");
+                    var select = document.createElement("select");
+                    select.className = "input mt-1";
+                    [{ value: "buttons", label: "Botones" }, { value: "list", label: "Lista" }].forEach(function (option) {
+                        var item = document.createElement("option");
+                        item.value = option.value;
+                        item.textContent = option.label;
+                        item.selected = isList ? option.value === "list" : option.value === "buttons";
+                        select.appendChild(item);
+                    });
+                    select.addEventListener("change", function () {
+                        if (select.value === "list") {
+                            flow.buttons = [];
+                            flow.list = { buttonLabel: "Ver opciones", sectionTitle: "", rows: [{ title: "", description: "" }] };
+                        } else {
+                            flow.buttons = [];
+                            flow.list = null;
+                        }
+                        render();
+                    });
+                    typeLabel.appendChild(select);
+                    box.appendChild(typeLabel);
+
+                    if (!isList) {
+                        box.appendChild(labeled("Botones (títulos separados por coma, máx. 3)", input((flow.buttons || []).join(", "), "Sí, No", 120, function () {
+                            flow.buttons = comma(this.value).slice(0, 3); sync();
+                        })));
+                    } else {
+                        box.appendChild(labeled("Texto del botón de lista", input(flow.list.buttonLabel, "Ver opciones", 20, function () {
+                            flow.list.buttonLabel = this.value; sync();
+                        })));
+                        box.appendChild(labeled("Título de sección", input(flow.list.sectionTitle, "Opciones", 24, function () {
+                            flow.list.sectionTitle = this.value; sync();
+                        })));
+
+                        var rows = el("div", "space-y-2");
+                        rows.appendChild(el("p", "text-xs font-bold text-slate-600", "Filas"));
+                        (flow.list.rows || []).forEach(function (row, rowIndex) {
+                            var rowBox = el("div", "grid gap-2 sm:grid-cols-[1fr_1fr_auto]");
+                            rowBox.appendChild(input(row.title, "Título (24)", 24, function () {
+                                row.title = this.value; sync();
+                            }, "input text-xs"));
+                            rowBox.appendChild(input(row.description, "Descripción (72)", 72, function () {
+                                row.description = this.value; sync();
+                            }, "input text-xs"));
+                            var remove = el("button", "rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50", "Quitar");
+                            remove.type = "button";
+                            remove.addEventListener("click", function () {
+                                flow.list.rows.splice(rowIndex, 1); render();
+                            });
+                            rowBox.appendChild(remove);
+                            rows.appendChild(rowBox);
+                        });
+                        var addRow = el("button", "rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200", "+ Fila");
+                        addRow.type = "button";
+                        addRow.addEventListener("click", function () {
+                            flow.list.rows.push({ title: "", description: "" }); render();
+                        });
+                        rows.appendChild(addRow);
+                        box.appendChild(rows);
+                    }
+
+                    section.appendChild(box);
+                });
+
+                return section;
+            }
+
+            function render() {
+                root.innerHTML = "";
+                root.appendChild(renderBusiness());
+                root.appendChild(renderKnowledge());
+                root.appendChild(renderFlows());
+
+                var handoff = el("section", "card space-y-3");
+                handoff.appendChild(el("h3", "font-bold text-slate-800", "Palabras que pasan a una persona"));
+                handoff.appendChild(input((data.handoffKeywords || []).join(", "), "queja, reclamo, gerente", 600, function () {
+                    data.handoffKeywords = comma(this.value); sync();
+                }));
+                root.appendChild(handoff);
+
+                sync();
+            }
+
+            document.querySelector("form").addEventListener("submit", sync);
+            render();
+        })();
+    </script>
+    <% } %>
 </body>
 </html>
