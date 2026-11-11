@@ -64,7 +64,8 @@ Reglas:
 - Una pregunta por mensaje. No conviertas el flujo en un formulario.
 - Cada botón debe tener un destino en next. Usa ids cortos y estables.
 - input sirve para edad, monto, meses o datos que el cliente escribe. field en
-  minúsculas, sin espacios; label es el nombre visible.
+  minúsculas, sin espacios; label es el nombre visible. inputType solo puede
+  ser "text" o "number": teléfono, nombre, correo y servicio usan "text".
 - file sirve para pedir INE, talón, estado de cuenta o comprobante. No procesa
   el archivo: solo lo recibe y lo deja para una persona.
 - Si el flujo necesita simulación con una hoja de cálculo, cálculo de montos,

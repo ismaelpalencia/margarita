@@ -843,3 +843,11 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Migración 20261111140000_business_import_guided_ids.
 
 ---
+
+## Flujos guiados: tolerancia a inputType del IA
+
+- inputType acepta aliases (tel, phone, numeric...) y normaliza a text/number.
+- accept normaliza image/photo y document/pdf a image/document/both.
+- El error de importación ahora incluye la ruta del campo inválido.
+
+---

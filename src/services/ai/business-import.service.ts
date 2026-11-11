@@ -274,7 +274,9 @@ Reglas:
   "Sí, agendar".
 - Pasos permitidos del guidedFlow: message, question, input, file, end. Cada
   question necesita buttons con id y title, y un next por id de botón. Cada
-  input/file necesita field, label y next. El end puede tener handoff:true.
+  input/file necesita field, label y next. inputType solo puede ser "text" o
+  "number": teléfono, nombre, correo y servicio usan "text". El end puede
+  tener handoff:true.
 - Si el flujo necesita una integración que no existe (calendario, CRM, pagos),
   no la inventes: termina en end con handoff:true y anota qué falta en missing.
 - No prometas disponibilidad, montos ni confirmaciones automáticas.
@@ -336,8 +338,11 @@ export class BusinessImportService {
 
         if (!parsed.success) {
             const issue = parsed.error.issues[0];
+            const location = issue?.path.length
+                ? ` (${issue.path.join(".")})`
+                : "";
             throw new BusinessImportError(
-                `La IA devolvió datos incompletos${issue ? `: ${issue.message}` : ""}.`
+                `La IA devolvió datos incompletos${location}${issue ? `: ${issue.message}` : ""}.`
             );
         }
 

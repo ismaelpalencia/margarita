@@ -60,6 +60,30 @@ test("acepta un paso de dato numérico", () => {
     assert.equal(parsed.success, true);
 });
 
+test("normaliza inputType teléfono a texto", () => {
+    const parsed = parseGuidedSteps([
+        {
+            id: "telefono",
+            type: "input",
+            text: "¿Cuál es tu teléfono?",
+            field: "telefono",
+            label: "Teléfono",
+            inputType: "tel",
+            next: "fin"
+        },
+        { id: "fin", type: "end", text: "Gracias", links: [], handoff: false }
+    ]);
+
+    assert.equal(parsed.success, true);
+    if (parsed.success) {
+        const step = parsed.data[0];
+        assert.equal(step.type, "input");
+        if (step.type === "input") {
+            assert.equal(step.inputType, "text");
+        }
+    }
+});
+
 test("acepta un paso de archivo", () => {
     const parsed = parseGuidedSteps([
         {

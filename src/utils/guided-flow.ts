@@ -42,7 +42,18 @@ const inputStep = z.object({
         .regex(/^[a-z][a-z0-9_]{0,39}$/, "El campo debe ser un identificador en minúsculas.")
         .default("dato"),
     label: z.string().trim().max(80).optional(),
-    inputType: z.enum(["text", "number"]).default("text"),
+    inputType: z.preprocess(
+        (value) => {
+            const normalized = String(value ?? "")
+                .trim()
+                .toLowerCase();
+
+            return ["number", "numeric", "integer"].includes(normalized)
+                ? "number"
+                : "text";
+        },
+        z.enum(["text", "number"])
+    ),
     next: z.string().trim().min(1).max(40)
 });
 
@@ -56,7 +67,22 @@ const fileStep = z.object({
         .regex(/^[a-z][a-z0-9_]{0,39}$/, "El campo debe ser un identificador en minúsculas.")
         .default("archivo"),
     label: z.string().trim().max(80).optional(),
-    accept: z.enum(["image", "document", "both"]).default("both"),
+    accept: z.preprocess(
+        (value) => {
+            const normalized = String(value ?? "")
+                .trim()
+                .toLowerCase();
+
+            if (normalized === "image" || normalized === "photo") {
+                return "image";
+            }
+            if (normalized === "document" || normalized === "pdf") {
+                return "document";
+            }
+            return "both";
+        },
+        z.enum(["image", "document", "both"])
+    ),
     next: z.string().trim().min(1).max(40)
 });
 
