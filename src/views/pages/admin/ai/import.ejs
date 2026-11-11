@@ -22,10 +22,42 @@
             </p>
         </div>
 
+        <% if (typeof success !== "undefined" && success === "undo") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                Se deshizo el último reemplazo.
+            </div>
+        <% } else if (typeof success !== "undefined" && success === "applied") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                Importación aplicada.
+            </div>
+        <% } %>
+
         <% if (error) { %>
             <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-                <%= error === "apply" ? "No se pudo aplicar la importación. Vuelve a generarla." : error %>
+                <%= error === "apply"
+                    ? "No se pudo aplicar la importación. Vuelve a generarla."
+                    : error === "undo"
+                      ? "No se pudo deshacer el reemplazo."
+                      : error %>
             </div>
+        <% } %>
+
+        <% if (typeof lastReplace !== "undefined" && lastReplace) { %>
+            <section class="card mb-5 border border-amber-200 bg-amber-50">
+                <p class="text-sm font-bold text-amber-900">Último reemplazo aplicado</p>
+                <p class="mt-1 text-xs text-amber-800">
+                    <%= lastReplace.summary && lastReplace.summary.businessName ? lastReplace.summary.businessName : "Importación" %>
+                    · <%= lastReplace.appliedAt ? lastReplace.appliedAt.toLocaleString("es-MX") : "" %>
+                </p>
+                <form action="/admin/ai/import/undo" method="POST" class="mt-3">
+                    <button
+                        class="btn btn--secondary btn--sm"
+                        onclick="return confirm('Se desactivan las entradas y flujos importados y se reactivan los anteriores. ¿Continuar?');"
+                    >
+                        Deshacer último reemplazo
+                    </button>
+                </form>
+            </section>
         <% } %>
 
         <form action="/admin/ai/import" method="POST" class="space-y-5">

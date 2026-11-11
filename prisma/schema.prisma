@@ -1559,6 +1559,22 @@ model BusinessImport {
   createdAt DateTime  @default(now())
   appliedAt DateTime?
 
+  /** "merge" o "replace" cuando se aplicó. */
+  appliedMode String?
+
+  /** IDs que se desactivaron y se pueden reactivar al deshacer. */
+  replacedKnowledgeIds String[] @default([])
+  replacedKnowledge    Json?
+  replacedSettings     Json?
+  replacedFlowIds      String[] @default([])
+  replacedFlows        Json?
+
+  /** IDs creados/actualizados por esta importación. */
+  importedKnowledgeIds String[] @default([])
+  importedFlowIds      String[] @default([])
+
+  undoneAt DateTime?
+
   @@index([workspaceId, createdAt])
   @@index([workspaceId, status])
 }

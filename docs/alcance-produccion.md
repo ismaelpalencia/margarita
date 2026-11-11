@@ -296,6 +296,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - Al aplicar hay dos modos: **sumar** (no sobrescribe lo existente) y
   **reemplazar** (desactiva el conocimiento y los flujos activos del workspace
   y deja activos los del borrador; no borra filas).
+- El reemplazo guarda un snapshot del conocimiento, flujos y ajustes previos.
+  Si falla, hace compensación; si se aplicó, se puede **deshacer el último
+  reemplazo** desde la pantalla de importación.
 - Al aplicar se crean entradas y flujos nuevos con claves de idempotencia. Lo
   existente no se sobrescribe; los duplicados se omiten.
 - Puede ajustar `systemPrompt`, `tone` y `handoffKeywords` del workspace.
@@ -461,7 +464,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
 | Pruebas | 302 unitarias / 82 integración | **364 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
-| Migraciones | 23 | **38** |
+| Migraciones | 23 | **39** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
 | Precios | Repetidos en varios documentos | Fuente en `landing/` + `PRICING`; el panel no los muestra |
@@ -529,7 +532,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Tipos | `npx tsc --noEmit` limpio |
 | Unitarias | **364** en 57 archivos |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
-| Migraciones | **38** versionadas en `prisma/migrations` |
+| Migraciones | **39** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |
 | Linter/formateador | No hay |
 | Pruebas de interfaz | No hay automatizadas |

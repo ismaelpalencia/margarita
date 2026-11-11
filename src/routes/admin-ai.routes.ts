@@ -34,6 +34,7 @@ router.post("/guided-flows/:id/toggle", AdminGuidedFlowController.toggle);
 
 router.get("/import", AdminAiImportController.form);
 router.post("/import", AdminAiImportController.analyze);
+router.post("/import/undo", AdminAiImportController.undo);
 router.get("/import/:id", AdminAiImportController.showDraft);
 router.get("/import/:id/edit", AdminAiImportController.editDraft);
 router.post("/import/:id/edit", AdminAiImportController.updateDraft);

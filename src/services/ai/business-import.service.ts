@@ -372,6 +372,37 @@ export class BusinessImportService {
         return { importId: record.id, data };
     }
 
+    static async lastReplace(workspaceId: string) {
+        const candidate = await prisma.businessImport.findFirst({
+            where: {
+                workspaceId,
+                status: "APPLIED",
+                appliedMode: "replace",
+                undoneAt: null
+            },
+            orderBy: { appliedAt: "desc" },
+            select: {
+                id: true,
+                appliedAt: true,
+                summary: true
+            }
+        });
+
+        if (!candidate) {
+            return null;
+        }
+
+        const later = await prisma.businessImport.count({
+            where: {
+                workspaceId,
+                status: "APPLIED",
+                appliedAt: { gt: candidate.appliedAt ?? new Date(0) }
+            }
+        });
+
+        return later > 0 ? null : candidate;
+    }
+
     static async apply(params: {
         workspaceId: string;
         userId: string;
@@ -411,6 +442,11 @@ export class BusinessImportService {
         const data = normalizeBusinessImport(parsed.data);
         const mode = params.mode === "replace" ? "replace" : "merge";
         const settings = await AiSettingsService.get(params.workspaceId);
+        const previousSettings = {
+            systemPrompt: settings.systemPrompt,
+            tone: settings.tone,
+            handoffKeywords: [...settings.handoffKeywords]
+        };
         const systemPrompt = [
             data.business.name ? `Negocio: ${data.business.name}` : "",
             data.business.description,
@@ -419,157 +455,333 @@ export class BusinessImportService {
             .filter(Boolean)
             .join("\n\n");
 
-        await prisma.aiSettings.upsert({
-            where: { workspaceId: params.workspaceId },
-            create: {
-                workspaceId: params.workspaceId,
-                systemPrompt: systemPrompt || null,
-                tone: data.business.tone || null,
-                handoffKeywords: data.handoffKeywords
-            },
-            update: {
-                systemPrompt: systemPrompt || settings.systemPrompt,
-                tone: data.business.tone || settings.tone,
-                handoffKeywords: Array.from(
-                    new Set([
-                        ...settings.handoffKeywords,
-                        ...data.handoffKeywords
-                    ])
-                ).slice(0, 30)
-            }
-        });
+        type KnowledgeSnapshot = {
+            id: string;
+            question: string;
+            answer: string;
+            buttons: Prisma.JsonValue;
+            keywords: string[];
+        };
+        type FlowSnapshot = {
+            id: string;
+            name: string;
+            trigger: string;
+            reply: string;
+            buttons: Prisma.JsonValue;
+            list: Prisma.JsonValue;
+            isActive: boolean;
+        };
+
+        const activeKnowledge: KnowledgeSnapshot[] =
+            mode === "replace"
+                ? await prisma.knowledgeEntry.findMany({
+                      where: {
+                          workspaceId: params.workspaceId,
+                          isActive: true
+                      },
+                      select: {
+                          id: true,
+                          question: true,
+                          answer: true,
+                          buttons: true,
+                          keywords: true
+                      }
+                  })
+                : [];
+        const activeFlows: FlowSnapshot[] =
+            mode === "replace"
+                ? (
+                      await prisma.flow.findMany({
+                          where: {
+                              workspaceId: params.workspaceId,
+                              isActive: true
+                          },
+                          select: {
+                              id: true,
+                              name: true,
+                              trigger: true,
+                              reply: true,
+                              buttons: true,
+                              list: true,
+                              isActive: true
+                          }
+                      })
+                  )
+                : [];
+        const flowSnapshots = new Map<string, FlowSnapshot>();
+        for (const flow of activeFlows) {
+            flowSnapshots.set(flow.id, flow);
+        }
+
+        const importedKnowledgeIds: string[] = [];
+        const importedFlowIds: string[] = [];
+        const createdKnowledgeIds: string[] = [];
+        const createdFlowIds: string[] = [];
 
         let knowledgeCreated = 0;
         let knowledgeSkipped = 0;
         let knowledgeDeactivated = 0;
-        let flowsDeactivated = 0;
-
-        if (mode === "replace") {
-            const [knowledge, flows] = await Promise.all([
-                prisma.knowledgeEntry.updateMany({
-                    where: { workspaceId: params.workspaceId, isActive: true },
-                    data: { isActive: false }
-                }),
-                prisma.flow.updateMany({
-                    where: { workspaceId: params.workspaceId, isActive: true },
-                    data: { isActive: false }
-                })
-            ]);
-            knowledgeDeactivated = knowledge.count;
-            flowsDeactivated = flows.count;
-        }
-
-        for (let index = 0; index < data.knowledge.length; index += 1) {
-            const entry = data.knowledge[index];
-            const sourceKey = `import:${record.id}:${index + 1}`;
-            const existing = await prisma.knowledgeEntry.findUnique({
-                where: {
-                    workspaceId_sourceKey: {
-                        workspaceId: params.workspaceId,
-                        sourceKey
-                    }
-                },
-                select: { id: true }
-            });
-
-            if (existing) {
-                if (mode === "replace") {
-                    await prisma.knowledgeEntry.update({
-                        where: { id: existing.id },
-                        data: {
-                            question: entry.question,
-                            answer: entry.answer,
-                            buttons: entry.buttons
-                                ? (entry.buttons as unknown as Prisma.InputJsonValue)
-                                : Prisma.DbNull,
-                            keywords: entry.keywords,
-                            priority: 0,
-                            isActive: true
-                        }
-                    });
-                    knowledgeCreated += 1;
-                } else {
-                    knowledgeSkipped += 1;
-                }
-                continue;
-            }
-
-            await KnowledgeService.create(
-                params.workspaceId,
-                params.userId,
-                {
-                    question: entry.question,
-                    answer: entry.answer,
-                    buttons: entry.buttons,
-                    keywords: entry.keywords,
-                    priority: 0,
-                    sourceKey
-                }
-            );
-            knowledgeCreated += 1;
-        }
-
         let flowsCreated = 0;
         let flowsSkipped = 0;
+        let flowsDeactivated = 0;
 
-        for (const flow of data.flows) {
-            const existing = await prisma.flow.findUnique({
-                where: {
-                    workspaceId_slug: {
-                        workspaceId: params.workspaceId,
-                        slug: flow.slug
-                    }
+        try {
+            await prisma.aiSettings.upsert({
+                where: { workspaceId: params.workspaceId },
+                create: {
+                    workspaceId: params.workspaceId,
+                    systemPrompt: systemPrompt || null,
+                    tone: data.business.tone || null,
+                    handoffKeywords: data.handoffKeywords
                 },
-                select: { id: true }
+                update: {
+                    systemPrompt: systemPrompt || settings.systemPrompt,
+                    tone: data.business.tone || settings.tone,
+                    handoffKeywords: Array.from(
+                        new Set([
+                            ...settings.handoffKeywords,
+                            ...data.handoffKeywords
+                        ])
+                    ).slice(0, 30)
+                }
             });
 
-            if (existing) {
-                if (mode === "replace") {
-                    await prisma.flow.update({
-                        where: { id: existing.id },
-                        data: {
-                            name: flow.name,
-                            trigger: flow.trigger,
-                            reply: flow.reply,
-                            buttons: flow.buttons
-                                ? (flow.buttons as unknown as Prisma.InputJsonValue)
-                                : Prisma.DbNull,
-                            list: flow.list
-                                ? (flow.list as unknown as Prisma.InputJsonValue)
-                                : Prisma.DbNull,
-                            isActive: true
+            for (let index = 0; index < data.knowledge.length; index += 1) {
+                const entry = data.knowledge[index];
+                const sourceKey = `import:${record.id}:${index + 1}`;
+                const existing = await prisma.knowledgeEntry.findUnique({
+                    where: {
+                        workspaceId_sourceKey: {
+                            workspaceId: params.workspaceId,
+                            sourceKey
                         }
-                    });
-                    flowsCreated += 1;
-                } else {
-                    flowsSkipped += 1;
+                    },
+                    select: { id: true }
+                });
+
+                if (existing) {
+                    if (mode === "replace") {
+                        await prisma.knowledgeEntry.update({
+                            where: { id: existing.id },
+                            data: {
+                                question: entry.question,
+                                answer: entry.answer,
+                                buttons: entry.buttons
+                                    ? (entry.buttons as unknown as Prisma.InputJsonValue)
+                                    : Prisma.DbNull,
+                                keywords: entry.keywords,
+                                priority: 0,
+                                isActive: true
+                            }
+                        });
+                        importedKnowledgeIds.push(existing.id);
+                        knowledgeCreated += 1;
+                    } else {
+                        knowledgeSkipped += 1;
+                    }
+                    continue;
                 }
-                continue;
+
+                const created = await KnowledgeService.create(
+                    params.workspaceId,
+                    params.userId,
+                    {
+                        question: entry.question,
+                        answer: entry.answer,
+                        buttons: entry.buttons,
+                        keywords: entry.keywords,
+                        priority: 0,
+                        sourceKey
+                    }
+                );
+                createdKnowledgeIds.push(created.id);
+                importedKnowledgeIds.push(created.id);
+                knowledgeCreated += 1;
             }
 
-            await prisma.flow.create({
+            for (const flow of data.flows) {
+                const existing = await prisma.flow.findUnique({
+                    where: {
+                        workspaceId_slug: {
+                            workspaceId: params.workspaceId,
+                            slug: flow.slug
+                        }
+                    }
+                });
+
+                if (existing) {
+                    if (mode === "replace") {
+                        if (!flowSnapshots.has(existing.id)) {
+                            flowSnapshots.set(existing.id, {
+                                id: existing.id,
+                                name: existing.name,
+                                trigger: existing.trigger,
+                                reply: existing.reply,
+                                buttons: existing.buttons,
+                                list: existing.list,
+                                isActive: existing.isActive
+                            });
+                        }
+                        await prisma.flow.update({
+                            where: { id: existing.id },
+                            data: {
+                                name: flow.name,
+                                trigger: flow.trigger,
+                                reply: flow.reply,
+                                buttons: flow.buttons
+                                    ? (flow.buttons as unknown as Prisma.InputJsonValue)
+                                    : Prisma.DbNull,
+                                list: flow.list
+                                    ? (flow.list as unknown as Prisma.InputJsonValue)
+                                    : Prisma.DbNull,
+                                isActive: true
+                            }
+                        });
+                        importedFlowIds.push(existing.id);
+                        flowsCreated += 1;
+                    } else {
+                        flowsSkipped += 1;
+                    }
+                    continue;
+                }
+
+                const created = await prisma.flow.create({
+                    data: {
+                        workspaceId: params.workspaceId,
+                        slug: flow.slug,
+                        name: flow.name,
+                        trigger: flow.trigger,
+                        reply: flow.reply,
+                        buttons: flow.buttons
+                            ? (flow.buttons as unknown as Prisma.InputJsonValue)
+                            : undefined,
+                        list: flow.list
+                            ? (flow.list as unknown as Prisma.InputJsonValue)
+                            : undefined,
+                        isActive: true
+                    }
+                });
+                createdFlowIds.push(created.id);
+                importedFlowIds.push(created.id);
+                flowsCreated += 1;
+            }
+
+            if (mode === "replace") {
+                const [knowledge, flows] = await Promise.all([
+                    prisma.knowledgeEntry.updateMany({
+                        where: {
+                            workspaceId: params.workspaceId,
+                            isActive: true,
+                            id: { notIn: importedKnowledgeIds }
+                        },
+                        data: { isActive: false }
+                    }),
+                    prisma.flow.updateMany({
+                        where: {
+                            workspaceId: params.workspaceId,
+                            isActive: true,
+                            id: { notIn: importedFlowIds }
+                        },
+                        data: { isActive: false }
+                    })
+                ]);
+                knowledgeDeactivated = knowledge.count;
+                flowsDeactivated = flows.count;
+            }
+
+            await prisma.businessImport.update({
+                where: { id: record.id },
                 data: {
-                    workspaceId: params.workspaceId,
-                    slug: flow.slug,
-                    name: flow.name,
-                    trigger: flow.trigger,
-                    reply: flow.reply,
-                    buttons: flow.buttons
-                        ? (flow.buttons as unknown as Prisma.InputJsonValue)
-                        : undefined,
-                    list: flow.list
-                        ? (flow.list as unknown as Prisma.InputJsonValue)
-                        : undefined,
-                    isActive: true
+                    status: "APPLIED",
+                    appliedAt: new Date(),
+                    appliedMode: mode,
+                    replacedKnowledgeIds:
+                        mode === "replace"
+                            ? activeKnowledge.map((entry) => entry.id)
+                            : [],
+                    replacedKnowledge:
+                        mode === "replace"
+                            ? (activeKnowledge as unknown as Prisma.InputJsonValue)
+                            : Prisma.DbNull,
+                    replacedSettings:
+                        mode === "replace"
+                            ? (previousSettings as unknown as Prisma.InputJsonValue)
+                            : Prisma.DbNull,
+                    replacedFlowIds:
+                        mode === "replace"
+                            ? activeFlows.map((flow) => flow.id)
+                            : [],
+                    replacedFlows:
+                        mode === "replace"
+                            ? (activeFlows as unknown as Prisma.InputJsonValue)
+                            : Prisma.DbNull,
+                    importedKnowledgeIds,
+                    importedFlowIds,
+                    undoneAt: null
                 }
             });
-            flowsCreated += 1;
-        }
+        } catch (error) {
+            /** Compensación: deja el workspace como estaba. */
+            if (createdKnowledgeIds.length > 0) {
+                await prisma.knowledgeEntry
+                    .deleteMany({ where: { id: { in: createdKnowledgeIds } } })
+                    .catch(() => undefined);
+            }
+            if (createdFlowIds.length > 0) {
+                await prisma.flow
+                    .deleteMany({ where: { id: { in: createdFlowIds } } })
+                    .catch(() => undefined);
+            }
 
-        await prisma.businessImport.update({
-            where: { id: record.id },
-            data: { status: "APPLIED", appliedAt: new Date() }
-        });
+            for (const snapshot of activeKnowledge) {
+                await prisma.knowledgeEntry
+                    .update({
+                        where: { id: snapshot.id },
+                        data: {
+                            question: snapshot.question,
+                            answer: snapshot.answer,
+                            buttons:
+                                snapshot.buttons === null
+                                    ? Prisma.DbNull
+                                    : (snapshot.buttons as unknown as Prisma.InputJsonValue),
+                            keywords: snapshot.keywords,
+                            isActive: true
+                        }
+                    })
+                    .catch(() => undefined);
+            }
+
+            for (const snapshot of flowSnapshots.values()) {
+                await prisma.flow
+                    .update({
+                        where: { id: snapshot.id },
+                        data: {
+                            name: snapshot.name,
+                            trigger: snapshot.trigger,
+                            reply: snapshot.reply,
+                            buttons:
+                                snapshot.buttons === null
+                                    ? Prisma.DbNull
+                                    : (snapshot.buttons as unknown as Prisma.InputJsonValue),
+                            list:
+                                snapshot.list === null
+                                    ? Prisma.DbNull
+                                    : (snapshot.list as unknown as Prisma.InputJsonValue),
+                            isActive: snapshot.isActive
+                        }
+                    })
+                    .catch(() => undefined);
+            }
+
+            await prisma.aiSettings
+                .update({
+                    where: { workspaceId: params.workspaceId },
+                    data: previousSettings
+                })
+                .catch(() => undefined);
+
+            throw error;
+        }
 
         await LogService.create({
             workspaceId: params.workspaceId,
@@ -598,5 +810,163 @@ export class BusinessImportService {
             flowsDeactivated,
             mode
         };
+    }
+
+    static async undoLastReplace(params: {
+        workspaceId: string;
+        userId: string;
+    }): Promise<{ undone: boolean }> {
+        const record = await prisma.businessImport.findFirst({
+            where: {
+                workspaceId: params.workspaceId,
+                status: "APPLIED",
+                appliedMode: "replace",
+                undoneAt: null
+            },
+            orderBy: { appliedAt: "desc" }
+        });
+
+        if (!record) {
+            throw new BusinessImportError("No hay un reemplazo reciente para deshacer.");
+        }
+
+        const later = await prisma.businessImport.count({
+            where: {
+                workspaceId: params.workspaceId,
+                status: "APPLIED",
+                appliedAt: { gt: record.appliedAt ?? new Date(0) }
+            }
+        });
+
+        if (later > 0) {
+            throw new BusinessImportError(
+                "Hay una importación posterior. Deshaz esa primero."
+            );
+        }
+
+        const importedKnowledgeIds = record.importedKnowledgeIds;
+        const importedFlowIds = record.importedFlowIds;
+
+        if (importedKnowledgeIds.length > 0) {
+            await prisma.knowledgeEntry.updateMany({
+                where: { id: { in: importedKnowledgeIds } },
+                data: { isActive: false }
+            });
+        }
+        if (importedFlowIds.length > 0) {
+            await prisma.flow.updateMany({
+                where: { id: { in: importedFlowIds } },
+                data: { isActive: false }
+            });
+        }
+
+        const knowledgeSnapshots = Array.isArray(record.replacedKnowledge)
+            ? (record.replacedKnowledge as unknown as Array<{
+                  id: string;
+                  question: string;
+                  answer: string;
+                  buttons: Prisma.JsonValue;
+                  keywords: string[];
+              }>)
+            : [];
+        for (const snapshot of knowledgeSnapshots) {
+            await prisma.knowledgeEntry
+                .update({
+                    where: { id: snapshot.id },
+                    data: {
+                        question: snapshot.question,
+                        answer: snapshot.answer,
+                        buttons:
+                            snapshot.buttons === null
+                                ? Prisma.DbNull
+                                : (snapshot.buttons as unknown as Prisma.InputJsonValue),
+                        keywords: snapshot.keywords,
+                        isActive: true
+                    }
+                })
+                .catch(() => undefined);
+        }
+
+        const flowSnapshots = Array.isArray(record.replacedFlows)
+            ? (record.replacedFlows as unknown as Array<{
+                  id: string;
+                  name: string;
+                  trigger: string;
+                  reply: string;
+                  buttons: Prisma.JsonValue;
+                  list: Prisma.JsonValue;
+                  isActive: boolean;
+              }>)
+            : [];
+        for (const snapshot of flowSnapshots) {
+            await prisma.flow
+                .update({
+                    where: { id: snapshot.id },
+                    data: {
+                        name: snapshot.name,
+                        trigger: snapshot.trigger,
+                        reply: snapshot.reply,
+                        buttons:
+                            snapshot.buttons === null
+                                ? Prisma.DbNull
+                                : (snapshot.buttons as unknown as Prisma.InputJsonValue),
+                        list:
+                            snapshot.list === null
+                                ? Prisma.DbNull
+                                : (snapshot.list as unknown as Prisma.InputJsonValue),
+                        isActive: snapshot.isActive
+                    }
+                })
+                .catch(() => undefined);
+        }
+
+        const settingsSnapshot =
+            record.replacedSettings &&
+            typeof record.replacedSettings === "object" &&
+            !Array.isArray(record.replacedSettings)
+                ? (record.replacedSettings as {
+                      systemPrompt?: string | null;
+                      tone?: string | null;
+                      handoffKeywords?: string[];
+                  })
+                : null;
+
+        if (settingsSnapshot) {
+            await prisma.aiSettings
+                .upsert({
+                    where: { workspaceId: params.workspaceId },
+                    update: {
+                        systemPrompt: settingsSnapshot.systemPrompt ?? null,
+                        tone: settingsSnapshot.tone ?? null,
+                        handoffKeywords: settingsSnapshot.handoffKeywords ?? []
+                    },
+                    create: {
+                        workspaceId: params.workspaceId,
+                        systemPrompt: settingsSnapshot.systemPrompt ?? null,
+                        tone: settingsSnapshot.tone ?? null,
+                        handoffKeywords: settingsSnapshot.handoffKeywords ?? []
+                    }
+                })
+                .catch(() => undefined);
+        }
+
+        await prisma.businessImport.update({
+            where: { id: record.id },
+            data: { undoneAt: new Date() }
+        });
+
+        await LogService.create({
+            workspaceId: params.workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.AI,
+            action: "BUSINESS_IMPORT_UNDONE",
+            message: "Se deshizo el último reemplazo de importación.",
+            payload: {
+                importId: record.id,
+                userId: params.userId
+            }
+        }).catch(() => undefined);
+
+        return { undone: true };
     }
 }

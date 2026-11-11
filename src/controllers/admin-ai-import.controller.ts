@@ -44,7 +44,11 @@ export class AdminAiImportController {
             instructions: "",
             drafts: await AdminAiImportController.draftsFor(
                 req.user!.workspaceId
-            )
+            ),
+            lastReplace: await BusinessImportService.lastReplace(
+                req.user!.workspaceId
+            ),
+            success: req.query.success || null
         });
     }
 
@@ -172,6 +176,19 @@ export class AdminAiImportController {
         }
     }
 
+    static async undo(req: Request, res: Response) {
+        try {
+            await BusinessImportService.undoLastReplace({
+                workspaceId: req.user!.workspaceId,
+                userId: req.user!.id
+            });
+
+            return res.redirect("/admin/ai/import?success=undo");
+        } catch {
+            return res.redirect("/admin/ai/import?error=undo");
+        }
+    }
+
     static async apply(req: Request, res: Response) {
         const importId = getRequiredParam(req, "id");
         const mode = req.body?.mode === "replace" ? "replace" : "merge";
@@ -184,7 +201,7 @@ export class AdminAiImportController {
                 mode
             });
 
-            return res.redirect("/admin/ai?success=import");
+            return res.redirect("/admin/ai/import?success=applied");
         } catch {
             return res.redirect("/admin/ai/import?error=apply");
         }

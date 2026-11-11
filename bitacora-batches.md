@@ -797,3 +797,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Validación de JSON/schema al guardar el borrador y al aplicar.
 
 ---
+
+## Importación: reemplazo con snapshot y deshacer
+
+- El reemplazo ya no desactiva primero: crea/actualiza, luego desactiva lo viejo y guarda snapshot.
+- Si falla, compensa: borra lo creado, restaura conocimiento/flujos y ajustes de IA.
+- Snapshot en BusinessImport: conocimiento, flujos, settings, IDs reemplazados e importados.
+- Botón Deshacer último reemplazo; bloquea si hay una importación posterior.
+- Migración 20261111120000_business_import_replace.
+
+---
