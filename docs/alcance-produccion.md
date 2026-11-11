@@ -1,8 +1,8 @@
 # Margarita — Alcance real de la aplicación
 
-**Estado:** foto del código al **2026-11-07**. Este documento es la referencia única del producto: describe lo que la app hace **hoy**, no lo que se planeó.
+**Estado:** foto del código al **2026-11-11**. Este documento es la referencia única del producto: describe lo que la app hace **hoy**, no lo que se planeó.
 
-**Fuentes usadas para escribirlo:** `prisma/schema.prisma`, `src/routes/*.ts`, `src/controllers`, `src/services`, `src/jobs`, `landing/` + `scripts/build-landing.ts`, `.env.example` y la suite de pruebas.
+**Fuentes usadas para escribirlo:** `prisma/schema.prisma`, `src/routes/*.ts`, `src/controllers`, `src/services`, `src/jobs`, `landing/` + `scripts/build-landing.ts`, `.env.example`, la suite de pruebas y `margaritademo` (demo Go).
 
 ---
 
@@ -55,9 +55,20 @@ Margarita es una aplicación web para **operar la WhatsApp Business Cloud API de
 
 ### Dominios
 
-- **`margaritaapp.org`**: sitio de venta **estático** en `landing/`, generado con `npm run landing:build` y publicado aparte (Cloudflare Pages). Páginas: `/`, `/ia`, `/precios`, `/demo`, `/onboarding`, `/guia`, `/plantillas`, `/privacidad`, `/acceso`. **No existe `/cobranza`.**
+- **`margaritaapp.org`**: sitio de venta **estático** en `landing/`, generado con `npm run landing:build` y publicado aparte (Cloudflare Pages). Páginas: `/`, `/ia`, `/precios`, `/demo`, `/onboarding`, `/guia`, `/plantillas`, `/privacidad`, `/acceso`. **No existe `/cobranza`.** La ruta vieja `/propuesta` responde **301 a `/precios`**.
 - **`<cliente>.margaritaapp.org`**: instalación del cliente. La raíz manda al inicio de sesión, no a la oferta.
 - **`PRODUCT_DOMAIN` (legado):** varios dominios separados por coma. Solo aplica a instalaciones que **todavía sirven la oferta desde la app** (`src/views/pages/home/*`); con el landing actual en Cloudflare Pages (`landing/`) ya no hace falta. Sin la variable, la app sirve sus vistas públicas heredadas en su propia raíz.
+
+### Landing y SEO
+
+- Metadatos por página: `title`, `description`, `og:description`, `og:url` y
+  `canonical` propios.
+- `sitemap.xml` y `robots.txt` publicados; el sitemap **no** incluye
+  `/propuesta` porque redirige.
+- JSON-LD: Organization, WebSite, SoftwareApplication y FAQPage. La
+  descripción de SoftwareApplication se toma de la página, no de un texto fijo.
+- El mockup viejo `mockups/landing-2026/` tiene `noindex`; la página pública es
+  `landing/`.
 
 ### Rutas de la aplicación
 
@@ -75,8 +86,9 @@ tocar datos reales.
 | Runtime | Go 1.22+ (biblioteca estándar; `net/http`) |
 | Persistencia | Ninguna: sesiones y contadores en memoria; **una sola réplica** |
 | Conocimiento | `kb.json` embebido con `//go:embed`; se actualiza con rebuild/deploy |
+| Perfiles por cliente | `profiles/<slug>.json` embebidos y opcionalmente un Volume con `DEMO_PROFILES_DIR`; URL `/d/<slug>` |
 | Meta / DB / login | No usa ninguno; no guarda PII |
-| Endpoints | `POST /api/demo/session`, `POST /api/demo/chat`, `GET /health` |
+| Endpoints | `POST /api/demo/session`, `POST /api/demo/chat`, `GET /api/demo/profile`, `GET /health`, `GET /d/<slug>` |
 | Verticales | `comercio`, `servicios`, `generico` + capa `margarita` (precio, plan, plazos) |
 | Límites | Sesión 30 min, 40 mensajes/sesión, 20 sesiones/IP/día, 30 chat/min/IP |
 | CORS | `ALLOWED_ORIGINS` con comodines (`https://*.pages.dev`) |
@@ -86,7 +98,9 @@ tocar datos reales.
 
 La demo **no** reemplaza la app: es un escaparate público. El landing la consume
 por `DEMO_API_BASE` y no comparte sesión, base ni credenciales con la
-instalación del cliente.
+instalación del cliente. Cada perfil tiene su propio conocimiento y sus
+preguntas sugeridas; el landing muestra el nombre del negocio y la sesión queda
+atada a ese perfil.
 
 ---
 
@@ -494,7 +508,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 ### Demo y comercial
 
 - `DEMO_ENABLED` (sin `true`, la ruta heredada `/demo` de la app responde 404).
-- **Demo Go (servicio aparte):** `PORT`, `ALLOWED_ORIGINS`, `DEMO_SESSION_TTL_MIN`, `DEMO_MAX_MESSAGES`, `DEMO_MAX_SESSIONS_PER_IP`, `DEMO_RATE_LIMIT_PER_MIN`, `DEMO_TIMEZONE`, `DEMO_TRUST_PROXY`.
+- **Demo Go (servicio aparte):** `PORT`, `ALLOWED_ORIGINS`, `DEMO_SESSION_TTL_MIN`, `DEMO_MAX_MESSAGES`, `DEMO_MAX_SESSIONS_PER_IP`, `DEMO_RATE_LIMIT_PER_MIN`, `DEMO_TIMEZONE`, `DEMO_TRUST_PROXY`, `DEMO_PROFILES_DIR`, `DEMO_LANDING_URL`.
 - **Landing:** `META_PIXEL_ID` (build), `SUPPORT_WHATSAPP_TEXT` (build).
 - `SUPPORT_WHATSAPP`, `SUPPORT_WHATSAPP_DISPLAY`, `SUPPORT_EMAIL`.
 - `SERVICE_MESSAGE_RATE`, `UTILITY_TEMPLATE_RATE`, `MARKETING_TEMPLATE_RATE` (solo estimación).
@@ -544,6 +558,37 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - Conciliación de pagos (en cobranza legacy).
 - Antivirus de adjuntos.
 - Facturación de Meta incluida en la mensualidad.
+
+---
+
+## 21. Ficha comercial para videos y anuncios
+
+Estos son los datos que **sí** se pueden decir en un video, anuncio o guion:
+
+| Dato | Valor |
+| --- | --- |
+| Producto | Margarita IA: WhatsApp con IA acotada + panel de atención |
+| Precio | **$1,299 MXN/mes + IVA** |
+| Incluye | Plataforma completa, IA, onboarding (2 h + guía) y **2,000 respuestas de IA/mes** |
+| Instalación / setup | **Sin costo** |
+| Plazo | Mes a mes; **sin plazo forzoso** |
+| Cancelación | Cuando quieras, sin penalización; el primer mes se paga si se usa |
+| Consumo de WhatsApp | Lo cobra **Meta directamente** al cliente; no está incluido |
+| Demo | `margaritaapp.org/demo` y `/d/<slug>` para demo por cliente |
+| Soporte | WhatsApp **+52 1 55 6487 0481** · `contacto@margaritaapp.org` |
+
+**No decir en videos ni anuncios:**
+
+- Que la IA responde cualquier cosa o que “reemplaza a tu equipo”.
+- Que es un CRM, un chatbot general o un sistema de cobranza para clientes nuevos.
+- Citas con Google Calendar, facturación o cobranza automática: no están incluidas.
+- Paquetes A/B, instalación de $4,900, mensualidad de $699 o promociones vencidas.
+- “Gratis”, “ilimitado”, “garantizado” o “100% automático”.
+- Que el consumo de WhatsApp está incluido en la mensualidad.
+
+**Frase segura para cerrar:**
+
+> “Margarita IA atiende, califica y deriva tu WhatsApp con IA acotada y control humano. $1,299 MXN al mes + IVA, con 2,000 respuestas de IA incluidas, sin instalación y con onboarding. La demo está en margaritaapp.org/demo.”
 
 ---
 
