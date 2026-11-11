@@ -86,7 +86,17 @@ Devuelve exactamente:
   "summary": "qué hace el flujo",
   "missing": ["datos o integraciones que faltan"],
   "steps": [ ... ]
-}`;
+}
+
+Contrato de salida obligatorio:
+- Devuelve solo ese objeto. Sin markdown, comentarios ni texto adicional.
+- Claves permitidas: name, trigger, summary, missing, steps. No agregues otras.
+- steps solo acepta message, question, input, file y end.
+- inputType solo puede ser "text" o "number".
+- accept solo puede ser "image", "document" o "both".
+- Cada next debe apuntar a un id existente del mismo flujo.
+- Si no puedes cumplir el contrato, devuelve un flujo mínimo válido con un
+  message y un end; no inventes integraciones.`;
 
 export class GuidedFlowGeneratorService {
     static async generate(params: {

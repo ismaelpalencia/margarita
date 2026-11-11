@@ -851,3 +851,11 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - El error de importación ahora incluye la ruta del campo inválido.
 
 ---
+
+## IA: contrato de salida y reintento de corrección
+
+- Prompt de importación con claves permitidas, arreglos obligatorios y enums explícitos.
+- Si el JSON no valida, se hace un segundo intento a temperatura 0 con el error exacto.
+- Prompt del generador guiado también con contrato de salida.
+
+---
