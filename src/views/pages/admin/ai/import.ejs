@@ -75,6 +75,33 @@
                 <span class="text-xs text-slate-500">La IA puede tardar unos segundos.</span>
             </div>
         </form>
+
+        <% if (typeof drafts !== "undefined" && drafts.length > 0) { %>
+            <section class="card mt-6">
+                <h3 class="font-bold text-slate-800">Borradores recientes</h3>
+                <p class="mt-1 text-xs text-slate-500">
+                    La IA ya analizó estos documentos. Puedes continuar sin volver a generarlos.
+                </p>
+
+                <div class="mt-3 space-y-2">
+                    <% drafts.forEach((draft) => { %>
+                        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-3">
+                            <div>
+                                <p class="text-sm font-semibold text-slate-800">
+                                    <%= draft.summary && draft.summary.businessName ? draft.summary.businessName : "Borrador sin nombre" %>
+                                </p>
+                                <p class="text-xs text-slate-500">
+                                    <%= draft.summary && draft.summary.knowledgeCount ? draft.summary.knowledgeCount : 0 %> entradas ·
+                                    <%= draft.summary && draft.summary.flowsCount ? draft.summary.flowsCount : 0 %> flujos ·
+                                    <%= draft.createdAt.toLocaleString("es-MX") %>
+                                </p>
+                            </div>
+                            <a href="/admin/ai/import/<%= draft.id %>" class="btn btn--secondary btn--sm">Continuar</a>
+                        </div>
+                    <% }) %>
+                </div>
+            </section>
+        <% } %>
     </main>
 
     <script>

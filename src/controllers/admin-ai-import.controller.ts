@@ -22,12 +22,29 @@ const formSchema = z.object({
 });
 
 export class AdminAiImportController {
+    private static async draftsFor(workspaceId: string) {
+        const drafts = await BusinessImportService.listDrafts(workspaceId);
+
+        return drafts.map((draft) => ({
+            id: draft.id,
+            createdAt: draft.createdAt,
+            summary: draft.summary as {
+                businessName?: string;
+                knowledgeCount?: number;
+                flowsCount?: number;
+            } | null
+        }));
+    }
+
     static async form(req: Request, res: Response) {
         return res.render("pages/admin/ai/import", {
             user: req.user,
             error: req.query.error || null,
             source: "",
-            instructions: ""
+            instructions: "",
+            drafts: await AdminAiImportController.draftsFor(
+                req.user!.workspaceId
+            )
         });
     }
 
@@ -39,7 +56,10 @@ export class AdminAiImportController {
                 user: req.user,
                 error: parsed.error.issues[0]?.message || "Datos inválidos.",
                 source: String(req.body?.source || ""),
-                instructions: String(req.body?.instructions || "")
+                instructions: String(req.body?.instructions || ""),
+                drafts: await AdminAiImportController.draftsFor(
+                    req.user!.workspaceId
+                )
             });
         }
 
@@ -64,7 +84,90 @@ export class AdminAiImportController {
                         ? error.message
                         : "No se pudo analizar el documento. Intenta de nuevo.",
                 source: parsed.data.source,
-                instructions: parsed.data.instructions
+                instructions: parsed.data.instructions,
+                drafts: await AdminAiImportController.draftsFor(
+                    req.user!.workspaceId
+                )
+            });
+        }
+    }
+
+    static async showDraft(req: Request, res: Response) {
+        const importId = getRequiredParam(req, "id");
+
+        try {
+            const draft = await BusinessImportService.getDraft(
+                req.user!.workspaceId,
+                importId
+            );
+
+            return res.render("pages/admin/ai/import-preview", {
+                user: req.user,
+                importId: draft.record.id,
+                data: draft.data,
+                success: req.query.success || null
+            });
+        } catch {
+            return res.redirect("/admin/ai/import?error=draft");
+        }
+    }
+
+    static async editDraft(req: Request, res: Response) {
+        const importId = getRequiredParam(req, "id");
+
+        try {
+            const draft = await BusinessImportService.getDraft(
+                req.user!.workspaceId,
+                importId
+            );
+
+            return res.render("pages/admin/ai/import-edit", {
+                user: req.user,
+                importId: draft.record.id,
+                resultJson: JSON.stringify(draft.record.result, null, 2),
+                error: req.query.error || null
+            });
+        } catch {
+            return res.redirect("/admin/ai/import?error=draft");
+        }
+    }
+
+    static async updateDraft(req: Request, res: Response) {
+        const importId = getRequiredParam(req, "id");
+        const resultJson = String(req.body?.result || "");
+
+        let parsedJson: unknown;
+
+        try {
+            parsedJson = JSON.parse(resultJson);
+        } catch {
+            return res.status(400).render("pages/admin/ai/import-edit", {
+                user: req.user,
+                importId,
+                resultJson,
+                error: "El JSON no es válido. Revisa comas, llaves y comillas."
+            });
+        }
+
+        try {
+            await BusinessImportService.updateDraft({
+                workspaceId: req.user!.workspaceId,
+                importId,
+                result: parsedJson
+            });
+
+            return res.redirect(
+                `/admin/ai/import/${importId}?success=saved`
+            );
+        } catch (error) {
+            return res.status(400).render("pages/admin/ai/import-edit", {
+                user: req.user,
+                importId,
+                resultJson,
+                error:
+                    error instanceof BusinessImportError
+                        ? error.message
+                        : "No se pudo guardar el borrador."
             });
         }
     }

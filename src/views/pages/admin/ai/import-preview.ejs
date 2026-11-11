@@ -13,11 +13,16 @@
 
     <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <div class="mb-6">
-            <a href="/admin/ai/import" class="text-sm font-semibold text-slate-500">← Volver al documento</a>
+            <a href="/admin/ai/import" class="text-sm font-semibold text-slate-500">← Volver a importaciones</a>
             <h2 class="mt-2 text-2xl font-bold text-slate-800">Revisar lo que entendió la IA</h2>
             <p class="mt-1 text-sm text-slate-500">
-                Nada se ha guardado en la base de conocimiento todavía. Revisa y aplica.
+                Este borrador queda guardado. Puedes editarlo o aplicarlo cuando esté listo.
             </p>
+            <% if (typeof success !== "undefined" && success === "saved") { %>
+                <div class="mt-3 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                    Borrador guardado.
+                </div>
+            <% } %>
         </div>
 
         <section class="card mb-5">
@@ -92,10 +97,13 @@
                 Los flujos quedan activos, pero el interruptor global de flujos y el de cada número siguen mandando.
             </p>
 
-            <form action="/admin/ai/import/<%= importId %>/apply" method="POST" class="mt-4 flex flex-wrap gap-3">
-                <button class="btn btn--primary">Aplicar a Margarita</button>
-                <a href="/admin/ai/import" class="btn btn--secondary">Volver</a>
-            </form>
+            <div class="mt-4 flex flex-wrap gap-3">
+                <form action="/admin/ai/import/<%= importId %>/apply" method="POST">
+                    <button class="btn btn--primary">Aplicar a Margarita</button>
+                </form>
+                <a href="/admin/ai/import/<%= importId %>/edit" class="btn btn--secondary">Editar borrador</a>
+                <a href="/admin/ai/import" class="btn btn--secondary">Volver a importaciones</a>
+            </div>
         </section>
     </main>
 </body>

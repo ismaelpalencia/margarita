@@ -287,6 +287,91 @@ export class BusinessImportService {
         return { importId: record.id, data };
     }
 
+    static async listDrafts(workspaceId: string) {
+        return prisma.businessImport.findMany({
+            where: { workspaceId, status: "DRAFT" },
+            orderBy: { createdAt: "desc" },
+            take: 10,
+            select: {
+                id: true,
+                summary: true,
+                createdAt: true
+            }
+        });
+    }
+
+    static async getDraft(workspaceId: string, importId: string) {
+        const record = await prisma.businessImport.findFirst({
+            where: { id: importId, workspaceId, status: "DRAFT" }
+        });
+
+        if (!record) {
+            throw new BusinessImportError(
+                "El borrador no existe o ya se aplicó."
+            );
+        }
+
+        const parsed = rawSchema.safeParse(record.result);
+
+        if (!parsed.success) {
+            throw new BusinessImportError(
+                "El borrador guardado ya no es válido. Genera otro."
+            );
+        }
+
+        return {
+            record,
+            data: normalizeBusinessImport(parsed.data)
+        };
+    }
+
+    static async updateDraft(params: {
+        workspaceId: string;
+        importId: string;
+        result: unknown;
+    }) {
+        const record = await prisma.businessImport.findFirst({
+            where: {
+                id: params.importId,
+                workspaceId: params.workspaceId,
+                status: "DRAFT"
+            }
+        });
+
+        if (!record) {
+            throw new BusinessImportError(
+                "El borrador no existe o ya se aplicó."
+            );
+        }
+
+        const parsed = rawSchema.safeParse(params.result);
+
+        if (!parsed.success) {
+            const issue = parsed.error.issues[0];
+            throw new BusinessImportError(
+                `El borrador no es válido${issue ? `: ${issue.message}` : ""}.`
+            );
+        }
+
+        const data = normalizeBusinessImport(parsed.data);
+        const summary = {
+            businessName: data.business.name,
+            knowledgeCount: data.knowledge.length,
+            flowsCount: data.flows.length,
+            handoffCount: data.handoffKeywords.length
+        };
+
+        await prisma.businessImport.update({
+            where: { id: record.id },
+            data: {
+                result: parsed.data as unknown as Prisma.InputJsonValue,
+                summary
+            }
+        });
+
+        return { importId: record.id, data };
+    }
+
     static async apply(params: {
         workspaceId: string;
         userId: string;

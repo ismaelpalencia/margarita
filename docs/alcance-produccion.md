@@ -289,6 +289,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - La IA devuelve un JSON validado con negocio, base de conocimiento, flujos y
   palabras de handoff. Se revisa en una pantalla de vista previa antes de
   aplicar; el documento original no se guarda.
+- El resultado queda como **borrador** en `BusinessImport` (estado `DRAFT`). Se
+  puede volver a abrir, editar el JSON y guardar sin regenerarlo; los borradores
+  recientes aparecen en la pantalla de importación.
 - Al aplicar se crean entradas y flujos nuevos con claves de idempotencia. Lo
   existente no se sobrescribe; los duplicados se omiten.
 - Puede ajustar `systemPrompt`, `tone` y `handoffKeywords` del workspace.

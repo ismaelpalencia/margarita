@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editar borrador de negocio | Margarita</title>
+    <link rel="stylesheet" href="<%= `/css/style.css${typeof assetVersion !== "undefined" && assetVersion ? `?v=${assetVersion}` : ""}` %>" />
+    <%- include("../../../partials/brand-head") %>
+</head>
+
+<body class="min-h-screen bg-slate-100">
+    <%- include("../../../partials/admin-nav", { user }) %>
+
+    <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <div class="mb-6">
+            <a href="/admin/ai/import/<%= importId %>" class="text-sm font-semibold text-slate-500">← Volver al borrador</a>
+            <h2 class="mt-2 text-2xl font-bold text-slate-800">Editar negocio con IA</h2>
+            <p class="mt-1 text-sm text-slate-500">
+                Ajusta preguntas, respuestas, palabras clave, botones o flujos. Se valida al guardar.
+            </p>
+        </div>
+
+        <% if (error) { %>
+            <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"><%= error %></div>
+        <% } %>
+
+        <form action="/admin/ai/import/<%= importId %>/edit" method="POST" class="space-y-5">
+            <section class="card">
+                <p class="text-sm text-slate-600">
+                    El objeto debe conservar <code>business</code>, <code>knowledge</code>,
+                    <code>flows</code> y <code>handoffKeywords</code>.
+                </p>
+                <textarea name="result" rows="30" required class="input mt-3 font-mono text-xs"><%= resultJson %></textarea>
+            </section>
+
+            <div class="flex flex-wrap gap-3">
+                <button class="btn btn--primary">Guardar borrador</button>
+                <a href="/admin/ai/import/<%= importId %>" class="btn btn--secondary">Cancelar</a>
+            </div>
+        </form>
+    </main>
+</body>
+</html>
