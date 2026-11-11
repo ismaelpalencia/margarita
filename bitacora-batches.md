@@ -824,3 +824,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - La lista enlaza a Flujos por palabra clave para diagnosticar triggers como «hola».
 
 ---
+
+## IA: bienvenida y reset
+
+- Los flujos importados con botones/lista se crean apagados para no publicar menús sin destinos.
+- El prompt de importación evita generar menús de bienvenida interactivos; para eso se usa un flujo guiado.
+- Botón Restablecer ajustes de IA: valores por defecto, sin borrar conocimiento ni flujos.
+- La lista de flujos guiados enlaza a Flujos por palabra clave para diagnosticar triggers.
+
+---

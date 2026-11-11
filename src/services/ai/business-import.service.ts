@@ -203,6 +203,10 @@ Reglas:
 - flows: 0 a 10 respuestas automáticas por palabra clave. trigger admite
   alternativas separadas por |. reply máximo 1024. Usa buttons o list, nunca
   ambos. list: máximo 10 filas, título de 24 y descripción de 72.
+- Un flujo de bienvenida debe ser texto simple, sin botones ni listas. Si el
+  documento pide un menú con opciones, no inventes a dónde lleva cada botón:
+  omite el menú y deja que el operador cree un flujo guiado. Los flujos con
+  botones o listas se crean apagados para revisión.
 - handoffKeywords: palabras que deben pasar a una persona (queja, reclamo,
   gerente, abogado, etc.).
 - No incluyas datos personales de clientes ni instrucciones para la IA.
@@ -600,6 +604,13 @@ export class BusinessImportService {
             }
 
             for (const flow of data.flows) {
+                /**
+                 * Un flujo con botones o lista no define destinos por sí solo:
+                 * se crea apagado para que el operador no publique un menú
+                 * con botones que no llevan a ningún lado. Un flujo simple sí
+                 * se puede activar.
+                 */
+                const interactive = Boolean(flow.buttons || flow.list);
                 const existing = await prisma.flow.findUnique({
                     where: {
                         workspaceId_slug: {
@@ -634,7 +645,7 @@ export class BusinessImportService {
                                 list: flow.list
                                     ? (flow.list as unknown as Prisma.InputJsonValue)
                                     : Prisma.DbNull,
-                                isActive: true
+                                isActive: !interactive
                             }
                         });
                         importedFlowIds.push(existing.id);
@@ -658,7 +669,7 @@ export class BusinessImportService {
                         list: flow.list
                             ? (flow.list as unknown as Prisma.InputJsonValue)
                             : undefined,
-                        isActive: true
+                        isActive: !interactive
                     }
                 });
                 createdFlowIds.push(created.id);

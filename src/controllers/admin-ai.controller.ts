@@ -155,6 +155,18 @@ export class AdminAiController {
     }
 
     /** Idiomas de respuesta de la IA: español siempre; inglés/portugués opt-in. */
+    static async resetSettings(req: Request, res: Response) {
+        try {
+            await AiSettingsService.reset(
+                req.user!.workspaceId,
+                req.user!.id
+            );
+            return res.redirect("/admin/ai?success=reset");
+        } catch {
+            return res.redirect("/admin/ai?error=settings");
+        }
+    }
+
     static async saveLanguages(req: Request, res: Response) {
         const languages: string[] = [];
 

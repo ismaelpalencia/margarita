@@ -300,6 +300,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - Al aplicar hay dos modos: **sumar** (no sobrescribe lo existente) y
   **reemplazar** (desactiva el conocimiento y los flujos activos del workspace
   y deja activos los del borrador; no borra filas).
+- Un flujo importado con botones o lista se crea **apagado**: sus opciones no
+  definen destinos. Los flujos de texto simple sí se activan. Para menús con
+  ramas se usa un flujo guiado.
 - El reemplazo guarda un snapshot del conocimiento, flujos y ajustes previos.
   Si falla, hace compensación; si se aplicó, se puede **deshacer el último
   reemplazo** desde la pantalla de importación.

@@ -125,6 +125,45 @@ export class AiSettingsService {
         };
     }
 
+    /**
+     * Vuelve a los valores de fábrica sin borrar conocimiento ni flujos.
+     * Respeta los techos que el operador fijó desde Railway.
+     */
+    static async reset(workspaceId: string, userId: string) {
+        const defaults = this.defaults();
+        const preserve = appConfig.aiLimitsHidden || appConfig.aiLimitsLocked;
+        const current = preserve
+            ? await prisma.aiSettings.findUnique({ where: { workspaceId } })
+            : null;
+
+        const data = {
+            enabled: false,
+            mode: defaults.mode,
+            systemPrompt: null,
+            tone: null,
+            language: defaults.language,
+            confidenceMin: defaults.confidenceMin,
+            maxRepliesPerDay: preserve
+                ? current?.maxRepliesPerDay ?? defaults.maxRepliesPerDay
+                : defaults.maxRepliesPerDay,
+            maxRepliesPerThread: preserve
+                ? current?.maxRepliesPerThread ?? defaults.maxRepliesPerThread
+                : defaults.maxRepliesPerThread,
+            monthlyBudgetCents: preserve
+                ? current?.monthlyBudgetCents ?? defaults.monthlyBudgetCents
+                : defaults.monthlyBudgetCents,
+            handoffKeywords: [],
+            model: null,
+            updatedById: userId
+        };
+
+        return prisma.aiSettings.upsert({
+            where: { workspaceId },
+            create: { workspaceId, ...data },
+            update: data
+        });
+    }
+
     static async save(
         workspaceId: string,
         userId: string,
