@@ -131,10 +131,10 @@ export class AiSettingsService {
      */
     static async reset(workspaceId: string, userId: string) {
         const defaults = this.defaults();
-        const preserve = appConfig.aiLimitsHidden || appConfig.aiLimitsLocked;
-        const current = preserve
-            ? await prisma.aiSettings.findUnique({ where: { workspaceId } })
-            : null;
+        const locks = this.locks();
+        const current = await prisma.aiSettings.findUnique({
+            where: { workspaceId }
+        });
 
         const data = {
             enabled: false,
@@ -143,13 +143,13 @@ export class AiSettingsService {
             tone: null,
             language: defaults.language,
             confidenceMin: defaults.confidenceMin,
-            maxRepliesPerDay: preserve
+            maxRepliesPerDay: locks.maxRepliesPerDayLocked
                 ? current?.maxRepliesPerDay ?? defaults.maxRepliesPerDay
                 : defaults.maxRepliesPerDay,
-            maxRepliesPerThread: preserve
+            maxRepliesPerThread: locks.maxRepliesPerThreadLocked
                 ? current?.maxRepliesPerThread ?? defaults.maxRepliesPerThread
                 : defaults.maxRepliesPerThread,
-            monthlyBudgetCents: preserve
+            monthlyBudgetCents: locks.monthlyBudgetLocked
                 ? current?.monthlyBudgetCents ?? defaults.monthlyBudgetCents
                 : defaults.monthlyBudgetCents,
             handoffKeywords: [],
