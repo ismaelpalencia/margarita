@@ -377,6 +377,36 @@ export class AdminAiController {
         }
     }
 
+    static async deleteEntry(req: Request, res: Response) {
+        const entryId = getRequiredParam(req, "id");
+
+        try {
+            const entry = await KnowledgeService.getById(
+                req.user!.workspaceId,
+                entryId
+            );
+
+            if (!entry) {
+                return res.redirect("/admin/ai?error=knowledge");
+            }
+
+            await KnowledgeService.remove(req.user!.workspaceId, entry.id);
+
+            await LogService.create({
+                workspaceId: req.user!.workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.AI,
+                action: "KNOWLEDGE_DELETED",
+                message: "Se eliminó una entrada de la base de conocimiento.",
+                payload: { entryId: entry.id }
+            }).catch(() => undefined);
+
+            return res.redirect("/admin/ai?success=knowledge_deleted");
+        } catch {
+            return res.redirect("/admin/ai?error=knowledge");
+        }
+    }
+
     static async test(req: Request, res: Response) {
         const parsed = aiTestSchema.safeParse(req.body);
 

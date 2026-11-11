@@ -248,7 +248,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 
 ### Base de conocimiento, idiomas y paquete
 
-- **Base de conocimiento**: única fuente de la que la IA puede responder. Preguntas y respuestas cifradas; palabras clave en claro para recuperación. Cada entrada puede llevar **hasta 3 botones** de respuesta rápida (título de 20); se envían en modo automático cuando la coincidencia es única.
+- **Base de conocimiento**: única fuente de la que la IA puede responder. Preguntas y respuestas cifradas; palabras clave en claro para recuperación. Cada entrada puede llevar **hasta 3 botones** de respuesta rápida (título de 20); se envían en modo automático cuando la coincidencia es única. Cada entrada se puede **eliminar** desde la lista.
 - **Idiomas**: español siempre; inglés y portugués opt-in por workspace (`aiMultilangLanguages`). Se audita `AI_MULTILANG_REPLY`.
 - **Paquete inicial por vertical** (comercio, servicios, genérico): carga flujos por palabra clave y 10–11 entradas de conocimiento. Idempotente; enciende `flowsEnabled`. No hay paquete de cobranza.
 - **Panel por hilo**: modo, intención, confianza, motivo de handoff, respuestas automáticas, borradores aprobados y costo estimado.
@@ -283,6 +283,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - **Apagar un flujo** cierra sus ejecuciones activas; el siguiente mensaje de
   esa conversación ya no continúa el flujo apagado y cae a los flujos normales
   o a la IA.
+- Los flujos guiados se pueden **eliminar** desde la lista; sus ejecuciones se
+  borran en cascada.
 - No calcula simulaciones ni integra instituciones: si el flujo las necesita,
   debe terminar en `handoff` y anotarlo en `missing`.
 
@@ -321,7 +323,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
   `|`), con texto, hasta 3 botones o una lista de hasta 10 opciones.
 - Se editan en **Admin → IA → Paquete inicial**: trigger, respuesta, botones y
   activación por flujo. El paquete por vertical solo siembra flujos que no
-  existan; no pisa los editados.
+  existan; no pisa los editados. Cada flujo se puede eliminar del workspace.
 - `Workspace.flowsEnabled` es el interruptor maestro. Además,
   `WhatsAppNumber.flowsEnabled` permite apagarlos por número.
 - El flujo corre **antes** que la IA. Si responde, la IA no se encola para ese

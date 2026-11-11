@@ -133,6 +133,31 @@ export class AdminFlowController {
         return res.redirect("/admin/ai/package?success=flow");
     }
 
+    /** Elimina un flujo concreto del workspace. */
+    static async remove(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+        const flow = await prisma.flow.findFirst({
+            where: { id, workspaceId: req.user!.workspaceId }
+        });
+
+        if (!flow) {
+            return res.redirect("/admin/ai/package?error=flow");
+        }
+
+        await prisma.flow.delete({ where: { id: flow.id } });
+
+        await LogService.create({
+            workspaceId: req.user!.workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.AI,
+            action: "FLOW_DELETED",
+            message: `Se eliminó el flujo «${flow.name}».`,
+            payload: { flowId: flow.id, slug: flow.slug }
+        }).catch(() => undefined);
+
+        return res.redirect("/admin/ai/package?success=flow_deleted");
+    }
+
     /** Formulario para editar el trigger, la respuesta y los botones. */
     static async edit(req: Request, res: Response) {
         const id = getRequiredParam(req, "id");

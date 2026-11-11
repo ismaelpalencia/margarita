@@ -60,6 +60,10 @@
             <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
                 Flujo actualizado.
             </div>
+        <% } else if (success === "flow_deleted") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                Flujo eliminado.
+            </div>
         <% } %>
 
         <% if (error === "invalid") { %>
@@ -104,6 +108,9 @@
                                             <a href="/admin/ai/flows/<%= flow.id %>" class="btn btn--secondary btn--sm">Editar</a>
                                             <form action="/admin/ai/flows/<%= flow.id %>/toggle" method="POST">
                                                 <button class="btn btn--ghost btn--sm"><%= flow.isActive ? "Apagar" : "Encender" %></button>
+                                            </form>
+                                            <form action="/admin/ai/flows/<%= flow.id %>/delete" method="POST" onsubmit="return confirm('¿Eliminar este flujo? Esta acción no se puede deshacer.');">
+                                                <button class="btn btn--ghost btn--sm" style="color: var(--danger)">Eliminar</button>
                                             </form>
                                         </div>
                                     </td>

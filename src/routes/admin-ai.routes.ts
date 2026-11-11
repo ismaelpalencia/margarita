@@ -23,6 +23,7 @@ router.post("/knowledge", AdminAiController.createEntry);
 router.get("/knowledge/:id", AdminAiController.showEditEntry);
 router.post("/knowledge/:id", AdminAiController.updateEntry);
 router.post("/knowledge/:id/active", AdminAiController.setEntryActive);
+router.post("/knowledge/:id/delete", AdminAiController.deleteEntry);
 
 /** Importar un documento de negocio y convertirlo en conocimiento/flujos. */
 router.get("/guided-flows", AdminGuidedFlowController.index);
@@ -32,6 +33,7 @@ router.post("/guided-flows", AdminGuidedFlowController.create);
 router.get("/guided-flows/:id", AdminGuidedFlowController.editForm);
 router.post("/guided-flows/:id", AdminGuidedFlowController.update);
 router.post("/guided-flows/:id/toggle", AdminGuidedFlowController.toggle);
+router.post("/guided-flows/:id/delete", AdminGuidedFlowController.remove);
 
 router.get("/import", AdminAiImportController.form);
 router.post("/import", AdminAiImportController.analyze);
@@ -51,6 +53,7 @@ router.post("/package/load", AdminFlowController.load);
 /** Edición y activación de flujos (bienvenida incluida). */
 router.post("/flows/toggle", AdminFlowController.toggleFlows);
 router.post("/flows/:id/toggle", AdminFlowController.toggleFlow);
+router.post("/flows/:id/delete", AdminFlowController.remove);
 router.get("/flows/:id", AdminFlowController.edit);
 router.post("/flows/:id", AdminFlowController.update);
 

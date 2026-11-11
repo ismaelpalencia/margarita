@@ -29,7 +29,13 @@
 
         <% if (success) { %>
             <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm font-semibold text-margarita-700">
-                <%= success === "created" ? "Flujo creado." : success === "updated" ? "Flujo actualizado." : "Flujo actualizado." %>
+                <%= success === "created"
+                    ? "Flujo creado."
+                    : success === "deleted"
+                      ? "Flujo guiado eliminado."
+                      : success === "updated"
+                        ? "Flujo actualizado."
+                        : "Flujo actualizado." %>
             </div>
         <% } %>
 
@@ -78,6 +84,9 @@
                                                 <button class="btn btn--ghost btn--sm"><%= flow.isActive ? "Apagar" : "Encender" %></button>
                                             </form>
                                         <% } %>
+                                        <form action="/admin/ai/guided-flows/<%= flow.id %>/delete" method="POST" onsubmit="return confirm('¿Eliminar este flujo guiado? Esta acción no se puede deshacer.');">
+                                            <button class="btn btn--ghost btn--sm" style="color: var(--danger)">Eliminar</button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

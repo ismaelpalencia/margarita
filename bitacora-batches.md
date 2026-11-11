@@ -859,3 +859,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Prompt del generador guiado también con contrato de salida.
 
 ---
+
+## IA: borrado individual
+
+- Se agregó eliminar por entrada de conocimiento, por flujo de palabra clave y por flujo guiado.
+- Todos los borrados están acotados al workspace y piden confirmación.
+- Los flujos guiados borran sus runs en cascada; las entradas y flujos no tienen dependencias.
+- Se registra KNOWLEDGE_DELETED / FLOW_DELETED / GUIDED_FLOW_DELETED.
+
+---

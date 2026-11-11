@@ -282,6 +282,16 @@ export class KnowledgeService {
         });
     }
 
+    static async remove(workspaceId: string, entryId: string) {
+        const deleted = await prisma.knowledgeEntry.deleteMany({
+            where: { id: entryId, workspaceId }
+        });
+
+        if (deleted.count === 0) {
+            throw new Error("La entrada no existe.");
+        }
+    }
+
     static async setActive(
         workspaceId: string,
         entryId: string,

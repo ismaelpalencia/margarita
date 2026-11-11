@@ -340,6 +340,30 @@ export class AdminGuidedFlowController {
         }
     }
 
+    static async remove(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+        const flow = await prisma.guidedFlow.findFirst({
+            where: { id, workspaceId: req.user!.workspaceId }
+        });
+
+        if (!flow) {
+            return res.redirect("/admin/ai/guided-flows?error=not_found");
+        }
+
+        await prisma.guidedFlow.delete({ where: { id: flow.id } });
+
+        await LogService.create({
+            workspaceId: req.user!.workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.AI,
+            action: "GUIDED_FLOW_DELETED",
+            message: `Se eliminó el flujo guiado «${flow.name}».`,
+            payload: { flowId: flow.id }
+        }).catch(() => undefined);
+
+        return res.redirect("/admin/ai/guided-flows?success=deleted");
+    }
+
     static async toggle(req: Request, res: Response) {
         const id = getRequiredParam(req, "id");
         const flow = await prisma.guidedFlow.findFirst({
