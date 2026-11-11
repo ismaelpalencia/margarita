@@ -816,3 +816,11 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Migración 20261111130000_guided_flow_drafts.
 
 ---
+
+## Flujos guiados: apagado en caliente
+
+- Un run ACTIVE de un flujo apagado ya no sigue contestando: se completa y el mensaje cae a flujos/IA.
+- Apagar desde la lista o desde el editor cierra los runs activos del flujo.
+- La lista enlaza a Flujos por palabra clave para diagnosticar triggers como «hola».
+
+---

@@ -280,6 +280,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
   desde el panel del hilo.
 - **Panel del hilo:** muestra el flujo, su estado y los datos/archivos
   capturados. No procesa ni valida el contenido de los documentos.
+- **Apagar un flujo** cierra sus ejecuciones activas; el siguiente mensaje de
+  esa conversación ya no continúa el flujo apagado y cae a los flujos normales
+  o a la IA.
 - No calcula simulaciones ni integra instituciones: si el flujo las necesita,
   debe terminar en `handoff` y anotarlo en `missing`.
 

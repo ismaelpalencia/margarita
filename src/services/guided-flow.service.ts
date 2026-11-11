@@ -38,7 +38,18 @@ export class GuidedFlowService {
         });
 
         if (run && run.status === "ACTIVE") {
-            return this.advance({
+            /**
+             * Si el operador apagó el flujo, no se sigue atendiendo la
+             * conversación con él: se cierra el run y el mensaje cae a los
+             * flujos normales o a la IA.
+             */
+            if (!run.flow.isActive) {
+                await this.complete(
+                    params.conversationId,
+                    run.currentStepId
+                );
+            } else {
+                return this.advance({
                 workspaceId: params.workspaceId,
                 conversationId: params.conversationId,
                 run,
@@ -46,8 +57,9 @@ export class GuidedFlowService {
                 messageId: params.messageId,
                 media: params.media,
                 replyId: params.replyId ?? null,
-                replyTitle: params.replyTitle ?? null
-            });
+                    replyTitle: params.replyTitle ?? null
+                });
+            }
         }
 
         const flow = await this.findMatching(

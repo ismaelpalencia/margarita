@@ -299,6 +299,13 @@ export class AdminGuidedFlowController {
                 }
             });
 
+            if (parsed.data.isActive !== "on") {
+                await prisma.guidedFlowRun.updateMany({
+                    where: { flowId: flow.id, status: "ACTIVE" },
+                    data: { status: "COMPLETED" }
+                });
+            }
+
             await LogService.create({
                 workspaceId: req.user!.workspaceId,
                 level: LogLevel.INFO,
@@ -347,6 +354,13 @@ export class AdminGuidedFlowController {
             where: { id: flow.id },
             data: { isActive: !flow.isActive }
         });
+
+        if (flow.isActive) {
+            await prisma.guidedFlowRun.updateMany({
+                where: { flowId: flow.id, status: "ACTIVE" },
+                data: { status: "COMPLETED" }
+            });
+        }
 
         await LogService.create({
             workspaceId: req.user!.workspaceId,
