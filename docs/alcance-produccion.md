@@ -270,8 +270,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - El editor valida IDs, destinos, botones, datos y URLs antes de guardar.
 - **Generador con IA:** se pega la estructura del flujo y la IA devuelve un
   borrador con `steps`, un resumen y una lista de `missing` (datos o
-  integraciones que faltan). No se guarda nada hasta que el operador revisa en
-  el constructor y pulsa Guardar.
+  integraciones que faltan). El borrador se guarda como `GuidedFlow` con
+  `isDraft=true` y aparece en la lista; el operador lo edita en el constructor y
+  pulsa Guardar para publicarlo.
 - **Paso `input`:** captura edad, monto, meses u otro dato de texto/número y lo
   guarda en `GuidedFlowRun.data`.
 - **Paso `file`:** pide una foto o documento (INE, talón, estado de cuenta) y
@@ -464,7 +465,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
 | Pruebas | 302 unitarias / 82 integración | **364 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
-| Migraciones | 23 | **39** |
+| Migraciones | 23 | **40** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
 | Precios | Repetidos en varios documentos | Fuente en `landing/` + `PRICING`; el panel no los muestra |
@@ -532,7 +533,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Tipos | `npx tsc --noEmit` limpio |
 | Unitarias | **364** en 57 archivos |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
-| Migraciones | **39** versionadas en `prisma/migrations` |
+| Migraciones | **40** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |
 | Linter/formateador | No hay |
 | Pruebas de interfaz | No hay automatizadas |

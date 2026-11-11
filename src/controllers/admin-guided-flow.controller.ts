@@ -32,6 +32,23 @@ function slugify(value: string, fallback: string): string {
     return slug || fallback;
 }
 
+async function uniqueGuidedSlug(workspaceId: string, base: string) {
+    let slug = base;
+    let suffix = 2;
+
+    while (
+        await prisma.guidedFlow.findUnique({
+            where: { workspaceId_slug: { workspaceId, slug } },
+            select: { id: true }
+        })
+    ) {
+        slug = `${base}-${suffix}`.slice(0, 60);
+        suffix += 1;
+    }
+
+    return slug;
+}
+
 function parseStepsInput(value: string) {
     let raw: unknown;
 
@@ -54,7 +71,11 @@ export class AdminGuidedFlowController {
     static async index(req: Request, res: Response) {
         const flows = await prisma.guidedFlow.findMany({
             where: { workspaceId: req.user!.workspaceId },
-            orderBy: [{ isActive: "desc" }, { createdAt: "desc" }]
+            orderBy: [
+                { isDraft: "desc" },
+                { isActive: "desc" },
+                { createdAt: "desc" }
+            ]
         });
 
         return res.render("pages/admin/ai/guided-flows", {
@@ -76,22 +97,29 @@ export class AdminGuidedFlowController {
                 instructions
             });
 
-            return res.render("pages/admin/ai/guided-flow-edit", {
-                user: req.user,
-                flow: null,
-                stepsJson: JSON.stringify(result.steps, null, 2),
-                values: {
+            const slug = await uniqueGuidedSlug(
+                req.user!.workspaceId,
+                slugify(result.name, "flujo")
+            );
+
+            const flow = await prisma.guidedFlow.create({
+                data: {
+                    workspaceId: req.user!.workspaceId,
                     name: result.name,
-                    slug: "",
+                    slug,
                     trigger: result.trigger,
-                    isActive: true
-                },
-                error: null,
-                summary: result.summary,
-                missing: result.missing,
-                aiSource: source,
-                aiInstructions: instructions
+                    steps: result.steps as unknown as Prisma.InputJsonValue,
+                    isActive: false,
+                    isDraft: true,
+                    draftSummary: result.summary || null,
+                    draftMissing:
+                        result.missing as unknown as Prisma.InputJsonValue
+                }
             });
+
+            return res.redirect(
+                `/admin/ai/guided-flows/${flow.id}?draft=1`
+            );
         } catch (error) {
             return res.status(400).render("pages/admin/ai/guided-flow-edit", {
                 user: req.user,
@@ -206,6 +234,10 @@ export class AdminGuidedFlowController {
             return res.redirect("/admin/ai/guided-flows?error=not_found");
         }
 
+        const missing = flow.isDraft && Array.isArray(flow.draftMissing)
+            ? (flow.draftMissing as string[])
+            : [];
+
         return res.render("pages/admin/ai/guided-flow-edit", {
             user: req.user,
             flow,
@@ -214,9 +246,12 @@ export class AdminGuidedFlowController {
                 name: flow.name,
                 slug: flow.slug,
                 trigger: flow.trigger,
-                isActive: flow.isActive
+                isActive: flow.isDraft ? true : flow.isActive
             },
-            error: null
+            error: null,
+            summary: flow.isDraft ? flow.draftSummary : null,
+            missing,
+            draft: flow.isDraft
         });
     }
 
@@ -257,7 +292,10 @@ export class AdminGuidedFlowController {
                     slug: slugify(parsed.data.slug || parsed.data.name, "flujo"),
                     trigger: parsed.data.trigger,
                     steps: steps as unknown as Prisma.InputJsonValue,
-                    isActive: parsed.data.isActive === "on"
+                    isActive: parsed.data.isActive === "on",
+                    isDraft: false,
+                    draftSummary: null,
+                    draftMissing: Prisma.DbNull
                 }
             });
 
@@ -282,6 +320,11 @@ export class AdminGuidedFlowController {
                     trigger: parsed.data.trigger,
                     isActive: parsed.data.isActive === "on"
                 },
+                summary: flow.isDraft ? flow.draftSummary : null,
+                missing:
+                    flow.isDraft && Array.isArray(flow.draftMissing)
+                        ? (flow.draftMissing as string[])
+                        : [],
                 error:
                     error instanceof Error
                         ? error.message

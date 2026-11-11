@@ -31,6 +31,11 @@
             <p class="mt-1 text-sm text-slate-500">
                 No usa IA. Arma los pasos, asigna los botones y decide a dónde va cada respuesta.
             </p>
+            <% if (typeof draft !== "undefined" && draft) { %>
+                <div class="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    <strong>Borrador sin publicar.</strong> Ajusta lo que haga falta y pulsa Guardar flujo para activarlo.
+                </div>
+            <% } %>
         </div>
 
         <% if (!flow) { %>

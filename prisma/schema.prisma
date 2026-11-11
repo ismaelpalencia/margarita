@@ -1600,6 +1600,10 @@ model GuidedFlow {
   trigger String
   steps   Json
   isActive Boolean @default(true)
+  /** Borrador generado por IA, aún no publicado. */
+  isDraft  Boolean @default(false)
+  draftSummary String?
+  draftMissing Json?
 
   runs GuidedFlowRun[]
 

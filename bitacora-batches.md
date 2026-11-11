@@ -807,3 +807,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Migración 20261111120000_business_import_replace.
 
 ---
+
+## Flujos guiados: borradores persistentes
+
+- El generador con IA crea un GuidedFlow isDraft=true e isActive=false.
+- La lista muestra Borrador y Continuar; el editor conserva summary/missing.
+- Guardar publica el flujo (isDraft=false, limpia draftSummary/draftMissing).
+- Migración 20261111130000_guided_flow_drafts.
+
+---
