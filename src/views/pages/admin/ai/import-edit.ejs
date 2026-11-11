@@ -293,6 +293,20 @@
                 root.appendChild(renderKnowledge());
                 root.appendChild(renderFlows());
 
+                if (Array.isArray(data.guidedFlows) && data.guidedFlows.length > 0) {
+                    var guided = el("section", "card space-y-3");
+                    guided.appendChild(el("h3", "font-bold text-slate-800", "Flujos guiados propuestos"));
+                    guided.appendChild(el("p", "text-xs text-slate-500", "Se crearán como borradores; edítalos en Flujos guiados después de aplicar."));
+                    data.guidedFlows.forEach(function (flow) {
+                        var card = el("div", "rounded-xl border border-slate-200 p-3");
+                        card.appendChild(el("p", "text-sm font-semibold text-slate-800", flow.name || "Flujo guiado"));
+                        card.appendChild(el("p", "mt-1 text-xs text-slate-500", "Dispara con: " + (flow.trigger || "")));
+                        card.appendChild(el("p", "mt-1 text-xs text-slate-600", (flow.steps || []).length + " pasos"));
+                        guided.appendChild(card);
+                    });
+                    root.appendChild(guided);
+                }
+
                 var handoff = el("section", "card space-y-3");
                 handoff.appendChild(el("h3", "font-bold text-slate-800", "Palabras que pasan a una persona"));
                 handoff.appendChild(input((data.handoffKeywords || []).join(", "), "queja, reclamo, gerente", 600, function () {

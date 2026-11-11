@@ -1572,6 +1572,7 @@ model BusinessImport {
   /** IDs creados/actualizados por esta importación. */
   importedKnowledgeIds String[] @default([])
   importedFlowIds      String[] @default([])
+  importedGuidedFlowIds String[] @default([])
 
   undoneAt DateTime?
 

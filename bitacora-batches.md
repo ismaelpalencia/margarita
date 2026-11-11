@@ -833,3 +833,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - La lista de flujos guiados enlaza a Flujos por palabra clave para diagnosticar triggers.
 
 ---
+
+## Importación: flujos guiados propuestos por IA
+
+- El esquema de importación acepta guidedFlows (máx. 2) con pasos validados.
+- El prompt exige trigger que coincida con el botón que inicia el flujo y handoff cuando falta integración.
+- Al aplicar se crean GuidedFlow isDraft=true / isActive=false y se enlazan desde el preview.
+- importedGuidedFlowIds permite borrar los borradores al deshacer el reemplazo.
+- Migración 20261111140000_business_import_guided_ids.
+
+---

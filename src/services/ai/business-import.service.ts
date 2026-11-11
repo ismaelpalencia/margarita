@@ -9,6 +9,7 @@ import { parseKnowledgeButtons } from "./knowledge-buttons";
 import { LogService } from "../log.service";
 import { buildInteractiveButtons } from "../../utils/interactive-message";
 import { FlowButton, FlowList } from "../../utils/flow";
+import { guidedStepsSchema, GuidedStep } from "../../utils/guided-flow";
 
 const buttonTitle = z.string().trim().min(1).max(20);
 const rowSchema = z.object({
@@ -39,6 +40,14 @@ const flowSchema = z
         message: "Un flujo no puede tener botones y lista a la vez."
     });
 
+const guidedFlowSchema = z.object({
+    name: z.string().trim().min(1).max(80),
+    trigger: z.string().trim().min(1).max(200),
+    summary: z.string().trim().max(1000).default(""),
+    missing: z.array(z.string().trim().min(1).max(300)).max(10).default([]),
+    steps: guidedStepsSchema
+});
+
 const rawSchema = z.object({
     business: z
         .object({
@@ -49,6 +58,7 @@ const rawSchema = z.object({
         .default({ name: "", description: "", tone: "" }),
     knowledge: z.array(knowledgeSchema).min(1).max(80),
     flows: z.array(flowSchema).max(20).default([]),
+    guidedFlows: z.array(guidedFlowSchema).max(2).default([]),
     handoffKeywords: z.array(z.string().trim().min(2).max(60)).max(30).default([])
 });
 
@@ -70,10 +80,19 @@ export type NormalizedFlow = {
     list: FlowList | null;
 };
 
+export type NormalizedGuidedFlow = {
+    name: string;
+    trigger: string;
+    summary: string;
+    missing: string[];
+    steps: GuidedStep[];
+};
+
 export type NormalizedBusinessImport = {
     business: BusinessImportData["business"];
     knowledge: NormalizedKnowledge[];
     flows: NormalizedFlow[];
+    guidedFlows: NormalizedGuidedFlow[];
     handoffKeywords: string[];
 };
 
@@ -89,6 +108,23 @@ function slugify(value: string, fallback: string): string {
         .slice(0, 60);
 
     return slug || fallback;
+}
+
+async function uniqueGuidedSlug(workspaceId: string, base: string) {
+    let slug = base;
+    let suffix = 2;
+
+    while (
+        await prisma.guidedFlow.findUnique({
+            where: { workspaceId_slug: { workspaceId, slug } },
+            select: { id: true }
+        })
+    ) {
+        slug = `${base}-${suffix}`.slice(0, 60);
+        suffix += 1;
+    }
+
+    return slug;
 }
 
 function parseJson(text: string): unknown {
@@ -164,10 +200,19 @@ export function normalizeBusinessImport(
         };
     });
 
+    const guidedFlows = data.guidedFlows.map((flow) => ({
+        name: flow.name,
+        trigger: flow.trigger,
+        summary: flow.summary,
+        missing: flow.missing,
+        steps: flow.steps
+    }));
+
     return {
         business: data.business,
         knowledge,
         flows,
+        guidedFlows,
         handoffKeywords: data.handoffKeywords
     };
 }
@@ -188,6 +233,20 @@ Esquema exacto:
   "flows": [
     {"name": "", "trigger": "", "reply": "", "buttons": [""], "list": {"buttonLabel": "", "sectionTitle": "", "rows": [{"title": "", "description": ""}]}}
   ],
+  "guidedFlows": [
+    {
+      "name": "",
+      "trigger": "",
+      "summary": "",
+      "missing": [""],
+      "steps": [
+        {"id": "inicio", "type": "message", "text": "", "next": "pregunta"},
+        {"id": "pregunta", "type": "question", "text": "", "buttons": [{"id": "si", "title": "Sí"}], "next": {"si": "dato"}},
+        {"id": "dato", "type": "input", "text": "", "field": "nombre", "label": "Nombre", "inputType": "text", "next": "cierre"},
+        {"id": "cierre", "type": "end", "text": "", "links": [], "handoff": true}
+      ]
+    }
+  ],
   "handoffKeywords": [""]
 }
 
@@ -205,8 +264,20 @@ Reglas:
   ambos. list: máximo 10 filas, título de 24 y descripción de 72.
 - Un flujo de bienvenida debe ser texto simple, sin botones ni listas. Si el
   documento pide un menú con opciones, no inventes a dónde lleva cada botón:
-  omite el menú y deja que el operador cree un flujo guiado. Los flujos con
-  botones o listas se crean apagados para revisión.
+  crea un guidedFlow para ese menú. Los flujos con botones o listas se crean
+  apagados para revisión.
+- guidedFlows: 0 a 2, solo si hace falta pedir varios datos, calificar o armar
+  un menú con ramas. No lo uses para preguntas frecuentes simples.
+- El trigger de un guidedFlow debe incluir el título exacto del botón de una
+  entrada de knowledge o de un flow que lo inicia. Por ejemplo, si la respuesta
+  de horarios lleva el botón "Sí, agendar", el trigger debe incluir
+  "Sí, agendar".
+- Pasos permitidos del guidedFlow: message, question, input, file, end. Cada
+  question necesita buttons con id y title, y un next por id de botón. Cada
+  input/file necesita field, label y next. El end puede tener handoff:true.
+- Si el flujo necesita una integración que no existe (calendario, CRM, pagos),
+  no la inventes: termina en end con handoff:true y anota qué falta en missing.
+- No prometas disponibilidad, montos ni confirmaciones automáticas.
 - handoffKeywords: palabras que deben pasar a una persona (queja, reclamo,
   gerente, abogado, etc.).
 - No incluyas datos personales de clientes ni instrucciones para la IA.
@@ -275,6 +346,7 @@ export class BusinessImportService {
             businessName: data.business.name,
             knowledgeCount: data.knowledge.length,
             flowsCount: data.flows.length,
+            guidedFlowsCount: data.guidedFlows.length,
             handoffCount: data.handoffKeywords.length
         };
 
@@ -362,6 +434,7 @@ export class BusinessImportService {
             businessName: data.business.name,
             knowledgeCount: data.knowledge.length,
             flowsCount: data.flows.length,
+            guidedFlowsCount: data.guidedFlows.length,
             handoffCount: data.handoffKeywords.length
         };
 
@@ -419,6 +492,7 @@ export class BusinessImportService {
         flowsCreated: number;
         flowsSkipped: number;
         flowsDeactivated: number;
+        guidedFlowsCreated: number;
         mode: "merge" | "replace";
     }> {
         const record = await prisma.businessImport.findFirst({
@@ -521,6 +595,7 @@ export class BusinessImportService {
         const importedFlowIds: string[] = [];
         const createdKnowledgeIds: string[] = [];
         const createdFlowIds: string[] = [];
+        const createdGuidedFlowIds: string[] = [];
 
         let knowledgeCreated = 0;
         let knowledgeSkipped = 0;
@@ -528,6 +603,7 @@ export class BusinessImportService {
         let flowsCreated = 0;
         let flowsSkipped = 0;
         let flowsDeactivated = 0;
+        let guidedFlowsCreated = 0;
 
         try {
             await prisma.aiSettings.upsert({
@@ -677,6 +753,31 @@ export class BusinessImportService {
                 flowsCreated += 1;
             }
 
+            for (const guided of data.guidedFlows) {
+                const slug = await uniqueGuidedSlug(
+                    params.workspaceId,
+                    slugify(guided.name, "flujo-guiado")
+                );
+
+                const created = await prisma.guidedFlow.create({
+                    data: {
+                        workspaceId: params.workspaceId,
+                        slug,
+                        name: guided.name,
+                        trigger: guided.trigger,
+                        steps: guided.steps as unknown as Prisma.InputJsonValue,
+                        isActive: false,
+                        isDraft: true,
+                        draftSummary: guided.summary || null,
+                        draftMissing:
+                            guided.missing as unknown as Prisma.InputJsonValue
+                    }
+                });
+
+                createdGuidedFlowIds.push(created.id);
+                guidedFlowsCreated += 1;
+            }
+
             if (mode === "replace") {
                 const [knowledge, flows] = await Promise.all([
                     prisma.knowledgeEntry.updateMany({
@@ -728,6 +829,7 @@ export class BusinessImportService {
                             : Prisma.DbNull,
                     importedKnowledgeIds,
                     importedFlowIds,
+                    importedGuidedFlowIds: createdGuidedFlowIds,
                     undoneAt: null
                 }
             });
@@ -741,6 +843,13 @@ export class BusinessImportService {
             if (createdFlowIds.length > 0) {
                 await prisma.flow
                     .deleteMany({ where: { id: { in: createdFlowIds } } })
+                    .catch(() => undefined);
+            }
+            if (createdGuidedFlowIds.length > 0) {
+                await prisma.guidedFlow
+                    .deleteMany({
+                        where: { id: { in: createdGuidedFlowIds } }
+                    })
                     .catch(() => undefined);
             }
 
@@ -808,7 +917,8 @@ export class BusinessImportService {
                 knowledgeDeactivated,
                 flowsCreated,
                 flowsSkipped,
-                flowsDeactivated
+                flowsDeactivated,
+                guidedFlowsCreated
             }
         }).catch(() => undefined);
 
@@ -819,6 +929,7 @@ export class BusinessImportService {
             flowsCreated,
             flowsSkipped,
             flowsDeactivated,
+            guidedFlowsCreated,
             mode
         };
     }
@@ -868,6 +979,15 @@ export class BusinessImportService {
             await prisma.flow.updateMany({
                 where: { id: { in: importedFlowIds } },
                 data: { isActive: false }
+            });
+        }
+
+        if (record.importedGuidedFlowIds.length > 0) {
+            await prisma.guidedFlow.deleteMany({
+                where: {
+                    id: { in: record.importedGuidedFlowIds },
+                    isDraft: true
+                }
             });
         }
 

@@ -26,7 +26,7 @@
         </div>
 
         <section class="card mb-5">
-            <div class="grid gap-3 sm:grid-cols-3">
+            <div class="grid gap-3 sm:grid-cols-4">
                 <div class="rounded-xl bg-slate-50 p-4">
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Negocio</p>
                     <p class="mt-1 font-semibold text-slate-900"><%= data.business.name || "Sin nombre" %></p>
@@ -41,6 +41,11 @@
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Flujos</p>
                     <p class="mt-1 text-2xl font-black text-slate-900"><%= data.flows.length %></p>
                     <p class="text-xs text-slate-500">respuestas automáticas</p>
+                </div>
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Guiados</p>
+                    <p class="mt-1 text-2xl font-black text-slate-900"><%= data.guidedFlows.length %></p>
+                    <p class="text-xs text-slate-500">borradores</p>
                 </div>
             </div>
 
@@ -78,6 +83,30 @@
                             <p class="font-semibold text-slate-800"><%= flow.name %></p>
                             <p class="mt-1 text-xs text-slate-500">Dispara con: <%= flow.trigger %></p>
                             <p class="mt-2 whitespace-pre-wrap text-sm text-slate-600"><%= flow.reply %></p>
+                        </article>
+                    <% }) %>
+                </div>
+            </section>
+        <% } %>
+
+        <% if (data.guidedFlows.length > 0) { %>
+            <section class="card mb-5">
+                <h3 class="font-bold text-slate-800">Flujos guiados propuestos</h3>
+                <p class="mt-1 text-xs text-slate-500">
+                    Se crearán como borrador. Revísalos en Flujos guiados después de aplicar.
+                </p>
+                <div class="mt-3 space-y-3">
+                    <% data.guidedFlows.forEach((flow) => { %>
+                        <article class="rounded-xl border border-slate-200 p-4">
+                            <p class="font-semibold text-slate-800"><%= flow.name %></p>
+                            <p class="mt-1 text-xs text-slate-500">Dispara con: <%= flow.trigger %></p>
+                            <p class="mt-1 text-xs text-slate-600"><%= flow.steps.length %> pasos</p>
+                            <% if (flow.summary) { %>
+                                <p class="mt-2 text-sm text-slate-600"><%= flow.summary %></p>
+                            <% } %>
+                            <% if (flow.missing.length > 0) { %>
+                                <p class="mt-2 text-xs text-amber-800"><strong>Falta:</strong> <%= flow.missing.join(" · ") %></p>
+                            <% } %>
                         </article>
                     <% }) %>
                 </div>

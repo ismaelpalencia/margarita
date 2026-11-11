@@ -290,9 +290,12 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 
 - **Admin → IA → Importar negocio**: se pega o sube un documento de texto
   (máx. 30,000 caracteres) y, opcionalmente, instrucciones para la IA.
-- La IA devuelve un JSON validado con negocio, base de conocimiento, flujos y
-  palabras de handoff. Se revisa en una pantalla de vista previa antes de
-  aplicar; el documento original no se guarda.
+- La IA devuelve un JSON validado con negocio, base de conocimiento, flujos,
+  flujos guiados propuestos y palabras de handoff. Se revisa en una pantalla de
+  vista previa antes de aplicar; el documento original no se guarda.
+- Los flujos guiados propuestos se crean como **borradores inactivos** con
+  `GuidedFlow.isDraft=true`; el operador los revisa y publica en Flujos guiados.
+  Sirven para menús, calificación o captura de varios datos.
 - El resultado queda como **borrador** en `BusinessImport` (estado `DRAFT`). Se
   puede volver a abrir y editar en tarjetas (negocio, preguntas, flujos, botones
   y listas) sin regenerarlo; los borradores recientes aparecen en la pantalla
@@ -470,8 +473,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | --- | --- | --- |
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
-| Pruebas | 302 unitarias / 82 integración | **364 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
-| Migraciones | 23 | **40** |
+| Pruebas | 302 unitarias / 82 integración | **365 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
+| Migraciones | 23 | **41** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
 | Precios | Repetidos en varios documentos | Fuente en `landing/` + `PRICING`; el panel no los muestra |
@@ -537,9 +540,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Aspecto | Estado |
 | --- | --- |
 | Tipos | `npx tsc --noEmit` limpio |
-| Unitarias | **364** en 57 archivos |
+| Unitarias | **365** en 57 archivos |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
-| Migraciones | **40** versionadas en `prisma/migrations` |
+| Migraciones | **41** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |
 | Linter/formateador | No hay |
 | Pruebas de interfaz | No hay automatizadas |

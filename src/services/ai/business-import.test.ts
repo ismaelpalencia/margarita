@@ -29,8 +29,43 @@ const base: BusinessImportData = {
             list: null
         }
     ],
+    guidedFlows: [],
     handoffKeywords: ["queja"]
 };
+
+test("conserva los flujos guiados propuestos", () => {
+    const result = normalizeBusinessImport({
+        ...base,
+        guidedFlows: [
+            {
+                name: "Agendar cita",
+                trigger: "Sí, agendar",
+                summary: "Pide nombre y teléfono.",
+                missing: ["Confirmación de horario"],
+                steps: [
+                    {
+                        id: "inicio",
+                        type: "message",
+                        text: "Te ayudo a agendar.",
+                        next: "cierre"
+                    },
+                    {
+                        id: "cierre",
+                        type: "end",
+                        text: "Una persona confirma.",
+                        links: [],
+                        handoff: true
+                    }
+                ]
+            }
+        ]
+    });
+
+    assert.equal(result.guidedFlows.length, 1);
+    assert.equal(result.guidedFlows[0].trigger, "Sí, agendar");
+    assert.equal(result.guidedFlows[0].steps[0].type, "message");
+    assert.equal(result.guidedFlows[0].missing[0], "Confirmación de horario");
+});
 
 test("normaliza botones de conocimiento y flujos", () => {
     const result = normalizeBusinessImport(base);
