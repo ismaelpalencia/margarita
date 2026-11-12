@@ -311,9 +311,23 @@ export class GuidedFlowService {
             return true;
         }
 
+        const previousData =
+            params.run.data &&
+            typeof params.run.data === "object" &&
+            !Array.isArray(params.run.data)
+                ? (params.run.data as Record<string, unknown>)
+                : {};
+
         await prisma.guidedFlowRun.update({
             where: { conversationId: params.conversationId },
-            data: { currentStepId: next }
+            data: {
+                currentStepId: next,
+                /** La opción elegida también queda como dato del flujo. */
+                data: {
+                    ...previousData,
+                    [current.id]: button.title
+                } as Prisma.InputJsonValue
+            }
         });
 
         return this.sendFrom({

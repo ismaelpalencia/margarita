@@ -61,7 +61,7 @@ function leadFieldsFrom(value: unknown): string[] {
         new Set(
             values
                 .map((item) => String(item).trim())
-                .filter((item) => /^[a-z][a-z0-9_]{0,39}$/.test(item))
+                .filter((item) => /^[A-Za-z0-9_-]{1,40}$/.test(item))
         )
     ).slice(0, 40);
 }

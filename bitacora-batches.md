@@ -887,3 +887,11 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - El alta manual y el flujo capturan phone; CSV y webhook incluyen phone/fields.
 
 ---
+
+## Leads: respuestas de botones y datos legibles
+
+- Las respuestas de pasos question se guardan en GuidedFlowRun.data por id de paso.
+- El editor de flujos permite seleccionar esos campos para el lead.
+- La bandeja de leads muestra los fields como clave/valor.
+
+---

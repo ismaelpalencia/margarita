@@ -31,7 +31,19 @@
             ) {
                 leadFields.push({
                     field: step.field,
-                    label: step.label || step.field
+                    label: step.label || step.field,
+                    kind: "input"
+                });
+            } else if (
+                step &&
+                step.type === "question" &&
+                step.id &&
+                !leadFields.some((item) => item.field === step.id)
+            ) {
+                leadFields.push({
+                    field: step.id,
+                    label: step.text || step.id,
+                    kind: "question"
                 });
             }
         }
@@ -156,7 +168,8 @@
                     <p class="text-xs font-semibold text-slate-700">Datos que se guardan en el lead</p>
                     <p class="mt-1 text-xs text-slate-500">
                         El nombre y el teléfono se guardan siempre. Marca los datos extra del flujo
-                        que quieres copiar al lead; los demás quedan solo en la conversación.
+                        que quieres copiar al lead, incluidas las respuestas de botones; los demás
+                        quedan solo en la conversación.
                     </p>
                     <% if (leadFields.length === 0) { %>
                         <p class="mt-2 text-xs text-slate-500">Agrega pasos de Datos o Archivo para elegir campos.</p>
@@ -171,6 +184,7 @@
                                         <%= selectedLeadFields.includes(item.field) ? "checked" : "" %>
                                     />
                                     <%= item.label %> (<%= item.field %>)
+                                    <% if (item.kind === "question") { %><span class="text-slate-400">· botón</span><% } %>
                                 </label>
                             <% }) %>
                         </div>

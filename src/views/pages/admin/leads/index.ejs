@@ -114,7 +114,14 @@
                                 <% if (lead.fields) { %>
                                     <details>
                                         <summary class="cursor-pointer font-semibold text-slate-700">Ver datos</summary>
-                                        <pre class="mt-1 max-w-xs whitespace-pre-wrap rounded bg-slate-50 p-2 text-[11px]"><%= JSON.stringify(lead.fields, null, 2) %></pre>
+                                        <div class="mt-1 max-w-xs space-y-1 rounded bg-slate-50 p-2 text-[11px]">
+                                            <% Object.entries(lead.fields).forEach(([key, value]) => { %>
+                                                <div>
+                                                    <span class="font-semibold text-slate-700"><%= key %>:</span>
+                                                    <span><%= typeof value === "string" ? value : JSON.stringify(value) %></span>
+                                                </div>
+                                            <% }) %>
+                                        </div>
                                     </details>
                                 <% } else { %>
                                     —

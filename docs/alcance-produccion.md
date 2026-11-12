@@ -281,9 +281,10 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - **Panel del hilo:** muestra el flujo, su estado y los datos/archivos
   capturados. No procesa ni valida el contenido de los documentos.
 - **Captura de lead:** cada flujo guiado puede mapear un campo de nombre,
-  correo e interés y elegir qué datos extra se copian a `Lead.fields`. Al llegar
-  a un `end` guarda siempre nombre y teléfono, y usa el nombre de Meta/WhatsApp
-  si no hay mapeo.
+  correo e interés y elegir qué datos extra se copian a `Lead.fields`, incluidas
+  las respuestas de botones de los pasos `question`. Al llegar a un `end` guarda
+  siempre nombre y teléfono, y usa el nombre de Meta/WhatsApp si no hay mapeo.
+  La bandeja de leads muestra los datos como clave/valor, no como JSON crudo.
 - **Apagar un flujo** cierra sus ejecuciones activas; el siguiente mensaje de
   esa conversación ya no continúa el flujo apagado y cae a los flujos normales
   o a la IA.
