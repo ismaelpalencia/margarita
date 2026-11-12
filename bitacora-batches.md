@@ -904,3 +904,11 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Tests de CSV agregados.
 
 ---
+
+## Dashboard: handoffs duplicados
+
+- La lista de entregas de IA no filtraba por número activo; un contacto con hilos en ambos números aparecía dos veces.
+- Se filtraron handoffs y su conteo por whatsappNumberId.
+- Los mensajes recientes del dashboard también se filtraron por número.
+
+---

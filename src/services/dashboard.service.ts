@@ -75,7 +75,8 @@ export class DashboardService {
                      * Un mensaje oculto no debe reaparecer en el dashboard:
                      * era justo lo que pasaba al borrar un chat desde el hilo.
                      */
-                    deletedAt: null
+                    deletedAt: null,
+                    ...mensajesDelNumero
                 },
                 include: {
                     conversation: {
