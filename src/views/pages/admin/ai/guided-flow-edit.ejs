@@ -20,6 +20,20 @@
         }
         const initialStepsJson = JSON.stringify(Array.isArray(initialSteps) ? initialSteps : []).replace(/</g, "\\u003c");
         const hasVisualSteps = Array.isArray(initialSteps);
+        const leadFields = [];
+        for (const step of Array.isArray(initialSteps) ? initialSteps : []) {
+            if (
+                step &&
+                (step.type === "input" || step.type === "file") &&
+                step.field &&
+                !leadFields.some((item) => item.field === step.field)
+            ) {
+                leadFields.push({
+                    field: step.field,
+                    label: step.label || step.field
+                });
+            }
+        }
     %>
 
     <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
@@ -90,6 +104,52 @@
                     <input type="checkbox" name="isActive" <%= values.isActive ? "checked" : "" %> />
                     Activo
                 </label>
+            </section>
+
+            <section class="card space-y-3">
+                <div>
+                    <h3 class="font-bold text-slate-800">Convertir en lead</h3>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Al llegar al paso de cierre, se guarda un lead con el nombre de Meta/WhatsApp,
+                        los datos del flujo y los campos que elijas. Requiere que los leads estén
+                        encendidos en Admin → Leads.
+                    </p>
+                </div>
+
+                <label class="flex items-center gap-2 text-sm text-slate-700">
+                    <input type="checkbox" name="leadCapture" <%= values.leadCapture ? "checked" : "" %> />
+                    Crear un lead al terminar el flujo
+                </label>
+
+                <div class="grid gap-3 sm:grid-cols-3">
+                    <div>
+                        <label class="text-xs font-bold text-slate-600">Campo para nombre</label>
+                        <select name="leadNameField" class="input mt-1">
+                            <option value="">Nombre de Meta/WhatsApp</option>
+                            <% leadFields.forEach((item) => { %>
+                                <option value="<%= item.field %>" <%= values.leadNameField === item.field ? "selected" : "" %>><%= item.label %> (<%= item.field %>)</option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-600">Campo para correo</label>
+                        <select name="leadEmailField" class="input mt-1">
+                            <option value="">Sin correo</option>
+                            <% leadFields.forEach((item) => { %>
+                                <option value="<%= item.field %>" <%= values.leadEmailField === item.field ? "selected" : "" %>><%= item.label %> (<%= item.field %>)</option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-600">Campo para interés</label>
+                        <select name="leadInterestField" class="input mt-1">
+                            <option value="">Nombre del flujo</option>
+                            <% leadFields.forEach((item) => { %>
+                                <option value="<%= item.field %>" <%= values.leadInterestField === item.field ? "selected" : "" %>><%= item.label %> (<%= item.field %>)</option>
+                            <% }) %>
+                        </select>
+                    </div>
+                </div>
             </section>
 
             <% if (!hasVisualSteps) { %>

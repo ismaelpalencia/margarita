@@ -868,3 +868,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Se registra KNOWLEDGE_DELETED / FLOW_DELETED / GUIDED_FLOW_DELETED.
 
 ---
+
+## Flujos guiados: captura de leads
+
+- GuidedFlow.leadCapture y mapeo de nombre, correo e interés por campo.
+- Al llegar a end se crea/enriquece Lead con datos del run y nombre de Meta/WhatsApp.
+- Lead.fields guarda todos los datos del flujo, cifrado en reposo.
+- El webhook de leads incluye fields; la bandeja muestra los datos.
+- Migración 20261111150000_guided_flow_leads.
+
+---

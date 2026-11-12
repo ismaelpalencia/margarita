@@ -17,7 +17,11 @@ const formSchema = z.object({
     slug: z.string().trim().max(60).optional().default(""),
     trigger: z.string().trim().min(2, "El trigger es obligatorio.").max(200),
     steps: z.string().min(2, "Los pasos son obligatorios."),
-    isActive: z.string().optional()
+    isActive: z.string().optional(),
+    leadCapture: z.string().optional(),
+    leadNameField: z.string().trim().max(40).optional().default(""),
+    leadEmailField: z.string().trim().max(40).optional().default(""),
+    leadInterestField: z.string().trim().max(40).optional().default("")
 });
 
 function slugify(value: string, fallback: string): string {
@@ -158,7 +162,11 @@ export class AdminGuidedFlowController {
                 name: template ? PENSION_GUIDED_TEMPLATE.name : "",
                 slug: template ? PENSION_GUIDED_TEMPLATE.slug : "",
                 trigger: template ? PENSION_GUIDED_TEMPLATE.trigger : "",
-                isActive: true
+                isActive: true,
+                leadCapture: false,
+                leadNameField: "",
+                leadEmailField: "",
+                leadInterestField: ""
             },
             error: null
         });
@@ -176,7 +184,11 @@ export class AdminGuidedFlowController {
                     name: String(req.body?.name || ""),
                     slug: String(req.body?.slug || ""),
                     trigger: String(req.body?.trigger || ""),
-                    isActive: req.body?.isActive === "on"
+                    isActive: req.body?.isActive === "on",
+                    leadCapture: req.body?.leadCapture === "on",
+                    leadNameField: String(req.body?.leadNameField || ""),
+                    leadEmailField: String(req.body?.leadEmailField || ""),
+                    leadInterestField: String(req.body?.leadInterestField || "")
                 },
                 error: parsed.error.issues[0]?.message || "Datos inválidos."
             });
@@ -191,7 +203,12 @@ export class AdminGuidedFlowController {
                     slug: slugify(parsed.data.slug || parsed.data.name, "flujo"),
                     trigger: parsed.data.trigger,
                     steps: steps as unknown as Prisma.InputJsonValue,
-                    isActive: parsed.data.isActive === "on"
+                    isActive: parsed.data.isActive === "on",
+                    leadCapture: parsed.data.leadCapture === "on",
+                    leadNameField: parsed.data.leadNameField || null,
+                    leadEmailField: parsed.data.leadEmailField || null,
+                    leadInterestField:
+                        parsed.data.leadInterestField || null
                 }
             });
 
@@ -214,7 +231,11 @@ export class AdminGuidedFlowController {
                     name: parsed.data.name,
                     slug: parsed.data.slug,
                     trigger: parsed.data.trigger,
-                    isActive: parsed.data.isActive === "on"
+                    isActive: parsed.data.isActive === "on",
+                    leadCapture: parsed.data.leadCapture === "on",
+                    leadNameField: parsed.data.leadNameField,
+                    leadEmailField: parsed.data.leadEmailField,
+                    leadInterestField: parsed.data.leadInterestField
                 },
                 error:
                     error instanceof Error
@@ -246,7 +267,11 @@ export class AdminGuidedFlowController {
                 name: flow.name,
                 slug: flow.slug,
                 trigger: flow.trigger,
-                isActive: flow.isDraft ? true : flow.isActive
+                isActive: flow.isDraft ? true : flow.isActive,
+                leadCapture: flow.leadCapture,
+                leadNameField: flow.leadNameField || "",
+                leadEmailField: flow.leadEmailField || "",
+                leadInterestField: flow.leadInterestField || ""
             },
             error: null,
             summary: flow.isDraft ? flow.draftSummary : null,
@@ -276,7 +301,11 @@ export class AdminGuidedFlowController {
                     name: String(req.body?.name || ""),
                     slug: String(req.body?.slug || ""),
                     trigger: String(req.body?.trigger || ""),
-                    isActive: req.body?.isActive === "on"
+                    isActive: req.body?.isActive === "on",
+                    leadCapture: req.body?.leadCapture === "on",
+                    leadNameField: String(req.body?.leadNameField || ""),
+                    leadEmailField: String(req.body?.leadEmailField || ""),
+                    leadInterestField: String(req.body?.leadInterestField || "")
                 },
                 error: parsed.error.issues[0]?.message || "Datos inválidos."
             });
@@ -293,6 +322,11 @@ export class AdminGuidedFlowController {
                     trigger: parsed.data.trigger,
                     steps: steps as unknown as Prisma.InputJsonValue,
                     isActive: parsed.data.isActive === "on",
+                    leadCapture: parsed.data.leadCapture === "on",
+                    leadNameField: parsed.data.leadNameField || null,
+                    leadEmailField: parsed.data.leadEmailField || null,
+                    leadInterestField:
+                        parsed.data.leadInterestField || null,
                     isDraft: false,
                     draftSummary: null,
                     draftMissing: Prisma.DbNull
@@ -325,7 +359,11 @@ export class AdminGuidedFlowController {
                     name: parsed.data.name,
                     slug: parsed.data.slug,
                     trigger: parsed.data.trigger,
-                    isActive: parsed.data.isActive === "on"
+                    isActive: parsed.data.isActive === "on",
+                    leadCapture: parsed.data.leadCapture === "on",
+                    leadNameField: parsed.data.leadNameField,
+                    leadEmailField: parsed.data.leadEmailField,
+                    leadInterestField: parsed.data.leadInterestField
                 },
                 summary: flow.isDraft ? flow.draftSummary : null,
                 missing:

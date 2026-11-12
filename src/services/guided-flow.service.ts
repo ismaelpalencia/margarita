@@ -4,6 +4,7 @@ import { prisma } from "../config/prisma";
 import { MessageService } from "./message.service";
 import { LogService } from "./log.service";
 import { AiAutoReplyService } from "./ai/auto-reply.service";
+import { LeadService } from "./lead.service";
 import {
     findStep,
     guidedStepsSchema,
@@ -554,6 +555,29 @@ export class GuidedFlowService {
 
             await this.complete(params.conversationId, current.id);
 
+            await this.captureLead({
+                workspaceId: params.workspaceId,
+                conversationId: params.conversationId,
+                flowId: params.flowId,
+                flowName: params.flowName
+            }).catch(async (error) => {
+                await LogService.create({
+                    workspaceId: params.workspaceId,
+                    level: LogLevel.WARN,
+                    module: LogModule.CONTACT,
+                    action: "GUIDED_FLOW_LEAD_FAILED",
+                    message: "No se pudo capturar el lead del flujo guiado.",
+                    payload: {
+                        flowId: params.flowId,
+                        conversationId: params.conversationId,
+                        error:
+                            error instanceof Error
+                                ? error.message
+                                : String(error)
+                    }
+                }).catch(() => undefined);
+            });
+
             if (current.handoff) {
                 await AiAutoReplyService.handoff({
                     workspaceId: params.workspaceId,
@@ -592,6 +616,93 @@ export class GuidedFlowService {
             body: step.text,
             buttons: step.buttons,
             list: null
+        });
+    }
+
+    private static async captureLead(params: {
+        workspaceId: string;
+        conversationId: string;
+        flowId: string;
+        flowName: string;
+    }) {
+        const run = await prisma.guidedFlowRun.findUnique({
+            where: { conversationId: params.conversationId },
+            include: {
+                flow: {
+                    select: {
+                        leadCapture: true,
+                        leadNameField: true,
+                        leadEmailField: true,
+                        leadInterestField: true
+                    }
+                },
+                conversation: {
+                    select: {
+                        contact: {
+                            select: {
+                                id: true,
+                                profileName: true,
+                                customName: true,
+                                phone: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!run?.flow.leadCapture) {
+            return;
+        }
+
+        const workspace = await prisma.workspace.findUnique({
+            where: { id: params.workspaceId },
+            select: { leadsEnabled: true }
+        });
+
+        if (!workspace?.leadsEnabled) {
+            return;
+        }
+
+        const data =
+            run.data &&
+            typeof run.data === "object" &&
+            !Array.isArray(run.data)
+                ? (run.data as Record<string, unknown>)
+                : {};
+        const value = (field: string | null) => {
+            if (!field) {
+                return null;
+            }
+
+            const raw = data[field];
+
+            return typeof raw === "string" || typeof raw === "number"
+                ? String(raw).trim()
+                : null;
+        };
+
+        const mappedName = value(run.flow.leadNameField);
+        const mappedEmail = value(run.flow.leadEmailField);
+        const mappedInterest = value(run.flow.leadInterestField);
+        const contact = run.conversation.contact;
+        const email =
+            mappedEmail && mappedEmail.includes("@") ? mappedEmail : null;
+
+        await LeadService.capture({
+            workspaceId: params.workspaceId,
+            contactId: contact.id,
+            conversationId: params.conversationId,
+            name:
+                mappedName ||
+                contact.customName ||
+                contact.profileName ||
+                contact.phone ||
+                null,
+            email,
+            interest: mappedInterest || params.flowName,
+            fields: data as unknown as Prisma.InputJsonValue,
+            source: "GUIDED_FLOW"
         });
     }
 

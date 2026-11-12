@@ -163,7 +163,7 @@ La restricción del agente se aplica **en la consulta a la base**, no solo en la
 | **Equipo** | Crear admins/agentes, cambiar rol, activar/desactivar, restablecer contraseña, desbloquear, desactivar 2FA, permiso de envío manual y tope diario por agente. |
 | **IA** | Modo, tono, idioma, umbral, límites, presupuesto, palabras de handoff, base de conocimiento **con botones de respuesta rápida**, editor de flujos, prueba sin conversación real, paquete inicial por vertical, **importación de negocio** y panel por hilo. |
 | **Horarios** | Horario de atención y modo fuera de horario. |
-| **Leads** | Captura por correo, estado, exportación CSV y webhook firmado. |
+| **Leads** | Captura por correo o al cerrar un flujo guiado, estado, datos del flujo, exportación CSV y webhook firmado. |
 | **Reportes de servicio** | IA vs persona, primera respuesta (mediana/p90), resolución sin persona, top de preguntas sin cobertura, valoración. |
 | **Reportes** | Reportes de gestión y resultados. **Solo giro `COBRANZA`** (legado). |
 | **WhatsApp** | Cuenta, credenciales cifradas, números, calidad, prueba de conexión e **interruptores de IA y flujos por número**. |
@@ -280,6 +280,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
   desde el panel del hilo.
 - **Panel del hilo:** muestra el flujo, su estado y los datos/archivos
   capturados. No procesa ni valida el contenido de los documentos.
+- **Captura de lead:** cada flujo guiado puede mapear un campo de nombre,
+  correo e interés y crear un lead al llegar a un `end`. Guarda todos los datos
+  del flujo en `Lead.fields` y usa el nombre de Meta/WhatsApp si no hay mapeo.
 - **Apagar un flujo** cierra sus ejecuciones activas; el siguiente mensaje de
   esa conversación ya no continúa el flujo apagado y cae a los flujos normales
   o a la IA.
@@ -382,7 +385,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 ## 10. Contactos, etiquetas y leads
 
 - **Contactos**: alta/edición, búsqueda exacta por nombre completo o teléfono completo, etiquetas, consentimiento (opt-in), baja manual, pausa/desactivación.
-- **Leads** (`leadsEnabled`): si un mensaje entrante trae un correo, se captura el lead de forma idempotente por conversación + correo. Estados `NUEVO`, `CONTACTADO`, `CONVERTIDO`, `DESCARTADO`. Exportación CSV. Webhook saliente firmado con HMAC (`x-margarita-signature`) e idempotencia por `lead.id`, con reintento. **Google Sheets no está implementado.**
+- **Leads** (`leadsEnabled`): si un mensaje entrante trae un correo, se captura el lead de forma idempotente por conversación + correo. También se puede capturar al cerrar un flujo guiado con **Crear lead al terminar**: guarda nombre de Meta/WhatsApp, correo e interés mapeados y todos los datos del flujo en `Lead.fields` (cifrado). Estados `NUEVO`, `CONTACTADO`, `CONVERTIDO`, `DESCARTADO`. Exportación CSV. Webhook saliente firmado con HMAC (`x-margarita-signature`) e idempotencia por `lead.id`, con reintento. **Google Sheets no está implementado.**
 
 ---
 
@@ -476,7 +479,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
 | Pruebas | 302 unitarias / 82 integración | **366 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
-| Migraciones | 23 | **41** |
+| Migraciones | 23 | **42** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
 | Precios | Repetidos en varios documentos | Fuente en `landing/` + `PRICING`; el panel no los muestra |
@@ -544,7 +547,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Tipos | `npx tsc --noEmit` limpio |
 | Unitarias | **366** en 57 archivos |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
-| Migraciones | **41** versionadas en `prisma/migrations` |
+| Migraciones | **42** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |
 | Linter/formateador | No hay |
 | Pruebas de interfaz | No hay automatizadas |

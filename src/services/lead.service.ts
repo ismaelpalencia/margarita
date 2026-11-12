@@ -1,7 +1,7 @@
 import axios from "axios";
 import crypto from "node:crypto";
 
-import { LeadStatus, LogLevel, LogModule } from "@prisma/client";
+import { LeadStatus, LogLevel, LogModule, Prisma } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
 import { LogService } from "./log.service";
@@ -15,6 +15,7 @@ type CaptureInput = {
     name?: string | null;
     email?: string | null;
     interest?: string | null;
+    fields?: Prisma.InputJsonValue | null;
     source: string;
 };
 
@@ -58,7 +59,19 @@ export class LeadService {
         });
 
         if (existing) {
-            return { lead: existing, created: false };
+            /** Un flujo guiado puede enriquecer un lead que ya existía. */
+            const lead = await prisma.lead.update({
+                where: { id: existing.id },
+                data: {
+                    ...(input.name ? { name: input.name.trim() } : {}),
+                    ...(input.interest
+                        ? { interest: input.interest.trim() }
+                        : {}),
+                    ...(input.fields ? { fields: input.fields } : {})
+                }
+            });
+
+            return { lead, created: false };
         }
 
         const lead = await prisma.lead.create({
@@ -70,6 +83,7 @@ export class LeadService {
                 email,
                 emailHash,
                 interest: input.interest?.trim() || null,
+                fields: input.fields ?? undefined,
                 source: input.source,
                 status: LeadStatus.NUEVO
             }
@@ -118,6 +132,7 @@ export class LeadService {
             email: lead.email,
             name: lead.name,
             interest: lead.interest,
+            fields: lead.fields,
             source: lead.source,
             status: lead.status,
             createdAt: lead.createdAt.toISOString()

@@ -466,6 +466,8 @@ model Lead {
   email     String?
   emailHash String?
   interest  String?
+  /** Datos capturados por un flujo guiado (cifrados). */
+  fields    Json?
   source    String
 
   status LeadStatus @default(NUEVO)
@@ -1601,6 +1603,13 @@ model GuidedFlow {
   trigger String
   steps   Json
   isActive Boolean @default(true)
+
+  /** Crear un lead al llegar a un paso end. */
+  leadCapture      Boolean @default(false)
+  leadNameField    String?
+  leadEmailField   String?
+  leadInterestField String?
+
   /** Borrador generado por IA, aún no publicado. */
   isDraft  Boolean @default(false)
   draftSummary String?

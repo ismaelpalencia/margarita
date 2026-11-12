@@ -95,6 +95,7 @@
                         <th class="px-4 py-3">Correo</th>
                         <th class="px-4 py-3">Nombre</th>
                         <th class="px-4 py-3">Interés</th>
+                        <th class="px-4 py-3">Datos del flujo</th>
                         <th class="px-4 py-3">Estado</th>
                         <th class="px-4 py-3">Webhook</th>
                         <th class="px-4 py-3"></th>
@@ -106,6 +107,16 @@
                             <td class="px-4 py-3"><%= lead.email || "—" %></td>
                             <td class="px-4 py-3"><%= lead.name || "—" %></td>
                             <td class="px-4 py-3"><%= lead.interest || "—" %></td>
+                            <td class="px-4 py-3 text-xs text-slate-600">
+                                <% if (lead.fields) { %>
+                                    <details>
+                                        <summary class="cursor-pointer font-semibold text-slate-700">Ver datos</summary>
+                                        <pre class="mt-1 max-w-xs whitespace-pre-wrap rounded bg-slate-50 p-2 text-[11px]"><%= JSON.stringify(lead.fields, null, 2) %></pre>
+                                    </details>
+                                <% } else { %>
+                                    —
+                                <% } %>
+                            </td>
                             <td class="px-4 py-3">
                                 <form action="/admin/leads/<%= lead.id %>/status" method="POST" class="flex items-center gap-2">
                                     <select name="status" class="rounded-xl border border-slate-300 px-2 py-1 text-xs">
