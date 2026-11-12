@@ -895,3 +895,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - La bandeja de leads muestra los fields como clave/valor.
 
 ---
+
+## Leads: CSV con columnas por dato
+
+- La exportación ya no mete todos los datos en una columna JSON.
+- Cada clave de Lead.fields se abre como dato_<campo>, ordenada alfabéticamente.
+- Se mantienen id, correo, nombre, teléfono, interés, origen, estado y fecha.
+- Tests de CSV agregados.
+
+---

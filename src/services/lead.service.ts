@@ -7,6 +7,7 @@ import { prisma } from "../config/prisma";
 import { LogService } from "./log.service";
 import { emailIndex } from "../utils/email";
 import { extractEmail } from "../utils/lead";
+import { buildLeadsCsv } from "../utils/lead-csv";
 
 type CaptureInput = {
     workspaceId: string;
@@ -216,46 +217,8 @@ export class LeadService {
 
     static async exportCsv(workspaceId: string): Promise<string> {
         const leads = await LeadService.list(workspaceId);
-        const rows = [
-            [
-                "id",
-                "email",
-                "nombre",
-                "telefono",
-                "interes",
-                "datos_flujo",
-                "origen",
-                "estado",
-                "creado"
-            ].join(",")
-        ];
 
-        for (const lead of leads) {
-            rows.push(
-                [
-                    lead.id,
-                    csvCell(lead.email),
-                    csvCell(lead.name),
-                    csvCell(lead.phone),
-                    csvCell(lead.interest),
-                    csvCell(lead.fields ? JSON.stringify(lead.fields) : null),
-                    csvCell(lead.source),
-                    lead.status,
-                    lead.createdAt.toISOString()
-                ].join(",")
-            );
-        }
-
-        return "\uFEFF" + rows.join("\r\n");
+        return buildLeadsCsv(leads);
     }
 }
 
-function csvCell(value: string | null): string {
-    if (value == null) {
-        return "";
-    }
-
-    const escaped = value.replace(/"/g, "\"\"");
-
-    return /[,"\r\n]/.test(escaped) ? `"${escaped}"` : escaped;
-}

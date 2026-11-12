@@ -387,7 +387,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 ## 10. Contactos, etiquetas y leads
 
 - **Contactos**: alta/edición, búsqueda exacta por nombre completo o teléfono completo, etiquetas, consentimiento (opt-in), baja manual, pausa/desactivación.
-- **Leads** (`leadsEnabled`): si un mensaje entrante trae un correo, se captura el lead de forma idempotente por conversación + correo. También se puede capturar al cerrar un flujo guiado con **Crear lead al terminar**: guarda siempre nombre y teléfono, permite mapear correo e interés y elegir qué campos del flujo se copian a `Lead.fields` (cifrado). El alta manual exige nombre y teléfono. Estados `NUEVO`, `CONTACTADO`, `CONVERTIDO`, `DESCARTADO`. Exportación CSV. Webhook saliente firmado con HMAC (`x-margarita-signature`) e idempotencia por `lead.id`, con reintento. **Google Sheets no está implementado.**
+- **Leads** (`leadsEnabled`): si un mensaje entrante trae un correo, se captura el lead de forma idempotente por conversación + correo. También se puede capturar al cerrar un flujo guiado con **Crear lead al terminar**: guarda siempre nombre y teléfono, permite mapear correo e interés y elegir qué campos del flujo se copian a `Lead.fields` (cifrado). El alta manual exige nombre y teléfono. Estados `NUEVO`, `CONTACTADO`, `CONVERTIDO`, `DESCARTADO`. Exportación CSV con una columna `dato_<campo>` por cada dato del flujo. Webhook saliente firmado con HMAC (`x-margarita-signature`) e idempotencia por `lead.id`, con reintento. **Google Sheets no está implementado.**
 
 ---
 
@@ -480,7 +480,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | --- | --- | --- |
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
-| Pruebas | 302 unitarias / 82 integración | **366 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
+| Pruebas | 302 unitarias / 82 integración | **368 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
 | Migraciones | 23 | **43** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
@@ -547,7 +547,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Aspecto | Estado |
 | --- | --- |
 | Tipos | `npx tsc --noEmit` limpio |
-| Unitarias | **366** en 57 archivos |
+| Unitarias | **368** en 57 archivos |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
 | Migraciones | **43** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |
