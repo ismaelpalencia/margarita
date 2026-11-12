@@ -16,7 +16,7 @@
             <div>
                 <h2 class="text-2xl font-bold text-slate-800">Leads</h2>
                 <p class="mt-1 text-sm text-slate-500">
-                    Contactos capturados con su correo e interés. Los datos sensibles van cifrados.
+                    Contactos capturados con nombre y teléfono; correo, interés y datos del flujo son opcionales. Los datos sensibles van cifrados.
                 </p>
             </div>
 
@@ -37,7 +37,7 @@
 
         <% if (error) { %>
             <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-                <% if (error === "email") { %> El correo es obligatorio. <% } else if (error === "retry") { %> No se pudo reintentar la entrega. <% } else { %> No se pudo completar la acción. <% } %>
+                <% if (error === "name_phone") { %> El nombre y el teléfono son obligatorios. <% } else if (error === "retry") { %> No se pudo reintentar la entrega. <% } else { %> No se pudo completar la acción. <% } %>
             </div>
         <% } %>
 
@@ -73,9 +73,10 @@
         <section class="mb-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <h3 class="font-bold text-slate-800">Agregar lead</h3>
 
-            <form action="/admin/leads" method="POST" class="mt-4 grid gap-3 md:grid-cols-4">
-                <input type="text" name="name" placeholder="Nombre" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
-                <input type="email" name="email" required placeholder="Correo" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+            <form action="/admin/leads" method="POST" class="mt-4 grid gap-3 md:grid-cols-5">
+                <input type="text" name="name" required placeholder="Nombre" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+                <input type="tel" name="phone" required placeholder="Teléfono" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+                <input type="email" name="email" placeholder="Correo (opcional)" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
                 <input type="text" name="interest" placeholder="Interés" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
                 <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Guardar</button>
             </form>
@@ -94,6 +95,7 @@
                     <tr>
                         <th class="px-4 py-3">Correo</th>
                         <th class="px-4 py-3">Nombre</th>
+                        <th class="px-4 py-3">Teléfono</th>
                         <th class="px-4 py-3">Interés</th>
                         <th class="px-4 py-3">Datos del flujo</th>
                         <th class="px-4 py-3">Estado</th>
@@ -106,6 +108,7 @@
                         <tr>
                             <td class="px-4 py-3"><%= lead.email || "—" %></td>
                             <td class="px-4 py-3"><%= lead.name || "—" %></td>
+                            <td class="px-4 py-3"><%= lead.phone || "—" %></td>
                             <td class="px-4 py-3"><%= lead.interest || "—" %></td>
                             <td class="px-4 py-3 text-xs text-slate-600">
                                 <% if (lead.fields) { %>

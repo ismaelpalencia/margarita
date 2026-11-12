@@ -536,6 +536,7 @@ export class MetaWebhookHandlerService {
                         contactId: contact.id,
                         conversationId: conversation.id,
                         name: contact.customName || contact.profileName || contact.phone,
+                        phone: contact.phone,
                         email,
                         interest: (parsed.body || "").replace(email, "").trim() || null,
                         source: "INBOUND"

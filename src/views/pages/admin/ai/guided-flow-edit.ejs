@@ -20,6 +20,7 @@
         }
         const initialStepsJson = JSON.stringify(Array.isArray(initialSteps) ? initialSteps : []).replace(/</g, "\\u003c");
         const hasVisualSteps = Array.isArray(initialSteps);
+        const selectedLeadFields = Array.isArray(values.leadFields) ? values.leadFields : [];
         const leadFields = [];
         for (const step of Array.isArray(initialSteps) ? initialSteps : []) {
             if (
@@ -149,6 +150,31 @@
                             <% }) %>
                         </select>
                     </div>
+                </div>
+
+                <div class="rounded-xl bg-slate-50 p-3">
+                    <p class="text-xs font-semibold text-slate-700">Datos que se guardan en el lead</p>
+                    <p class="mt-1 text-xs text-slate-500">
+                        El nombre y el teléfono se guardan siempre. Marca los datos extra del flujo
+                        que quieres copiar al lead; los demás quedan solo en la conversación.
+                    </p>
+                    <% if (leadFields.length === 0) { %>
+                        <p class="mt-2 text-xs text-slate-500">Agrega pasos de Datos o Archivo para elegir campos.</p>
+                    <% } else { %>
+                        <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                            <% leadFields.forEach((item) => { %>
+                                <label class="flex items-center gap-2 text-xs text-slate-700">
+                                    <input
+                                        type="checkbox"
+                                        name="leadFields"
+                                        value="<%= item.field %>"
+                                        <%= selectedLeadFields.includes(item.field) ? "checked" : "" %>
+                                    />
+                                    <%= item.label %> (<%= item.field %>)
+                                </label>
+                            <% }) %>
+                        </div>
+                    <% } %>
                 </div>
             </section>
 

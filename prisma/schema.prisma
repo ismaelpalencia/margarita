@@ -463,6 +463,7 @@ model Lead {
   conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
 
   name      String?
+  phone     String?
   email     String?
   emailHash String?
   interest  String?
@@ -1609,6 +1610,8 @@ model GuidedFlow {
   leadNameField    String?
   leadEmailField   String?
   leadInterestField String?
+  /** Campos del flujo que se copian a Lead.fields. */
+  leadFields       String[] @default([])
 
   /** Borrador generado por IA, aún no publicado. */
   isDraft  Boolean @default(false)

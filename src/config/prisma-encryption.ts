@@ -163,7 +163,7 @@ const ENCRYPTED_FIELDS: Record<string, string[]> = {
      * Nombre y correo del lead son datos personales. El correo lleva índice
      * ciego para la idempotencia por conversación + correo.
      */
-    Lead: ["name", "email", "fields"],
+    Lead: ["name", "phone", "email", "fields"],
     KnowledgeEntry: ["question", "answer"],
     AiSuggestion: ["body", "reason"]
 };
@@ -415,7 +415,7 @@ const WRITE_RULES: Record<string, WriteRule> = {
             data.emailHash = blindIndex(normalized);
         }
 
-        encryptTextFields(data, ["name"]);
+        encryptTextFields(data, ["name", "phone"]);
         encryptJsonFields(data, ["fields"]);
     },
 

@@ -21,7 +21,8 @@ const formSchema = z.object({
     leadCapture: z.string().optional(),
     leadNameField: z.string().trim().max(40).optional().default(""),
     leadEmailField: z.string().trim().max(40).optional().default(""),
-    leadInterestField: z.string().trim().max(40).optional().default("")
+    leadInterestField: z.string().trim().max(40).optional().default(""),
+    leadFields: z.union([z.string(), z.array(z.string())]).optional()
 });
 
 function slugify(value: string, fallback: string): string {
@@ -51,6 +52,18 @@ async function uniqueGuidedSlug(workspaceId: string, base: string) {
     }
 
     return slug;
+}
+
+function leadFieldsFrom(value: unknown): string[] {
+    const values = Array.isArray(value) ? value : value ? [value] : [];
+
+    return Array.from(
+        new Set(
+            values
+                .map((item) => String(item).trim())
+                .filter((item) => /^[a-z][a-z0-9_]{0,39}$/.test(item))
+        )
+    ).slice(0, 40);
 }
 
 function parseStepsInput(value: string) {
@@ -166,7 +179,8 @@ export class AdminGuidedFlowController {
                 leadCapture: false,
                 leadNameField: "",
                 leadEmailField: "",
-                leadInterestField: ""
+                leadInterestField: "",
+                leadFields: []
             },
             error: null
         });
@@ -188,7 +202,8 @@ export class AdminGuidedFlowController {
                     leadCapture: req.body?.leadCapture === "on",
                     leadNameField: String(req.body?.leadNameField || ""),
                     leadEmailField: String(req.body?.leadEmailField || ""),
-                    leadInterestField: String(req.body?.leadInterestField || "")
+                    leadInterestField: String(req.body?.leadInterestField || ""),
+                    leadFields: leadFieldsFrom(req.body?.leadFields)
                 },
                 error: parsed.error.issues[0]?.message || "Datos inválidos."
             });
@@ -208,7 +223,8 @@ export class AdminGuidedFlowController {
                     leadNameField: parsed.data.leadNameField || null,
                     leadEmailField: parsed.data.leadEmailField || null,
                     leadInterestField:
-                        parsed.data.leadInterestField || null
+                        parsed.data.leadInterestField || null,
+                    leadFields: leadFieldsFrom(parsed.data.leadFields)
                 }
             });
 
@@ -235,7 +251,8 @@ export class AdminGuidedFlowController {
                     leadCapture: parsed.data.leadCapture === "on",
                     leadNameField: parsed.data.leadNameField,
                     leadEmailField: parsed.data.leadEmailField,
-                    leadInterestField: parsed.data.leadInterestField
+                    leadInterestField: parsed.data.leadInterestField,
+                    leadFields: leadFieldsFrom(parsed.data.leadFields)
                 },
                 error:
                     error instanceof Error
@@ -271,7 +288,8 @@ export class AdminGuidedFlowController {
                 leadCapture: flow.leadCapture,
                 leadNameField: flow.leadNameField || "",
                 leadEmailField: flow.leadEmailField || "",
-                leadInterestField: flow.leadInterestField || ""
+                leadInterestField: flow.leadInterestField || "",
+                leadFields: flow.leadFields
             },
             error: null,
             summary: flow.isDraft ? flow.draftSummary : null,
@@ -305,7 +323,8 @@ export class AdminGuidedFlowController {
                     leadCapture: req.body?.leadCapture === "on",
                     leadNameField: String(req.body?.leadNameField || ""),
                     leadEmailField: String(req.body?.leadEmailField || ""),
-                    leadInterestField: String(req.body?.leadInterestField || "")
+                    leadInterestField: String(req.body?.leadInterestField || ""),
+                    leadFields: leadFieldsFrom(req.body?.leadFields)
                 },
                 error: parsed.error.issues[0]?.message || "Datos inválidos."
             });
@@ -327,6 +346,7 @@ export class AdminGuidedFlowController {
                     leadEmailField: parsed.data.leadEmailField || null,
                     leadInterestField:
                         parsed.data.leadInterestField || null,
+                    leadFields: leadFieldsFrom(parsed.data.leadFields),
                     isDraft: false,
                     draftSummary: null,
                     draftMissing: Prisma.DbNull
@@ -363,7 +383,8 @@ export class AdminGuidedFlowController {
                     leadCapture: parsed.data.leadCapture === "on",
                     leadNameField: parsed.data.leadNameField,
                     leadEmailField: parsed.data.leadEmailField,
-                    leadInterestField: parsed.data.leadInterestField
+                    leadInterestField: parsed.data.leadInterestField,
+                    leadFields: leadFieldsFrom(parsed.data.leadFields)
                 },
                 summary: flow.isDraft ? flow.draftSummary : null,
                 missing:

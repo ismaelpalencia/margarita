@@ -59,17 +59,20 @@ export class AdminLeadsController {
     }
 
     static async create(req: Request, res: Response) {
+        const name = String(req.body?.name || "").trim();
+        const phone = String(req.body?.phone || "").trim();
         const email = String(req.body?.email || "").trim();
 
-        if (!email) {
-            return res.redirect("/admin/leads?error=email");
+        if (!name || !phone) {
+            return res.redirect("/admin/leads?error=name_phone");
         }
 
         try {
             await LeadService.capture({
                 workspaceId: req.user!.workspaceId,
-                name: String(req.body?.name || "").trim() || null,
-                email,
+                name,
+                phone,
+                email: email || null,
                 interest: String(req.body?.interest || "").trim() || null,
                 source: "MANUAL"
             });

@@ -878,3 +878,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Migración 20261111150000_guided_flow_leads.
 
 ---
+
+## Leads: nombre, teléfono y campos seleccionados
+
+- Lead.phone y GuidedFlow.leadFields; migración 43.
+- El alta manual exige nombre y teléfono; correo opcional.
+- El flujo guiado guarda siempre nombre/teléfono y solo los campos marcados.
+- El alta manual y el flujo capturan phone; CSV y webhook incluyen phone/fields.
+
+---

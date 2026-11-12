@@ -633,7 +633,8 @@ export class GuidedFlowService {
                         leadCapture: true,
                         leadNameField: true,
                         leadEmailField: true,
-                        leadInterestField: true
+                        leadInterestField: true,
+                        leadFields: true
                     }
                 },
                 conversation: {
@@ -688,6 +689,14 @@ export class GuidedFlowService {
         const contact = run.conversation.contact;
         const email =
             mappedEmail && mappedEmail.includes("@") ? mappedEmail : null;
+        const selected = new Set(run.flow.leadFields);
+        const fields: Record<string, unknown> = {};
+
+        for (const field of selected) {
+            if (field in data) {
+                fields[field] = data[field];
+            }
+        }
 
         await LeadService.capture({
             workspaceId: params.workspaceId,
@@ -698,10 +707,11 @@ export class GuidedFlowService {
                 contact.customName ||
                 contact.profileName ||
                 contact.phone ||
-                null,
+                "Sin nombre",
+            phone: contact.phone,
             email,
             interest: mappedInterest || params.flowName,
-            fields: data as unknown as Prisma.InputJsonValue,
+            fields: fields as unknown as Prisma.InputJsonValue,
             source: "GUIDED_FLOW"
         });
     }

@@ -13,6 +13,7 @@ type CaptureInput = {
     contactId?: string | null;
     conversationId?: string | null;
     name?: string | null;
+    phone?: string | null;
     email?: string | null;
     interest?: string | null;
     fields?: Prisma.InputJsonValue | null;
@@ -64,6 +65,7 @@ export class LeadService {
                 where: { id: existing.id },
                 data: {
                     ...(input.name ? { name: input.name.trim() } : {}),
+                    ...(input.phone ? { phone: input.phone.trim() } : {}),
                     ...(input.interest
                         ? { interest: input.interest.trim() }
                         : {}),
@@ -80,6 +82,7 @@ export class LeadService {
                 contactId: input.contactId ?? null,
                 conversationId: input.conversationId ?? null,
                 name: input.name?.trim() || null,
+                phone: input.phone?.trim() || null,
                 email,
                 emailHash,
                 interest: input.interest?.trim() || null,
@@ -131,6 +134,7 @@ export class LeadService {
             event: "lead.created",
             email: lead.email,
             name: lead.name,
+            phone: lead.phone,
             interest: lead.interest,
             fields: lead.fields,
             source: lead.source,
@@ -213,7 +217,17 @@ export class LeadService {
     static async exportCsv(workspaceId: string): Promise<string> {
         const leads = await LeadService.list(workspaceId);
         const rows = [
-            ["id", "email", "nombre", "interes", "origen", "estado", "creado"].join(",")
+            [
+                "id",
+                "email",
+                "nombre",
+                "telefono",
+                "interes",
+                "datos_flujo",
+                "origen",
+                "estado",
+                "creado"
+            ].join(",")
         ];
 
         for (const lead of leads) {
@@ -222,7 +236,9 @@ export class LeadService {
                     lead.id,
                     csvCell(lead.email),
                     csvCell(lead.name),
+                    csvCell(lead.phone),
                     csvCell(lead.interest),
+                    csvCell(lead.fields ? JSON.stringify(lead.fields) : null),
                     csvCell(lead.source),
                     lead.status,
                     lead.createdAt.toISOString()
