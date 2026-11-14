@@ -105,12 +105,14 @@ export class AdminGuidedFlowController {
 
     static async generate(req: Request, res: Response) {
         const source = String(req.body?.source || "").trim();
+        const context = String(req.body?.context || "").trim();
         const instructions = String(req.body?.instructions || "").trim();
 
         try {
             const result = await GuidedFlowGeneratorService.generate({
                 workspaceId: req.user!.workspaceId,
                 source,
+                context,
                 instructions
             });
 
@@ -155,6 +157,7 @@ export class AdminGuidedFlowController {
                 summary: null,
                 missing: [],
                 aiSource: source,
+                aiContext: context,
                 aiInstructions: instructions
             });
         }

@@ -912,3 +912,11 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Los mensajes recientes del dashboard también se filtraron por número.
 
 ---
+
+## Flujos guiados: contexto para IA
+
+- El generador acepta contexto del negocio separado de la estructura y las instrucciones.
+- El prompt prohíbe conocimiento, flujos de palabra clave, campañas o FAQs; solo un flujo guiado.
+- El contexto se conserva si falla la generación para reintentar.
+
+---

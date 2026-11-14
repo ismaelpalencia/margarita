@@ -268,9 +268,10 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - Sirven para calificar leads (pensión, crédito, seguros), explicar pasos y
   llevar a Calendly o a solicitar un documento. No usan IA ni inventan texto.
 - El editor valida IDs, destinos, botones, datos y URLs antes de guardar.
-- **Generador con IA:** se pega la estructura del flujo y la IA devuelve un
-  borrador con `steps`, un resumen y una lista de `missing` (datos o
-  integraciones que faltan). El borrador se guarda como `GuidedFlow` con
+- **Generador con IA:** se pega la estructura y, opcionalmente, contexto del
+  negocio e instrucciones. La IA devuelve **solo** un borrador de flujo guiado
+  con `steps`, un resumen y una lista de `missing`; no crea conocimiento ni
+  flujos por palabra clave. El borrador se guarda como `GuidedFlow` con
   `isDraft=true` y aparece en la lista; el operador lo edita en el constructor y
   pulsa Guardar para publicarlo.
 - **Paso `input`:** captura edad, monto, meses u otro dato de texto/número y lo
