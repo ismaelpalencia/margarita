@@ -171,6 +171,7 @@
             <% } else if (error === "media") { %>
                 <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
                     No se pudo enviar el archivo. Revisa el formato, el tamaño y que la ventana de 24 horas siga abierta.
+                    <% if (typeof mediaError !== "undefined" && mediaError) { %><br><span class="font-normal"><%= mediaError %></span><% } %>
                 </p>
             <% } else if (error === "interactive") { %>
                 <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">

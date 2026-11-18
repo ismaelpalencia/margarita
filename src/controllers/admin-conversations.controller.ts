@@ -238,7 +238,9 @@ export class AdminConversationsController {
             /** Para que el compositor muestre los campos que la plantilla pide. */
             templateVariableShape,
             error: req.query.error || null,
-            success: req.query.success || null
+            success: req.query.success || null,
+            mediaError:
+                typeof req.query.detail === "string" ? req.query.detail : null
         });
     }
 
@@ -311,9 +313,12 @@ export class AdminConversationsController {
             return res.redirect(
                 `/admin/conversations/${conversationId}?success=media`
             );
-        } catch {
+        } catch (error) {
+            const detail = encodeURIComponent(
+                (error instanceof Error ? error.message : "Error desconocido").slice(0, 240)
+            );
             return res.redirect(
-                `/admin/conversations/${conversationId}?error=media`
+                `/admin/conversations/${conversationId}?error=media&detail=${detail}`
             );
         }
     }

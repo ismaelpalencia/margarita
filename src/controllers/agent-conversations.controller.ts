@@ -207,7 +207,9 @@ export class AgentConversationsController {
             /** Para que el compositor muestre los campos que la plantilla pide. */
             templateVariableShape,
             success: req.query.success || null,
-            error: req.query.error || null
+            error: req.query.error || null,
+            mediaError:
+                typeof req.query.detail === "string" ? req.query.detail : null
         });
     }
 
@@ -419,9 +421,12 @@ export class AgentConversationsController {
             return res.redirect(
                 `/agent/conversations/${conversationId}?success=media`
             );
-        } catch {
+        } catch (error) {
+            const detail = encodeURIComponent(
+                (error instanceof Error ? error.message : "Error desconocido").slice(0, 240)
+            );
             return res.redirect(
-                `/agent/conversations/${conversationId}?error=media`
+                `/agent/conversations/${conversationId}?error=media&detail=${detail}`
             );
         }
     }
