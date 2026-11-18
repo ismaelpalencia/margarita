@@ -56,11 +56,15 @@ const inputStep = z.object({
                 .trim()
                 .toLowerCase();
 
-            return ["number", "numeric", "integer"].includes(normalized)
-                ? "number"
-                : "text";
+            if (["number", "numeric", "integer"].includes(normalized)) {
+                return "number";
+            }
+            if (["number_or_text", "number-or-text", "hybrid", "mixto"].includes(normalized)) {
+                return "number_or_text";
+            }
+            return "text";
         },
-        z.enum(["text", "number"])
+        z.enum(["text", "number", "number_or_text"])
     ),
     conditions: z.array(inputConditionSchema).max(10).default([]),
     next: z.string().trim().min(1).max(40)

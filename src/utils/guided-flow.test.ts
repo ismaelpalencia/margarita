@@ -94,6 +94,26 @@ test("acepta condiciones numéricas en un input", () => {
     }
 });
 
+test("acepta inputType número o texto", () => {
+    const parsed = parseGuidedSteps([
+        {
+            id: "pension",
+            type: "input",
+            text: "¿Cuánto recibes de pensión?",
+            field: "pension",
+            inputType: "number_or_text",
+            next: "fin"
+        },
+        { id: "fin", type: "end", text: "Gracias", links: [], handoff: false }
+    ]);
+
+    assert.equal(parsed.success, true);
+    if (parsed.success) {
+        const step = parsed.data[0];
+        if (step.type === "input") assert.equal(step.inputType, "number_or_text");
+    }
+});
+
 test("normaliza inputType teléfono a texto", () => {
     const parsed = parseGuidedSteps([
         {

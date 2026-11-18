@@ -63,8 +63,9 @@ Tipos de paso permitidos:
 - question: {"id","type":"question","text","buttons":[{"id","title"}],"next":{"ID":"destino"}}
   Acepta entre 1 y 10 opciones en buttons. Si hay mas de 3, el sistema las
   enviara como lista de WhatsApp; no inventes opciones ni destinos.
-- input: {"id","type":"input","text","field":"edad","label":"Edad","inputType":"text|number","conditions":[{"op":"lt","value":24,"next":"no_cumple"}],"next"}
+- input: {"id","type":"input","text","field":"edad","label":"Edad","inputType":"text|number|number_or_text","conditions":[{"op":"lt","value":24,"next":"no_cumple"}],"next"}
   Usa inputType "number" para dinero, edad, plazo o cualquier dato numerico.
+  Usa "number_or_text" si el cliente podria no saber el dato o escribirlo con palabras.
   conditions es opcional y se evalua en orden; op puede ser lt, lte, gt, gte o eq.
   Si ninguna condicion coincide, usa next.
 - file: {"id","type":"file","text","field":"ine","label":"INE","accept":"image|document|both","next"}

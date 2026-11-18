@@ -443,33 +443,35 @@ export class GuidedFlowService {
         let stored = value;
         let nextStepId = params.current.next;
 
-        if (params.current.inputType === "number") {
+        if (params.current.inputType !== "text") {
             const number = parseGuidedNumber(value);
 
             if (number === null || !Number.isFinite(number) || number <= 0) {
-                await MessageService.sendFlowReply({
-                    workspaceId: params.workspaceId,
-                    conversationId: params.conversationId,
-                    body: "Escribe un número válido, por favor.",
-                    buttons: null,
-                    list: null
-                });
-                return true;
-            }
+                if (params.current.inputType === "number") {
+                    await MessageService.sendFlowReply({
+                        workspaceId: params.workspaceId,
+                        conversationId: params.conversationId,
+                        body: "Escribe un número válido, por favor.",
+                        buttons: null,
+                        list: null
+                    });
+                    return true;
+                }
+            } else {
+                stored = String(number);
 
-            stored = String(number);
+                for (const condition of params.current.conditions || []) {
+                    const matches =
+                        (condition.op === "lt" && number < condition.value) ||
+                        (condition.op === "lte" && number <= condition.value) ||
+                        (condition.op === "gt" && number > condition.value) ||
+                        (condition.op === "gte" && number >= condition.value) ||
+                        (condition.op === "eq" && number === condition.value);
 
-            for (const condition of params.current.conditions || []) {
-                const matches =
-                    (condition.op === "lt" && number < condition.value) ||
-                    (condition.op === "lte" && number <= condition.value) ||
-                    (condition.op === "gt" && number > condition.value) ||
-                    (condition.op === "gte" && number >= condition.value) ||
-                    (condition.op === "eq" && number === condition.value);
-
-                if (matches) {
-                    nextStepId = condition.next;
-                    break;
+                    if (matches) {
+                        nextStepId = condition.next;
+                        break;
+                    }
                 }
             }
         }
@@ -762,6 +764,38 @@ export class GuidedFlowService {
             fields: fields as unknown as Prisma.InputJsonValue,
             source: "GUIDED_FLOW"
         });
+    }
+
+    /**
+     * El operador da por terminado el flujo de esta conversación. El run queda
+     * completado y los mensajes siguientes vuelven a la atención manual/IA.
+     */
+    static async finishForConversation(
+        workspaceId: string,
+        conversationId: string
+    ): Promise<boolean> {
+        const run = await prisma.guidedFlowRun.findFirst({
+            where: { workspaceId, conversationId, status: "ACTIVE" },
+            include: { flow: { select: { name: true } } }
+        });
+
+        if (!run) return false;
+
+        await prisma.guidedFlowRun.update({
+            where: { conversationId },
+            data: { status: "COMPLETED", currentStepId: run.currentStepId }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.MESSAGE,
+            action: "GUIDED_FLOW_ENDED",
+            message: `Se finalizó manualmente el flujo guiado «${run.flow.name}».`,
+            payload: { conversationId, flowId: run.flowId }
+        }).catch(() => undefined);
+
+        return true;
     }
 
     private static async complete(conversationId: string, stepId: string) {

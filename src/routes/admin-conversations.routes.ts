@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { AdminConversationsController } from "../controllers/admin-conversations.controller";
 import { AiConversationController } from "../controllers/ai-conversation.controller";
+import { GuidedFlowConversationController } from "../controllers/guided-flow-conversation.controller";
 import { AiSuggestionController } from "../controllers/ai-suggestion.controller";
 import { OutcomeController } from "../controllers/outcome.controller";
 import { requireCollectionsModule } from "../middlewares/workspace-profile.middleware";
@@ -36,6 +37,10 @@ router.post(
 );
 router.post("/:id/assign", AdminConversationsController.assign);
 router.post("/:id/close", AdminConversationsController.close);
+router.post(
+    "/:id/guided-flow/end",
+    GuidedFlowConversationController.finish("/admin/conversations")
+);
 router.post("/:id/reopen", AdminConversationsController.reopen);
 router.post("/:id/messages/:messageId/delete", AdminConversationsController.deleteMessage);
 router.post("/:id/messages/:messageId/restore", AdminConversationsController.restoreMessage);

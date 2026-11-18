@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { AgentConversationsController } from "../controllers/agent-conversations.controller";
 import { AiConversationController } from "../controllers/ai-conversation.controller";
+import { GuidedFlowConversationController } from "../controllers/guided-flow-conversation.controller";
 import { AiSuggestionController } from "../controllers/ai-suggestion.controller";
 import { OutcomeController } from "../controllers/outcome.controller";
 import { requireCollectionsModule } from "../middlewares/workspace-profile.middleware";
@@ -32,6 +33,10 @@ router.post(
     })
 );
 router.post("/:id/close", AgentConversationsController.close);
+router.post(
+    "/:id/guided-flow/end",
+    GuidedFlowConversationController.finish("/agent/conversations")
+);
 router.post("/:id/messages/:messageId/delete", AgentConversationsController.deleteMessage);
 /** Borradores de IA: usar o descartar. Nunca envían por sí solos. */
 router.post(

@@ -947,3 +947,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 371 pruebas unitarias.
 
 ---
+
+## Modo número o texto y finalización manual de flujos
+
+- Tercer modo inputType number_or_text: normaliza números y acepta texto si no aplica.
+- El editor visual permite elegirlo en Tipo de dato.
+- Botón en el panel del flujo para finalizarlo por conversación.
+- El run queda COMPLETED y los mensajes siguen en atención manual/IA.
+- 372 pruebas unitarias.
+
+---
