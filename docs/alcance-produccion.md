@@ -491,7 +491,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | --- | --- | --- |
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
-| Pruebas | 302 unitarias / 82 integración | **372 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
+| Pruebas | 302 unitarias / 82 integración | **373 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
 | Migraciones | 23 | **43** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
@@ -558,7 +558,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Aspecto | Estado |
 | --- | --- |
 | Tipos | `npx tsc --noEmit` limpio |
-| Unitarias | **372** en 57 archivos |
+| Unitarias | **373** en 57 archivos |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
 | Migraciones | **43** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |

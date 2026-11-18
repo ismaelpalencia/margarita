@@ -19,8 +19,20 @@ const AUDIO_MIME_TYPES = [
     "audio/amr",
     "audio/mpeg",
     "audio/mp4",
-    "audio/ogg"
+    "audio/ogg",
+    "audio/x-m4a",
+    "audio/m4a",
+    "audio/x-mp4",
+    "audio/mp4a-latm"
 ];
+
+/** Algunos navegadores reportan M4A con un MIME no estándar. */
+const AUDIO_MIME_ALIASES: Record<string, string> = {
+    "audio/x-m4a": "audio/mp4",
+    "audio/m4a": "audio/mp4",
+    "audio/x-mp4": "audio/mp4",
+    "audio/mp4a-latm": "audio/mp4"
+};
 const DOCUMENT_MIME_TYPES = [
     "application/pdf",
     "application/msword",
@@ -59,7 +71,13 @@ export function classifyUpload(params: {
     mimeType: string | null | undefined;
     filename: string;
 }): ClassifyResult {
-    const mimeType = normalizeMimeType(params.mimeType);
+    const rawMimeType = normalizeMimeType(params.mimeType);
+    const extension = params.filename.split(".").pop()?.toLowerCase() || "";
+    const mimeType =
+        AUDIO_MIME_ALIASES[rawMimeType] ||
+        (rawMimeType === "application/octet-stream" && extension === "m4a"
+            ? "audio/mp4"
+            : rawMimeType);
 
     const type = IMAGE_MIME_TYPES.includes(mimeType)
         ? MessageType.IMAGE

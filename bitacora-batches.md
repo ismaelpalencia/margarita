@@ -974,3 +974,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 372 pruebas unitarias.
 
 ---
+
+## Audio M4A en la bandeja
+
+- Se aceptan MIME audio/x-m4a, audio/m4a, audio/x-mp4 y audio/mp4a-latm.
+- Se normalizan a audio/mp4 para enviarlos a Meta.
+- Si el navegador manda application/octet-stream y extensión .m4a, también se acepta.
+- 373 pruebas unitarias.
+
+---

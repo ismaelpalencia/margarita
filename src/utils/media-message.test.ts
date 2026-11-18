@@ -13,6 +13,19 @@ test("normaliza el tipo MIME", () => {
     assert.equal(normalizeMimeType(null), "");
 });
 
+test("acepta M4A aunque el navegador mande audio/x-m4a", () => {
+    const result = classifyUpload({
+        mimeType: "audio/x-m4a",
+        filename: "nota-de-voz.m4a"
+    });
+
+    assert.equal(result.ok, true);
+    if (result.ok) {
+        assert.equal(result.value.type, "AUDIO");
+        assert.equal(result.value.mimeType, "audio/mp4");
+    }
+});
+
 test("clasifica imágenes, video, audio y documentos", () => {
     const typeOf = (mimeType: string, filename: string) => {
         const result = classifyUpload({ mimeType, filename });
