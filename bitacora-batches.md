@@ -920,3 +920,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - El contexto se conserva si falla la generación para reintentar.
 
 ---
+
+## Flujos guiados: más de 3 opciones
+
+- El esquema de pregunta acepta hasta 10 opciones (WhatsApp manda lista si son >3).
+- El motor convierte automáticamente a lista; cada opción conserva su next.
+- El constructor permite agregar hasta 10 opciones.
+- Test agregado para 5 opciones (IMSS/ISSSTE/PEMEX/CFE/Otra).
+
+---

@@ -9,6 +9,7 @@ import {
     findStep,
     guidedStepsSchema,
     guidedTriggerMatches,
+    GUIDED_MAX_REPLY_BUTTONS,
     GuidedStep
 } from "../utils/guided-flow";
 
@@ -624,6 +625,24 @@ export class GuidedFlowService {
         conversationId: string,
         step: Extract<GuidedStep, { type: "question" }>
     ) {
+        if (step.buttons.length > GUIDED_MAX_REPLY_BUTTONS) {
+            await MessageService.sendFlowReply({
+                workspaceId,
+                conversationId,
+                body: step.text,
+                buttons: null,
+                list: {
+                    buttonLabel: "Ver opciones",
+                    sectionTitle: "Opciones",
+                    rows: step.buttons.map((button) => ({
+                        id: button.id,
+                        title: button.title
+                    }))
+                }
+            });
+            return;
+        }
+
         await MessageService.sendFlowReply({
             workspaceId,
             conversationId,

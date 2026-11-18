@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 export const GUIDED_MAX_STEPS = 40;
-export const GUIDED_MAX_BUTTONS = 3;
+export const GUIDED_MAX_BUTTONS = 10;
+/** WhatsApp admite maximo 3 reply buttons; mas opciones se envian como lista. */
+export const GUIDED_MAX_REPLY_BUTTONS = 3;
 
 const buttonSchema = z.object({
     id: z.string().trim().min(1).max(40),

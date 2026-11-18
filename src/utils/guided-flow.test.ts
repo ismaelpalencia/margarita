@@ -84,6 +84,37 @@ test("normaliza inputType teléfono a texto", () => {
     }
 });
 
+test("acepta hasta diez opciones aunque WhatsApp las envíe como lista", () => {
+    const parsed = parseGuidedSteps([
+        {
+            id: "pension",
+            type: "question",
+            text: "¿De qué institución es tu pensión?",
+            buttons: [
+                { id: "imss", title: "IMSS" },
+                { id: "issste", title: "ISSSTE" },
+                { id: "pemex", title: "PEMEX" },
+                { id: "cfe", title: "CFE" },
+                { id: "otra", title: "Otra" }
+            ],
+            next: {
+                imss: "fin",
+                issste: "fin",
+                pemex: "fin",
+                cfe: "fin",
+                otra: "fin"
+            }
+        },
+        { id: "fin", type: "end", text: "Listo", links: [], handoff: false }
+    ]);
+
+    assert.equal(parsed.success, true);
+    if (parsed.success) {
+        const step = parsed.data[0];
+        if (step?.type === "question") assert.equal(step.buttons.length, 5);
+    }
+});
+
 test("acepta un paso de archivo", () => {
     const parsed = parseGuidedSteps([
         {
