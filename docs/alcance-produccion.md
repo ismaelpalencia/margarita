@@ -327,6 +327,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 
 - Un flujo es una respuesta automática por trigger (alternativas separadas por
   `|`), con texto, hasta 3 botones o una lista de hasta 10 opciones.
+- En un flujo existente, **Modificar este flujo con IA** permite pedir cambios
+  y revisar el flujo completo antes de guardar.
 - Se editan en **Admin → IA → Paquete inicial**: trigger, respuesta, botones y
   activación por flujo. Un paso `question` admite hasta 10 opciones; si pasa de
   3, se envía como lista de WhatsApp. Los campos numéricos aceptan $5,000,

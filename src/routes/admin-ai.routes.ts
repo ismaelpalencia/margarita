@@ -29,6 +29,10 @@ router.post("/knowledge/:id/delete", AdminAiController.deleteEntry);
 router.get("/guided-flows", AdminGuidedFlowController.index);
 router.get("/guided-flows/new", AdminGuidedFlowController.newForm);
 router.post("/guided-flows/generate", AdminGuidedFlowController.generate);
+router.post(
+    "/guided-flows/:id/revise",
+    AdminGuidedFlowController.revise
+);
 router.post("/guided-flows", AdminGuidedFlowController.create);
 router.get("/guided-flows/:id", AdminGuidedFlowController.editForm);
 router.post("/guided-flows/:id", AdminGuidedFlowController.update);

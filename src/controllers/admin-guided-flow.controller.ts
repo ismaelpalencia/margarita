@@ -163,6 +163,108 @@ export class AdminGuidedFlowController {
         }
     }
 
+    static async revise(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+        const prompt = String(req.body?.source || "").trim();
+        const flow = await prisma.guidedFlow.findFirst({
+            where: { id, workspaceId: req.user!.workspaceId }
+        });
+
+        if (!flow) {
+            return res.redirect("/admin/ai/guided-flows?error=not_found");
+        }
+
+        if (!prompt) {
+            return res.status(400).render("pages/admin/ai/guided-flow-edit", {
+                user: req.user,
+                flow,
+                stepsJson: JSON.stringify(flow.steps, null, 2),
+                values: {
+                    name: flow.name,
+                    slug: flow.slug,
+                    trigger: flow.trigger,
+                    isActive: flow.isActive,
+                    leadCapture: flow.leadCapture,
+                    leadNameField: flow.leadNameField || "",
+                    leadEmailField: flow.leadEmailField || "",
+                    leadInterestField: flow.leadInterestField || "",
+                    leadFields: flow.leadFields
+                },
+                error: "Escribe los cambios que quieres hacerle al flujo.",
+                summary: null,
+                missing: [],
+                aiSource: prompt,
+                draft: flow.isDraft
+            });
+        }
+
+        const current = JSON.stringify(
+            {
+                name: flow.name,
+                trigger: flow.trigger,
+                summary: flow.draftSummary || "",
+                steps: flow.steps
+            },
+            null,
+            2
+        );
+
+        try {
+            const result = await GuidedFlowGeneratorService.generate({
+                workspaceId: req.user!.workspaceId,
+                source: `FLUJO ACTUAL (referencia, no cambies lo que no se pide):\n${current}\n\nCAMBIO SOLICITADO:\n${prompt}`,
+                instructions:
+                    "Devuelve el flujo completo modificado. Conserva los pasos, textos, ids y ramas que no se piden cambiar. No inventes integraciones ni prometas montos."
+            });
+
+            return res.render("pages/admin/ai/guided-flow-edit", {
+                user: req.user,
+                flow,
+                stepsJson: JSON.stringify(result.steps, null, 2),
+                values: {
+                    name: result.name || flow.name,
+                    slug: flow.slug,
+                    trigger: result.trigger || flow.trigger,
+                    isActive: flow.isActive,
+                    leadCapture: flow.leadCapture,
+                    leadNameField: flow.leadNameField || "",
+                    leadEmailField: flow.leadEmailField || "",
+                    leadInterestField: flow.leadInterestField || "",
+                    leadFields: flow.leadFields
+                },
+                error: null,
+                summary: result.summary || null,
+                missing: result.missing,
+                aiSource: prompt,
+                draft: true
+            });
+        } catch (error) {
+            return res.status(400).render("pages/admin/ai/guided-flow-edit", {
+                user: req.user,
+                flow,
+                stepsJson: JSON.stringify(flow.steps, null, 2),
+                values: {
+                    name: flow.name,
+                    slug: flow.slug,
+                    trigger: flow.trigger,
+                    isActive: flow.isActive,
+                    leadCapture: flow.leadCapture,
+                    leadNameField: flow.leadNameField || "",
+                    leadEmailField: flow.leadEmailField || "",
+                    leadInterestField: flow.leadInterestField || "",
+                    leadFields: flow.leadFields
+                },
+                error:
+                    error instanceof GuidedFlowGenerationError
+                        ? error.message
+                        : "No se pudo modificar el flujo. Intenta de nuevo.",
+                summary: null,
+                missing: [],
+                aiSource: prompt
+            });
+        }
+    }
+
     static async newForm(req: Request, res: Response) {
         const template = req.query.template === "pension";
 

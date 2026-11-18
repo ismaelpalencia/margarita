@@ -965,3 +965,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 372 pruebas unitarias.
 
 ---
+
+## Modificar flujo existente con IA
+
+- Nuevo formulario en el editor de un flujo existente.
+- La IA recibe el flujo actual y devuelve el flujo completo modificado.
+- No guarda automáticamente: el operador revisa y pulsa Guardar flujo.
+- 372 pruebas unitarias.
+
+---
