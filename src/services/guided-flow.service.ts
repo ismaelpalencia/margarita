@@ -40,29 +40,38 @@ export class GuidedFlowService {
             include: { flow: true }
         });
 
-        if (run && run.status === "ACTIVE") {
-            /**
-             * Si el operador apagó el flujo, no se sigue atendiendo la
-             * conversación con él: se cierra el run y el mensaje cae a los
-             * flujos normales o a la IA.
-             */
-            if (!run.flow.isActive) {
-                await this.complete(
-                    params.conversationId,
-                    run.currentStepId
-                );
-            } else {
+        if (run) {
+            if (run.status === "ACTIVE") {
+                /**
+                 * Si el operador apagó el flujo, no se sigue atendiendo la
+                 * conversación con él: se cierra el run y el mensaje cae a la
+                 * atención manual/IA.
+                 */
+                if (!run.flow.isActive) {
+                    await this.complete(
+                        params.conversationId,
+                        run.currentStepId
+                    );
+                    return false;
+                }
+
                 return this.advance({
-                workspaceId: params.workspaceId,
-                conversationId: params.conversationId,
-                run,
-                text: params.text,
-                messageId: params.messageId,
-                media: params.media,
-                replyId: params.replyId ?? null,
+                    workspaceId: params.workspaceId,
+                    conversationId: params.conversationId,
+                    run,
+                    text: params.text,
+                    messageId: params.messageId,
+                    media: params.media,
+                    replyId: params.replyId ?? null,
                     replyTitle: params.replyTitle ?? null
                 });
             }
+
+            /**
+             * Un run completado no se reinicia solo. Si el operador quiere
+             * volver a iniciar el flujo, debe hacerlo explícitamente.
+             */
+            return false;
         }
 
         const flow = await this.findMatching(

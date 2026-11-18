@@ -957,3 +957,11 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 372 pruebas unitarias.
 
 ---
+
+## Cierre manual sin reinicio
+
+- Al finalizar un flujo se pausa la IA de la conversación.
+- Un run COMPLETED no vuelve a iniciar solo el mismo flujo.
+- 372 pruebas unitarias.
+
+---

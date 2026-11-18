@@ -335,7 +335,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
   reglas como “menos de 24 meses”. El modo `number_or_text` intenta convertir
   el número y, si no puede, guarda el texto y continúa.
 - En la bandeja, el panel del flujo permite **Finalizar flujo y continuar
-  manualmente**; el run queda `COMPLETED` y no se vuelven a enviar preguntas. El paquete por vertical solo siembra flujos que no
+  manualmente**; el run queda `COMPLETED`, se pausa la IA de ese hilo y no
+  se reinicia solo el flujo. El paquete por vertical solo siembra flujos que no
   existan; no pisa los editados. Cada flujo se puede eliminar del workspace.
 - `Workspace.flowsEnabled` es el interruptor maestro. Además,
   `WhatsAppNumber.flowsEnabled` permite apagarlos por número.
