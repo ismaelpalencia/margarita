@@ -587,7 +587,7 @@
                     }
 
                     var buttonsWrap = el("div", "space-y-2");
-                    buttonsWrap.appendChild(el("p", "text-xs font-bold text-slate-600", "Botones"));
+                    buttonsWrap.appendChild(el("p", "text-xs font-bold text-slate-600", "Opciones (si hay más de 3 se envían como lista)"));
 
                     step.buttons.forEach(function (button, buttonIndex) {
                         var row = el("div", "grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]");
@@ -634,8 +634,8 @@
                         buttonsWrap.appendChild(row);
                     });
 
-                    if (step.buttons.length < 3) {
-                        var addButton = el("button", "rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200", "+ Agregar botón");
+                    if (step.buttons.length < 10) {
+                        var addButton = el("button", "rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200", "+ Agregar opción");
                         addButton.type = "button";
                         addButton.addEventListener("click", function () {
                             var number = step.buttons.length + 1;
