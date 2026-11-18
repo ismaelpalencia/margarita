@@ -63,8 +63,10 @@ Tipos de paso permitidos:
 - question: {"id","type":"question","text","buttons":[{"id","title"}],"next":{"ID":"destino"}}
   Acepta entre 1 y 10 opciones en buttons. Si hay mas de 3, el sistema las
   enviara como lista de WhatsApp; no inventes opciones ni destinos.
-- input: {"id","type":"input","text","field":"edad","label":"Edad","inputType":"text|number","next"}
+- input: {"id","type":"input","text","field":"edad","label":"Edad","inputType":"text|number","conditions":[{"op":"lt","value":24,"next":"no_cumple"}],"next"}
   Usa inputType "number" para dinero, edad, plazo o cualquier dato numerico.
+  conditions es opcional y se evalua en orden; op puede ser lt, lte, gt, gte o eq.
+  Si ninguna condicion coincide, usa next.
 - file: {"id","type":"file","text","field":"ine","label":"INE","accept":"image|document|both","next"}
 - end: {"id","type":"end","text","links":[{"label","url"}],"handoff":true|false}
 
@@ -83,6 +85,8 @@ Reglas:
   lo que falta implementar.
 - Si el texto no define una regla de calificación, no la inventes: ponla en
   missing y deja un paso para que una persona decida.
+- Si una regla depende de un número (por ejemplo, 24 meses), usa conditions
+  en el input y apunta la rama que no cumple a un end con handoff:true.
 - No prometas aprobaciones, montos ni plazos.
 - Usa español neutro de México.
 - El trigger son palabras clave separadas por |.
@@ -102,9 +106,44 @@ Contrato de salida obligatorio:
 - steps solo acepta message, question, input, file y end.
 - inputType solo puede ser "text" o "number".
 - accept solo puede ser "image", "document" o "both".
-- Cada next debe apuntar a un id existente del mismo flujo.
+- Cada next y cada conditions[].next debe apuntar a un id existente.
+- Los titulos de botones deben tener 20 caracteres o menos.
 - Si no puedes cumplir el contrato, devuelve un flujo mínimo válido con un
   message y un end; no inventes integraciones.`;
+
+function normalizeGeneratedFlow(value: unknown): unknown {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+    const flow = value as Record<string, unknown>;
+    if (!Array.isArray(flow.steps)) return value;
+
+    return {
+        ...flow,
+        steps: flow.steps.map((rawStep) => {
+            if (!rawStep || typeof rawStep !== "object" || Array.isArray(rawStep)) return rawStep;
+            const step = { ...(rawStep as Record<string, unknown>) };
+
+            if (step.type === "question" && Array.isArray(step.buttons)) {
+                step.buttons = step.buttons.map((rawButton) => {
+                    if (!rawButton || typeof rawButton !== "object" || Array.isArray(rawButton)) return rawButton;
+                    const button = { ...(rawButton as Record<string, unknown>) };
+                    if (typeof button.title === "string") button.title = button.title.trim().slice(0, 20);
+                    return button;
+                });
+            }
+
+            if (step.type === "end" && Array.isArray(step.links)) {
+                step.links = step.links.map((rawLink) => {
+                    if (!rawLink || typeof rawLink !== "object" || Array.isArray(rawLink)) return rawLink;
+                    const link = { ...(rawLink as Record<string, unknown>) };
+                    if (typeof link.label === "string") link.label = link.label.trim().slice(0, 30);
+                    return link;
+                });
+            }
+
+            return step;
+        })
+    };
+}
 
 export class GuidedFlowGeneratorService {
     static async generate(params: {
@@ -162,12 +201,13 @@ export class GuidedFlowGeneratorService {
             model: settings.model || undefined
         });
 
-        const parsed = rawSchema.safeParse(parseJson(completion.text));
+        const parsed = rawSchema.safeParse(normalizeGeneratedFlow(parseJson(completion.text)));
 
         if (!parsed.success) {
             const issue = parsed.error.issues[0];
+            const path = issue?.path?.length ? ` (${issue.path.join(".")})` : "";
             throw new GuidedFlowGenerationError(
-                `La IA devolvió un flujo incompleto${issue ? `: ${issue.message}` : ""}.`
+                `La IA devolvió un flujo incompleto${issue ? `: ${issue.message}${path}` : ""}.`
             );
         }
 

@@ -72,6 +72,28 @@ test("acepta un paso de dato numérico", () => {
     assert.equal(parsed.success, true);
 });
 
+test("acepta condiciones numéricas en un input", () => {
+    const parsed = parseGuidedSteps([
+        {
+            id: "meses",
+            type: "input",
+            text: "¿Cuántos meses llevas pagando?",
+            field: "meses",
+            inputType: "number",
+            conditions: [{ op: "lt", value: 24, next: "no_cumple" }],
+            next: "continua"
+        },
+        { id: "no_cumple", type: "end", text: "Aún no cumples", links: [], handoff: true },
+        { id: "continua", type: "end", text: "Continuamos", links: [], handoff: true }
+    ]);
+
+    assert.equal(parsed.success, true);
+    if (parsed.success) {
+        const step = parsed.data[0];
+        if (step.type === "input") assert.equal(step.conditions[0]?.value, 24);
+    }
+});
+
 test("normaliza inputType teléfono a texto", () => {
     const parsed = parseGuidedSteps([
         {

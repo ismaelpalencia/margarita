@@ -330,7 +330,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - Se editan en **Admin → IA → Paquete inicial**: trigger, respuesta, botones y
   activación por flujo. Un paso `question` admite hasta 10 opciones; si pasa de
   3, se envía como lista de WhatsApp. Los campos numéricos aceptan $5,000,
-  5.000, 5,000.50 y 5.000,50; un texto inválido vuelve a pedir el dato. El paquete por vertical solo siembra flujos que no
+  5.000, 5,000.50 y 5.000,50; un texto inválido vuelve a pedir el dato.
+  Los inputs numéricos también aceptan `conditions` (lt/lte/gt/gte/eq) para
+  reglas como “menos de 24 meses”. El paquete por vertical solo siembra flujos que no
   existan; no pisa los editados. Cada flujo se puede eliminar del workspace.
 - `Workspace.flowsEnabled` es el interruptor maestro. Además,
   `WhatsAppNumber.flowsEnabled` permite apagarlos por número.
@@ -483,7 +485,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | --- | --- | --- |
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
-| Pruebas | 302 unitarias / 82 integración | **370 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
+| Pruebas | 302 unitarias / 82 integración | **371 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
 | Migraciones | 23 | **43** |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
@@ -550,7 +552,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Aspecto | Estado |
 | --- | --- |
 | Tipos | `npx tsc --noEmit` limpio |
-| Unitarias | **370** en 57 archivos |
+| Unitarias | **371** en 57 archivos |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
 | Migraciones | **43** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |

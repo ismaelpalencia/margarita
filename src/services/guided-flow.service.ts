@@ -441,6 +441,7 @@ export class GuidedFlowService {
         }
 
         let stored = value;
+        let nextStepId = params.current.next;
 
         if (params.current.inputType === "number") {
             const number = parseGuidedNumber(value);
@@ -457,6 +458,20 @@ export class GuidedFlowService {
             }
 
             stored = String(number);
+
+            for (const condition of params.current.conditions || []) {
+                const matches =
+                    (condition.op === "lt" && number < condition.value) ||
+                    (condition.op === "lte" && number <= condition.value) ||
+                    (condition.op === "gt" && number > condition.value) ||
+                    (condition.op === "gte" && number >= condition.value) ||
+                    (condition.op === "eq" && number === condition.value);
+
+                if (matches) {
+                    nextStepId = condition.next;
+                    break;
+                }
+            }
         }
 
         const base =
@@ -473,7 +488,7 @@ export class GuidedFlowService {
         await prisma.guidedFlowRun.update({
             where: { conversationId: params.conversationId },
             data: {
-                currentStepId: params.current.next,
+                currentStepId: nextStepId,
                 data: nextData as Prisma.InputJsonValue
             }
         });
@@ -484,7 +499,7 @@ export class GuidedFlowService {
             flowId: params.flowId,
             flowName: params.flowName,
             steps: params.steps,
-            stepId: params.current.next
+            stepId: nextStepId
         });
     }
 

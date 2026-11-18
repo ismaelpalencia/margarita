@@ -34,6 +34,12 @@ const questionStep = z.object({
     next: z.record(z.string(), z.string().trim().min(1).max(40))
 });
 
+const inputConditionSchema = z.object({
+    op: z.enum(["lt", "lte", "gt", "gte", "eq"]),
+    value: z.number().finite(),
+    next: z.string().trim().min(1).max(40)
+});
+
 const inputStep = z.object({
     id: z.string().trim().min(1).max(40),
     type: z.literal("input"),
@@ -56,6 +62,7 @@ const inputStep = z.object({
         },
         z.enum(["text", "number"])
     ),
+    conditions: z.array(inputConditionSchema).max(10).default([]),
     next: z.string().trim().min(1).max(40)
 });
 
@@ -138,6 +145,17 @@ export const guidedStepsSchema = z
                         code: "custom",
                         message: `El paso «${step.id}» apunta a «${step.next}», que no existe.`
                     });
+                }
+
+                if (step.type === "input") {
+                    for (const condition of step.conditions) {
+                        if (!ids.has(condition.next)) {
+                            ctx.addIssue({
+                                code: "custom",
+                                message: `La condición del paso «${step.id}» apunta a «${condition.next}», que no existe.`
+                            });
+                        }
+                    }
                 }
                 continue;
             }

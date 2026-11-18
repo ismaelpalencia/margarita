@@ -938,3 +938,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 370 pruebas unitarias.
 
 ---
+
+## Condiciones y títulos de botón en flujos guiados
+
+- Inputs numéricos aceptan conditions lt/lte/gt/gte/eq para reglas como 24 meses.
+- El generador normaliza títulos de botón a 20 caracteres (límite de WhatsApp).
+- Los errores del generador muestran la ruta del campo inválido.
+- 371 pruebas unitarias.
+
+---
