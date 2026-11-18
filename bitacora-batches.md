@@ -929,3 +929,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - Test agregado para 5 opciones (IMSS/ISSSTE/PEMEX/CFE/Otra).
 
 ---
+
+## Entradas numéricas en flujos guiados
+
+- Se agregó parseGuidedNumber para $5,000, 5.000, 5,000.50 y 5.000,50.
+- Un texto sin número vuelve a pedir el dato; no avanza el flujo.
+- El prompt de IA indica inputType number para dinero/edad/plazo.
+- 370 pruebas unitarias.
+
+---

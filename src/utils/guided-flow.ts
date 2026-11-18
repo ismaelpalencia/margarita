@@ -221,3 +221,39 @@ export function guidedTriggerMatches(trigger: string, text: string): boolean {
 export function findStep(steps: GuidedStep[], id: string): GuidedStep | null {
     return steps.find((step) => step.id === id) ?? null;
 }
+
+/**
+ * Convierte montos y edades escritos por el cliente. Acepta formatos como
+ * 5000, 5,000, 5.000, $5,000.50 y 5.000,50. Devuelve null si no hay numero.
+ */
+export function parseGuidedNumber(raw: string): number | null {
+    const cleaned = (raw || "").replace(/[^0-9.,-]/g, "").trim();
+    if (!cleaned || cleaned === "-" || cleaned === "." || cleaned === ",") {
+        return null;
+    }
+
+    const lastComma = cleaned.lastIndexOf(",");
+    const lastDot = cleaned.lastIndexOf(".");
+    let normalized = cleaned;
+
+    if (lastComma >= 0 && lastDot >= 0) {
+        const decimal = lastComma > lastDot ? "," : ".";
+        const thousands = decimal === "," ? "." : ",";
+        normalized = cleaned.split(thousands).join("").replace(decimal, ".");
+    } else {
+        const separator = lastComma >= 0 ? "," : lastDot >= 0 ? "." : "";
+        if (separator) {
+            const parts = cleaned.split(separator);
+            if (parts.length > 2) {
+                normalized = parts.join("");
+            } else {
+                const [whole, decimals = ""] = parts;
+                const looksLikeThousands = decimals.length === 3 && whole.length <= 3;
+                normalized = looksLikeThousands ? whole + decimals : whole + "." + decimals;
+            }
+        }
+    }
+
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+}

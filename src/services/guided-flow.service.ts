@@ -10,6 +10,7 @@ import {
     guidedStepsSchema,
     guidedTriggerMatches,
     GUIDED_MAX_REPLY_BUTTONS,
+    parseGuidedNumber,
     GuidedStep
 } from "../utils/guided-flow";
 
@@ -442,10 +443,9 @@ export class GuidedFlowService {
         let stored = value;
 
         if (params.current.inputType === "number") {
-            const normalized = value.replace(/,/g, ".").replace(/[^0-9.-]/g, "");
-            const number = Number(normalized);
+            const number = parseGuidedNumber(value);
 
-            if (!Number.isFinite(number) || number <= 0) {
+            if (number === null || !Number.isFinite(number) || number <= 0) {
                 await MessageService.sendFlowReply({
                     workspaceId: params.workspaceId,
                     conversationId: params.conversationId,

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
     guidedStepsSchema,
     guidedTriggerMatches,
+    parseGuidedNumber,
     parseGuidedSteps
 } from "./guided-flow";
 import { PENSION_GUIDED_STEPS } from "./guided-flow.template";
@@ -11,6 +12,17 @@ import { PENSION_GUIDED_STEPS } from "./guided-flow.template";
 test("la plantilla de pensión es válida", () => {
     const parsed = guidedStepsSchema.safeParse(PENSION_GUIDED_STEPS);
     assert.equal(parsed.success, true);
+});
+
+test("normaliza montos y edades escritos por el cliente", () => {
+    assert.equal(parseGuidedNumber("5000"), 5000);
+    assert.equal(parseGuidedNumber("5,000"), 5000);
+    assert.equal(parseGuidedNumber("5.000"), 5000);
+    assert.equal(parseGuidedNumber("$5,000.50"), 5000.5);
+    assert.equal(parseGuidedNumber("5.000,50"), 5000.5);
+    assert.equal(parseGuidedNumber("3000 pesos"), 3000);
+    assert.equal(parseGuidedNumber("no sé"), null);
+    assert.equal(parseGuidedNumber(""), null);
 });
 
 test("rechaza un destino que no existe", () => {

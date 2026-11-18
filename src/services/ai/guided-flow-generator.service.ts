@@ -64,6 +64,7 @@ Tipos de paso permitidos:
   Acepta entre 1 y 10 opciones en buttons. Si hay mas de 3, el sistema las
   enviara como lista de WhatsApp; no inventes opciones ni destinos.
 - input: {"id","type":"input","text","field":"edad","label":"Edad","inputType":"text|number","next"}
+  Usa inputType "number" para dinero, edad, plazo o cualquier dato numerico.
 - file: {"id","type":"file","text","field":"ine","label":"INE","accept":"image|document|both","next"}
 - end: {"id","type":"end","text","links":[{"label","url"}],"handoff":true|false}
 
