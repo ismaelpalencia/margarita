@@ -170,6 +170,28 @@ export class AdminUsersController {
         }
     }
 
+    static async remove(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+
+        try {
+            await UserService.deleteAgent(
+                req.user!.workspaceId,
+                id,
+                req.user!.id
+            );
+        } catch (error) {
+            return res.redirect(
+                `/admin/users?error=${encodeURIComponent(
+                    error instanceof Error
+                        ? error.message
+                        : "No se pudo eliminar al agente."
+                )}`
+            );
+        }
+
+        return res.redirect("/admin/users?success=deleted");
+    }
+
     static async toggleStatus(req: Request, res: Response) {
         const id = getRequiredParam(req, "id");
 
@@ -205,7 +227,11 @@ export class AdminUsersController {
     static async resetPassword(req: Request, res: Response) {
         const id = getRequiredParam(req, "id");
 
-        const parsed = resetPasswordSchema.safeParse(req.body);
+        const rawPassword = req.body?.password;
+        const parsed = resetPasswordSchema.safeParse({
+            password:
+                typeof rawPassword === "string" ? rawPassword.trim() : ""
+        });
 
         if (!parsed.success) {
             return res.redirect(

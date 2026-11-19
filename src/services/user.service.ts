@@ -245,6 +245,61 @@ export class UserService {
      * Activa o desactiva a alguien. Al desactivar se cierran sus sesiones:
      * si no, seguiría trabajando hasta que caduque la cookie.
      */
+    /**
+     * Borrado definitivo de un agente. No se puede borrar un administrador
+     * ni a la propia cuenta. Los registros históricos se conservan: las
+     * campañas, asignaciones y quejas pasan al administrador que ejecuta la
+     * acción; mensajes y conversaciones quedan sin usuario asociado.
+     */
+    static async deleteAgent(
+        workspaceId: string,
+        userId: string,
+        actorId: string
+    ) {
+        const target = await this.getMemberById(workspaceId, userId);
+
+        if (target.role === UserRole.ADMIN) {
+            throw new Error("No se puede eliminar a un administrador.");
+        }
+
+        if (target.id === actorId) {
+            throw new Error("No puedes eliminar tu propia cuenta.");
+        }
+
+        const actor = await this.getMemberById(workspaceId, actorId);
+
+        if (actor.role !== UserRole.ADMIN) {
+            throw new Error("Solo un administrador puede eliminar agentes.");
+        }
+
+        await prisma.$transaction(async (tx) => {
+            await tx.campaign.updateMany({
+                where: { workspaceId, createdById: userId },
+                data: { createdById: actorId }
+            });
+            await tx.assignmentHistory.updateMany({
+                where: { assignedById: userId },
+                data: { assignedById: actorId }
+            });
+            await tx.complaint.updateMany({
+                where: { workspaceId, openedById: userId },
+                data: { openedById: actorId }
+            });
+            await tx.user.delete({ where: { id: userId } });
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.WARN,
+            module: LogModule.USER,
+            action: "USER_DELETED",
+            message: "Se eliminó definitivamente a un agente.",
+            payload: { userId, email: target.email, by: actorId }
+        }).catch(() => undefined);
+
+        return target;
+    }
+
     static async setActive(
         workspaceId: string,
         userId: string,

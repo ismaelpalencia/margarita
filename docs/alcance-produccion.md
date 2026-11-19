@@ -331,6 +331,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
   operador la aprueba desde la bandeja antes de enviarla.
 - Cada agente puede limitarse a uno o varios números desde **Equipo → Editar
   agente → Números permitidos**; vacío significa todos.
+- Un administrador puede **eliminar definitivamente a un agente**; el historial
+  de conversaciones se conserva y las campañas/asignaciones pasan al admin.
 - En Leads se puede crear un lead desde un contacto que ya tiene conversación,
   sin volver a escribir nombre y teléfono.
 - En un flujo existente, **Modificar este flujo con IA** permite pedir cambios

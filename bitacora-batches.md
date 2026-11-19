@@ -1013,3 +1013,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 373 pruebas unitarias.
 
 ---
+
+## Eliminar agentes y reset de contraseña
+
+- El reset normaliza el valor recibido y reporta el motivo exacto de validación.
+- Nuevo borrado definitivo de agentes, solo para administradores.
+- Campañas, asignaciones y quejas se reasignan al admin que borra.
+- Conversaciones y mensajes se conservan; usuarios relacionados quedan nulos.
+- 373 pruebas unitarias.
+
+---

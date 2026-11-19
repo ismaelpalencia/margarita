@@ -35,7 +35,7 @@
 
         <% if (success) { %>
             <div class="mb-5 rounded-xl bg-margarita-50 px-4 py-3 text-sm text-margarita-700">
-                Acción realizada correctamente.
+                <%= success === "deleted" ? "Agente eliminado definitivamente." : "Acción realizada correctamente." %>
             </div>
         <% } %>
 
@@ -151,6 +151,14 @@
                                     >
                                         Editar
                                     </a>
+
+                                    <% if (!isAdmin) { %>
+                                        <form action="/admin/users/<%= member.id %>/delete" method="POST" onsubmit="return confirm('¿Eliminar definitivamente a <%= member.name %>? Sus conversaciones y mensajes se conservan, pero la cuenta ya no se puede recuperar.');">
+                                            <button class="rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100">
+                                                Eliminar
+                                            </button>
+                                        </form>
+                                    <% } %>
 
                                     <% if (cannotDeactivate) { %>
                                         <button

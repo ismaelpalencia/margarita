@@ -10,6 +10,7 @@ router.post("/", AdminUsersController.create);
 router.get("/:id/edit", AdminUsersController.showEdit);
 router.post("/:id", AdminUsersController.update);
 router.post("/:id/toggle-status", AdminUsersController.toggleStatus);
+router.post("/:id/delete", AdminUsersController.remove);
 router.post("/:id/password", AdminUsersController.resetPassword);
 router.post("/:id/unlock", AdminUsersController.unlock);
 router.post("/:id/two-factor/disable", AdminUsersController.disableTwoFactor);
