@@ -5,6 +5,27 @@ import { GuidedFlowService } from "../services/guided-flow.service";
 import { getRequiredParam } from "../utils/request";
 
 export class GuidedFlowConversationController {
+    static approve(basePath: "/admin/conversations" | "/agent/conversations") {
+        return async (req: Request, res: Response) => {
+            const conversationId = getRequiredParam(req, "id");
+
+            try {
+                const sent = await GuidedFlowService.approvePending(
+                    req.user!.workspaceId,
+                    conversationId
+                );
+
+                return res.redirect(
+                    `${basePath}/${conversationId}?success=${sent ? "guided_flow_sent" : "guided_flow_none"}`
+                );
+            } catch {
+                return res.redirect(
+                    `${basePath}/${conversationId}?error=guided_flow_approve`
+                );
+            }
+        };
+    }
+
     static finish(basePath: "/admin/conversations" | "/agent/conversations") {
         return async (req: Request, res: Response) => {
             const conversationId = getRequiredParam(req, "id");

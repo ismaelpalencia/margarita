@@ -42,6 +42,11 @@ export class GuidedFlowService {
 
         if (run) {
             if (run.status === "ACTIVE") {
+                if (run.pendingStepId) {
+                    /** El operador debe aprobar la salida pendiente. */
+                    return true;
+                }
+
                 /**
                  * Si el operador apagó el flujo, no se sigue atendiendo la
                  * conversación con él: se cierra el run y el mensaje cae a la
@@ -143,6 +148,11 @@ export class GuidedFlowService {
             file: boolean;
             messageId?: string;
         }>;
+        pending: {
+            stepId: string;
+            text: string;
+            options: string[];
+        } | null;
     } | null> {
         const run = await prisma.guidedFlowRun.findFirst({
             where: { workspaceId, conversationId },
@@ -203,11 +213,25 @@ export class GuidedFlowService {
             });
         }
 
+        const pendingStep = run.pendingStepId
+            ? findStep(steps, run.pendingStepId)
+            : undefined;
+
         return {
             flowName: run.flow.name,
             status: run.status,
             currentStepId: run.currentStepId,
-            fields
+            fields,
+            pending: pendingStep
+                ? {
+                      stepId: pendingStep.id,
+                      text: pendingStep.text,
+                      options:
+                          pendingStep.type === "question"
+                              ? pendingStep.buttons.map((button) => button.title)
+                              : []
+                  }
+                : null
         };
     }
 
@@ -230,7 +254,11 @@ export class GuidedFlowService {
             flowId: string;
             currentStepId: string;
             data: Prisma.JsonValue;
-            flow: { name: string; steps: Prisma.JsonValue };
+            flow: {
+                name: string;
+                steps: Prisma.JsonValue;
+                requiresApproval: boolean;
+            };
         };
         text: string;
         messageId: string;
@@ -266,7 +294,8 @@ export class GuidedFlowService {
                 current,
                 data: params.run.data,
                 messageId: params.messageId,
-                media: params.media
+                media: params.media,
+                requiresApproval: params.run.flow.requiresApproval
             });
         }
 
@@ -279,7 +308,8 @@ export class GuidedFlowService {
                 steps: parsed.data,
                 current,
                 data: params.run.data,
-                text: params.text
+                text: params.text,
+                requiresApproval: params.run.flow.requiresApproval
             });
         }
 
@@ -307,11 +337,15 @@ export class GuidedFlowService {
 
         if (!button) {
             /** Si escribe en vez de tocar, se repite la pregunta. */
-            await this.sendQuestion(
-                params.workspaceId,
-                params.conversationId,
-                current
-            );
+            if (params.run.flow.requiresApproval) {
+                await this.queueStep(params.conversationId, current.id);
+            } else {
+                await this.sendQuestion(
+                    params.workspaceId,
+                    params.conversationId,
+                    current
+                );
+            }
             return true;
         }
 
@@ -365,6 +399,7 @@ export class GuidedFlowService {
             mediaId: string | null;
             mimeType: string | null;
         };
+        requiresApproval: boolean;
     }): Promise<boolean> {
         const isImage = params.media.type === "IMAGE";
         const isDocument = params.media.type === "DOCUMENT";
@@ -377,18 +412,22 @@ export class GuidedFlowService {
                   : isDocument);
 
         if (!accepted) {
-            await MessageService.sendFlowReply({
-                workspaceId: params.workspaceId,
-                conversationId: params.conversationId,
-                body:
-                    params.current.accept === "image"
-                        ? "Envía una foto, por favor."
-                        : params.current.accept === "document"
-                          ? "Envía el documento, por favor."
-                          : "Envía una foto o un documento, por favor.",
-                buttons: null,
-                list: null
-            });
+            if (params.requiresApproval) {
+                await this.queueStep(params.conversationId, params.current.id);
+            } else {
+                await MessageService.sendFlowReply({
+                    workspaceId: params.workspaceId,
+                    conversationId: params.conversationId,
+                    body:
+                        params.current.accept === "image"
+                            ? "Envía una foto, por favor."
+                            : params.current.accept === "document"
+                              ? "Envía el documento, por favor."
+                              : "Envía una foto o un documento, por favor.",
+                    buttons: null,
+                    list: null
+                });
+            }
             return true;
         }
 
@@ -435,17 +474,22 @@ export class GuidedFlowService {
         current: Extract<GuidedStep, { type: "input" }>;
         data: Prisma.JsonValue;
         text: string;
+        requiresApproval: boolean;
     }): Promise<boolean> {
         const value = params.text.trim();
 
         if (!value) {
-            await MessageService.sendFlowReply({
-                workspaceId: params.workspaceId,
-                conversationId: params.conversationId,
-                body: params.current.text,
-                buttons: null,
-                list: null
-            });
+            if (params.requiresApproval) {
+                await this.queueStep(params.conversationId, params.current.id);
+            } else {
+                await MessageService.sendFlowReply({
+                    workspaceId: params.workspaceId,
+                    conversationId: params.conversationId,
+                    body: params.current.text,
+                    buttons: null,
+                    list: null
+                });
+            }
             return true;
         }
 
@@ -457,13 +501,17 @@ export class GuidedFlowService {
 
             if (number === null || !Number.isFinite(number) || number <= 0) {
                 if (params.current.inputType === "number") {
-                    await MessageService.sendFlowReply({
-                        workspaceId: params.workspaceId,
-                        conversationId: params.conversationId,
-                        body: "Escribe un número válido, por favor.",
-                        buttons: null,
-                        list: null
-                    });
+                    if (params.requiresApproval) {
+                        await this.queueStep(params.conversationId, params.current.id);
+                    } else {
+                        await MessageService.sendFlowReply({
+                            workspaceId: params.workspaceId,
+                            conversationId: params.conversationId,
+                            body: "Escribe un número válido, por favor.",
+                            buttons: null,
+                            list: null
+                        });
+                    }
                     return true;
                 }
             } else {
@@ -522,6 +570,15 @@ export class GuidedFlowService {
         steps: GuidedStep[];
         stepId: string;
     }): Promise<boolean> {
+        const flow = await prisma.guidedFlow.findUnique({
+            where: { id: params.flowId },
+            select: { requiresApproval: true }
+        });
+
+        if (flow?.requiresApproval) {
+            return this.queueStep(params.conversationId, params.stepId);
+        }
+
         let current = findStep(params.steps, params.stepId);
 
         for (let index = 0; index < MAX_CHAIN && current; index += 1) {
@@ -792,7 +849,11 @@ export class GuidedFlowService {
 
         await prisma.guidedFlowRun.update({
             where: { conversationId },
-            data: { status: "COMPLETED", currentStepId: run.currentStepId }
+            data: {
+                status: "COMPLETED",
+                currentStepId: run.currentStepId,
+                pendingStepId: null
+            }
         });
 
         await LogService.create({
@@ -807,10 +868,127 @@ export class GuidedFlowService {
         return true;
     }
 
+    private static async queueStep(
+        conversationId: string,
+        stepId: string
+    ): Promise<boolean> {
+        await prisma.guidedFlowRun.updateMany({
+            where: { conversationId, status: "ACTIVE" },
+            data: { pendingStepId: stepId, currentStepId: stepId }
+        });
+
+        return true;
+    }
+
+    /**
+     * Envía el paso pendiente y avanza el run. Solo lo llama una persona desde
+     * la bandeja, después de revisar el mensaje.
+     */
+    static async approvePending(
+        workspaceId: string,
+        conversationId: string
+    ): Promise<boolean> {
+        const run = await prisma.guidedFlowRun.findFirst({
+            where: { workspaceId, conversationId, status: "ACTIVE" },
+            include: { flow: true }
+        });
+
+        if (!run?.pendingStepId) return false;
+
+        const parsed = guidedStepsSchema.safeParse(run.flow.steps);
+        if (!parsed.success) {
+            await this.complete(conversationId, run.currentStepId);
+            return false;
+        }
+
+        const step = findStep(parsed.data, run.pendingStepId);
+        if (!step) {
+            await this.complete(conversationId, run.currentStepId);
+            return false;
+        }
+
+        if (step.type === "question") {
+            await this.sendQuestion(workspaceId, conversationId, step);
+            await prisma.guidedFlowRun.update({
+                where: { conversationId },
+                data: { pendingStepId: null, currentStepId: step.id }
+            });
+            return true;
+        }
+
+        if (step.type === "message") {
+            await MessageService.sendFlowReply({
+                workspaceId,
+                conversationId,
+                body: step.text,
+                buttons: null,
+                list: null
+            });
+            await prisma.guidedFlowRun.update({
+                where: { conversationId },
+                data: { pendingStepId: null, currentStepId: step.next }
+            });
+            return this.sendFrom({
+                workspaceId,
+                conversationId,
+                flowId: run.flowId,
+                flowName: run.flow.name,
+                steps: parsed.data,
+                stepId: step.next
+            });
+        }
+
+        if (step.type === "input" || step.type === "file") {
+            await MessageService.sendFlowReply({
+                workspaceId,
+                conversationId,
+                body: step.text,
+                buttons: null,
+                list: null
+            });
+            await prisma.guidedFlowRun.update({
+                where: { conversationId },
+                data: { pendingStepId: null, currentStepId: step.id }
+            });
+            return true;
+        }
+
+        const links = step.links
+            .map((link) => `${link.label}: ${link.url}`)
+            .join("\n");
+        const body = [step.text, links].filter(Boolean).join("\n\n");
+
+        await MessageService.sendFlowReply({
+            workspaceId,
+            conversationId,
+            body,
+            buttons: null,
+            list: null
+        });
+
+        await prisma.guidedFlowRun.update({
+            where: { conversationId },
+            data: { status: "COMPLETED", pendingStepId: null, currentStepId: step.id }
+        });
+
+        await this.captureLead({
+            workspaceId,
+            conversationId,
+            flowId: run.flowId,
+            flowName: run.flow.name
+        }).catch(() => undefined);
+
+        return true;
+    }
+
     private static async complete(conversationId: string, stepId: string) {
         await prisma.guidedFlowRun.updateMany({
             where: { conversationId },
-            data: { status: "COMPLETED", currentStepId: stepId }
+            data: {
+                status: "COMPLETED",
+                currentStepId: stepId,
+                pendingStepId: null
+            }
         });
     }
 }

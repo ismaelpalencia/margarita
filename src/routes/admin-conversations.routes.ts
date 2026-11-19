@@ -38,6 +38,10 @@ router.post(
 router.post("/:id/assign", AdminConversationsController.assign);
 router.post("/:id/close", AdminConversationsController.close);
 router.post(
+    "/:id/guided-flow/approve",
+    GuidedFlowConversationController.approve("/admin/conversations")
+);
+router.post(
     "/:id/guided-flow/end",
     GuidedFlowConversationController.finish("/admin/conversations")
 );

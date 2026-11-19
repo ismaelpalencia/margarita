@@ -983,3 +983,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 373 pruebas unitarias.
 
 ---
+
+## Flujos controlados con aprobación
+
+- GuidedFlow.requiresApproval permite que cada salida espere aprobación.
+- GuidedFlowRun.pendingStepId guarda el paso pendiente.
+- La bandeja muestra el texto/opciones pendientes y un botón Aprobar y enviar.
+- También se puede escribir manualmente o finalizar el flujo.
+- 373 pruebas unitarias.
+
+---

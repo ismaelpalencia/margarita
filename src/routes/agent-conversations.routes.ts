@@ -34,6 +34,10 @@ router.post(
 );
 router.post("/:id/close", AgentConversationsController.close);
 router.post(
+    "/:id/guided-flow/approve",
+    GuidedFlowConversationController.approve("/agent/conversations")
+);
+router.post(
     "/:id/guided-flow/end",
     GuidedFlowConversationController.finish("/agent/conversations")
 );

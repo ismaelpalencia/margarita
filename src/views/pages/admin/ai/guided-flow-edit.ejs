@@ -151,6 +151,13 @@
                     <input type="checkbox" name="isActive" <%= values.isActive ? "checked" : "" %> />
                     Activo
                 </label>
+                <label class="flex items-start gap-2 text-sm text-slate-700 sm:col-span-2">
+                    <input type="checkbox" name="requiresApproval" class="mt-1" <%= values.requiresApproval ? "checked" : "" %> />
+                    <span>
+                        <strong>Controlado:</strong> cada mensaje del flujo queda pendiente
+                        de aprobación del operador antes de enviarse.
+                    </span>
+                </label>
             </section>
 
             <section class="card space-y-3">
