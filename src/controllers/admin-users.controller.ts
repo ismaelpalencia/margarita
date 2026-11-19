@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 
 import { prisma } from "../config/prisma";
 import { UserService } from "../services/user.service";
+import { WhatsAppNumberService } from "../services/whatsapp-number.service";
 import { SendPolicyService } from "../services/send-policy.service";
 import { getRequiredParam } from "../utils/request";
 import {
@@ -18,7 +19,8 @@ const EMPTY_FORM = {
     name: "",
     email: "",
     role: "AGENT",
-    manualMessageLimit: ""
+    manualMessageLimit: "",
+    allowedNumberIds: [] as string[]
 };
 
 export class AdminUsersController {
@@ -41,16 +43,24 @@ export class AdminUsersController {
         });
     }
 
-    static showCreate(req: Request, res: Response) {
+    static async showCreate(req: Request, res: Response) {
+        const numbers = await WhatsAppNumberService.listNumbers(
+            req.user!.workspaceId
+        );
+
         return res.render("pages/admin/users/create", {
             user: req.user,
             error: null,
             old: EMPTY_FORM,
+            numbers,
             suggestedPassword: UserService.suggestPassword()
         });
     }
 
     static async create(req: Request, res: Response) {
+        const numbers = await WhatsAppNumberService.listNumbers(
+            req.user!.workspaceId
+        );
         const parsed = createUserSchema.safeParse(req.body);
 
         if (!parsed.success) {
@@ -61,8 +71,14 @@ export class AdminUsersController {
                     name: req.body.name || "",
                     email: req.body.email || "",
                     role: req.body.role || "AGENT",
-                    manualMessageLimit: req.body.manualMessageLimit || ""
+                    manualMessageLimit: req.body.manualMessageLimit || "",
+                    allowedNumberIds: Array.isArray(req.body.allowedNumberIds)
+                        ? req.body.allowedNumberIds
+                        : req.body.allowedNumberIds
+                          ? [req.body.allowedNumberIds]
+                          : []
                 },
+                numbers,
                 suggestedPassword: UserService.suggestPassword()
             });
         }
@@ -82,8 +98,14 @@ export class AdminUsersController {
                     name: req.body.name || "",
                     email: req.body.email || "",
                     role: req.body.role || "AGENT",
-                    manualMessageLimit: req.body.manualMessageLimit || ""
+                    manualMessageLimit: req.body.manualMessageLimit || "",
+                    allowedNumberIds: Array.isArray(req.body.allowedNumberIds)
+                        ? req.body.allowedNumberIds
+                        : req.body.allowedNumberIds
+                          ? [req.body.allowedNumberIds]
+                          : []
                 },
+                numbers,
                 suggestedPassword: UserService.suggestPassword()
             });
         }
@@ -93,14 +115,16 @@ export class AdminUsersController {
         const id = getRequiredParam(req, "id");
 
         try {
-            const [member, activeAdmins] = await Promise.all([
+            const [member, activeAdmins, numbers] = await Promise.all([
                 UserService.getMemberById(req.user!.workspaceId, id),
-                UserService.countActiveAdmins(req.user!.workspaceId)
+                UserService.countActiveAdmins(req.user!.workspaceId),
+                WhatsAppNumberService.listNumbers(req.user!.workspaceId)
             ]);
 
             return res.render("pages/admin/users/edit", {
                 user: req.user,
                 member,
+                numbers,
                 activeAdmins,
                 suggestedPassword: UserService.suggestPassword(),
                 error: req.query.error || null,

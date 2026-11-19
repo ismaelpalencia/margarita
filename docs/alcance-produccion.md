@@ -329,6 +329,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
   `|`), con texto, hasta 3 botones o una lista de hasta 10 opciones.
 - Un flujo puede marcarse **Controlado**: cada salida queda pendiente y el
   operador la aprueba desde la bandeja antes de enviarla.
+- Cada agente puede limitarse a uno o varios números desde **Equipo → Editar
+  agente → Números permitidos**; vacío significa todos.
 - En Leads se puede crear un lead desde un contacto que ya tiene conversación,
   sin volver a escribir nombre y teléfono.
 - En un flujo existente, **Modificar este flujo con IA** permite pedir cambios

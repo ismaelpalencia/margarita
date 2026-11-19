@@ -54,17 +54,20 @@ export class AgentConversationsController {
         const assigned =
             typeof req.query.assigned === "string" ? req.query.assigned : "";
 
-        const conversations = await ConversationService.listForAgent(
-            req.user!.workspaceId,
-            req.user!.id,
-            req.activeNumber?.id,
-            {
-                search: search || undefined,
-                status: status || undefined,
-                assignedTo: assigned === "unassigned" ? null : undefined,
-                onlyUnread
-            }
-        );
+        const conversations = req.activeNumber
+            ? await ConversationService.listForAgent(
+                  req.user!.workspaceId,
+                  req.user!.id,
+                  req.activeNumber.id,
+                  {
+                      search: search || undefined,
+                      status: status || undefined,
+                      assignedTo:
+                          assigned === "unassigned" ? null : undefined,
+                      onlyUnread
+                  }
+              )
+            : [];
 
         return res.render("pages/agent/conversations/index", {
             user: req.user,

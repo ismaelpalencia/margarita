@@ -394,11 +394,20 @@ export class ConversationService {
         userId: string,
         conversationId: string
     ) {
+        const me = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { allowedNumberIds: true }
+        });
+        const allowedNumberIds = me?.allowedNumberIds ?? [];
+
         const conversation = await prisma.conversation.findFirst({
             where: {
                 id: conversationId,
                 workspaceId,
-                assignedUserId: userId
+                assignedUserId: userId,
+                ...(allowedNumberIds.length > 0
+                    ? { whatsappNumberId: { in: allowedNumberIds } }
+                    : {})
             },
             include: {
                 whatsappNumber: {
@@ -528,7 +537,11 @@ export class ConversationService {
         throw new Error("Conversación no encontrada.");
     }
 
-    let agent: { id: string; name: string } | null = null;
+    let agent: {
+        id: string;
+        name: string;
+        allowedNumberIds: string[];
+    } | null = null;
 
     if (agentId) {
         agent = await prisma.user.findFirst({
@@ -540,12 +553,22 @@ export class ConversationService {
             },
             select: {
                 id: true,
-                name: true
+                name: true,
+                allowedNumberIds: true
             }
         });
 
         if (!agent) {
             throw new Error("Agente no encontrado o inactivo.");
+        }
+
+        if (
+            agent.allowedNumberIds.length > 0 &&
+            !agent.allowedNumberIds.includes(conversation.whatsappNumberId)
+        ) {
+            throw new Error(
+                "El agente no tiene permiso para el número de esta conversación."
+            );
         }
     }
 

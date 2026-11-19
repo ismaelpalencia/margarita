@@ -575,6 +575,8 @@ model User {
 
   canSendManualMessages Boolean @default(false)
   manualMessageLimit    Int?
+  /** Números que puede ver y atender un agente. Vacío = todos. */
+  allowedNumberIds      String[] @default([])
 
   lastLoginAt DateTime?
 

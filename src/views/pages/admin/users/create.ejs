@@ -130,6 +130,32 @@
                     </p>
                 </div>
 
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <p class="text-sm font-medium text-slate-700">Números permitidos (solo agentes)</p>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Si no marcas ninguno, el agente puede ver todos los números. Marca uno o varios para limitar su bandeja.
+                    </p>
+                    <% if (!numbers || numbers.length === 0) { %>
+                        <p class="mt-2 text-xs text-amber-700">Todavía no hay números configurados.</p>
+                    <% } else { %>
+                        <div class="mt-3 space-y-2">
+                            <% numbers.forEach((number) => { %>
+                                <label class="flex items-center gap-2 text-sm text-slate-700">
+                                    <input
+                                        type="checkbox"
+                                        name="allowedNumberIds"
+                                        value="<%= number.id %>"
+                                        <%= (old.allowedNumberIds || []).includes(number.id) ? "checked" : "" %>
+                                        class="h-4 w-4 rounded border-slate-300"
+                                    />
+                                    <%= number.displayName || number.phoneNumber %>
+                                    <span class="text-xs text-slate-400"><%= number.phoneNumber %></span>
+                                </label>
+                            <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+
                 <button
                     class="w-full rounded-xl bg-margarita-600 px-4 py-3 font-semibold text-white hover:bg-margarita-700"
                 >

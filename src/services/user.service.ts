@@ -148,7 +148,11 @@ export class UserService {
                 manualMessageLimit:
                     input.role === UserRole.ADMIN
                         ? null
-                        : input.manualMessageLimit
+                        : input.manualMessageLimit,
+                allowedNumberIds:
+                    input.role === UserRole.ADMIN
+                        ? []
+                        : (input.allowedNumberIds ?? [])
             }
         });
 
@@ -207,7 +211,11 @@ export class UserService {
                 manualMessageLimit:
                     input.role === UserRole.ADMIN
                         ? null
-                        : input.manualMessageLimit
+                        : input.manualMessageLimit,
+                allowedNumberIds:
+                    input.role === UserRole.ADMIN
+                        ? []
+                        : (input.allowedNumberIds ?? [])
             }
         });
 

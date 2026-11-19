@@ -1,0 +1,1 @@
+ALTER TABLE "User" ADD COLUMN "allowedNumberIds" TEXT[] DEFAULT ARRAY[]::TEXT[];

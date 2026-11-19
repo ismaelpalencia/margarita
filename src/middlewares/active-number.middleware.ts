@@ -22,9 +22,24 @@ export async function activeNumberMiddleware(
     next: NextFunction
 ) {
     try {
-        const numbers = await WhatsAppNumberService.listNumbers(
+        const allNumbers = await WhatsAppNumberService.listNumbers(
             req.user!.workspaceId
         );
+        const me = await prisma.user.findUnique({
+            where: { id: req.user!.id },
+            select: {
+                allowedNumberIds: true,
+                notifySoundEnabled: true,
+                notifyBrowserEnabled: true
+            }
+        });
+        const numbers =
+            req.user!.role === UserRole.AGENT &&
+            (me?.allowedNumberIds?.length ?? 0) > 0
+                ? allNumbers.filter((number) =>
+                      me!.allowedNumberIds.includes(number.id)
+                  )
+                : allNumbers;
 
         const requested = req.cookies?.[appConfig.activeNumberCookieName];
 
@@ -44,12 +59,6 @@ export async function activeNumberMiddleware(
          * pintar una página (GET): en un POST la respuesta es un redirect.
          */
         res.locals.unreadTotal = 0;
-
-        /** Preferencias de notificación del usuario, para live.js. */
-        const me = await prisma.user.findUnique({
-            where: { id: req.user!.id },
-            select: { notifySoundEnabled: true, notifyBrowserEnabled: true }
-        });
 
         res.locals.notifySoundEnabled = Boolean(me?.notifySoundEnabled);
         res.locals.notifyBrowserEnabled = Boolean(me?.notifyBrowserEnabled);

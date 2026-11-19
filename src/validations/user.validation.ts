@@ -34,6 +34,20 @@ const permissionField = z
     .optional(z.literal("on"))
     .transform((value) => value === "on");
 
+const numberIdsField = z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((value) => {
+        const values = Array.isArray(value) ? value : value ? [value] : [];
+        return Array.from(
+            new Set(
+                values
+                    .map((item) => String(item).trim())
+                    .filter((item) => /^[A-Za-z0-9_-]{1,40}$/.test(item))
+            )
+        ).slice(0, 50);
+    });
+
 export const createUserSchema = z.object({
     name: nameField,
     email: emailField,
@@ -42,7 +56,8 @@ export const createUserSchema = z.object({
         error: "Elige un rol válido."
     }),
     canSendManualMessages: permissionField,
-    manualMessageLimit: limitField
+    manualMessageLimit: limitField,
+    allowedNumberIds: numberIdsField
 });
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
@@ -53,7 +68,8 @@ export const updateUserSchema = z.object({
         error: "Elige un rol válido."
     }),
     canSendManualMessages: permissionField,
-    manualMessageLimit: limitField
+    manualMessageLimit: limitField,
+    allowedNumberIds: numberIdsField
 });
 
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;

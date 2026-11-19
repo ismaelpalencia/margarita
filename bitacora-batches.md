@@ -1003,3 +1003,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 373 pruebas unitarias.
 
 ---
+
+## Permisos de números por agente
+
+- User.allowedNumberIds permite limitar los números de un agente.
+- El selector de número, la bandeja, el detalle y el envío respetan el permiso.
+- La asignación de una conversación de otro número se rechaza.
+- El formulario de Equipo permite marcar varios números; vacío = todos.
+- 373 pruebas unitarias.
+
+---

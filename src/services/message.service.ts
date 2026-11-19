@@ -1762,13 +1762,25 @@ export class MessageService {
         userId: string,
         role: UserRole
     ) {
+        const me =
+            role === UserRole.AGENT
+                ? await prisma.user.findUnique({
+                      where: { id: userId },
+                      select: { allowedNumberIds: true }
+                  })
+                : null;
+        const allowedNumberIds = me?.allowedNumberIds ?? [];
+
         const conversation = await prisma.conversation.findFirst({
             where: {
                 id: conversationId,
                 workspaceId,
                 ...(role === UserRole.AGENT
                     ? {
-                          assignedUserId: userId
+                          assignedUserId: userId,
+                          ...(allowedNumberIds.length > 0
+                              ? { whatsappNumberId: { in: allowedNumberIds } }
+                              : {})
                       }
                     : {})
             },
