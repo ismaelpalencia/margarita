@@ -365,6 +365,29 @@
 html.dark {
     color-scheme: dark;
     scrollbar-color: #334155 #0b1220;
+
+    /* Las tarjetas, tablas, inputs y sidebar leen estas variables. */
+    --surface-bg: #0b1220;
+    --surface-card: #0f172a;
+    --surface-hover: #172033;
+    --surface-selected: #123a2c;
+    --surface-border: #243247;
+    --text-primary: #e2e8f0;
+    --text-secondary: #a8b6c9;
+    --text-tertiary: #94a3b8;
+    --text-inverse: #ffffff;
+    --brand-50: #0d2a20;
+    --brand-500: #34b27b;
+    --brand-600: #7cd9a8;
+    --success: #86efac;
+    --success-bg: #0d2a20;
+    --warning: #fde68a;
+    --warning-bg: #2a2110;
+    --danger: #fca5a5;
+    --danger-bg: #2a1416;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / 0.35);
+    --shadow-lg: 0 12px 24px rgb(0 0 0 / 0.45);
 }
 
 html.dark body {
@@ -449,6 +472,44 @@ html.dark .bg-blue-50 {
     background-color: #10243f;
 }
 
+html.dark .bg-emerald-50,
+html.dark .bg-margarita-50\/40 {
+    background-color: #0d2a20;
+}
+
+html.dark .bg-yellow-50,
+html.dark .bg-rose-50 {
+    background-color: #2a2110;
+}
+
+html.dark .bg-indigo-50 {
+    background-color: #172554;
+}
+
+html.dark .bg-emerald-100 {
+    background-color: #123a2c;
+}
+
+html.dark .bg-rose-100 {
+    background-color: #3b1a1d;
+}
+
+html.dark .bg-yellow-100 {
+    background-color: #3a2c12;
+}
+
+html.dark .bg-indigo-100 {
+    background-color: #1e1b4b;
+}
+
+html.dark .bg-slate-800 {
+    background-color: #334155;
+}
+
+html.dark .bg-slate-950 {
+    background-color: #020617;
+}
+
 /* Texto */
 html.dark .text-slate-950 {
     color: #f8fafc;
@@ -521,6 +582,25 @@ html.dark .text-orange-700 {
     color: #fdba74;
 }
 
+html.dark .text-emerald-800,
+html.dark .text-emerald-700 {
+    color: #86efac;
+}
+
+html.dark .text-yellow-800,
+html.dark .text-yellow-700 {
+    color: #fde68a;
+}
+
+html.dark .text-rose-800,
+html.dark .text-rose-700 {
+    color: #fda4af;
+}
+
+html.dark .text-indigo-700 {
+    color: #a5b4fc;
+}
+
 /* Bordes y anillos */
 html.dark .border-slate-100 {
     border-color: #1e293b;
@@ -532,6 +612,16 @@ html.dark .border-slate-200 {
 
 html.dark .border-slate-300 {
     border-color: #334155;
+}
+
+html.dark .border-emerald-100,
+html.dark .border-emerald-200 {
+    border-color: #14532d;
+}
+
+html.dark .border-rose-100,
+html.dark .border-rose-200 {
+    border-color: #7f1d1d;
 }
 
 html.dark .border-margarita-100 {
