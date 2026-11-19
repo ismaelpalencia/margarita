@@ -993,3 +993,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 373 pruebas unitarias.
 
 ---
+
+## Leads desde contactos existentes
+
+- Selector de contactos con conversación en el alta manual de Leads.
+- Al elegir un contacto se autocompletan nombre y teléfono.
+- Se vincula el lead al contacto y a su conversación más reciente.
+- Se bloquea el alta si el contacto ya tiene un lead.
+- 373 pruebas unitarias.
+
+---

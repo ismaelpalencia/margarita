@@ -37,7 +37,7 @@
 
         <% if (error) { %>
             <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-                <% if (error === "name_phone") { %> El nombre y el teléfono son obligatorios. <% } else if (error === "retry") { %> No se pudo reintentar la entrega. <% } else { %> No se pudo completar la acción. <% } %>
+                <% if (error === "name_phone") { %> El nombre y el teléfono son obligatorios. <% } else if (error === "lead_exists") { %> Ese contacto ya tiene un lead registrado. <% } else if (error === "contact") { %> El contacto ya no existe. <% } else if (error === "retry") { %> No se pudo reintentar la entrega. <% } else { %> No se pudo completar la acción. <% } %>
             </div>
         <% } %>
 
@@ -74,12 +74,44 @@
             <h3 class="font-bold text-slate-800">Agregar lead</h3>
 
             <form action="/admin/leads" method="POST" class="mt-4 grid gap-3 md:grid-cols-5">
-                <input type="text" name="name" required placeholder="Nombre" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
-                <input type="tel" name="phone" required placeholder="Teléfono" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+                <div class="md:col-span-5">
+                    <label class="block text-xs font-bold text-slate-600">Desde un contacto del chat</label>
+                    <select name="contactId" id="lead-contact" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                        <option value="">— Escribir datos manualmente —</option>
+                        <% contacts.forEach((contact) => { %>
+                            <% const label = contact.customName || contact.profileName || contact.phone; %>
+                            <option
+                                value="<%= contact.id %>"
+                                data-name="<%= label %>"
+                                data-phone="<%= contact.phone %>"
+                                <%= leadContactIds.has(contact.id) ? "disabled" : "" %>
+                            >
+                                <%= label %> · <%= contact.phone %><%= leadContactIds.has(contact.id) ? " (ya tiene lead)" : "" %>
+                            </option>
+                        <% }) %>
+                    </select>
+                    <p class="mt-1 text-xs text-slate-500">Elige un contacto que ya está en tus conversaciones para no volver a capturarlo.</p>
+                </div>
+                <input type="text" name="name" id="lead-name" required placeholder="Nombre" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+                <input type="tel" name="phone" id="lead-phone" required placeholder="Teléfono" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
                 <input type="email" name="email" placeholder="Correo (opcional)" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
                 <input type="text" name="interest" placeholder="Interés" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
                 <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Guardar</button>
             </form>
+            <script>
+                (function () {
+                    var select = document.getElementById("lead-contact");
+                    var name = document.getElementById("lead-name");
+                    var phone = document.getElementById("lead-phone");
+                    if (!select || !name || !phone) return;
+                    select.addEventListener("change", function () {
+                        var option = select.options[select.selectedIndex];
+                        if (!option || !option.value) return;
+                        name.value = option.dataset.name || "";
+                        phone.value = option.dataset.phone || "";
+                    });
+                })();
+            </script>
         </section>
 
         <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">

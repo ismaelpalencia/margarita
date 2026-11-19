@@ -10,7 +10,7 @@ const STATUSES = [LeadStatus.NUEVO, LeadStatus.CONTACTADO, LeadStatus.CONVERTIDO
 export class AdminLeadsController {
     static async index(req: Request, res: Response) {
         const status = typeof req.query.status === "string" ? req.query.status : "ALL";
-        const [leads, flags] = await Promise.all([
+        const [leads, flags, contacts] = await Promise.all([
             LeadService.list(req.user!.workspaceId, status),
             prisma.workspace.findUniqueOrThrow({
                 where: { id: req.user!.workspaceId },
@@ -19,8 +19,32 @@ export class AdminLeadsController {
                     leadWebhookUrl: true,
                     leadWebhookSecret: true
                 }
+            }),
+            prisma.contact.findMany({
+                where: {
+                    workspaceId: req.user!.workspaceId,
+                    isActive: true,
+                    conversations: { some: {} }
+                },
+                select: {
+                    id: true,
+                    profileName: true,
+                    customName: true,
+                    phone: true,
+                    conversations: {
+                        select: { id: true },
+                        orderBy: { lastMessageAt: "desc" },
+                        take: 1
+                    }
+                },
+                orderBy: { updatedAt: "desc" },
+                take: 200
             })
         ]);
+
+        const leadContactIds = new Set(
+            leads.map((lead) => lead.contactId).filter(Boolean)
+        );
 
         return res.render("pages/admin/leads/index", {
             user: req.user,
@@ -30,6 +54,8 @@ export class AdminLeadsController {
             leadsEnabled: flags.leadsEnabled,
             leadWebhookUrl: flags.leadWebhookUrl ?? "",
             hasWebhookSecret: Boolean(flags.leadWebhookSecret),
+            contacts,
+            leadContactIds,
             success: req.query.success || null,
             error: req.query.error || null
         });
@@ -59,9 +85,52 @@ export class AdminLeadsController {
     }
 
     static async create(req: Request, res: Response) {
-        const name = String(req.body?.name || "").trim();
-        const phone = String(req.body?.phone || "").trim();
+        const contactId = String(req.body?.contactId || "").trim();
         const email = String(req.body?.email || "").trim();
+        let name = String(req.body?.name || "").trim();
+        let phone = String(req.body?.phone || "").trim();
+        let conversationId: string | null = null;
+
+        if (contactId) {
+            const contact = await prisma.contact.findFirst({
+                where: { id: contactId, workspaceId: req.user!.workspaceId },
+                select: {
+                    id: true,
+                    profileName: true,
+                    customName: true,
+                    phone: true,
+                    conversations: {
+                        select: { id: true },
+                        orderBy: { lastMessageAt: "desc" },
+                        take: 1
+                    }
+                }
+            });
+
+            if (!contact) {
+                return res.redirect("/admin/leads?error=contact");
+            }
+
+            const existing = await prisma.lead.findFirst({
+                where: {
+                    workspaceId: req.user!.workspaceId,
+                    contactId: contact.id
+                },
+                select: { id: true }
+            });
+
+            if (existing) {
+                return res.redirect("/admin/leads?error=lead_exists");
+            }
+
+            name =
+                contact.customName ||
+                contact.profileName ||
+                contact.phone ||
+                name;
+            phone = contact.phone || phone;
+            conversationId = contact.conversations[0]?.id ?? null;
+        }
 
         if (!name || !phone) {
             return res.redirect("/admin/leads?error=name_phone");
@@ -70,11 +139,13 @@ export class AdminLeadsController {
         try {
             await LeadService.capture({
                 workspaceId: req.user!.workspaceId,
+                contactId: contactId || null,
+                conversationId,
                 name,
                 phone,
                 email: email || null,
                 interest: String(req.body?.interest || "").trim() || null,
-                source: "MANUAL"
+                source: contactId ? "MANUAL_CONTACT" : "MANUAL"
             });
         } catch {
             return res.redirect("/admin/leads?error=create");
