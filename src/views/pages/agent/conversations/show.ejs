@@ -96,6 +96,18 @@
                         </span>
                     <% } %>
 
+                    <% if (existingLead) { %>
+                        <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                            Ya es lead
+                        </span>
+                    <% } else { %>
+                        <form action="/agent/conversations/<%= conversation.id %>/lead" method="POST">
+                            <button class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50">
+                                Marcar como lead
+                            </button>
+                        </form>
+                    <% } %>
+
                     <span class="rounded-full px-3 py-1 text-xs font-semibold <%= hasOpenWindow ? 'bg-margarita-50 text-margarita-700' : 'bg-amber-50 text-amber-700' %>">
                         <%= hasOpenWindow ? "Ventana abierta" : "Ventana cerrada" %>
                     </span>
@@ -138,6 +150,10 @@
                 <p class="border-b border-margarita-100 bg-margarita-50 px-4 py-2 text-xs font-semibold text-margarita-700">
                     <%= success === "ai_paused" ? "La IA no responderá sola en esta conversación." : "La IA vuelve a responder sola en esta conversación." %>
                 </p>
+            <% } else if (success === "lead_created") { %>
+                <p class="border-b border-margarita-100 bg-margarita-50 px-4 py-2 text-xs font-semibold text-margarita-700">
+                    Conversación marcada como lead.
+                </p>
             <% } else if (success === "guided_flow_ended" || success === "guided_flow_none" || success === "guided_flow_sent") { %>
                 <div class="mb-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                     <%= success === "guided_flow_sent" ? "Paso aprobado y enviado." : success === "guided_flow_ended" ? "Flujo finalizado. La conversación sigue en atención manual." : "No había un flujo activo en esta conversación." %>
@@ -148,7 +164,15 @@
                 </p>
             <% } %>
 
-            <% if (error === "free_text") { %>
+            <% if (error === "lead_exists") { %>
+                <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+                    Ese contacto ya tiene un lead registrado.
+                </p>
+            <% } else if (error === "lead_create") { %>
+                <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+                    No se pudo marcar la conversación como lead.
+                </p>
+            <% } else if (error === "free_text") { %>
                 <p class="border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
                     No se pudo enviar. Revisa que la ventana de 24 horas siga abierta.
                 </p>
@@ -184,8 +208,7 @@
             <% } %>
 
             <div
-                class="min-h-[140px] flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-5"
-                style="background-color: #f4f7f5; background-image: radial-gradient(#dde5e0 1px, transparent 1px); background-size: 22px 22px;"
+                class="chat-canvas min-h-[140px] flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-5"
                 data-live-messages
             >
                 <% if (conversation.messages.length === 0) { %>
@@ -283,10 +306,10 @@
                         <textarea
                             id="composer-body"
                             name="body"
-                            rows="1"
+                            rows="3"
                             required
                             placeholder="Escribe un mensaje"
-                            class="max-h-32 flex-1 resize-none rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
+                            class="min-h-[88px] max-h-56 flex-1 resize-y rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-margarita-500 focus:ring-2 focus:ring-margarita-100"
                         ><%= typeof aiDraftBody !== "undefined" ? aiDraftBody : "" %></textarea>
 
                         <button class="rounded-2xl bg-margarita-600 px-5 py-3 text-sm font-semibold text-white hover:bg-margarita-700">
@@ -439,6 +462,14 @@
             var contactName = <%- JSON.stringify(contactName).replace(/</g, "\\u003c") %>;
             var contactPhone = <%- JSON.stringify(conversation.contact.phone).replace(/</g, "\\u003c") %>;
 
+            function resizeComposer() {
+                textarea.style.height = "auto";
+                textarea.style.height = Math.min(textarea.scrollHeight, 224) + "px";
+            }
+
+            textarea.addEventListener("input", resizeComposer);
+            resizeComposer();
+
             document.querySelectorAll("[data-quick-reply]").forEach(function (button) {
                 button.addEventListener("click", function () {
                     var text = (button.getAttribute("data-quick-reply") || "")
@@ -449,6 +480,7 @@
                         ? textarea.value.replace(/\s*$/, " ") + text
                         : text;
 
+                    resizeComposer();
                     textarea.focus();
                 });
             });

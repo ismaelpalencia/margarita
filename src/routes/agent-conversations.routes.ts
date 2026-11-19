@@ -3,6 +3,7 @@ import { Router } from "express";
 import { AgentConversationsController } from "../controllers/agent-conversations.controller";
 import { AiConversationController } from "../controllers/ai-conversation.controller";
 import { GuidedFlowConversationController } from "../controllers/guided-flow-conversation.controller";
+import { LeadConversationController } from "../controllers/lead-conversation.controller";
 import { AiSuggestionController } from "../controllers/ai-suggestion.controller";
 import { OutcomeController } from "../controllers/outcome.controller";
 import { requireCollectionsModule } from "../middlewares/workspace-profile.middleware";
@@ -24,6 +25,10 @@ router.post("/:id/messages/interactive", AgentConversationsController.sendIntera
 router.post("/:id/messages/interactive-list", AgentConversationsController.sendInteractiveList);
 router.post("/:id/feedback", AgentConversationsController.recordFeedback);
 router.post("/:id/claim", AgentConversationsController.claim);
+router.post(
+    "/:id/lead",
+    LeadConversationController.mark("/agent/conversations")
+);
 router.post(
     "/:id/outcome",
     requireCollectionsModule,

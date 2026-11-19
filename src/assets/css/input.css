@@ -362,6 +362,17 @@
    consulta ni permiso depende del tema.
    ========================================================================== */
 
+.chat-canvas {
+    background-color: #f4f7f5;
+    background-image: radial-gradient(#dde5e0 1px, transparent 1px);
+    background-size: 22px 22px;
+}
+
+html.dark .chat-canvas {
+    background-color: #0b1220;
+    background-image: radial-gradient(#1e293b 1px, transparent 1px);
+}
+
 html.dark {
     color-scheme: dark;
     scrollbar-color: #334155 #0b1220;
@@ -446,6 +457,14 @@ html.dark .bg-margarita-50 {
 
 html.dark .bg-margarita-100 {
     background-color: #123a2c;
+}
+
+html.dark .bg-margarita-600 {
+    background-color: #176b4a;
+}
+
+html.dark .bg-margarita-700 {
+    background-color: #14532d;
 }
 
 html.dark .bg-red-50 {

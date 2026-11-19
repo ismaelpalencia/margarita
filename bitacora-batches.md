@@ -1032,3 +1032,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 373 pruebas unitarias.
 
 ---
+
+## Chat: modo oscuro, compositor y lead directo
+
+- El lienzo del chat usa variables y ya no queda blanco en modo oscuro.
+- El textarea del compositor inicia en 3 líneas, crece hasta 224 px y permite resize vertical.
+- Nuevo botón Marcar como lead dentro de la conversación.
+- Si el contacto ya tiene lead, se muestra Ya es lead y no se duplica.
+- 373 pruebas unitarias.
+
+---

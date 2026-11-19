@@ -335,6 +335,10 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
   de conversaciones se conserva y las campañas/asignaciones pasan al admin.
 - En Leads se puede crear un lead desde un contacto que ya tiene conversación,
   sin volver a escribir nombre y teléfono.
+- Dentro de un chat, **Marcar como lead** crea el lead del contacto si aún no
+  existe; si ya existe, muestra el estado y no lo duplica.
+- El compositor crece hasta 224 px al pegar textos largos y el chat respeta el
+  modo oscuro.
 - En un flujo existente, **Modificar este flujo con IA** permite pedir cambios
   y revisar el flujo completo antes de guardar.
 - Se editan en **Admin → IA → Paquete inicial**: trigger, respuesta, botones y

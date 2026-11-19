@@ -137,6 +137,14 @@ export class AgentConversationsController {
             ).catch(() => null)
         ]);
 
+        const existingLead = await prisma.lead.findFirst({
+            where: {
+                workspaceId,
+                contactId: conversation.contactId
+            },
+            select: { id: true }
+        });
+
         await ConversationService.markAsRead(
             req.user!.workspaceId,
             conversation.id
@@ -186,6 +194,7 @@ export class AgentConversationsController {
             aiSettings,
             aiConversation,
             guidedFlowRun,
+            existingLead,
             aiDraftBody,
             outcomeAttempts: attempts.get(conversation.contactId) ?? {
                 attempts: 0,
