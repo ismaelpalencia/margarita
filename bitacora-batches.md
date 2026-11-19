@@ -1023,3 +1023,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 373 pruebas unitarias.
 
 ---
+
+## Reset de contraseña: mostrar la clave realmente guardada
+
+- El POST de reset ahora renderiza la ficha con la contraseña usada.
+- Antes el redirect generaba otra contraseña distinta en el campo.
+- El login con la clave mostrada después del reset ya corresponde al hash guardado.
+- 373 pruebas unitarias.
+
+---

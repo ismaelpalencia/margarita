@@ -258,7 +258,26 @@ export class AdminUsersController {
             );
         }
 
-        return res.redirect(`/admin/users/${id}/edit?success=password`);
+        const [member, activeAdmins, numbers] = await Promise.all([
+            UserService.getMemberById(req.user!.workspaceId, id),
+            UserService.countActiveAdmins(req.user!.workspaceId),
+            WhatsAppNumberService.listNumbers(req.user!.workspaceId)
+        ]);
+
+        /**
+         * Se renderiza la misma ficha con la contraseña que realmente se
+         * guardó. Antes se redirigía y se generaba otra contraseña distinta,
+         * así que el administrador copiaba una que nunca había funcionado.
+         */
+        return res.render("pages/admin/users/edit", {
+            user: req.user,
+            member,
+            numbers,
+            activeAdmins,
+            suggestedPassword: parsed.data.password,
+            error: null,
+            success: "password"
+        });
     }
 
     /** Libera una cuenta bloqueada por intentos fallidos. */
