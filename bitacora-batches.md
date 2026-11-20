@@ -1042,3 +1042,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 373 pruebas unitarias.
 
 ---
+
+## CSV configurable y Google Sheets
+
+- Exportación CSV con checkboxes de columnas; nombre, teléfono y correo por defecto.
+- Los campos dato_* del flujo solo se incluyen si se marcan.
+- Nuevo webhook de Google Sheets por Apps Script, independiente del webhook CRM.
+- Envía nombre, teléfono, correo, origen, estado y fecha; no bloquea el lead.
+- 374 pruebas unitarias.
+
+---

@@ -7,7 +7,7 @@ import { prisma } from "../config/prisma";
 import { LogService } from "./log.service";
 import { emailIndex } from "../utils/email";
 import { extractEmail } from "../utils/lead";
-import { buildLeadsCsv } from "../utils/lead-csv";
+import { buildLeadsCsv, LeadCsvColumn } from "../utils/lead-csv";
 
 type CaptureInput = {
     workspaceId: string;
@@ -108,6 +108,9 @@ export class LeadService {
 
         /** El webhook saliente no debe impedir que el lead se guarde. */
         await LeadService.deliverWebhook(input.workspaceId, lead.id).catch(() => undefined);
+        await LeadService.deliverSheetsWebhook(input.workspaceId, lead.id).catch(
+            () => undefined
+        );
 
         return { lead, created: true };
     }
@@ -211,14 +214,88 @@ export class LeadService {
         }
     }
 
+    /**
+     * Envía el lead a un Web App de Google Apps Script. Es independiente del
+     * webhook CRM: si uno falla, el otro sigue. No bloquea el guardado.
+     */
+    static async deliverSheetsWebhook(workspaceId: string, leadId: string) {
+        const workspace = await prisma.workspace.findUnique({
+            where: { id: workspaceId },
+            select: {
+                leadSheetsWebhookUrl: true,
+                leadSheetsWebhookSecret: true
+            }
+        });
+
+        if (!workspace?.leadSheetsWebhookUrl) {
+            return;
+        }
+
+        const lead = await prisma.lead.findUniqueOrThrow({
+            where: { id: leadId }
+        });
+
+        const body = JSON.stringify({
+            secret: workspace.leadSheetsWebhookSecret || "",
+            name: lead.name,
+            phone: lead.phone,
+            email: lead.email,
+            interest: lead.interest,
+            source: lead.source,
+            status: lead.status,
+            createdAt: lead.createdAt.toISOString()
+        });
+
+        try {
+            const response = await axios.post(
+                workspace.leadSheetsWebhookUrl,
+                body,
+                {
+                    headers: { "content-type": "application/json" },
+                    timeout: 15000
+                }
+            );
+
+            if (response.status < 200 || response.status >= 300) {
+                throw new Error(`Apps Script respondió ${response.status}.`);
+            }
+
+            await LogService.create({
+                workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.CONTACT,
+                action: "LEAD_SHEETS_SENT",
+                message: "Se agregó el lead a Google Sheets.",
+                payload: { leadId }
+            }).catch(() => undefined);
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : "Error desconocido";
+
+            await LogService.create({
+                workspaceId,
+                level: LogLevel.WARN,
+                module: LogModule.CONTACT,
+                action: "LEAD_SHEETS_FAILED",
+                message: "No se pudo agregar el lead a Google Sheets.",
+                payload: { leadId, error: message.slice(0, 300) }
+            }).catch(() => undefined);
+
+            throw new Error(message);
+        }
+    }
+
     static async retry(workspaceId: string, leadId: string) {
         await LeadService.deliverWebhook(workspaceId, leadId);
     }
 
-    static async exportCsv(workspaceId: string): Promise<string> {
+    static async exportCsv(
+        workspaceId: string,
+        options: { columns?: LeadCsvColumn[]; includeFields?: boolean } = {}
+    ): Promise<string> {
         const leads = await LeadService.list(workspaceId);
 
-        return buildLeadsCsv(leads);
+        return buildLeadsCsv(leads, options);
     }
 }
 

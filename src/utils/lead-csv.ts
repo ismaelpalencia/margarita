@@ -42,27 +42,64 @@ function fieldValue(value: unknown): string | null {
     return JSON.stringify(value);
 }
 
+export const LEAD_CSV_COLUMNS = [
+    "nombre",
+    "telefono",
+    "email",
+    "interes",
+    "origen",
+    "estado",
+    "creado",
+    "id"
+] as const;
+
+export type LeadCsvColumn = (typeof LEAD_CSV_COLUMNS)[number];
+
+const COLUMN_VALUES: Record<LeadCsvColumn, (lead: LeadCsvRow) => string | null> = {
+    nombre: (lead) => lead.name,
+    telefono: (lead) => lead.phone,
+    email: (lead) => lead.email,
+    interes: (lead) => lead.interest,
+    origen: (lead) => lead.source,
+    estado: (lead) => lead.status,
+    creado: (lead) => lead.createdAt.toISOString(),
+    id: (lead) => lead.id
+};
+
 /**
- * Exporta un lead por fila. Los campos del flujo se abren en columnas
- * `dato_<campo>` en vez de quedar todos dentro de un JSON.
+ * Exporta un lead por fila. Las columnas base son configurables; los campos
+ * del flujo solo se abren si se piden explícitamente.
  */
-export function buildLeadsCsv(leads: LeadCsvRow[]): string {
-    const fieldKeys = Array.from(
-        new Set(
-            leads.flatMap((lead) => Object.keys(fieldObject(lead.fields)))
-        )
-    ).sort((a, b) => a.localeCompare(b, "es"));
+export function buildLeadsCsv(
+    leads: LeadCsvRow[],
+    options: {
+        columns?: LeadCsvColumn[];
+        includeFields?: boolean;
+    } = {}
+): string {
+    const selected = (
+        options.columns && options.columns.length
+            ? options.columns
+            : LEAD_CSV_COLUMNS.filter((column) => column !== "id")
+    ).filter((column): column is LeadCsvColumn =>
+        (LEAD_CSV_COLUMNS as readonly string[]).includes(column)
+    );
+
+    const includeFields = options.includeFields ?? true;
+
+    const fieldKeys = includeFields
+        ? Array.from(
+              new Set(
+                  leads.flatMap((lead) =>
+                      Object.keys(fieldObject(lead.fields))
+                  )
+              )
+          ).sort((a, b) => a.localeCompare(b, "es"))
+        : [];
 
     const headers = [
-        "id",
-        "email",
-        "nombre",
-        "telefono",
-        "interes",
-        ...fieldKeys.map((key) => `dato_${key}`),
-        "origen",
-        "estado",
-        "creado"
+        ...selected,
+        ...fieldKeys.map((key) => `dato_${key}`)
     ];
 
     const rows = [headers.map((header) => csvCell(header)).join(",")];
@@ -70,15 +107,8 @@ export function buildLeadsCsv(leads: LeadCsvRow[]): string {
     for (const lead of leads) {
         const fields = fieldObject(lead.fields);
         const values = [
-            lead.id,
-            lead.email,
-            lead.name,
-            lead.phone,
-            lead.interest,
-            ...fieldKeys.map((key) => fieldValue(fields[key])),
-            lead.source,
-            lead.status,
-            lead.createdAt.toISOString()
+            ...selected.map((column) => COLUMN_VALUES[column](lead)),
+            ...fieldKeys.map((key) => fieldValue(fields[key]))
         ];
 
         rows.push(values.map((value) => csvCell(value)).join(","));

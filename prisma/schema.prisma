@@ -351,6 +351,9 @@ model Workspace {
    */
   leadWebhookUrl    String?
   leadWebhookSecret String?
+  /** Web App de Google Apps Script para agregar leads a una hoja. */
+  leadSheetsWebhookUrl    String?
+  leadSheetsWebhookSecret String?
 
   /**
    * Valoración 👍/👎 al cerrar una conversación. Apagado por defecto.

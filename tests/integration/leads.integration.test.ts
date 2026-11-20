@@ -210,7 +210,7 @@ test("el CSV solo trae los leads del workspace", async () => {
     const csv = await LeadService.exportCsv(fixture.workspaceId);
     const lines = csv.replace(/^\uFEFF/, "").split("\r\n").filter((line) => line.length > 0);
 
-    assert.equal(lines[0].startsWith("id,email,nombre,interes,origen,estado,creado"), true);
+    assert.equal(lines[0].startsWith("nombre,telefono,email,interes,origen,estado,creado"), true);
     assert.ok(!csv.includes("otra@otra.mx"), "no trae leads de otra empresa");
     assert.match(csv, /sin-webhook|ana\./, "trae los leads de esta empresa");
 });

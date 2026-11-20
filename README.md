@@ -656,7 +656,7 @@ correr con **una sola réplica**.
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay **373 pruebas unitarias en 57 archivos** y una **suite de integración** contra PostgreSQL (esta última corre en CI con una base desechable), y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, verificación en dos pasos (desafío sin sesión, código válido y rescate por administrador), cifrado en reposo de todos los campos sensibles —incluidos nombres y correos— (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas, **restauración de un respaldo probada borrando datos a propósito** y **alta de una instalación vacía recorriendo el asistente como un cliente nuevo**.
+Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay **374 pruebas unitarias en 57 archivos** y una **suite de integración** contra PostgreSQL (esta última corre en CI con una base desechable), y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, verificación en dos pasos (desafío sin sesión, código válido y rescate por administrador), cifrado en reposo de todos los campos sensibles —incluidos nombres y correos— (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas, **restauración de un respaldo probada borrando datos a propósito** y **alta de una instalación vacía recorriendo el asistente como un cliente nuevo**.
 
 Lo que se cerró en el sprint de endurecimiento:
 
@@ -717,6 +717,7 @@ El límite vigente, con su explicación, está en [`docs/alcance-produccion.md`]
 | [`docs/marca-colores.md`](docs/marca-colores.md) | Paleta real de la app/landing y prompt para diseños publicitarios |
 | [`docs/venta/propuesta-workana.md`](docs/venta/propuesta-workana.md) | Propuestas para proyectos de IA + WhatsApp en Workana |
 | [`margaritademo`](https://github.com/ismaelpalencia/margaritademo) | Repositorio del microservicio Go de la demo pública |
+| [`docs/leads-google-sheets.md`](docs/leads-google-sheets.md) | Exportar columnas CSV y enviar leads nuevos a Google Sheets |
 | [`docs/multinumero.md`](docs/multinumero.md) | Diseño del multinúmero: modelo, migración, uso y pendientes |
 | [`docs/aviso-privacidad.md`](docs/aviso-privacidad.md) | Aviso de privacidad para revisar y publicar (la versión pública vive en `/aviso-de-privacidad`) |
 | [`docs/modelo-comercial.md`](docs/modelo-comercial.md) | Runbook de alta por cliente, actualización de instalaciones, cierre de contrato y paquete legal |

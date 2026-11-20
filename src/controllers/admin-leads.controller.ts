@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import { prisma } from "../config/prisma";
 import { LeadService } from "../services/lead.service";
 import { getRequiredParam } from "../utils/request";
+import { LEAD_CSV_COLUMNS, LeadCsvColumn } from "../utils/lead-csv";
 
 const STATUSES = [LeadStatus.NUEVO, LeadStatus.CONTACTADO, LeadStatus.CONVERTIDO, LeadStatus.DESCARTADO] as const;
 
@@ -17,7 +18,9 @@ export class AdminLeadsController {
                 select: {
                     leadsEnabled: true,
                     leadWebhookUrl: true,
-                    leadWebhookSecret: true
+                    leadWebhookSecret: true,
+                    leadSheetsWebhookUrl: true,
+                    leadSheetsWebhookSecret: true
                 }
             }),
             prisma.contact.findMany({
@@ -54,8 +57,11 @@ export class AdminLeadsController {
             leadsEnabled: flags.leadsEnabled,
             leadWebhookUrl: flags.leadWebhookUrl ?? "",
             hasWebhookSecret: Boolean(flags.leadWebhookSecret),
+            leadSheetsWebhookUrl: flags.leadSheetsWebhookUrl ?? "",
+            hasSheetsSecret: Boolean(flags.leadSheetsWebhookSecret),
             contacts,
             leadContactIds,
+            csvColumns: LEAD_CSV_COLUMNS,
             success: req.query.success || null,
             error: req.query.error || null
         });
@@ -65,6 +71,12 @@ export class AdminLeadsController {
         const leadsEnabled = req.body?.leadsEnabled === "true";
         const leadWebhookUrl = String(req.body?.leadWebhookUrl || "").trim();
         const leadWebhookSecret = String(req.body?.leadWebhookSecret || "").trim();
+        const leadSheetsWebhookUrl = String(
+            req.body?.leadSheetsWebhookUrl || ""
+        ).trim();
+        const leadSheetsWebhookSecret = String(
+            req.body?.leadSheetsWebhookSecret || ""
+        ).trim();
 
         try {
             await prisma.workspace.update({
@@ -72,8 +84,12 @@ export class AdminLeadsController {
                 data: {
                     leadsEnabled,
                     leadWebhookUrl: leadWebhookUrl || null,
+                    leadSheetsWebhookUrl: leadSheetsWebhookUrl || null,
                     ...(leadWebhookSecret
                         ? { leadWebhookSecret }
+                        : {}),
+                    ...(leadSheetsWebhookSecret
+                        ? { leadSheetsWebhookSecret }
                         : {})
                 }
             });
@@ -180,7 +196,20 @@ export class AdminLeadsController {
     }
 
     static async exportCsv(req: Request, res: Response) {
-        const csv = await LeadService.exportCsv(req.user!.workspaceId);
+        const rawColumns = Array.isArray(req.query.columns)
+            ? req.query.columns.join(",")
+            : String(req.query.columns || "");
+        const columns = rawColumns
+            .split(",")
+            .map((column) => column.trim())
+            .filter((column): column is LeadCsvColumn =>
+                (LEAD_CSV_COLUMNS as readonly string[]).includes(column)
+            );
+
+        const csv = await LeadService.exportCsv(req.user!.workspaceId, {
+            columns: columns.length > 0 ? columns : undefined,
+            includeFields: req.query.fields === "1"
+        });
 
         res.setHeader("content-type", "text/csv; charset=utf-8");
         res.setHeader("content-disposition", "attachment; filename=leads.csv");
