@@ -5,11 +5,23 @@ extensiones: se usa un Web App de Google Apps Script.
 
 ## 1. Crear la hoja
 
-Crea una hoja de cálculo con una pestaña llamada `Leads` y encabezados:
+Crea una hoja de cálculo con una pestaña llamada exactamente:
+
+```text
+Leads
+```
+
+No uses "leads", "LEADS" ni "Hoja 1": el script busca el nombre exacto. Si no
+existe, el script intenta crearla, pero es mejor crearla tú con estos
+encabezados en la fila 1:
 
 ```text
 Fecha | Nombre | Teléfono | Correo | Origen
 ```
+
+> El botón **Exportar CSV** descarga un archivo; no manda nada a Google
+> Sheets. La integración con Sheets solo se dispara cuando se crea un lead
+> nuevo. Los leads anteriores no se reenvían solos.
 
 ## 2. Apps Script
 
@@ -64,6 +76,28 @@ Copia la URL que termina en:
 ```text
 /exec
 ```
+
+No uses la URL de `/dev`: esa solo funciona mientras estás probando dentro
+de Apps Script y con tu sesión de Google.
+
+Cada vez que cambies el script, crea una **nueva implementación** y vuelve a
+copiar la URL. Guardar el script no actualiza el Web App publicado.
+
+## Probar el Web App sin Margarita
+
+```bash
+curl -L -X POST "https://script.google.com/macros/s/TU_ID/exec" \
+  -H "content-type: application/json" \
+  -d '{"secret":"TU_SECRETO","name":"Prueba","phone":"2221234567","email":"prueba@example.com"}'
+```
+
+Debe responder:
+
+```json
+{"ok":true}
+```
+
+Si responde `{"ok":false,"error":"secret"}`, el secreto no coincide.
 
 ## 4. Configurar en Margarita
 

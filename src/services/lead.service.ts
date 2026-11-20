@@ -260,6 +260,20 @@ export class LeadService {
                 throw new Error(`Apps Script respondió ${response.status}.`);
             }
 
+            const result = response.data;
+            if (
+                result &&
+                typeof result === "object" &&
+                "ok" in result &&
+                result.ok !== true
+            ) {
+                throw new Error(
+                    result.error === "secret"
+                        ? "Apps Script rechazó el secreto de la hoja."
+                        : "Apps Script no confirmó la fila."
+                );
+            }
+
             await LogService.create({
                 workspaceId,
                 level: LogLevel.INFO,
