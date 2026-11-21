@@ -1080,3 +1080,14 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 374 pruebas unitarias.
 
 ---
+
+## PWA y Web Push
+
+- Manifest, service worker y registro de instalación.
+- Botones Instalar app, Activar avisos y Probar aviso.
+- PushSubscription por navegador/dispositivo.
+- Notificación al agente asignado y administradores en mensajes entrantes.
+- VAPID configurado por variables; no se exponen claves.
+- 374 pruebas unitarias.
+
+---

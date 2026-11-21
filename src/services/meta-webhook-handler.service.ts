@@ -39,6 +39,7 @@ import { OffHoursService } from "./off-hours.service";
 import { FlowService } from "./flow.service";
 import { GuidedFlowService } from "./guided-flow.service";
 import { BadgeService } from "./badge.service";
+import { PushService } from "./push.service";
 import { LeadService } from "./lead.service";
 import { extractEmail } from "../utils/lead";
 import { isWithinBusinessHours, parseBusinessHours } from "../utils/business-hours";
@@ -278,6 +279,28 @@ export class MetaWebhookHandlerService {
                 metaPayload: toPrismaJson(message),
                 createdAt: messageDate
             }
+        });
+
+        /**
+         * Aviso push para el agente asignado y los administradores. No se
+         * espera: un fallo de notificaciones no debe retrasar el webhook.
+         */
+        void PushService.notifyIncomingMessage({
+            workspaceId,
+            whatsappNumberId,
+            conversationId: conversation.id,
+            contactName:
+                contact.customName || contact.profileName || contact.phone,
+            body: parsed.body || parsed.replyTitle || parsed.type,
+            assignedUserId: conversation.assignedUserId
+        }).catch((error) => {
+            logger.warn(
+                {
+                    error: error instanceof Error ? error.message : String(error),
+                    conversationId: conversation.id
+                },
+                "No se pudo enviar la notificación push."
+            );
         });
 
         /**

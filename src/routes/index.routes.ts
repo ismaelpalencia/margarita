@@ -8,6 +8,7 @@ import authRoutes from "./auth.routes";
 import adminRoutes from "./admin.routes";
 import agentRoutes from "./agent.routes";
 import mediaRoutes from "./media.routes";
+import pushRoutes from "./push.routes";
 import webhookRoutes from "./webhook.routes";
 
 
@@ -27,6 +28,7 @@ router.use("/webhooks", webhookRoutes);
  * sesión: la autorización por conversación se valida en el controlador.
  */
 router.use("/media", authMiddleware, mediaRoutes);
+router.use("/api/push", authMiddleware, pushRoutes);
 
 router.get("/como-empezar", HomeController.howToStart);
 /** Alta guiada de una página: qué traer, en qué orden y cómo se comprueba. */

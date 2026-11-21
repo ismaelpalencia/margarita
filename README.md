@@ -718,6 +718,7 @@ El límite vigente, con su explicación, está en [`docs/alcance-produccion.md`]
 | [`docs/venta/propuesta-workana.md`](docs/venta/propuesta-workana.md) | Propuestas para proyectos de IA + WhatsApp en Workana |
 | [`margaritademo`](https://github.com/ismaelpalencia/margaritademo) | Repositorio del microservicio Go de la demo pública |
 | [`docs/leads-google-sheets.md`](docs/leads-google-sheets.md) | Exportar columnas CSV y enviar leads nuevos a Google Sheets |
+| [`docs/pwa-push.md`](docs/pwa-push.md) | Instalar Margarita como app y activar notificaciones Web Push |
 | [`docs/multinumero.md`](docs/multinumero.md) | Diseño del multinúmero: modelo, migración, uso y pendientes |
 | [`docs/aviso-privacidad.md`](docs/aviso-privacidad.md) | Aviso de privacidad para revisar y publicar (la versión pública vive en `/aviso-de-privacidad`) |
 | [`docs/modelo-comercial.md`](docs/modelo-comercial.md) | Runbook de alta por cliente, actualización de instalaciones, cierre de contrato y paquete legal |

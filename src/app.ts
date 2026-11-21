@@ -86,6 +86,15 @@ app.use(
     })
 );
 
+/**
+ * El service worker debe actualizarse pronto: si el navegador conserva uno
+ * viejo, las notificaciones y el clic en la conversación se quedan atrás.
+ */
+app.get("/sw.js", (_req, res) => {
+    res.setHeader("cache-control", "no-cache, no-store, must-revalidate");
+    res.sendFile(path.join(rootDir, "src", "public", "sw.js"));
+});
+
 app.use(express.static(path.join(rootDir, "src", "public")));
 
 /**

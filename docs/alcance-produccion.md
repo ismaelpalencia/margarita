@@ -344,6 +344,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
   en el navegador.
 - **Borrar todos** elimina los leads del workspace escribiendo `BORRAR`; no
   borra contactos, conversaciones, mensajes ni filas de Google Sheets.
+- La app puede instalarse como PWA y enviar Web Push de mensajes nuevos al
+  agente asignado y a los administradores.
 - Dentro de un chat, **Marcar como lead** crea el lead del contacto si aún no
   existe; si ya existe, muestra el estado y no lo duplica.
 - El compositor crece hasta 224 px al pegar textos largos y el chat respeta el

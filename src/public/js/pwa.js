@@ -1,0 +1,137 @@
+/**
+ * Registro de la PWA, instalación y suscripción a Web Push.
+ *
+ * No pide permiso automáticamente: el navegador exige un gesto del usuario.
+ */
+(function () {
+    if (!("serviceWorker" in navigator)) {
+        return;
+    }
+
+    var installButton = document.getElementById("pwa-install");
+    var pushButton = document.getElementById("push-enable");
+    var pushTest = document.getElementById("push-test");
+    var deferredPrompt = null;
+    var registration = null;
+
+    function base64ToUint8Array(base64) {
+        var padding = "=".repeat((4 - (base64.length % 4)) % 4);
+        var raw = atob((base64 + padding).replace(/-/g, "+").replace(/_/g, "/"));
+        var output = new Uint8Array(raw.length);
+        for (var i = 0; i < raw.length; i += 1) output[i] = raw.charCodeAt(i);
+        return output;
+    }
+
+    function updatePushButton() {
+        if (!pushButton) return;
+
+        if (!("Notification" in window) || !("PushManager" in window)) {
+            pushButton.hidden = true;
+            return;
+        }
+
+        pushButton.hidden = false;
+        pushButton.textContent = Notification.permission === "granted"
+            ? "Avisos activos"
+            : "Activar avisos";
+
+        if (pushTest) {
+            pushTest.hidden = Notification.permission !== "granted";
+        }
+    }
+
+    async function subscribe() {
+        var keyResponse = await fetch("/api/push/public-key", {
+            credentials: "same-origin"
+        });
+
+        if (!keyResponse.ok) {
+            throw new Error("Web Push no está configurado.");
+        }
+
+        var keyData = await keyResponse.json();
+        registration = registration || (await navigator.serviceWorker.ready);
+
+        var existing = await registration.pushManager.getSubscription();
+
+        if (!existing) {
+            existing = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: base64ToUint8Array(keyData.publicKey)
+            });
+        }
+
+        var response = await fetch("/api/push/subscribe", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(existing.toJSON())
+        });
+
+        if (!response.ok) {
+            throw new Error("No se pudo guardar la suscripción.");
+        }
+
+        updatePushButton();
+    }
+
+    navigator.serviceWorker
+        .register("/sw.js")
+        .then(function (value) {
+            registration = value;
+        })
+        .catch(function () {
+            /* Sin service worker no hay push, pero la app sigue funcionando. */
+        });
+
+    window.addEventListener("beforeinstallprompt", function (event) {
+        event.preventDefault();
+        deferredPrompt = event;
+        if (installButton) installButton.hidden = false;
+    });
+
+    if (installButton) {
+        installButton.addEventListener("click", async function () {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            installButton.hidden = true;
+        });
+    }
+
+    if (pushButton) {
+        pushButton.addEventListener("click", function () {
+            if (!("Notification" in window) || !("PushManager" in window)) {
+                return;
+            }
+
+            Notification.requestPermission()
+                .then(function (permission) {
+                    if (permission !== "granted") {
+                        pushButton.textContent = "Avisos bloqueados";
+                        return;
+                    }
+                    return subscribe().catch(function () {
+                        pushButton.textContent = "No se pudo activar";
+                    });
+                })
+                .catch(function () {
+                    pushButton.textContent = "No se pudo activar";
+                });
+        });
+    }
+
+    if (pushTest) {
+        pushTest.addEventListener("click", function () {
+            fetch("/api/push/test", {
+                method: "POST",
+                credentials: "same-origin"
+            }).catch(function () {
+                /* silencio: es solo una prueba */
+            });
+        });
+    }
+
+    updatePushButton();
+})();

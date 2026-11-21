@@ -5,7 +5,10 @@
     "lang": "es-MX",
     "start_url": "/",
     "scope": "/",
+    "id": "/",
     "display": "standalone",
+    "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+    "orientation": "any",
     "icons": [
         {
             "src": "/android-chrome-192x192.png",
