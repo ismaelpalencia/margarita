@@ -104,6 +104,7 @@ export class AdminLeadsController {
     static async create(req: Request, res: Response) {
         const contactId = String(req.body?.contactId || "").trim();
         const email = String(req.body?.email || "").trim();
+        const notes = String(req.body?.notes || "").trim();
         let name = String(req.body?.name || "").trim();
         let phone = String(req.body?.phone || "").trim();
         let conversationId: string | null = null;
@@ -162,6 +163,7 @@ export class AdminLeadsController {
                 phone,
                 email: email || null,
                 interest: String(req.body?.interest || "").trim() || null,
+                notes: notes || null,
                 source: contactId ? "MANUAL_CONTACT" : "MANUAL"
             });
         } catch {

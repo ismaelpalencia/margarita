@@ -17,6 +17,7 @@ type CaptureInput = {
     phone?: string | null;
     email?: string | null;
     interest?: string | null;
+    notes?: string | null;
     fields?: Prisma.InputJsonValue | null;
     source: string;
 };
@@ -111,6 +112,9 @@ export class LeadService {
                     ...(input.interest
                         ? { interest: input.interest.trim() }
                         : {}),
+                    ...(input.notes !== undefined
+                        ? { notes: input.notes?.trim() || null }
+                        : {}),
                     ...(input.fields ? { fields: input.fields } : {})
                 }
             });
@@ -128,6 +132,7 @@ export class LeadService {
                 email,
                 emailHash,
                 interest: input.interest?.trim() || null,
+                notes: input.notes?.trim() || null,
                 fields: input.fields ?? undefined,
                 source: input.source,
                 status: LeadStatus.NUEVO
@@ -181,6 +186,7 @@ export class LeadService {
             name: lead.name,
             phone: lead.phone,
             interest: lead.interest,
+            notes: lead.notes,
             fields: lead.fields,
             source: lead.source,
             status: lead.status,

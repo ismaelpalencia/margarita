@@ -39,16 +39,25 @@ export class LeadConversationController {
                 }
 
                 const contact = conversation.contact;
+                const name = String(req.body?.name || "").trim();
+                const phone = String(req.body?.phone || "").trim();
+                const email = String(req.body?.email || "").trim();
+                const interest = String(req.body?.interest || "").trim();
+                const notes = String(req.body?.notes || "").trim();
 
                 await LeadService.capture({
                     workspaceId: req.user!.workspaceId,
                     contactId: contact.id,
                     conversationId: conversation.id,
                     name:
+                        name ||
                         contact.customName ||
                         contact.profileName ||
                         contact.phone,
-                    phone: contact.phone,
+                    phone: phone || contact.phone,
+                    email: email || null,
+                    interest: interest || null,
+                    notes: notes || null,
                     source: "MANUAL_CHAT"
                 });
 

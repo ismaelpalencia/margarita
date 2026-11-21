@@ -163,7 +163,7 @@ const ENCRYPTED_FIELDS: Record<string, string[]> = {
      * Nombre y correo del lead son datos personales. El correo lleva índice
      * ciego para la idempotencia por conversación + correo.
      */
-    Lead: ["name", "phone", "email", "fields"],
+    Lead: ["name", "phone", "email", "notes", "fields"],
     KnowledgeEntry: ["question", "answer"],
     AiSuggestion: ["body", "reason"]
 };

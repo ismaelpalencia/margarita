@@ -65,6 +65,30 @@ test("permite elegir columnas y omitir campos del flujo", () => {
     assert.equal(row, "Ana,2221234567");
 });
 
+test("exporta los comentarios del lead", () => {
+    const csv = buildLeadsCsv(
+        [
+            {
+                id: "lead-1",
+                email: null,
+                name: "Ana",
+                phone: "2221234567",
+                interest: "Compra de deuda",
+                notes: "Paga $4,500 al mes",
+                fields: {},
+                source: "MANUAL_CHAT",
+                status: "NUEVO",
+                createdAt: new Date("2026-11-11T12:00:00.000Z")
+            }
+        ],
+        { columns: ["nombre", "notas"], includeFields: false }
+    );
+
+    const [header, row] = csv.replace(/^\uFEFF/, "").split("\r\n");
+    assert.equal(header, "nombre,notas");
+    assert.equal(row, 'Ana,"Paga $4,500 al mes"');
+});
+
 test("escapa comas y comillas en los datos del flujo", () => {
     const csv = buildLeadsCsv([
         {

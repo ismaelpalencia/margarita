@@ -471,6 +471,8 @@ model Lead {
   email     String?
   emailHash String?
   interest  String?
+  /** Comentarios internos del operador (cifrados). */
+  notes     String?
   /** Datos capturados por un flujo guiado (cifrados). */
   fields    Json?
   source    String

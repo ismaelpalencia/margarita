@@ -772,6 +772,23 @@
  * Se escucha en el documento porque el compositor se reemplaza al actualizar
  * el hilo en vivo.
  */
+/**
+ * Cierra el formulario de "Guardar como lead" sin enviar.
+ */
+document.addEventListener("click", function (event) {
+    var close = event.target.closest("[data-lead-close]");
+
+    if (!close) {
+        return;
+    }
+
+    var details = close.closest("details");
+
+    if (details) {
+        details.removeAttribute("open");
+    }
+});
+
 document.addEventListener("keydown", function (event) {
     if (event.key !== "Enter" || event.shiftKey || event.isComposing) {
         return;

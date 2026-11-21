@@ -4,6 +4,7 @@ export type LeadCsvRow = {
     name: string | null;
     phone: string | null;
     interest: string | null;
+    notes?: string | null;
     fields: unknown;
     source: string;
     status: string;
@@ -47,6 +48,7 @@ export const LEAD_CSV_COLUMNS = [
     "telefono",
     "email",
     "interes",
+    "notas",
     "origen",
     "estado",
     "creado",
@@ -60,6 +62,7 @@ const COLUMN_VALUES: Record<LeadCsvColumn, (lead: LeadCsvRow) => string | null> 
     telefono: (lead) => lead.phone,
     email: (lead) => lead.email,
     interes: (lead) => lead.interest,
+    notas: (lead) => lead.notes ?? null,
     origen: (lead) => lead.source,
     estado: (lead) => lead.status,
     creado: (lead) => lead.createdAt.toISOString(),

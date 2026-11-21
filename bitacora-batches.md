@@ -1110,3 +1110,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 374 pruebas unitarias.
 
 ---
+
+## Leads: comentarios y edición al marcar
+
+- Campo notes cifrado en Lead.
+- Formulario dentro del chat con nombre, teléfono, correo, interés y comentarios.
+- Columna Comentarios opcional en tabla y CSV.
+- El formulario manual de Leads también acepta comentarios.
+- 375 pruebas unitarias.
+
+---

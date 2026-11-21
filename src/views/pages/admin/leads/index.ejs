@@ -27,10 +27,10 @@
                 <form action="/admin/leads/export" method="GET" class="absolute right-0 z-20 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-lg">
                     <p class="text-xs font-bold text-slate-700">Columnas</p>
                     <div class="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-600">
-                        <% const csvLabels = { nombre: "Nombre", telefono: "Teléfono", email: "Correo", interes: "Interés", origen: "Origen", estado: "Estado", creado: "Creado", id: "ID" }; %>
+                        <% const csvLabels = { nombre: "Nombre", telefono: "Teléfono", email: "Correo", interes: "Interés", notas: "Comentarios", origen: "Origen", estado: "Estado", creado: "Creado", id: "ID" }; %>
                         <% csvColumns.forEach((column) => { %>
                             <label class="flex items-center gap-1.5">
-                                <input type="checkbox" name="columns" value="<%= column %>" <%= ["nombre", "telefono", "email", "interes", "origen", "estado", "creado"].includes(column) ? "checked" : "" %> />
+                                <input type="checkbox" name="columns" value="<%= column %>" <%= ["nombre", "telefono", "email", "interes", "notas", "origen", "estado", "creado"].includes(column) ? "checked" : "" %> />
                                 <%= csvLabels[column] || column %>
                             </label>
                         <% }) %>
@@ -153,7 +153,11 @@
                 <input type="tel" name="phone" id="lead-phone" required placeholder="Teléfono" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
                 <input type="email" name="email" placeholder="Correo (opcional)" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
                 <input type="text" name="interest" placeholder="Interés" class="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
-                <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Guardar</button>
+                <div class="md:col-span-5">
+                    <label class="block text-xs font-bold text-slate-600">Comentarios</label>
+                    <textarea name="notes" rows="3" maxlength="4000" placeholder="Qué dijo, qué necesita, cuánto paga, mejor horario…" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"></textarea>
+                </div>
+                <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 md:col-span-5">Guardar</button>
             </form>
             <script>
                 (function () {
@@ -183,7 +187,7 @@
                     <div class="absolute right-0 z-20 mt-2 w-52 rounded-2xl border border-slate-200 bg-white p-3 shadow-lg">
                         <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500">Mostrar en la tabla</p>
                         <div class="mt-2 space-y-2 text-xs text-slate-600">
-                            <% [["name", "Nombre"], ["phone", "Teléfono"], ["email", "Correo"], ["interest", "Interés"], ["fields", "Datos del flujo"], ["status", "Estado"], ["webhook", "Webhook"]].forEach(([key, label]) => { %>
+                            <% [["name", "Nombre"], ["phone", "Teléfono"], ["email", "Correo"], ["interest", "Interés"], ["notes", "Comentarios"], ["fields", "Datos del flujo"], ["status", "Estado"], ["webhook", "Webhook"]].forEach(([key, label]) => { %>
                                 <label class="flex items-center gap-2">
                                     <input type="checkbox" data-lead-column-toggle="<%= key %>" checked />
                                     <%= label %>
@@ -201,6 +205,7 @@
                         <th class="px-4 py-3" data-lead-column="name">Nombre</th>
                         <th class="px-4 py-3" data-lead-column="phone">Teléfono</th>
                         <th class="px-4 py-3" data-lead-column="interest">Interés</th>
+                        <th class="px-4 py-3" data-lead-column="notes">Comentarios</th>
                         <th class="px-4 py-3" data-lead-column="fields">Datos del flujo</th>
                         <th class="px-4 py-3" data-lead-column="status">Estado</th>
                         <th class="px-4 py-3" data-lead-column="webhook">Webhook</th>
@@ -214,6 +219,13 @@
                             <td class="px-4 py-3" data-lead-column="name"><%= lead.name || "—" %></td>
                             <td class="px-4 py-3" data-lead-column="phone"><%= lead.phone || "—" %></td>
                             <td class="px-4 py-3" data-lead-column="interest"><%= lead.interest || "—" %></td>
+                            <td class="px-4 py-3 text-xs text-slate-600" data-lead-column="notes">
+                                <% if (lead.notes) { %>
+                                    <span class="line-clamp-2 max-w-xs" title="<%= lead.notes %>"><%= lead.notes %></span>
+                                <% } else { %>
+                                    —
+                                <% } %>
+                            </td>
                             <td class="px-4 py-3 text-xs text-slate-600" data-lead-column="fields">
                                 <% if (lead.fields) { %>
                                     <details>
@@ -261,7 +273,7 @@
 
                     <% if (leads.length === 0) { %>
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-sm text-slate-400">Sin leads todavía.</td>
+                            <td colspan="9" class="px-4 py-8 text-center text-sm text-slate-400">Sin leads todavía.</td>
                         </tr>
                     <% } %>
                 </tbody>
