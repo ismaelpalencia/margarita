@@ -36,6 +36,30 @@ export class LeadService {
         });
     }
 
+    static async delete(workspaceId: string, leadId: string) {
+        const lead = await prisma.lead.findFirst({
+            where: { id: leadId, workspaceId },
+            select: { id: true, name: true, phone: true }
+        });
+
+        if (!lead) {
+            throw new Error("Lead no encontrado.");
+        }
+
+        await prisma.lead.delete({ where: { id: lead.id } });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.WARN,
+            module: LogModule.CONTACT,
+            action: "LEAD_DELETED",
+            message: "Se eliminó un lead.",
+            payload: { leadId: lead.id }
+        }).catch(() => undefined);
+
+        return lead;
+    }
+
     static async updateStatus(workspaceId: string, leadId: string, status: LeadStatus) {
         await prisma.lead.updateMany({
             where: { id: leadId, workspaceId },

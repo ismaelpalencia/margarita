@@ -183,6 +183,17 @@ export class AdminLeadsController {
         return res.redirect("/admin/leads?success=status");
     }
 
+    static async remove(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+
+        try {
+            await LeadService.delete(req.user!.workspaceId, id);
+            return res.redirect("/admin/leads?success=deleted");
+        } catch {
+            return res.redirect("/admin/leads?error=delete");
+        }
+    }
+
     static async retry(req: Request, res: Response) {
         const id = getRequiredParam(req, "id");
 

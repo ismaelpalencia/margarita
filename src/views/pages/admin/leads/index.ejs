@@ -52,11 +52,13 @@
             <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">Estado actualizado.</div>
         <% } else if (success === "retry") { %>
             <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">Reintento enviado.</div>
+        <% } else if (success === "deleted") { %>
+            <div class="mb-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">Lead eliminado. Ya puedes volver a agregarlo si lo necesitas.</div>
         <% } %>
 
         <% if (error) { %>
             <div class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-                <% if (error === "name_phone") { %> El nombre y el teléfono son obligatorios. <% } else if (error === "lead_exists") { %> Ese contacto ya tiene un lead registrado. <% } else if (error === "contact") { %> El contacto ya no existe. <% } else if (error === "retry") { %> No se pudo reintentar la entrega. <% } else { %> No se pudo completar la acción. <% } %>
+                <% if (error === "name_phone") { %> El nombre y el teléfono son obligatorios. <% } else if (error === "lead_exists") { %> Ese contacto ya tiene un lead registrado. <% } else if (error === "contact") { %> El contacto ya no existe. <% } else if (error === "delete") { %> No se pudo eliminar el lead. <% } else if (error === "retry") { %> No se pudo reintentar la entrega. <% } else { %> No se pudo completar la acción. <% } %>
             </div>
         <% } %>
 
@@ -209,18 +211,23 @@
                                 <%= lead.webhookFailedAt ? "falló" : lead.webhookSentAt ? "entregado" : "pendiente" %>
                             </td>
                             <td class="px-4 py-3">
-                                <% if (lead.webhookFailedAt) { %>
-                                    <form action="/admin/leads/<%= lead.id %>/retry" method="POST">
-                                        <button class="rounded-lg bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">Reintentar</button>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <% if (lead.webhookFailedAt) { %>
+                                        <form action="/admin/leads/<%= lead.id %>/retry" method="POST">
+                                            <button class="rounded-lg bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">Reintentar</button>
+                                        </form>
+                                    <% } %>
+                                    <form action="/admin/leads/<%= lead.id %>/delete" method="POST" onsubmit="return confirm('¿Eliminar este lead? El contacto y su conversación se conservan.');">
+                                        <button class="rounded-lg bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100">Eliminar</button>
                                     </form>
-                                <% } %>
+                                </div>
                             </td>
                         </tr>
                     <% }) %>
 
                     <% if (leads.length === 0) { %>
                         <tr>
-                            <td colspan="6" class="px-4 py-8 text-center text-sm text-slate-400">Sin leads todavía.</td>
+                            <td colspan="8" class="px-4 py-8 text-center text-sm text-slate-400">Sin leads todavía.</td>
                         </tr>
                     <% } %>
                 </tbody>

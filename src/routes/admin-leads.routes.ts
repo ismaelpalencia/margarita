@@ -9,6 +9,7 @@ router.get("/export", AdminLeadsController.exportCsv);
 router.post("/settings", AdminLeadsController.saveSettings);
 router.post("/", AdminLeadsController.create);
 router.post("/:id/status", AdminLeadsController.updateStatus);
+router.post("/:id/delete", AdminLeadsController.remove);
 router.post("/:id/retry", AdminLeadsController.retry);
 
 export default router;

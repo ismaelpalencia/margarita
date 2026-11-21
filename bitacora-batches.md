@@ -1052,3 +1052,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 374 pruebas unitarias.
 
 ---
+
+## Eliminar leads
+
+- Botón Eliminar por lead con confirmación.
+- Borra solo el lead; conserva contacto y conversación.
+- Se registra LEAD_DELETED.
+- Permite volver a crear el lead para probar Sheets.
+- 374 pruebas unitarias.
+
+---
