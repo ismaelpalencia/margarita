@@ -55,7 +55,7 @@ function doPost(e) {
     data.phone || "",
     data.email || "",
     data.source || "",
-    data.notes || ""
+    data.notes || data.comments || ""
   ]);
 
   return ContentService.createTextOutput(
@@ -122,6 +122,8 @@ Cada lead nuevo envía:
   "phone": "+52...",
   "email": "ana@example.com",
   "interest": "...",
+  "notes": "Paga $4,500 al mes",
+  "comments": "Paga $4,500 al mes",
   "source": "MANUAL_CHAT",
   "status": "NUEVO",
   "createdAt": "..."

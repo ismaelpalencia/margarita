@@ -327,6 +327,7 @@ export class LeadService {
             email: lead.email,
             interest: lead.interest,
             notes: lead.notes,
+            comments: lead.notes,
             source: lead.source,
             status: lead.status,
             createdAt: lead.createdAt.toISOString()
