@@ -1101,3 +1101,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 374 pruebas unitarias.
 
 ---
+
+## PWA móvil: controles en menú lateral
+
+- Instalar app y Activar avisos se movieron al menú lateral para no saturar el topbar móvil.
+- En iPhone el botón Instalar app muestra instrucciones de Compartir → Agregar a pantalla de inicio.
+- El botón de prueba solo aparece con suscripción activa.
+- 374 pruebas unitarias.
+
+---

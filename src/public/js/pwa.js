@@ -102,19 +102,38 @@
             /* Sin service worker no hay push, pero la app sigue funcionando. */
         });
 
+    var isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true;
+    var isMobile = /iphone|ipad|ipod|android/i.test(
+        window.navigator.userAgent || ""
+    );
+
     window.addEventListener("beforeinstallprompt", function (event) {
         event.preventDefault();
         deferredPrompt = event;
         if (installButton) installButton.hidden = false;
     });
 
+    if (installButton && isMobile && !isStandalone) {
+        installButton.hidden = false;
+    }
+
     if (installButton) {
         installButton.addEventListener("click", async function () {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            await deferredPrompt.userChoice;
-            deferredPrompt = null;
-            installButton.hidden = true;
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                installButton.hidden = true;
+                return;
+            }
+
+            window.alert(
+                /iphone|ipad|ipod/i.test(window.navigator.userAgent)
+                    ? "Para instalar en iPhone: abre esta pagina en Safari, toca Compartir y elige Agregar a pantalla de inicio."
+                    : "Para instalar: abre el menu del navegador y elige Instalar app o Agregar a pantalla de inicio."
+            );
         });
     }
 

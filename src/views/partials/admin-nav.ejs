@@ -57,6 +57,10 @@
         <% }) %>
     </nav>
 
+    <div class="panel-sidebar__pwa">
+        <%- include("pwa-controls") %>
+    </div>
+
     <div class="panel-sidebar__footer">
         <div class="panel-avatar"><%= (user?.name || "A").charAt(0).toUpperCase() %></div>
         <div class="meta">
@@ -98,7 +102,6 @@
     <% } %>
 
     <%- include("theme-toggle") %>
-    <%- include("pwa-controls") %>
 
     <div class="panel-bell">
         <button class="btn btn--ghost" id="panel-bell" aria-label="Notificaciones" title="Notificaciones">

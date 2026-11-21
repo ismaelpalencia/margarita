@@ -28,7 +28,7 @@ funcionar.
 ### Mac / Linux
 
 1. Abre Margarita en Chrome o Edge.
-2. Pulsa **Instalar app** en la barra superior.
+2. Abre el menú lateral y pulsa **Instalar app**.
 3. Acepta.
 4. Abre la app instalada.
 5. Pulsa **Activar avisos**.
@@ -39,7 +39,7 @@ funcionar.
 1. Abre en Chrome.
 2. Menú → **Agregar a pantalla de inicio** o **Instalar app**.
 3. Abre la app instalada.
-4. Pulsa **Activar avisos**.
+4. Abre el menú lateral y pulsa **Activar avisos**.
 
 ### iPhone / iPad
 
@@ -48,7 +48,10 @@ Requiere iOS 16.4 o superior.
 1. Abre Margarita en Safari.
 2. Compartir → **Agregar a pantalla de inicio**.
 3. Abre desde el icono, no desde Safari.
-4. Pulsa **Activar avisos**.
+4. Abre el menú lateral y pulsa **Activar avisos**.
+
+En iPhone el botón **Instalar app** muestra esas instrucciones porque Safari
+no dispara el aviso automático de instalación.
 5. Acepta.
 
 ## Qué notifica

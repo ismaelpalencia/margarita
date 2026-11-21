@@ -34,6 +34,13 @@
 .panel-sidebar__count--unread { background: var(--brand-500); }
 .panel-sidebar__count--unassigned { background: var(--danger); }
 .panel-sidebar__count.is-empty { display: none; }
+.panel-sidebar__pwa {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 6px 8px; border-top: 1px solid var(--surface-border);
+}
+.panel-sidebar__pwa .btn {
+  width: 100%; justify-content: flex-start; text-align: left;
+}
 .panel-sidebar__footer {
   padding: 12px 16px; border-top: 1px solid var(--surface-border);
   display: flex; align-items: center; gap: 10px;
