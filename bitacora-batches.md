@@ -1091,3 +1091,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 374 pruebas unitarias.
 
 ---
+
+## Ajustes PWA, iconos y fallback de socket
+
+- Iconos de favicon, Apple y Android regenerados desde el logo nuevo.
+- Manifest y notificaciones usan el icono nuevo con cache busting.
+- Probar aviso verifica que exista una suscripción antes de enviar.
+- Fallback de recarga cuando Socket.IO está caído, sin pisar un borrador.
+- 374 pruebas unitarias.
+
+---

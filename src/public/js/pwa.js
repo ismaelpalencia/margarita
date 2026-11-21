@@ -22,21 +22,38 @@
         return output;
     }
 
-    function updatePushButton() {
+    async function updatePushButton() {
         if (!pushButton) return;
 
         if (!("Notification" in window) || !("PushManager" in window)) {
             pushButton.hidden = true;
+            if (pushTest) pushTest.hidden = true;
             return;
         }
 
         pushButton.hidden = false;
-        pushButton.textContent = Notification.permission === "granted"
+
+        var subscribed = false;
+
+        if (Notification.permission === "granted") {
+            try {
+                registration = registration || (await navigator.serviceWorker.ready);
+                subscribed = Boolean(
+                    await registration.pushManager.getSubscription()
+                );
+            } catch (_) {
+                subscribed = false;
+            }
+        }
+
+        pushButton.textContent = subscribed
             ? "Avisos activos"
-            : "Activar avisos";
+            : Notification.permission === "denied"
+              ? "Avisos bloqueados"
+              : "Activar avisos";
 
         if (pushTest) {
-            pushTest.hidden = Notification.permission !== "granted";
+            pushTest.hidden = !subscribed;
         }
     }
 
@@ -72,7 +89,8 @@
             throw new Error("No se pudo guardar la suscripción.");
         }
 
-        updatePushButton();
+        await updatePushButton();
+        return existing;
     }
 
     navigator.serviceWorker
@@ -123,13 +141,35 @@
     }
 
     if (pushTest) {
-        pushTest.addEventListener("click", function () {
-            fetch("/api/push/test", {
-                method: "POST",
-                credentials: "same-origin"
-            }).catch(function () {
-                /* silencio: es solo una prueba */
-            });
+        pushTest.addEventListener("click", async function () {
+            try {
+                await subscribe();
+                var response = await fetch("/api/push/test", {
+                    method: "POST",
+                    credentials: "same-origin"
+                });
+                var result = await response.json().catch(function () {
+                    return {};
+                });
+
+                if (!response.ok) {
+                    throw new Error(result.error || "No se pudo enviar la prueba.");
+                }
+
+                if (result.sent === 0) {
+                    throw new Error(
+                        "El navegador no tiene una suscripción activa. Vuelve a pulsar Activar avisos."
+                    );
+                }
+
+                pushButton.textContent = "Prueba enviada";
+            } catch (error) {
+                window.alert(
+                    error && error.message
+                        ? error.message
+                        : "No se pudo enviar la notificación de prueba."
+                );
+            }
         });
     }
 

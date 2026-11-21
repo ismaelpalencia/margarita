@@ -79,6 +79,9 @@ En la barra superior:
 Probar aviso
 ```
 
+El botón solo aparece cuando el navegador ya tiene una suscripción activa.
+Si no aparece, primero pulsa **Activar avisos** y acepta el permiso.
+
 Debe aparecer una notificación del sistema. Si no aparece:
 
 1. Revisa el permiso de notificaciones del navegador.
@@ -105,6 +108,10 @@ No se envía el teléfono completo ni datos internos.
 - Si el usuario bloquea notificaciones, no se pueden forzar.
 - No reemplaza una app nativa para notificaciones críticas.
 - El service worker debe servirse desde la raíz del dominio.
+- El icono instalado puede quedar en caché. Si cambió el logo, desinstala y
+  vuelve a instalar la PWA; en el navegador usa recarga forzada.
+- Si Socket.IO se cae, la bandeja se recarga sola cuando no hay un borrador
+  escrito, para no dejar mensajes sin aparecer.
 
 ## Archivos
 

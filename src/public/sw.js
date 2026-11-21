@@ -19,7 +19,7 @@ self.addEventListener("push", (event) => {
     const title = data.title || "Margarita";
     const options = {
         body: data.body || "Tienes una notificación nueva.",
-        icon: "/android-chrome-192x192.png",
+        icon: "/android-chrome-192x192.png?v=2",
         badge: "/favicon-32x32.png",
         tag: data.tag || "marga-notification",
         renotify: true,

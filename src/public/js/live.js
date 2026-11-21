@@ -8,14 +8,38 @@
 (function () {
     "use strict";
 
-    if (typeof window.io !== "function") {
-        return;
-    }
-
     var body = document.body;
     var page = body ? body.dataset.livePage : null;
 
     if (!page) {
+        return;
+    }
+
+    /**
+     * Si Socket.IO no cargó o se cae, no dejamos la bandeja congelada:
+     * recargamos solo cuando la pestaña está visible y el compositor no
+     * tiene un borrador en curso.
+     */
+    function reloadWhenIdle() {
+        if (document.visibilityState !== "visible") {
+            return;
+        }
+
+        var active = document.activeElement;
+
+        if (
+            active &&
+            active.id === "composer-body" &&
+            String(active.value || "").trim()
+        ) {
+            return;
+        }
+
+        window.location.reload();
+    }
+
+    if (typeof window.io !== "function") {
+        window.setInterval(reloadWhenIdle, 15000);
         return;
     }
 
@@ -720,6 +744,23 @@
         });
 
         playChime();
+    });
+
+    /**
+     * Red de seguridad para redes inestables: si el socket queda caído,
+     * una recarga controlada recupera los mensajes que llegaron mientras
+     * tanto. No interrumpe si hay un borrador escrito.
+     */
+    window.setInterval(function () {
+        if (!socket.connected) {
+            reloadWhenIdle();
+        }
+    }, 20000);
+
+    document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible" && !socket.connected) {
+            reloadWhenIdle();
+        }
     });
 })();
 
