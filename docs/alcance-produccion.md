@@ -340,6 +340,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
   Sheets mediante un Web App de Apps Script.
 - Cada lead se puede eliminar desde la tabla; se conservan el contacto y la
   conversación, y se puede volver a crear para probar la integración.
+- La tabla de Leads permite mostrar u ocultar columnas; la selección se guarda
+  en el navegador.
 - Dentro de un chat, **Marcar como lead** crea el lead del contacto si aún no
   existe; si ya existe, muestra el estado y no lo duplica.
 - El compositor crece hasta 224 px al pegar textos largos y el chat respeta el

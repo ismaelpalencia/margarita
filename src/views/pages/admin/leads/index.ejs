@@ -153,34 +153,49 @@
         </section>
 
         <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-            <div class="flex flex-wrap gap-2 border-b border-slate-200 p-4">
+            <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 p-4">
                 <a href="/admin/leads" class="rounded-full px-3 py-1 text-xs font-bold <%= currentStatus === "ALL" ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600' %>">Todos</a>
                 <% statuses.forEach((status) => { %>
                     <a href="/admin/leads?status=<%= status %>" class="rounded-full px-3 py-1 text-xs font-bold <%= currentStatus === status ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600' %>"><%= status %></a>
                 <% }) %>
+
+                <details class="relative ml-auto">
+                    <summary class="cursor-pointer rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200">Columnas</summary>
+                    <div class="absolute right-0 z-20 mt-2 w-52 rounded-2xl border border-slate-200 bg-white p-3 shadow-lg">
+                        <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500">Mostrar en la tabla</p>
+                        <div class="mt-2 space-y-2 text-xs text-slate-600">
+                            <% [["name", "Nombre"], ["phone", "Teléfono"], ["email", "Correo"], ["interest", "Interés"], ["fields", "Datos del flujo"], ["status", "Estado"], ["webhook", "Webhook"]].forEach(([key, label]) => { %>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" data-lead-column-toggle="<%= key %>" checked />
+                                    <%= label %>
+                                </label>
+                            <% }) %>
+                        </div>
+                    </div>
+                </details>
             </div>
 
             <table class="w-full text-left text-sm">
                 <thead class="bg-slate-50 text-slate-500">
                     <tr>
-                        <th class="px-4 py-3">Correo</th>
-                        <th class="px-4 py-3">Nombre</th>
-                        <th class="px-4 py-3">Teléfono</th>
-                        <th class="px-4 py-3">Interés</th>
-                        <th class="px-4 py-3">Datos del flujo</th>
-                        <th class="px-4 py-3">Estado</th>
-                        <th class="px-4 py-3">Webhook</th>
+                        <th class="px-4 py-3" data-lead-column="email">Correo</th>
+                        <th class="px-4 py-3" data-lead-column="name">Nombre</th>
+                        <th class="px-4 py-3" data-lead-column="phone">Teléfono</th>
+                        <th class="px-4 py-3" data-lead-column="interest">Interés</th>
+                        <th class="px-4 py-3" data-lead-column="fields">Datos del flujo</th>
+                        <th class="px-4 py-3" data-lead-column="status">Estado</th>
+                        <th class="px-4 py-3" data-lead-column="webhook">Webhook</th>
                         <th class="px-4 py-3"></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     <% leads.forEach((lead) => { %>
                         <tr>
-                            <td class="px-4 py-3"><%= lead.email || "—" %></td>
-                            <td class="px-4 py-3"><%= lead.name || "—" %></td>
-                            <td class="px-4 py-3"><%= lead.phone || "—" %></td>
-                            <td class="px-4 py-3"><%= lead.interest || "—" %></td>
-                            <td class="px-4 py-3 text-xs text-slate-600">
+                            <td class="px-4 py-3" data-lead-column="email"><%= lead.email || "—" %></td>
+                            <td class="px-4 py-3" data-lead-column="name"><%= lead.name || "—" %></td>
+                            <td class="px-4 py-3" data-lead-column="phone"><%= lead.phone || "—" %></td>
+                            <td class="px-4 py-3" data-lead-column="interest"><%= lead.interest || "—" %></td>
+                            <td class="px-4 py-3 text-xs text-slate-600" data-lead-column="fields">
                                 <% if (lead.fields) { %>
                                     <details>
                                         <summary class="cursor-pointer font-semibold text-slate-700">Ver datos</summary>
@@ -197,7 +212,7 @@
                                     —
                                 <% } %>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3" data-lead-column="status">
                                 <form action="/admin/leads/<%= lead.id %>/status" method="POST" class="flex items-center gap-2">
                                     <select name="status" class="rounded-xl border border-slate-300 px-2 py-1 text-xs">
                                         <% statuses.forEach((status) => { %>
@@ -207,7 +222,7 @@
                                     <button class="rounded-lg bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">Guardar</button>
                                 </form>
                             </td>
-                            <td class="px-4 py-3 text-xs <%= lead.webhookFailedAt ? 'text-red-600' : lead.webhookSentAt ? 'text-emerald-600' : 'text-slate-400' %>">
+                            <td class="px-4 py-3 text-xs <%= lead.webhookFailedAt ? 'text-red-600' : lead.webhookSentAt ? 'text-emerald-600' : 'text-slate-400' %>" data-lead-column="webhook">
                                 <%= lead.webhookFailedAt ? "falló" : lead.webhookSentAt ? "entregado" : "pendiente" %>
                             </td>
                             <td class="px-4 py-3">
@@ -234,5 +249,46 @@
             </table>
         </section>
     </main>
+
+    <script>
+        (function () {
+            var storageKey = "marga-lead-columns";
+            var toggles = document.querySelectorAll("[data-lead-column-toggle]");
+            if (!toggles.length) return;
+
+            function apply(visible) {
+                Object.keys(visible).forEach(function (key) {
+                    var checked = visible[key] !== false;
+                    document.querySelectorAll('[data-lead-column="' + key + '"]').forEach(function (cell) {
+                        cell.style.display = checked ? "" : "none";
+                    });
+                });
+            }
+
+            var saved = {};
+            try {
+                saved = JSON.parse(localStorage.getItem(storageKey) || "{}") || {};
+            } catch (_) {
+                saved = {};
+            }
+
+            toggles.forEach(function (toggle) {
+                var key = toggle.getAttribute("data-lead-column-toggle");
+                if (saved[key] === false) toggle.checked = false;
+
+                toggle.addEventListener("change", function () {
+                    saved[key] = toggle.checked;
+                    apply(saved);
+                    try {
+                        localStorage.setItem(storageKey, JSON.stringify(saved));
+                    } catch (_) {
+                        /* Safari privado puede bloquear localStorage. */
+                    }
+                });
+            });
+
+            apply(saved);
+        })();
+    </script>
 </body>
 </html>

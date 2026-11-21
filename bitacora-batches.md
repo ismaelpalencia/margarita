@@ -1062,3 +1062,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 374 pruebas unitarias.
 
 ---
+
+## Columnas visibles en Leads
+
+- Selector Columnas en la tabla de leads.
+- Oculta correo, nombre, teléfono, interés, datos del flujo, estado o webhook.
+- La preferencia se guarda en localStorage del navegador.
+- 374 pruebas unitarias.
+
+---
