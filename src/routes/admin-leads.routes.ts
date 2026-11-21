@@ -8,6 +8,7 @@ router.get("/", AdminLeadsController.index);
 router.get("/export", AdminLeadsController.exportCsv);
 router.post("/settings", AdminLeadsController.saveSettings);
 router.post("/", AdminLeadsController.create);
+router.post("/delete-all", AdminLeadsController.removeAll);
 router.post("/:id/status", AdminLeadsController.updateStatus);
 router.post("/:id/delete", AdminLeadsController.remove);
 router.post("/:id/retry", AdminLeadsController.retry);

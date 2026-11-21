@@ -1071,3 +1071,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 374 pruebas unitarias.
 
 ---
+
+## Borrar todos los leads
+
+- Botón Borrar todos con confirmación escrita BORRAR.
+- deleteMany por workspace; conserva contactos/conversaciones.
+- No borra filas ya escritas en Google Sheets.
+- 374 pruebas unitarias.
+
+---

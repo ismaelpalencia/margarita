@@ -62,6 +62,7 @@ export class AdminLeadsController {
             contacts,
             leadContactIds,
             csvColumns: LEAD_CSV_COLUMNS,
+            deletedCount: Number(req.query.count || 0),
             success: req.query.success || null,
             error: req.query.error || null
         });
@@ -181,6 +182,23 @@ export class AdminLeadsController {
         await LeadService.updateStatus(req.user!.workspaceId, id, status);
 
         return res.redirect("/admin/leads?success=status");
+    }
+
+    static async removeAll(req: Request, res: Response) {
+        const confirmation = String(req.body?.confirm || "").trim();
+
+        if (confirmation.toUpperCase() !== "BORRAR") {
+            return res.redirect("/admin/leads?error=delete_all_confirm");
+        }
+
+        try {
+            const count = await LeadService.deleteAll(req.user!.workspaceId);
+            return res.redirect(
+                `/admin/leads?success=deleted_all&count=${count}`
+            );
+        } catch {
+            return res.redirect("/admin/leads?error=delete_all");
+        }
     }
 
     static async remove(req: Request, res: Response) {

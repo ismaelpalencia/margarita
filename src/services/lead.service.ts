@@ -60,6 +60,23 @@ export class LeadService {
         return lead;
     }
 
+    static async deleteAll(workspaceId: string) {
+        const result = await prisma.lead.deleteMany({
+            where: { workspaceId }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.WARN,
+            module: LogModule.CONTACT,
+            action: "LEADS_DELETED_ALL",
+            message: "Se eliminaron todos los leads del workspace.",
+            payload: { count: result.count }
+        }).catch(() => undefined);
+
+        return result.count;
+    }
+
     static async updateStatus(workspaceId: string, leadId: string, status: LeadStatus) {
         await prisma.lead.updateMany({
             where: { id: leadId, workspaceId },

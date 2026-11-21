@@ -342,6 +342,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
   conversación, y se puede volver a crear para probar la integración.
 - La tabla de Leads permite mostrar u ocultar columnas; la selección se guarda
   en el navegador.
+- **Borrar todos** elimina los leads del workspace escribiendo `BORRAR`; no
+  borra contactos, conversaciones, mensajes ni filas de Google Sheets.
 - Dentro de un chat, **Marcar como lead** crea el lead del contacto si aún no
   existe; si ya existe, muestra el estado y no lo duplica.
 - El compositor crece hasta 224 px al pegar textos largos y el chat respeta el
