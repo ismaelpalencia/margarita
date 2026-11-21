@@ -16,7 +16,7 @@ existe, el script intenta crearla, pero es mejor crearla tú con estos
 encabezados en la fila 1:
 
 ```text
-Fecha | Nombre | Teléfono | Correo | Origen
+Fecha | Nombre | Teléfono | Correo | Origen | Comentarios
 ```
 
 > El botón **Exportar CSV** descarga un archivo; no manda nada a Google
@@ -54,7 +54,8 @@ function doPost(e) {
     data.name || "",
     data.phone || "",
     data.email || "",
-    data.source || ""
+    data.source || "",
+    data.notes || ""
   ]);
 
   return ContentService.createTextOutput(

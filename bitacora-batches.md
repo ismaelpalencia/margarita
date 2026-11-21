@@ -1120,3 +1120,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 375 pruebas unitarias.
 
 ---
+
+## Editar leads existentes desde el chat
+
+- El modal de lead ahora precarga los datos si el lead ya existe.
+- Editar lead actualiza nombre, teléfono, correo, interés y comentarios.
+- Google Sheets recibe notes; el Apps Script debe agregar la columna.
+- 375 pruebas unitarias.
+
+---

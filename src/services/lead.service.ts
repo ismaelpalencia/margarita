@@ -37,6 +37,44 @@ export class LeadService {
         });
     }
 
+    static async updateDetails(
+        workspaceId: string,
+        leadId: string,
+        input: {
+            name?: string | null;
+            phone?: string | null;
+            email?: string | null;
+            interest?: string | null;
+            notes?: string | null;
+        }
+    ) {
+        const email = input.email?.trim().toLowerCase() || null;
+
+        return prisma.lead.update({
+            where: { id: leadId },
+            data: {
+                ...(input.name !== undefined
+                    ? { name: input.name?.trim() || null }
+                    : {}),
+                ...(input.phone !== undefined
+                    ? { phone: input.phone?.trim() || null }
+                    : {}),
+                ...(input.email !== undefined
+                    ? {
+                          email,
+                          emailHash: email ? emailIndex(email) : null
+                      }
+                    : {}),
+                ...(input.interest !== undefined
+                    ? { interest: input.interest?.trim() || null }
+                    : {}),
+                ...(input.notes !== undefined
+                    ? { notes: input.notes?.trim() || null }
+                    : {})
+            }
+        });
+    }
+
     static async delete(workspaceId: string, leadId: string) {
         const lead = await prisma.lead.findFirst({
             where: { id: leadId, workspaceId },
@@ -288,6 +326,7 @@ export class LeadService {
             phone: lead.phone,
             email: lead.email,
             interest: lead.interest,
+            notes: lead.notes,
             source: lead.source,
             status: lead.status,
             createdAt: lead.createdAt.toISOString()

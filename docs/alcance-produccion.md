@@ -341,8 +341,9 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - Cada lead se puede eliminar desde la tabla; se conservan el contacto y la
   conversación, y se puede volver a crear para probar la integración.
 - Al marcar un chat como lead se pueden ajustar nombre, teléfono, correo,
-  interés y comentarios antes de guardarlo. Los comentarios son una columna
-  opcional de la tabla y del CSV.
+  interés y comentarios antes de guardarlo. Si el lead ya existe, **Editar
+  lead** permite actualizar esos datos. Los comentarios son una columna
+  opcional de la tabla, del CSV y del payload de Google Sheets.
 - La tabla de Leads permite mostrar u ocultar columnas; la selección se guarda
   en el navegador.
 - **Borrar todos** elimina los leads del workspace escribiendo `BORRAR`; no

@@ -24,6 +24,13 @@ export class LeadConversationController {
                               conversationId
                           );
 
+                const contact = conversation.contact;
+                const name = String(req.body?.name || "").trim();
+                const phone = String(req.body?.phone || "").trim();
+                const email = String(req.body?.email || "").trim();
+                const interest = String(req.body?.interest || "").trim();
+                const notes = String(req.body?.notes || "").trim();
+
                 const existing = await prisma.lead.findFirst({
                     where: {
                         workspaceId: req.user!.workspaceId,
@@ -33,17 +40,22 @@ export class LeadConversationController {
                 });
 
                 if (existing) {
+                    await LeadService.updateDetails(
+                        req.user!.workspaceId,
+                        existing.id,
+                        {
+                            name: name || contact.customName || contact.profileName || contact.phone,
+                            phone: phone || contact.phone,
+                            email,
+                            interest,
+                            notes
+                        }
+                    );
+
                     return res.redirect(
-                        `${basePath}/${conversationId}?error=lead_exists`
+                        `${basePath}/${conversationId}?success=lead_updated`
                     );
                 }
-
-                const contact = conversation.contact;
-                const name = String(req.body?.name || "").trim();
-                const phone = String(req.body?.phone || "").trim();
-                const email = String(req.body?.email || "").trim();
-                const interest = String(req.body?.interest || "").trim();
-                const notes = String(req.body?.notes || "").trim();
 
                 await LeadService.capture({
                     workspaceId: req.user!.workspaceId,

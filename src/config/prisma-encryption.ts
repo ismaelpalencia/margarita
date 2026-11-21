@@ -415,7 +415,7 @@ const WRITE_RULES: Record<string, WriteRule> = {
             data.emailHash = blindIndex(normalized);
         }
 
-        encryptTextFields(data, ["name", "phone"]);
+        encryptTextFields(data, ["name", "phone", "notes"]);
         encryptJsonFields(data, ["fields"]);
     },
 

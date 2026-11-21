@@ -167,7 +167,14 @@ export class AdminConversationsController {
                 workspaceId,
                 contactId: conversation.contactId
             },
-            select: { id: true }
+            select: {
+                id: true,
+                name: true,
+                phone: true,
+                email: true,
+                interest: true,
+                notes: true
+            }
         });
 
         /** Abrir el hilo quita el aviso de no leídos. */
