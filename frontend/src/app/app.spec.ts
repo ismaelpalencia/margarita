@@ -23,11 +23,12 @@ describe('App', () => {
     expect(compiled.querySelector('.brand')?.textContent).toContain('Margarita');
   });
 
-  it('keeps AI near the top of admin navigation and provides logout', async () => {
+  it('keeps automation in settings and provides theme and logout controls', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('a[href="/panel/admin/ai"]')?.textContent).toContain('IA');
+    expect(compiled.querySelector('a[href="/panel/admin/ai"]')?.textContent).toContain('Automatización');
+    expect(compiled.querySelector('.theme-toggle[aria-label="Activar modo nocturno"]')).toBeTruthy();
     expect(compiled.querySelector('.topbar-logout form, form.topbar-logout[action="/auth/logout"]')).toBeTruthy();
   });
 });

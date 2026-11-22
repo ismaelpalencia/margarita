@@ -18,7 +18,7 @@ const EFFECT_LABELS: Record<ReplyEffect, string> = {
  */
 export class AdminRepliesController {
     private static wantsJson(req: Request): boolean {
-        return Boolean(req.accepts("json") && !req.accepts("html"));
+        return req.xhr || /application\/json/i.test(req.get("accept") || "");
     }
 
     static async index(req: Request, res: Response) {

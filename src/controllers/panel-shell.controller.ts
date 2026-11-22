@@ -19,6 +19,7 @@ export class PanelShellController {
 
         return res.json({
             role: req.user!.role,
+            collectionsEnabled: Boolean(res.locals.collectionsEnabled),
             activeNumberId: active?.id || null,
             numbers: numbers
                 .filter((number) => number.isActive)

@@ -105,6 +105,14 @@ export function requireCollectionsModule(
     next: NextFunction
 ) {
     if (!isCollectionsProfile(req.workspaceProfile)) {
+        const accept = req.get("accept") || "";
+        if (req.xhr || /application\/json/i.test(accept)) {
+            return res.status(403).json({
+                error: "collections_disabled",
+                message: "Este módulo está disponible cuando el giro de la operación es COBRANZA."
+            });
+        }
+
         const target = req.originalUrl.startsWith("/agent")
             ? "/agent/dashboard"
             : "/admin/dashboard";

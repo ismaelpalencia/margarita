@@ -4,7 +4,7 @@
 <div class="shell">
   <aside class="sidebar">
     <a class="brand" [routerLink]="isAgent ? '/panel/agent/dashboard' : '/panel/admin/dashboard'" aria-label="Margarita, inicio">
-      <span class="brand-mark">M</span><span>Margarita<small>WhatsApp Business</small></span>
+      <img class="brand-logo" src="/brand/img/margarita-icon-64.png" alt=""><span>Margarita<small>Operación WhatsApp</small></span>
     </a>
     @if (shell(); as data) {
       @if (data.numbers.length > 1) {
@@ -30,12 +30,11 @@
       } @else {
       <a class="nav-link" routerLink="/panel/admin/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><span class="nav-icon">⌂</span>Resumen</a>
       <a class="nav-link" routerLink="/panel/admin/conversations" routerLinkActive="active"><span class="nav-icon">◷</span>Conversaciones@if (unreadTotal() > 0) { <span class="nav-badge">{{ unreadTotal() }}</span> }</a>
-      <a class="nav-link" routerLink="/panel/admin/ai" routerLinkActive="active"><span class="nav-icon">✧</span>IA</a>
       <a class="nav-link" href="/panel/admin/conversations?assigned=unassigned"><span class="nav-icon">!</span>Sin asignar@if (unassignedCount() > 0) { <span class="nav-badge unassigned">{{ unassignedCount() }}</span> }</a>
       <a class="nav-link" routerLink="/panel/admin/contacts" routerLinkActive="active"><span class="nav-icon">♙</span>Contactos</a>
       <a class="nav-link" routerLink="/panel/admin/tags" routerLinkActive="active"><span class="nav-icon">⌑</span>Etiquetas</a>
       <a class="nav-link" routerLink="/panel/admin/quick-replies" routerLinkActive="active"><span class="nav-icon">☷</span>Respuestas rápidas</a>
-      <a class="nav-link" routerLink="/panel/admin/replies" routerLinkActive="active"><span class="nav-icon">✓</span>Botones y listas</a>
+      @if (shell()?.collectionsEnabled) { <a class="nav-link" routerLink="/panel/admin/replies" routerLinkActive="active"><span class="nav-icon">✓</span>Reglas de respuestas</a> }
       <a class="nav-link" routerLink="/panel/admin/templates" routerLinkActive="active"><span class="nav-icon">▤</span>Plantillas</a>
       <a class="nav-link" routerLink="/panel/admin/hours" routerLinkActive="active"><span class="nav-icon">◷</span>Horarios</a>
       <a class="nav-link" routerLink="/panel/admin/guide" routerLinkActive="active"><span class="nav-icon">?</span>Guía</a>
@@ -43,18 +42,21 @@
       <a class="nav-link" routerLink="/panel/admin/users" routerLinkActive="active"><span class="nav-icon">♧</span>Equipo</a>
       <a class="nav-link" routerLink="/panel/admin/whatsapp" routerLinkActive="active"><span class="nav-icon">⌁</span>WhatsApp</a>
       <a class="nav-link" routerLink="/panel/admin/backup" routerLinkActive="active"><span class="nav-icon">⇩</span>Respaldos</a>
-      <a class="nav-link" routerLink="/panel/admin/system" routerLinkActive="active"><span class="nav-icon">⚙</span>Sistema</a>
       <a class="nav-link" routerLink="/panel/admin/service-metrics" routerLinkActive="active"><span class="nav-icon">▥</span>Servicio</a>
       <a class="nav-link" routerLink="/panel/admin/logs" routerLinkActive="active"><span class="nav-icon">≡</span>Bitácora</a>
       <a class="nav-link" routerLink="/panel/admin/leads" routerLinkActive="active"><span class="nav-icon">♧</span>Leads</a>
       <a class="nav-link" routerLink="/panel/admin/campaigns" routerLinkActive="active"><span class="nav-icon">↗</span>Campañas</a>
-      <a class="nav-link" routerLink="/panel/admin/reports" routerLinkActive="active"><span class="nav-icon">▥</span>Reportes</a>
+      @if (shell()?.collectionsEnabled) { <a class="nav-link" routerLink="/panel/admin/reports" routerLinkActive="active"><span class="nav-icon">▥</span>Reportes</a> }
+      <p class="nav-label nav-label-lower">CONFIGURACIÓN</p>
+      <a class="nav-link" routerLink="/panel/admin/system" routerLinkActive="active"><span class="nav-icon">⚙</span>Sistema</a>
+      <a class="nav-link" routerLink="/panel/admin/ai" routerLinkActive="active"><span class="nav-icon">✧</span>Automatización</a>
       }
     </nav>
     <div class="sidebar-bottom"><span class="online-dot"></span><span>Conexión segura</span><form action="/auth/logout" method="post" class="logout-form"><button type="submit">Salir</button></form></div>
   </aside>
   <main class="main-area">
     <header class="topbar"><div class="breadcrumbs">Panel <span>/</span> {{ pageName }}</div><div class="topbar-actions">
+      <button class="theme-toggle" type="button" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Activar modo claro' : 'Activar modo nocturno'" [title]="darkMode() ? 'Modo claro' : 'Modo nocturno'"><span aria-hidden="true">{{ darkMode() ? '☀' : '☾' }}</span><span class="theme-toggle-label">{{ darkMode() ? 'Claro' : 'Nocturno' }}</span></button>
       @if (showInstall()) { <button class="pwa-action" type="button" (click)="installApp()">Instalar app</button> }
       @if (pushSupported) { <button class="pwa-action" type="button" (click)="enablePush()">{{ pushSubscribed() ? 'Avisos activos' : 'Activar avisos' }}</button> }
       @if (pushSubscribed()) { <button class="pwa-action secondary" type="button" (click)="testPush()">Probar aviso</button> }

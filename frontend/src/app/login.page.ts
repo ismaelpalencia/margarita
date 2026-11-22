@@ -21,12 +21,12 @@ interface LoginActionResult {
     <main class="login-page">
       <section class="login-card">
         <aside class="login-story">
-          <a class="login-brand" href="/" aria-label="Margarita, inicio"><span>M</span>Margarita</a>
+          <a class="login-brand" href="/" aria-label="Margarita, inicio"><img src="/brand/img/margarita-icon-64.png" alt="">Margarita</a>
           <div><p class="login-eyebrow">WHATSAPP OPERATIVO</p><h1>Atención clara para cada conversación.</h1><p>Coordina a tu equipo y acompaña cada contacto desde una sola plataforma.</p></div>
           <div class="story-tags"><span>Conversaciones</span><span>Agentes</span><span>Campañas</span></div>
         </aside>
         <section class="login-form-panel">
-          <div class="login-mobile-brand"><span>M</span><strong>Margarita</strong></div>
+          <div class="login-mobile-brand"><img src="/brand/img/margarita-icon-64.png" alt=""><strong>Margarita</strong></div>
           @if (loading()) {
             <div class="login-loading"><span class="spinner"></span>Cargando acceso…</div>
           } @else {

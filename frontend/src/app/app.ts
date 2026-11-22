@@ -9,6 +9,7 @@ interface ShellNumber {
 
 interface ShellData {
   role: string;
+  collectionsEnabled: boolean;
   activeNumberId: string | null;
   numbers: ShellNumber[];
   unreadTotal: number;
@@ -36,6 +37,7 @@ export class App {
   protected readonly pushSupported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'Notification' in window && 'PushManager' in window;
   protected readonly pushSubscribed = signal(false);
   protected readonly pwaMessage = signal('');
+  protected readonly darkMode = signal(this.readDarkMode());
   private readonly installPrompt = signal<InstallPromptEvent | null>(null);
   private readonly installed = signal(false);
   private readonly isMobile = typeof navigator !== 'undefined' && /iphone|ipad|ipod|android/i.test(navigator.userAgent);
@@ -44,6 +46,7 @@ export class App {
   private registration: ServiceWorkerRegistration | null = null;
 
   constructor() {
+    this.applyTheme(this.darkMode());
     if (typeof window !== 'undefined') {
       window.addEventListener('beforeinstallprompt', (event: Event) => {
         event.preventDefault();
@@ -57,6 +60,26 @@ export class App {
       if ('serviceWorker' in navigator) void this.registerServiceWorker();
     }
     if (!this.isPublic) void this.loadShell();
+  }
+
+  protected toggleTheme(): void {
+    const enabled = !this.darkMode();
+    this.darkMode.set(enabled);
+    this.applyTheme(enabled);
+    try { localStorage.setItem('margarita-theme', enabled ? 'dark' : 'light'); } catch { /* El tema sigue aplicado durante esta sesión. */ }
+  }
+
+  private readDarkMode(): boolean {
+    try {
+      const saved = localStorage.getItem('margarita-theme');
+      if (saved === 'dark') return true;
+      if (saved === 'light') return false;
+    } catch { /* Usa la preferencia del sistema si localStorage no está disponible. */ }
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+  }
+
+  private applyTheme(enabled: boolean): void {
+    document.documentElement.dataset['theme'] = enabled ? 'dark' : 'light';
   }
 
   protected async installApp(): Promise<void> {
@@ -161,6 +184,7 @@ export class App {
     if (path.includes('/campaigns')) return 'Campañas';
     if (path.includes('/reports')) return 'Reportes';
     if (path.includes('/quick-replies')) return 'Respuestas rápidas';
+    if (path.includes('/replies')) return 'Reglas de respuestas';
     if (path.includes('/sessions')) return 'Sesiones';
     if (path.includes('/whatsapp')) return 'WhatsApp';
     if (path.includes('/backup')) return 'Respaldos';

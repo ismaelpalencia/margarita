@@ -88,7 +88,7 @@ export class AdminReportsController {
          * El panel Angular consume este endpoint como JSON. Las visitas
          * directas a la URL vieja se mandan al panel para no servir EJS.
          */
-        if (!(req.accepts("json") && !req.accepts("html"))) {
+        if (!(req.xhr || /application\/json/i.test(req.get("accept") || ""))) {
             const query = req.originalUrl.includes("?")
                 ? req.originalUrl.slice(req.originalUrl.indexOf("?"))
                 : "";

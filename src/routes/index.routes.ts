@@ -5,6 +5,7 @@ import { HomeController } from "../controllers/home.controller";
 import { SetupController } from "../controllers/setup.controller";
 import { PanelShellController } from "../controllers/panel-shell.controller";
 import { activeNumberMiddleware } from "../middlewares/active-number.middleware";
+import { workspaceProfileMiddleware } from "../middlewares/workspace-profile.middleware";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { AccountController } from "../controllers/admin-users.controller";
 import { requireRole } from "../middlewares/role.middleware";
@@ -28,6 +29,7 @@ router.get("/panel/login", angularPanel);
 router.get(
     "/panel/shell",
     authMiddleware,
+    workspaceProfileMiddleware,
     activeNumberMiddleware,
     PanelShellController.data
 );
