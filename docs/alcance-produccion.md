@@ -37,19 +37,16 @@ Margarita es una aplicación web para **operar la WhatsApp Business Cloud API de
 | Base de datos | PostgreSQL |
 | Runtime | Node **22.23.4** LTS |
 | Alojamiento probado | Railway |
-| Archivos | Volume en `/data/media`; respaldos en `/data/backups`; Cloudflare R2 opcional (se activa con las cuatro `R2_*`) |
+| Archivos | Volume montado en `/var/lib/postgresql/data`; adjuntos en `/var/lib/postgresql/data/media` y respaldos en `/var/lib/postgresql/data/backups`; Cloudflare R2 opcional (se activa con las cuatro `R2_*`) |
 | Demo pública | Microservicio **Go** independiente en `demo.margaritaapp.org` (sin DB ni Meta) |
 
 ### Almacenamiento persistente y R2 (opcional)
 
-**Verificación de producción (2026-11-22):** Railway informa que el Volume del
-servicio de la app está montado en `/var/lib/postgresql/data`, mientras que
-`MEDIA_STORAGE_DIR` y `BACKUP_DIR` apuntan a `/data/media` y `/data/backups`.
-Los logs de arranque confirman que `/data/media` no está en un Volume. Por eso,
-los adjuntos y respaldos locales pueden perderse al reemplazar el contenedor;
-los adjuntos remotos de R2 no tienen ese problema. Hay que alinear el punto de
-montaje y las rutas antes de depender del almacenamiento local. No se cambió
-el Volume existente porque su contenido no se inspeccionó.
+**Verificación de producción (2026-11-22):** las variables `MEDIA_STORAGE_DIR`
+y `BACKUP_DIR` apuntan a subcarpetas del Volume montado en
+`/var/lib/postgresql/data`. El arranque posterior al cambio ya no reporta
+almacenamiento efímero, por lo que adjuntos y respaldos locales quedan dentro
+del Volume y sobreviven a los despliegues.
 
 - Se activa únicamente cuando existen `R2_ACCOUNT_ID`, `R2_BUCKET`,
   `R2_ACCESS_KEY_ID` y `R2_SECRET_ACCESS_KEY`. No hay un flag aparte.
