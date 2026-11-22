@@ -1,36 +1,130 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 
-interface TemplateIdea { id: string; name: string; scenario: string; whenToUse: string; body: string; variables: { token: string; meaning: string; example: string }[]; buttons: string[]; caution?: string; formatted: string }
-interface MetaTemplate { id: string; name: string; language: string; category: string | null; status: string; metaTemplateId: string | null; lastSyncedAt: string | null; hasVariablesOrUrl: boolean }
-interface TemplatesResponse { templates: MetaTemplate[]; ideas: TemplateIdea[]; shareTemplateUrl: string; collectionsEnabled: boolean; syncResult: number | null; syncError: boolean }
+interface MetaTemplate {
+  id: string;
+  name: string;
+  language: string;
+  category: string | null;
+  status: string;
+  metaTemplateId: string | null;
+  lastSyncedAt: string | null;
+  hasVariablesOrUrl: boolean;
+}
+
+interface TemplatesResponse {
+  templates: MetaTemplate[];
+  syncResult: number | null;
+  syncError: boolean;
+}
 
 @Component({
-  selector: 'app-admin-templates-page', standalone: true,
+  selector: 'app-admin-templates-page',
+  standalone: true,
   template: `
-    @if (loading()) { <div class="templates-loading">Cargando plantillas…</div> }
-    @else if (error() && !data()) { <section class="templates-error"><h1>No pudimos cargar las plantillas</h1><p>{{ error() }}</p><a href="/auth/login">Iniciar sesión</a></section> }
-    @else if (data(); as model) {
-      <header class="templates-hero"><p>{{ model.collectionsEnabled ? 'BIBLIOTECA PARA EQUIPOS DE COBRANZA' : 'BIBLIOTECA DE IDEAS PARA WHATSAPP' }}</p><h1>¿No sabes qué plantilla crear?</h1><p>{{ model.collectionsEnabled ? 'Adapta estas ideas para primer contacto, recordatorios y seguimiento.' : 'Usa estas ideas como punto de partida para mensajes y avisos.' }} Crea la versión final en Meta.</p><nav><a href="#library">Explorar ideas</a><a href="#meta-templates">Ver mis plantillas de Meta</a></nav></header>
-      <aside class="templates-warning"><strong>Son ideas de Margarita; ninguna está aprobada por Meta.</strong><p>Copia la ficha, revísala y crea la plantilla en tu cuenta. Meta decide su aprobación y categoría final. Sincronízala desde Meta y no la envíes hasta que aparezca aprobada.</p></aside>
-      @if (error()) { <div class="templates-error-banner" role="alert">{{ error() }}</div> } @if (success()) { <div class="templates-success" role="status">{{ success() }}</div> }
-      <section id="library" class="templates-library"><header><div><p>IDEAS LISTAS PARA ADAPTAR</p><h2>{{ model.collectionsEnabled ? 'Biblioteca de cobranza' : 'Biblioteca de ideas' }}</h2><small>Cada ficha incluye el momento de uso, variables y respuestas sugeridas.</small></div><input type="search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Buscar ideas" aria-label="Buscar ideas de plantilla"></header>
-        <div class="idea-grid">@for (idea of filteredIdeas(); track idea.id) { <article class="idea-card"><div class="idea-title"><span>{{ idea.scenario }}</span><small>Plantilla hecha por Margarita</small></div><h3>{{ idea.name }}</h3><p>{{ idea.whenToUse }}</p><section class="idea-message"><strong>VISTA PREVIA</strong><p>{{ idea.body }}</p></section><div class="idea-details"><section><h4>Variables para personalizar</h4><ul>@for (variable of idea.variables; track variable.token) { <li><code>{{ variable.token }}</code> {{ variable.meaning }}<small>Ejemplo: {{ variable.example }}</small></li> }</ul></section><section><h4>Botones sugeridos</h4><div class="idea-buttons">@for (button of idea.buttons; track button) { <span>{{ button }}</span> }</div><small>Configura las respuestas en Admin → Botones para registrar lo que el cliente elija.</small></section></div>@if (idea.caution) { <aside class="idea-caution"><strong>Ten en cuenta:</strong> {{ idea.caution }}</aside> }<footer><span>Categoría sugerida: Utilidad*</span><button type="button" (click)="copy(idea)">{{ copiedId() === idea.id ? 'Ficha copiada' : 'Copiar ficha para Meta' }}</button></footer></article> } @empty { <div class="no-ideas">No encontramos ideas con esa búsqueda.</div> }</div>
+    @if (loading()) {
+      <p class="templates-loading">Cargando plantillas de Meta…</p>
+    } @else if (!data()) {
+      <section class="templates-error" role="alert">
+        <h1>No pudimos cargar tus plantillas</h1>
+        <p>{{ error() }}</p>
       </section>
-      <p class="templates-footnote">*La categoría es una sugerencia. Meta puede reclasificar la plantilla. Revisa la normativa aplicable, el consentimiento de contacto y la información que tu organización puede compartir.</p>
-      <section class="share-template"><div><h2>¿Tienes una plantilla que compartir?</h2><p>Cuéntanos cuál te ha funcionado. No incluyas nombres, teléfonos, saldos ni datos de clientes.</p></div><a [href]="model.shareTemplateUrl" target="_blank" rel="noopener noreferrer">Compartir por WhatsApp · +52 1 55 6487 0481</a></section>
-      <section id="meta-templates" class="meta-section"><header><div><p>TU CUENTA DE WHATSAPP</p><h2>Mis plantillas de Meta</h2><small>Solo aparecen las plantillas sincronizadas y su estado actual.</small></div><button type="button" (click)="sync()" [disabled]="syncing()">{{ syncing() ? 'Sincronizando…' : 'Sincronizar desde Meta' }}</button></header><div class="meta-table-wrap"><table><thead><tr><th>Nombre</th><th>Idioma</th><th>Categoría</th><th>Estado en Meta</th><th>Última sincronización</th></tr></thead><tbody>@if (!model.templates.length) { <tr><td colspan="5" class="meta-empty">Todavía no hay plantillas sincronizadas. Crea una desde una idea y vuelve a sincronizar cuando Meta la revise.</td></tr> } @for (template of model.templates; track template.id) { <tr><td><strong>{{ template.name }}</strong>@if (template.metaTemplateId) { <small>ID: {{ template.metaTemplateId }}</small> }</td><td>{{ template.language }}</td><td>{{ template.category || '—' }}@if (template.hasVariablesOrUrl) { <small class="template-chip">Variables o botón URL</small> }@if (template.category?.toUpperCase() === 'MARKETING') { <small class="marketing-chip">Marketing</small> }</td><td><span [class]="'template-status ' + template.status.toLowerCase()">{{ statusLabel(template.status) }}</span></td><td>{{ template.lastSyncedAt ? dateLabel(template.lastSyncedAt) : '—' }}</td></tr> }</tbody></table></div></section>
+    } @else {
+      <header class="templates-heading">
+        <div><p>WHATSAPP BUSINESS</p><h1>Plantillas de Meta</h1>
+          <span>Consulta el estado de tus plantillas y sincroniza los cambios desde Meta.</span>
+        </div>
+        <button type="button" (click)="sync()" [disabled]="syncing()">
+          {{ syncing() ? 'Sincronizando…' : 'Sincronizar desde Meta' }}
+        </button>
+      </header>
+      @if (success()) { <p class="templates-success" role="status">{{ success() }}</p> }
+      @if (error()) { <p class="templates-error-banner" role="alert">{{ error() }}</p> }
+      <section class="templates-card" aria-labelledby="meta-templates-title">
+        <div class="templates-card-heading">
+          <div><h2 id="meta-templates-title">Plantillas de tu cuenta</h2>
+            <p>El estado se actualiza al sincronizar con Meta.</p>
+          </div>
+          <span>{{ data()?.templates?.length || 0 }} plantilla(s)</span>
+        </div>
+        <div class="templates-table-wrap">
+          <table><thead><tr><th>Nombre</th><th>Idioma</th><th>Categoría</th><th>Estado en Meta</th><th>Última sincronización</th></tr></thead>
+            <tbody>
+              @if (!data()?.templates?.length) {
+                <tr><td colspan="5" class="templates-empty">No hay plantillas sincronizadas. Adminístralas en Meta y pulsa “Sincronizar desde Meta”.</td></tr>
+              }
+              @for (template of data()?.templates || []; track template.id) {
+                <tr>
+                  <td><strong>{{ template.name }}</strong>@if (template.metaTemplateId) { <small>ID: {{ template.metaTemplateId }}</small> }</td>
+                  <td>{{ template.language }}</td>
+                  <td>{{ template.category || '—' }}@if (template.hasVariablesOrUrl) { <small class="template-chip">Variables o botón URL</small> }</td>
+                  <td><span [class]="'template-status ' + template.status.toLowerCase()">{{ statusLabel(template.status) }}</span></td>
+                  <td>{{ template.lastSyncedAt ? dateLabel(template.lastSyncedAt) : '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
     }
   `,
   styleUrl: './admin-templates.page.css'
 })
 export class AdminTemplatesPage {
-  protected readonly data = signal<TemplatesResponse | null>(null); protected readonly loading = signal(true); protected readonly syncing = signal(false);
-  protected readonly error = signal(''); protected readonly success = signal(''); protected readonly search = signal(''); protected readonly copiedId = signal('');
-  protected readonly filteredIdeas = computed(() => { const model = this.data(); const query = this.search().trim().toLocaleLowerCase('es-MX'); if (!model) return []; return model.ideas.filter((idea) => !query || `${idea.name} ${idea.scenario} ${idea.whenToUse} ${idea.body} ${idea.buttons.join(' ')}`.toLocaleLowerCase('es-MX').includes(query)); });
-  constructor() { void this.load(); }
-  protected async load(): Promise<void> { this.loading.set(true); this.error.set(''); try { const response = await fetch('/admin/templates', { credentials: 'same-origin', headers: { Accept: 'application/json' } }); if (!response.ok || !(response.headers.get('content-type') || '').includes('application/json')) throw new Error('La sesión venció o no tienes permiso para consultar plantillas.'); const result = await response.json() as TemplatesResponse; this.data.set(result); if (result.syncResult !== null) this.success.set(`Plantillas sincronizadas correctamente: ${result.syncResult}.`); if (result.syncError) this.error.set('No se pudieron sincronizar las plantillas. Revisa la configuración de WhatsApp y los logs.'); } catch (reason: unknown) { this.error.set(reason instanceof Error ? reason.message : 'Ocurrió un error inesperado.'); } finally { this.loading.set(false); } }
-  protected async copy(idea: TemplateIdea): Promise<void> { try { await navigator.clipboard.writeText(idea.formatted); this.copiedId.set(idea.id); this.success.set('Ficha copiada. Pégala al crear una plantilla en Meta.'); window.setTimeout(() => { if (this.copiedId() === idea.id) this.copiedId.set(''); }, 2200); } catch { this.error.set('No pudimos copiar la ficha. Selecciona y copia el texto manualmente.'); } }
-  protected statusLabel(status: string): string { return ({ APPROVED: 'Aprobada', REJECTED: 'Rechazada', PENDING: 'Pendiente', PAUSED: 'Pausada', DISABLED: 'Deshabilitada' } as Record<string, string>)[status] || status; }
-  protected dateLabel(value: string): string { return new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' }).format(new Date(value)); }
-  protected async sync(): Promise<void> { this.syncing.set(true); this.error.set(''); this.success.set(''); try { const response = await fetch('/admin/templates/sync', { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' } }); const result = await response.json() as { count?: number; error?: string }; if (!response.ok) throw new Error(result.error || 'No se pudieron sincronizar las plantillas.'); this.success.set(`Plantillas de Meta sincronizadas: ${result.count || 0}.`); await this.load(); } catch (reason: unknown) { this.error.set(reason instanceof Error ? reason.message : 'Ocurrió un error inesperado.'); } finally { this.syncing.set(false); } }
+  protected readonly data = signal<TemplatesResponse | null>(null);
+  protected readonly loading = signal(true);
+  protected readonly syncing = signal(false);
+  protected readonly error = signal('');
+  protected readonly success = signal('');
+
+  constructor() {
+    void this.load();
+  }
+
+  protected statusLabel(status: string): string {
+    return ({ APPROVED: 'Aprobada', REJECTED: 'Rechazada', PENDING: 'Pendiente', PAUSED: 'Pausada', DISABLED: 'Deshabilitada' } as Record<string, string>)[status] || status;
+  }
+
+  protected dateLabel(value: string): string {
+    return new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' }).format(new Date(value));
+  }
+
+  protected async load(): Promise<void> {
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      const response = await fetch('/admin/templates', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      if (!response.ok || !(response.headers.get('content-type') || '').includes('application/json')) {
+        throw new Error('La sesión venció o no tienes permiso para consultar las plantillas.');
+      }
+      const result = await response.json() as TemplatesResponse;
+      if (!Array.isArray(result.templates)) throw new Error('La respuesta de plantillas no tiene el formato esperado.');
+      this.data.set(result);
+      if (result.syncResult !== null) this.success.set(`Plantillas sincronizadas desde Meta: ${result.syncResult}.`);
+      if (result.syncError) this.error.set('No se pudieron sincronizar las plantillas. Revisa la conexión de WhatsApp.');
+    } catch (reason) {
+      this.error.set(reason instanceof Error ? reason.message : 'Ocurrió un error inesperado.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  protected async sync(): Promise<void> {
+    this.syncing.set(true);
+    this.error.set('');
+    this.success.set('');
+    try {
+      const response = await fetch('/admin/templates/sync', { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      if (!(response.headers.get('content-type') || '').includes('application/json')) {
+        throw new Error('La sesión venció o no se permite sincronizar plantillas.');
+      }
+      const result = await response.json() as { count?: number; error?: string };
+      if (!response.ok) throw new Error(result.error || 'No se pudieron sincronizar las plantillas.');
+      this.success.set(`Plantillas de Meta sincronizadas: ${result.count || 0}.`);
+      await this.load();
+    } catch (reason) {
+      this.error.set(reason instanceof Error ? reason.message : 'Ocurrió un error inesperado.');
+    } finally {
+      this.syncing.set(false);
+    }
+  }
 }
