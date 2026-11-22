@@ -87,7 +87,7 @@ La página pública `margaritaapp.org/demo` corre en un **microservicio Go apart
 - Cola de webhooks con reintentos y backoff: un fallo temporal ya no pierde mensajes.
 - Cifrado en reposo de los datos personales: teléfonos, notas, contenido de los mensajes, payloads y eventos de Meta, variables de campaña y bitácora (AES-256-GCM), con índice ciego para el teléfono.
 - Bitácora con retención automática y credenciales redactadas.
-- Multimedia entrante: fotos, videos y documentos se abren desde el hilo; los audios tienen reproductor integrado. El servidor autoriza cada archivo por el ID del mensaje y descarga de Meta cuando hace falta.
+- Multimedia entrante y tarjetas de contacto: fotos, videos y documentos se abren desde el hilo; los audios tienen reproductor integrado y las tarjetas muestran nombre, teléfonos, correo y demás datos que envíe WhatsApp. El servidor autoriza cada archivo por el ID del mensaje y descarga de Meta cuando hace falta.
 - Envío de archivos: adjuntar imágenes, video, audio o documentos dentro de la ventana de 24 horas, con texto opcional.
 
 ---

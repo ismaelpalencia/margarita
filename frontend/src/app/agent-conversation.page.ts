@@ -91,6 +91,7 @@ interface AdvancedConversationData {
                   @if (message.deletedAt) { <small class="message-label">ELIMINADO</small> }
                   @if (message.isInternalNote) { <small class="message-label">NOTA INTERNA · SOLO EL EQUIPO</small> }
                   @if (message.source === 'AUTOMATIC' && message.aiSuggestionId) { <small class="message-label">RESPUESTA AUTOMÁTICA DE IA</small> }
+                  @if (message.type === 'CONTACT') { <small class="contact-share-label">CONTACTO COMPARTIDO</small> }
                   @if (message.mediaId && message.type === 'AUDIO') { <audio class="audio-player" controls preload="none" [src]="mediaFileUrl(message)" [attr.aria-label]="'Audio recibido · ' + dateLabel(message.createdAt, model.timezone)">Tu navegador no puede reproducir este audio.</audio><a class="media-link" [href]="mediaFileUrl(message)" target="_blank" rel="noopener">Descargar audio</a> }
                   @else if (message.mediaId) { <a class="media-link" [href]="mediaFileUrl(message)" target="_blank" rel="noopener">{{ mediaLabel(message.type) }} · Abrir archivo</a> }
                   @if (message.body && !(message.mediaId && isPlaceholder(message.body))) { <p>{{ message.body }}</p> }
@@ -230,7 +231,7 @@ export class AgentConversationPage implements OnDestroy {
   protected reopenUrl(model: AgentConversationDetail): string { return `/admin/conversations/${model.conversation.id}/reopen`; }
   protected purgeUrl(model: AgentConversationDetail): string { return `/admin/conversations/${model.conversation.id}/purge`; }
   protected isPlaceholder(body: string): boolean { return body.startsWith('[') && body.endsWith(']'); }
-  protected mediaLabel(type: string): string { return ({ IMAGE: 'Imagen', VIDEO: 'Video', AUDIO: 'Audio', DOCUMENT: 'Documento' } as Record<string, string>)[type] || 'Archivo'; }
+  protected mediaLabel(type: string): string { return ({ IMAGE: 'Imagen', VIDEO: 'Video', AUDIO: 'Audio', DOCUMENT: 'Documento', CONTACT: 'Contacto' } as Record<string, string>)[type] || 'Archivo'; }
   protected tick(status: string): string { return ({ CREATED: '🕓', SENDING: '🕓', SENT: '✓', DELIVERED: '✓✓', READ: '✓✓', FAILED: '⚠' } as Record<string, string>)[status] || '🕓'; }
 
   protected dateLabel(value: string, timezone: string): string {

@@ -82,6 +82,31 @@ export type MetaWebhookMessage = {
         filename?: string;
         caption?: string;
     };
+    /** Tarjetas de contacto que la persona comparte desde WhatsApp. */
+    contacts?: Array<{
+        name?: {
+            formatted_name?: string;
+            first_name?: string;
+            middle_name?: string;
+            last_name?: string;
+            prefix?: string;
+            suffix?: string;
+        };
+        org?: { company?: string; department?: string; title?: string };
+        phones?: Array<{ phone?: string; wa_id?: string; type?: string }>;
+        emails?: Array<{ email?: string; type?: string }>;
+        addresses?: Array<{
+            street?: string;
+            city?: string;
+            state?: string;
+            zip?: string;
+            country?: string;
+            country_code?: string;
+            type?: string;
+        }>;
+        urls?: Array<{ url?: string; type?: string }>;
+        birthday?: string;
+    }>;
     /**
      * Respuesta a un botón o a una lista. Meta manda `type` (`button_reply` o
      * `list_reply`) y, dentro, el `id` de la opción elegida y su `title` —que es

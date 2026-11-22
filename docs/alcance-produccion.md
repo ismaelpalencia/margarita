@@ -405,7 +405,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - **Idempotencia por `wamid`**: los reintentos de Meta no duplican mensajes.
 - **Estados reales**: `sent`, `delivered`, `read`, `failed` propagados al hilo y a campañas.
 - **Contactos y conversaciones** se crean o reabren al recibir un mensaje.
-- **Multimedia entrante**: el hilo reproduce audio con controles integrados; imágenes, video y documentos se abren desde su enlace. Los archivos se descargan de Meta al abrirse (las imágenes se descargan al recibir); si R2 está configurado, se copian al bucket. La ruta de medios valida autorización por ID del mensaje.
+- **Contenido entrante**: el hilo reproduce audio con controles integrados; imágenes, video y documentos se abren desde su enlace. Las tarjetas de contacto compartidas muestran nombre, teléfonos, correo, empresa y otros datos incluidos por WhatsApp. Los archivos se descargan de Meta al abrirse (las imágenes se descargan al recibir); si R2 está configurado, se copian al bucket. La ruta de medios valida autorización por ID del mensaje.
 - **Envío de archivos** dentro de la ventana de 24 h con límites de Meta (imagen 5 MB, video/audio 16 MB, documento 100 MB).
 - **Varios números** de la misma WABA; el panel trabaja “desde” un número activo. La IA y los flujos se pueden apagar por número.
 - **Ventana de 24 h**: fuera de ella solo plantillas aprobadas.
@@ -526,7 +526,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
 | Pruebas | 302 unitarias / 82 integración | Suite actual indicada en §18; integración PostgreSQL en 27 archivos |
-| Migraciones | 23 | **48** versionadas |
+| Migraciones | 23 | **49** versionadas |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
 | Precios | Repetidos en varios documentos | Fuente en `landing/` + `PRICING`; el panel no los muestra |
@@ -595,7 +595,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Unitarias de servidor | **378** en 59 archivos (`npm test`) |
 | Interfaz Angular | **5** pruebas en 3 archivos (`npm --prefix frontend test -- --watch=false`) |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
-| Migraciones | **48** versionadas en `prisma/migrations` |
+| Migraciones | **49** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |
 | Linter/formateador | No hay |
 | Build Angular y servidor | `npm run build` |
