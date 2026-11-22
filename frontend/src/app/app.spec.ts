@@ -22,4 +22,12 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.brand')?.textContent).toContain('Margarita');
   });
+
+  it('keeps AI near the top of admin navigation and provides logout', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('a[href="/panel/admin/ai"]')?.textContent).toContain('IA');
+    expect(compiled.querySelector('.topbar-logout form, form.topbar-logout[action="/auth/logout"]')).toBeTruthy();
+  });
 });

@@ -5,7 +5,7 @@
 .brand small { display: block; margin-top: 3px; color: #a9c0bd; font-size: 11px; font-weight: 450; letter-spacing: 0; }
 .brand-mark { display: grid; width: 37px; height: 37px; place-items: center; border-radius: 12px; color: #123d3b; background: #bde6d3; font-size: 21px; }
 .nav-label { margin: 0 10px 12px; color: #87aaa5; font-size: 10px; font-weight: 750; letter-spacing: .13em; }
-.sidebar nav { display: grid; gap: 5px; }
+.sidebar nav { display: grid; flex: 1 1 auto; min-height: 0; gap: 5px; overflow-y: auto; overscroll-behavior: contain; }
 .nav-link { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 9px; color: #c2d4d1; font-size: 13px; text-decoration: none; transition: background .15s, color .15s; }
 .nav-link:hover, .nav-link.active { color: #fff; background: #245451; }
 .nav-link.active { box-shadow: inset 3px 0 #9bd9b9; }
@@ -25,6 +25,8 @@
 .breadcrumbs span { padding: 0 8px; color: #c0c9c5; }
 .account-link { display: flex; align-items: center; gap: 9px; color: #4f605a; font-size: 12px; text-decoration: none; }
 .topbar-actions { display: flex; align-items: center; gap: 8px; }
+.topbar-logout { display: none; margin: 0; }
+.topbar-logout button { padding: 8px 10px; border: 1px solid #ead8d5; border-radius: 8px; color: #8e4540; background: #fff8f7; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
 .pwa-action { padding: 8px 10px; border: 1px solid #dce7e0; border-radius: 8px; color: #285845; background: #f4f8f5; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
 .pwa-action.secondary { color: #51655b; background: #fff; }
 .pwa-message { position: fixed; z-index: 5; top: 72px; right: 24px; max-width: min(420px, calc(100vw - 32px)); padding: 10px 14px; border: 1px solid #cfe4d5; border-radius: 9px; color: #246347; background: #eff8f1; box-shadow: 0 5px 18px #173b3518; font-size: 12px; }
@@ -34,13 +36,14 @@
   .sidebar { position: static; width: auto; padding: 14px 16px; }
   .brand { margin: 0 4px 14px; }
   .nav-label, .sidebar-bottom { display: none; }
-  .sidebar nav { display: flex; gap: 4px; overflow-x: auto; }
+  .sidebar nav { display: flex; flex: 0 0 auto; min-height: 0; gap: 4px; overflow-x: auto; overflow-y: hidden; }
   .nav-link { flex: 0 0 auto; padding: 9px; font-size: 11px; }
   .nav-icon { display: none; }
   .main-area { margin-left: 0; }
   .topbar { height: 56px; padding: 0 18px; }
   .topbar-actions { gap: 5px; }
   .topbar-actions .account-link>span:last-child { display: none; }
+  .topbar-logout { display: block; }
   .pwa-action { padding: 7px 8px; font-size: 10px; }
   .pwa-message { top: 60px; right: 12px; }
   .page-content { padding: 24px 16px; }

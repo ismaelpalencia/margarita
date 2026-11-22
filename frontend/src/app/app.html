@@ -30,6 +30,7 @@
       } @else {
       <a class="nav-link" routerLink="/panel/admin/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><span class="nav-icon">⌂</span>Resumen</a>
       <a class="nav-link" routerLink="/panel/admin/conversations" routerLinkActive="active"><span class="nav-icon">◷</span>Conversaciones@if (unreadTotal() > 0) { <span class="nav-badge">{{ unreadTotal() }}</span> }</a>
+      <a class="nav-link" routerLink="/panel/admin/ai" routerLinkActive="active"><span class="nav-icon">✧</span>IA</a>
       <a class="nav-link" href="/panel/admin/conversations?assigned=unassigned"><span class="nav-icon">!</span>Sin asignar@if (unassignedCount() > 0) { <span class="nav-badge unassigned">{{ unassignedCount() }}</span> }</a>
       <a class="nav-link" routerLink="/panel/admin/contacts" routerLinkActive="active"><span class="nav-icon">♙</span>Contactos</a>
       <a class="nav-link" routerLink="/panel/admin/tags" routerLinkActive="active"><span class="nav-icon">⌑</span>Etiquetas</a>
@@ -46,7 +47,6 @@
       <a class="nav-link" routerLink="/panel/admin/service-metrics" routerLinkActive="active"><span class="nav-icon">▥</span>Servicio</a>
       <a class="nav-link" routerLink="/panel/admin/logs" routerLinkActive="active"><span class="nav-icon">≡</span>Bitácora</a>
       <a class="nav-link" routerLink="/panel/admin/leads" routerLinkActive="active"><span class="nav-icon">♧</span>Leads</a>
-      <a class="nav-link" routerLink="/panel/admin/ai" routerLinkActive="active"><span class="nav-icon">✧</span>IA</a>
       <a class="nav-link" routerLink="/panel/admin/campaigns" routerLinkActive="active"><span class="nav-icon">↗</span>Campañas</a>
       <a class="nav-link" routerLink="/panel/admin/reports" routerLinkActive="active"><span class="nav-icon">▥</span>Reportes</a>
       }
@@ -59,6 +59,7 @@
       @if (pushSupported) { <button class="pwa-action" type="button" (click)="enablePush()">{{ pushSubscribed() ? 'Avisos activos' : 'Activar avisos' }}</button> }
       @if (pushSubscribed()) { <button class="pwa-action secondary" type="button" (click)="testPush()">Probar aviso</button> }
       <a class="account-link" [href]="isAgent ? '/panel/agent/account/security' : '/panel/admin/account/security'"><span class="avatar">M</span><span>Mi cuenta</span></a>
+      <form action="/auth/logout" method="post" class="topbar-logout"><button type="submit">Salir</button></form>
     </div></header>
     @if (pwaMessage()) { <p class="pwa-message" role="status">{{ pwaMessage() }}</p> }
     <section class="page-content"><router-outlet /></section>
