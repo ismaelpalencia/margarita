@@ -117,6 +117,9 @@ interface AdvancedConversationData {
                 <button type="submit">Enviar mensaje</button>
               </form>
               <p class="composer-note">La ventana de atención de 24 horas está abierta.</p>
+              <details class="composer-actions">
+                <summary>Adjuntar audio, archivos y más acciones</summary>
+                <div class="composer-action-list">
               <form [action]="mediaUrl(model)" method="post" enctype="multipart/form-data" class="upload-form">
                 <input type="file" name="file" required aria-label="Archivo para enviar">
                 <input type="text" name="caption" maxlength="1024" placeholder="Texto opcional">
@@ -135,9 +138,14 @@ interface AdvancedConversationData {
                 }
                 @if (voiceError()) { <small role="alert">{{ voiceError() }}</small> }
               </div>
+                </div>
+              </details>
             } @else {
               <p class="composer-warning">La ventana de 24 horas está cerrada. Usa una plantilla aprobada para reabrirla.</p>
             }
+            <details class="composer-actions">
+              <summary>Plantillas y mensajes interactivos</summary>
+              <div class="composer-action-list">
             @if (advanced(); as tools) { @if (tools.templates.length > 0 && model.conversation.status === 'OPEN' && !model.conversation.contact.optOutAt) {
               <form [action]="templateUrl(model)" method="post" class="send-form advanced-form"><strong>Enviar plantilla aprobada</strong><select name="templateId" required><option value="">Selecciona una plantilla</option>@for (template of tools.templates; track template.id) { <option [value]="template.id">{{ template.name }} · {{ template.language }}</option> }</select><input name="variable1" placeholder="Variable 1 (opcional)"><input name="variable2" placeholder="Variable 2 (opcional)"><input name="variable3" placeholder="Variable 3 (opcional)"><button type="submit">Enviar plantilla</button></form>
             } }
@@ -146,6 +154,8 @@ interface AdvancedConversationData {
                 @if (tools.interactiveListsEnabled) { <form [action]="interactiveListUrl(model)" method="post" class="advanced-form"><strong>Enviar lista de opciones</strong><textarea name="body" required maxlength="1024" placeholder="Texto del mensaje"></textarea><input name="footer" maxlength="60" placeholder="Pie (opcional)"><input name="buttonLabel" required maxlength="20" placeholder="Botón que abre la lista"><input name="sectionTitle" maxlength="24" placeholder="Título de sección">@for (index of listRows; track index) { <input name="rowTitle" maxlength="24" [placeholder]="'Opción ' + (index + 1)"><input name="rowDescription" maxlength="72" placeholder="Descripción (opcional)"> }<button type="submit">Enviar lista</button></form> }
               </details>
             } }
+                </div>
+              </details>
           </div>
         </section>
 

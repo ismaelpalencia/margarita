@@ -133,7 +133,9 @@ async function encodeVoiceNote(file: SendMediaMessageParams["file"]) {
             ...file,
             path: outputPath,
             originalname: `${path.parse(file.originalname).name || "nota-de-voz"}.ogg`,
-            mimetype: "audio/ogg; codecs=opus",
+            // WhatsApp recognizes the Ogg container from the base MIME type;
+            // the Opus codec is already encoded in the file itself.
+            mimetype: "audio/ogg",
             size: stats.size
         };
     } catch {
