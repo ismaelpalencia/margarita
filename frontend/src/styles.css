@@ -65,14 +65,15 @@ html[data-theme="dark"] .live-toast span { color: #bdc9c1; }
 
 app-agent-conversation-page .detail-actions > summary { padding: 10px 12px; border: 1px solid #e5ebe6; border-radius: 10px; color: #40564c; background: #fff; font-size: 12px; font-weight: 700; cursor: pointer; }
 app-agent-conversation-page .detail-action-list { display: grid; gap: 10px; max-height: 60vh; overflow: auto; padding-top: 10px; }
+app-agent-conversation-page .chat-card { position: relative; }
+app-agent-conversation-page .jump-latest { position: absolute; z-index: 2; right: 18px; bottom: 122px; display: inline-flex; align-items: center; gap: 7px; padding: 9px 12px; border: 1px solid #cbded1; border-radius: 999px; color: #245b3f; background: #fff; box-shadow: 0 4px 14px #12352425; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+app-agent-conversation-page .jump-latest span { font-size: 16px; line-height: 1; }
 
 /* El tema del chat se limita al detalle de conversación; el resto del panel conserva su diseño. */
 html[data-theme="dark"] .page-content app-agent-conversation-page .chat-card,
 html[data-theme="dark"] .page-content app-agent-conversation-page .detail-card,
 html[data-theme="dark"] .page-content app-agent-conversation-page .composer,
 html[data-theme="dark"] .page-content app-agent-conversation-page .detail-actions > summary { border-color: #34423a !important; color: #e7eee9 !important; background-color: #1a2420 !important; }
-html[data-theme="dark"] .page-content app-agent-conversation-page .message-thread { background-color: #111916 !important; }
-html[data-theme="dark"] .page-content app-agent-conversation-page .message-bubble:not(.outgoing-bubble):not(.internal-note) { border-color: #34423a; color: #e7eee9; background-color: #202c26; }
 html[data-theme="dark"] .page-content app-agent-conversation-page .message-bubble.outgoing-bubble { border-color: #226b48; color: #f0fdf4; background-color: #226b48; }
 html[data-theme="dark"] .page-content app-agent-conversation-page .message-bubble.internal-note { border-color: #65522d; color: #f7e2b3; background-color: #3a3020; }
 html[data-theme="dark"] .page-content app-agent-conversation-page :is(.detail-card h2,.detail-card dd,.detail-card strong,.contact-heading h1) { color: #e7eee9 !important; }
@@ -80,7 +81,7 @@ html[data-theme="dark"] .page-content app-agent-conversation-page :is(.detail-ca
 html[data-theme="dark"] .page-content app-agent-conversation-page .detail-pill { color: #dce8df; background-color: #243129; }
 html[data-theme="dark"] .page-content app-agent-conversation-page .open-pill { color: #c8f0d5; background-color: #214032; }
 html[data-theme="dark"] .page-content app-agent-conversation-page .handoff-pill { color: #f7e2b3; background-color: #3a3020; }
-html[data-theme="dark"] .page-content app-agent-conversation-page :is(.composer textarea,.advanced-form input,.advanced-form select,.advanced-form textarea,.note-form textarea) { border-color: #3c4b42 !important; color: #e5ede7 !important; background-color: #17211c !important; color-scheme: dark; }
-html[data-theme="dark"] .page-content app-agent-conversation-page :is(.composer textarea,.advanced-form input,.advanced-form textarea,.note-form textarea)::placeholder { color: #91a097; }
 html[data-theme="dark"] .page-content app-agent-conversation-page .close-button { color: #fff; background-color: #34423a; }
 html[data-theme="dark"] .page-content app-agent-conversation-page .composer-actions > summary { color: #dce8df; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .jump-latest { border-color: #3b6b50; color: #e7f7ec; background: #214032; }
+@media (max-width: 540px) { app-agent-conversation-page .jump-latest { right: 12px; bottom: 106px; padding: 8px 10px; } }

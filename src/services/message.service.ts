@@ -117,31 +117,36 @@ type SendMediaMessageParams = {
 
 const execFileAsync = promisify(execFile);
 
-async function encodeVoiceNote(file: SendMediaMessageParams["file"]) {
-    const outputPath = `${file.path}.voice.ogg`;
+async function encodeWhatsAppAudio(file: SendMediaMessageParams["file"]) {
+    const outputPath = `${file.path}.whatsapp.m4a`;
     try {
         await execFileAsync("ffmpeg", [
             "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
             "-i", file.path,
-            "-map", "0:a:0", "-vn", "-ac", "1",
-            "-c:a", "libopus", "-b:a", "32k", "-application", "voip",
-            "-f", "ogg", outputPath
+            "-map", "0:a:0", "-vn", "-ac", "1", "-ar", "44100",
+            "-c:a", "aac", "-b:a", "64k", "-movflags", "+faststart",
+            "-f", "ipod", outputPath
         ], { timeout: 60_000, maxBuffer: 1024 * 1024 });
         const stats = await fs.promises.stat(outputPath);
         if (!stats.size) throw new Error("empty_audio");
         return {
             ...file,
             path: outputPath,
-            originalname: `${path.parse(file.originalname).name || "nota-de-voz"}.ogg`,
-            // WhatsApp recognizes the Ogg container from the base MIME type;
-            // the Opus codec is already encoded in the file itself.
-            mimetype: "audio/ogg",
+            originalname: `${path.parse(file.originalname).name || "audio"}.m4a`,
+            mimetype: "audio/mp4",
             size: stats.size
         };
     } catch {
         await fs.promises.unlink(outputPath).catch(() => undefined);
         throw new Error("No se pudo procesar la nota de voz. Inténtalo de nuevo.");
     }
+}
+
+function requiresWhatsAppAudioConversion(file: SendMediaMessageParams["file"]): boolean {
+    const mimeType = String(file.mimetype || "").split(";")[0].trim().toLowerCase();
+    const extension = path.extname(file.originalname).toLowerCase();
+    return ["audio/ogg", "audio/opus", "audio/webm"].includes(mimeType) ||
+        [".ogg", ".opus", ".webm"].includes(extension);
 }
 
 export class MessageService {
@@ -1557,8 +1562,9 @@ export class MessageService {
     static async sendMediaMessage(params: SendMediaMessageParams) {
         let convertedPath: string | null = null;
         try {
-            const normalizedParams = params.voiceNote
-                ? { ...params, file: await encodeVoiceNote(params.file) }
+            const normalizeAudio = params.voiceNote || requiresWhatsAppAudioConversion(params.file);
+            const normalizedParams = normalizeAudio
+                ? { ...params, file: await encodeWhatsAppAudio(params.file) }
                 : params;
             if (normalizedParams.file.path !== params.file.path) {
                 convertedPath = normalizedParams.file.path;
@@ -1714,7 +1720,9 @@ export class MessageService {
                 mediaId,
                 caption,
                 filename: upload.filename,
-                voiceNote: params.voiceNote
+                // El AAC en MP4 es un audio reproducible normal; WhatsApp
+                // solo presenta como nota de voz los archivos OGG/Opus.
+                voiceNote: false
             });
 
             const response = await axios.post(

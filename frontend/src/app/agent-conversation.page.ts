@@ -103,6 +103,7 @@ interface AdvancedConversationData {
               </div>
             }
           </div>
+          @if (showJumpToLatest()) { <button type="button" class="jump-latest" (click)="jumpToLatest()" aria-label="Ir al mensaje más reciente"><span aria-hidden="true">↓</span> Ir al último mensaje</button> }
           <div class="composer">
             @if (model.conversation.contact.optOutAt) {
               <p class="composer-warning danger">Este contacto pidió la baja. No se pueden enviar mensajes.</p>
@@ -210,6 +211,7 @@ export class AgentConversationPage implements OnDestroy {
   protected readonly voicePreviewUrl = signal('');
   protected readonly voiceError = signal('');
   protected readonly sendingVoice = signal(false);
+  protected readonly showJumpToLatest = signal(false);
   protected readonly listRows = Array.from({ length: 10 }, (_, index) => index);
   @ViewChild('thread') private thread?: ElementRef<HTMLDivElement>;
   private readonly id: string;
@@ -266,7 +268,14 @@ export class AgentConversationPage implements OnDestroy {
   protected setDraft(event: Event): void { this.draft.set((event.target as HTMLTextAreaElement).value); }
   protected onThreadScroll(event: Event): void {
     const element = event.target as HTMLDivElement;
-    this.shouldStickToBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 120;
+    const atBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 80;
+    this.shouldStickToBottom = atBottom;
+    this.showJumpToLatest.set(!atBottom && element.scrollHeight > element.clientHeight + 80);
+  }
+  protected jumpToLatest(): void {
+    const thread = this.thread?.nativeElement;
+    if (!thread) return;
+    thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
   }
   protected formatRecordingTime(seconds: number): string { return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`; }
 
@@ -435,6 +444,7 @@ export class AgentConversationPage implements OnDestroy {
 
   private async load(showLoading = true): Promise<void> {
     if (showLoading) this.loading.set(true);
+    let scrollToLatest = false;
     try {
       const deletedQuery = this.isAdmin && this.showDeleted() ? '?deleted=1' : '';
       const response = await fetch(`${this.routeBase()}/${encodeURIComponent(this.id)}/data${deletedQuery}`, {
@@ -445,17 +455,9 @@ export class AgentConversationPage implements OnDestroy {
       if (!response.ok) throw new Error('No se pudo cargar la conversación.');
       if (!(response.headers.get('content-type') || '').includes('application/json')) throw new Error('La sesión venció. Inicia sesión para continuar.');
       const result = await response.json() as AgentConversationDetail;
-      const scrollToLatest = !this.hasInitialScroll || this.shouldStickToBottom;
+      scrollToLatest = !this.hasInitialScroll || this.shouldStickToBottom;
       this.data.set(result);
       this.hasInitialScroll = true;
-      if (scrollToLatest) {
-        window.requestAnimationFrame(() => {
-          const thread = this.thread?.nativeElement;
-          if (!thread) return;
-          thread.scrollTop = thread.scrollHeight;
-          this.shouldStickToBottom = true;
-        });
-      }
       const advancedResponse = await fetch(`${this.routeBase()}/${encodeURIComponent(this.id)}/legacy${deletedQuery}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
       if (advancedResponse.ok && (advancedResponse.headers.get('content-type') || '').includes('application/json')) this.advanced.set(await advancedResponse.json() as AdvancedConversationData);
       this.error.set('');
@@ -463,7 +465,18 @@ export class AgentConversationPage implements OnDestroy {
       this.error.set(reason instanceof Error ? reason.message : 'Ocurrió un error inesperado.');
     } finally {
       this.loading.set(false);
+      if (scrollToLatest) this.scheduleScrollToLatest();
     }
+  }
+
+  private scheduleScrollToLatest(): void {
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      const thread = this.thread?.nativeElement;
+      if (!thread) return;
+      thread.scrollTop = thread.scrollHeight;
+      this.shouldStickToBottom = true;
+      this.showJumpToLatest.set(false);
+    }));
   }
 
   private routeBase(): string { return this.isAdmin ? '/admin/conversations' : '/agent/conversations'; }
