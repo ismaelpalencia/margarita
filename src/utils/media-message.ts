@@ -115,6 +115,7 @@ export function buildMediaMessagePayload(params: {
     mediaId: string;
     caption?: string | null;
     filename?: string | null;
+    voiceNote?: boolean;
 }) {
     const caption = params.caption?.trim() || null;
     const base = {
@@ -150,7 +151,8 @@ export function buildMediaMessagePayload(params: {
             ...base,
             type: "audio" as const,
             audio: {
-                id: params.mediaId
+                id: params.mediaId,
+                ...(params.voiceNote ? { voice: true } : {})
             }
         };
     }

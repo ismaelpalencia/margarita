@@ -406,7 +406,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - **Estados reales**: `sent`, `delivered`, `read`, `failed` propagados al hilo y a campañas.
 - **Contactos y conversaciones** se crean o reabren al recibir un mensaje.
 - **Contenido entrante**: el hilo reproduce audio con controles integrados; imágenes, video y documentos se abren desde su enlace. Las tarjetas de contacto compartidas muestran nombre, teléfonos, correo, empresa y otros datos incluidos por WhatsApp. Los archivos se descargan de Meta al abrirse (las imágenes se descargan al recibir); si R2 está configurado, se copian al bucket. La ruta de medios valida autorización por ID del mensaje.
-- **Envío de archivos** dentro de la ventana de 24 h con límites de Meta (imagen 5 MB, video/audio 16 MB, documento 100 MB).
+- **Envío de archivos** dentro de la ventana de 24 h con límites de Meta (imagen 5 MB, video/audio 16 MB, documento 100 MB). El panel también graba, permite escuchar y envía notas de voz; normaliza el formato del navegador a OGG/Opus.
 - **Varios números** de la misma WABA; el panel trabaja “desde” un número activo. La IA y los flujos se pueden apagar por número.
 - **Ventana de 24 h**: fuera de ella solo plantillas aprobadas.
 - **Borrado de mensajes**: ocultar (reversible) o borrar el hilo definitivamente escribiendo `BORRAR`.

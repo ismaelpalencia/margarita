@@ -29,5 +29,8 @@ cmds = [
   "npm --prefix frontend install --include=dev --no-audit --no-fund"
 ]
 
+[phases.setup]
+nixPkgs = ["...", "ffmpeg"]
+
 [phases.build]
 cmds = ["npm run build"]

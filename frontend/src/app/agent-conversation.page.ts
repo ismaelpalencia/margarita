@@ -1,4 +1,4 @@
-import { Component, OnDestroy, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 interface ConversationMessage {
@@ -83,7 +83,7 @@ interface AdvancedConversationData {
         <section class="chat-card">
           <header class="chat-heading"><div><strong>Conversación</strong><small>{{ model.conversation.operationalStatus }}@if (model.offHoursNow) { · Fuera de horario }</small></div></header>
           @if (isAdmin) { <label class="deleted-toggle"><input type="checkbox" [checked]="showDeleted()" (change)="toggleDeleted($event)"> Mostrar mensajes eliminados</label> }
-          <div class="message-thread" #thread>
+          <div class="message-thread" #thread (scroll)="onThreadScroll($event)">
             @if (model.conversation.messages.length === 0) { <div class="thread-empty">Todavía no hay mensajes en esta conversación.</div> }
             @for (message of model.conversation.messages; track message.id) {
               <div class="message-line" [class.outgoing]="message.direction === 'OUT'">
@@ -122,6 +122,19 @@ interface AdvancedConversationData {
                 <input type="text" name="caption" maxlength="1024" placeholder="Texto opcional">
                 <button type="submit">Adjuntar</button>
               </form>
+              <div class="voice-recorder" aria-live="polite">
+                @if (recording()) {
+                  <span class="recording-indicator"><i></i>Grabando · {{ formatRecordingTime(recordingSeconds()) }}</span>
+                  <button type="button" class="voice-stop" (click)="stopVoiceRecording()">Detener</button>
+                } @else if (voicePreviewUrl()) {
+                  <audio controls [src]="voicePreviewUrl()" aria-label="Escuchar nota de voz antes de enviarla"></audio>
+                  <button type="button" class="voice-send" [disabled]="sendingVoice()" (click)="sendVoiceNote(model)">{{ sendingVoice() ? 'Enviando…' : 'Enviar audio' }}</button>
+                  <button type="button" class="voice-discard" [disabled]="sendingVoice()" (click)="discardVoiceRecording()">Descartar</button>
+                } @else {
+                  <button type="button" class="voice-start" (click)="startVoiceRecording()">🎙 Grabar audio de voz</button>
+                }
+                @if (voiceError()) { <small role="alert">{{ voiceError() }}</small> }
+              </div>
             } @else {
               <p class="composer-warning">La ventana de 24 horas está cerrada. Usa una plantilla aprobada para reabrirla.</p>
             }
@@ -167,11 +180,26 @@ export class AgentConversationPage implements OnDestroy {
   protected readonly draft = signal('');
   protected readonly advanced = signal<AdvancedConversationData | null>(null);
   protected readonly showDeleted = signal(false);
+  protected readonly recording = signal(false);
+  protected readonly recordingSeconds = signal(0);
+  protected readonly voicePreviewUrl = signal('');
+  protected readonly voiceError = signal('');
+  protected readonly sendingVoice = signal(false);
   protected readonly listRows = Array.from({ length: 10 }, (_, index) => index);
+  @ViewChild('thread') private thread?: ElementRef<HTMLDivElement>;
   private readonly id: string;
   protected readonly isAdmin = window.location.pathname.startsWith('/panel/admin/conversations/');
   private readonly socket = window.io?.({ withCredentials: true });
   private connectedBefore = false;
+  private mediaRecorder: MediaRecorder | null = null;
+  private mediaStream: MediaStream | null = null;
+  private recordedChunks: Blob[] = [];
+  private recordedVoice: Blob | null = null;
+  private recordingTimer: number | null = null;
+  private recordingStartedAt = 0;
+  private discardOnStop = false;
+  private hasInitialScroll = false;
+  private shouldStickToBottom = true;
   private readonly refreshTimer = window.setInterval(() => {
     if (!this.socket?.connected) void this.load(false);
   }, 20000);
@@ -194,6 +222,9 @@ export class AgentConversationPage implements OnDestroy {
 
   ngOnDestroy(): void {
     window.clearInterval(this.refreshTimer);
+    if (this.recordingTimer !== null) window.clearInterval(this.recordingTimer);
+    this.mediaStream?.getTracks().forEach((track) => track.stop());
+    if (this.voicePreviewUrl()) URL.revokeObjectURL(this.voicePreviewUrl());
     this.socket?.disconnect();
   }
 
@@ -208,6 +239,133 @@ export class AgentConversationPage implements OnDestroy {
 
   protected useQuickReply(body: string): void { this.draft.set(body); }
   protected setDraft(event: Event): void { this.draft.set((event.target as HTMLTextAreaElement).value); }
+  protected onThreadScroll(event: Event): void {
+    const element = event.target as HTMLDivElement;
+    this.shouldStickToBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 120;
+  }
+  protected formatRecordingTime(seconds: number): string { return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`; }
+
+  protected async startVoiceRecording(): Promise<void> {
+    this.voiceError.set('');
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      this.voiceError.set('Este navegador no permite grabar audio. Puedes adjuntar una grabación desde tu dispositivo.');
+      return;
+    }
+    try {
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+      const supportedTypes = [
+        'audio/mp4;codecs="mp4a.40.2"',
+        'audio/mp4',
+        'audio/ogg;codecs=opus',
+        'audio/webm;codecs=opus'
+      ];
+      const mimeType = supportedTypes.find((type) => MediaRecorder.isTypeSupported(type));
+      this.mediaRecorder = new MediaRecorder(this.mediaStream, {
+        ...(mimeType ? { mimeType } : {}),
+        audioBitsPerSecond: 64000
+      });
+      this.recordedChunks = [];
+      this.discardOnStop = false;
+      this.recordingStartedAt = Date.now();
+      this.recordingSeconds.set(0);
+      this.mediaRecorder.ondataavailable = (event: BlobEvent) => {
+        if (event.data.size > 0) this.recordedChunks.push(event.data);
+      };
+      this.mediaRecorder.onerror = () => {
+        this.voiceError.set('No se pudo grabar el audio. Revisa el permiso del micrófono e inténtalo de nuevo.');
+        this.mediaStream?.getTracks().forEach((track) => track.stop());
+        this.mediaStream = null;
+        this.recording.set(false);
+      };
+      this.mediaRecorder.onstop = () => this.finishVoiceRecording();
+      this.mediaRecorder.start(250);
+      this.recording.set(true);
+      this.recordingTimer = window.setInterval(() => {
+        const elapsed = Math.floor((Date.now() - this.recordingStartedAt) / 1000);
+        this.recordingSeconds.set(elapsed);
+        if (elapsed >= 180) this.stopVoiceRecording();
+      }, 1000);
+    } catch (reason: unknown) {
+      this.mediaStream?.getTracks().forEach((track) => track.stop());
+      this.mediaStream = null;
+      const name = reason instanceof DOMException ? reason.name : '';
+      this.voiceError.set(name === 'NotAllowedError' || name === 'PermissionDeniedError'
+        ? 'Permite el acceso al micrófono en el navegador para grabar una nota de voz.'
+        : 'No se pudo iniciar el micrófono. Revisa sus permisos e inténtalo de nuevo.');
+    }
+  }
+
+  protected stopVoiceRecording(): void {
+    if (this.mediaRecorder?.state === 'recording') this.mediaRecorder.stop();
+  }
+
+  protected discardVoiceRecording(): void {
+    if (this.mediaRecorder?.state === 'recording') {
+      this.discardOnStop = true;
+      this.mediaRecorder.stop();
+    }
+    this.clearVoicePreview();
+    this.voiceError.set('');
+  }
+
+  protected async sendVoiceNote(model: AgentConversationDetail): Promise<void> {
+    const blob = this.recordedVoice;
+    if (!blob?.size) {
+      this.voiceError.set('No hay una grabación lista para enviar.');
+      return;
+    }
+    const mimeType = blob.type.split(';')[0].toLowerCase();
+    const extension = mimeType === 'audio/mp4' ? 'm4a' : mimeType === 'audio/ogg' ? 'ogg' : 'webm';
+    const formData = new FormData();
+    formData.append('file', new File([blob], `nota-de-voz.${extension}`, { type: blob.type || 'audio/webm' }));
+    formData.append('voiceNote', 'true');
+    this.sendingVoice.set(true);
+    this.voiceError.set('');
+    try {
+      const response = await fetch(this.mediaUrl(model), { method: 'POST', body: formData, credentials: 'same-origin' });
+      const finalUrl = new URL(response.url, window.location.origin);
+      const error = finalUrl.searchParams.get('error');
+      if (!response.ok || error === 'media') {
+        this.voiceError.set(finalUrl.searchParams.get('detail') || 'No se pudo enviar el audio.');
+        return;
+      }
+      this.clearVoicePreview();
+      await this.load(false);
+    } catch {
+      this.voiceError.set('No se pudo completar el envío. Revisa tu conexión e inténtalo otra vez.');
+    } finally {
+      this.sendingVoice.set(false);
+    }
+  }
+
+  private finishVoiceRecording(): void {
+    this.recording.set(false);
+    if (this.recordingTimer !== null) window.clearInterval(this.recordingTimer);
+    this.recordingTimer = null;
+    this.mediaStream?.getTracks().forEach((track) => track.stop());
+    this.mediaStream = null;
+    if (this.discardOnStop) {
+      this.discardOnStop = false;
+      this.recordedChunks = [];
+      return;
+    }
+    const type = this.mediaRecorder?.mimeType || this.recordedChunks[0]?.type || 'audio/webm';
+    const blob = new Blob(this.recordedChunks, { type });
+    if (!blob.size) {
+      this.voiceError.set('La grabación quedó vacía. Inténtalo de nuevo.');
+      return;
+    }
+    this.clearVoicePreview();
+    this.recordedVoice = blob;
+    this.voicePreviewUrl.set(URL.createObjectURL(blob));
+  }
+
+  private clearVoicePreview(): void {
+    if (this.voicePreviewUrl()) URL.revokeObjectURL(this.voicePreviewUrl());
+    this.voicePreviewUrl.set('');
+    this.recordedChunks = [];
+    this.recordedVoice = null;
+  }
   protected listUrl(): string { return this.isAdmin ? '/panel/admin/conversations' : '/panel/agent/conversations'; }
   protected messageUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/free-text`; }
   protected localMessageUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/local`; }
@@ -261,7 +419,18 @@ export class AgentConversationPage implements OnDestroy {
       if (response.status === 404) throw new Error('La conversación no existe o no tienes acceso.');
       if (!response.ok) throw new Error('No se pudo cargar la conversación.');
       if (!(response.headers.get('content-type') || '').includes('application/json')) throw new Error('La sesión venció. Inicia sesión para continuar.');
-      this.data.set(await response.json() as AgentConversationDetail);
+      const result = await response.json() as AgentConversationDetail;
+      const scrollToLatest = !this.hasInitialScroll || this.shouldStickToBottom;
+      this.data.set(result);
+      this.hasInitialScroll = true;
+      if (scrollToLatest) {
+        window.requestAnimationFrame(() => {
+          const thread = this.thread?.nativeElement;
+          if (!thread) return;
+          thread.scrollTop = thread.scrollHeight;
+          this.shouldStickToBottom = true;
+        });
+      }
       const advancedResponse = await fetch(`${this.routeBase()}/${encodeURIComponent(this.id)}/legacy${deletedQuery}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
       if (advancedResponse.ok && (advancedResponse.headers.get('content-type') || '').includes('application/json')) this.advanced.set(await advancedResponse.json() as AdvancedConversationData);
       this.error.set('');

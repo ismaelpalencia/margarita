@@ -4,6 +4,16 @@ html { color-scheme: light; --surface-page: #f6f8f7; --surface-card: #fff; --sur
 body { color: #263b33; background: #f7f9f7; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
 a { color: inherit; }
 .contact-share-label { display: block; margin-bottom: 5px; color: #56745f; font-size: 8px; font-weight: 750; letter-spacing: .06em; }
+.voice-recorder { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding-top: 7px; }
+.voice-recorder button { min-height: 30px; padding: 0 10px; border: 1px solid #dfe7e1; border-radius: 7px; color: #416052; background: #f6f9f7; font: inherit; font-size: 10px; font-weight: 650; cursor: pointer; }
+.voice-recorder .voice-start,.voice-recorder .voice-send { border-color: #2f725b; color: #fff; background: #2f725b; }
+.voice-recorder .voice-discard { color: #8b4c45; }
+.voice-recorder button:disabled { opacity: .6; cursor: wait; }
+.voice-recorder audio { width: min(260px, 100%); height: 32px; }
+.voice-recorder small { flex-basis: 100%; color: #a33e32; font-size: 10px; }
+.recording-indicator { display: inline-flex; align-items: center; gap: 7px; color: #a33e32; font-size: 10px; font-weight: 700; }
+.recording-indicator i { width: 8px; height: 8px; border-radius: 50%; background: #d84b42; animation: recording-pulse 1.1s infinite; }
+@keyframes recording-pulse { 50% { opacity: .35; } }
 html[data-theme="dark"] { color-scheme: dark; --surface-page: #111916; --surface-card: #1a2420; --surface-raised: #202c26; --surface-border: #34423a; --text-primary: #e7eee9; --text-secondary: #bdc9c1; --text-muted: #91a097; --brand-green: #69bd8b; }
 html[data-theme="dark"] body { color: var(--text-primary); background: var(--surface-page); }
 html[data-theme="dark"] .main-area { background: var(--surface-page); }
@@ -38,6 +48,10 @@ html[data-theme="dark"] .page-content :is(.open-button,.refresh-button,.unread-f
 html[data-theme="dark"] .page-content :is(.open-button:hover,.refresh-button:hover,.unread-filter:hover,.status-actions button:hover,.report-action button:hover,.reply-actions button:hover,.quick-replies button:hover) { border-color: #5a8068 !important; background-color: #2c3d32 !important; }
 html[data-theme="dark"] .page-content :is(.send-form button,.upload-form button,.report-button,.reply-save,.primary-button) { border-color: transparent !important; color: #fff !important; background-color: #17865a !important; }
 html[data-theme="dark"] .page-content :is(.send-form button:hover,.upload-form button:hover,.report-button:hover,.reply-save:hover,.primary-button:hover) { background-color: #1b9a67 !important; }
+html[data-theme="dark"] .voice-recorder button { border-color: #3b4b41; color: #dce8df; background: #243129; }
+html[data-theme="dark"] .voice-recorder .voice-start,html[data-theme="dark"] .voice-recorder .voice-send { border-color: transparent; color: #fff; background: #17865a; }
+html[data-theme="dark"] .voice-recorder .voice-discard { color: #f0aaa2; }
+html[data-theme="dark"] .recording-indicator { color: #ffaaa1; }
 html[data-theme="dark"] .live-toast { border-color: #34423a; color: #e7eee9; background-color: #1a2420; }
 html[data-theme="dark"] .live-toast strong { color: #acd7b8; }
 html[data-theme="dark"] .live-toast span { color: #bdc9c1; }

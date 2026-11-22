@@ -466,7 +466,8 @@ export class AdminConversationsController {
                     mimetype: req.file.mimetype,
                     size: req.file.size
                 },
-                caption: typeof req.body?.caption === "string" ? req.body.caption : null
+                caption: typeof req.body?.caption === "string" ? req.body.caption : null,
+                voiceNote: req.body?.voiceNote === "true"
             });
 
             return res.redirect(

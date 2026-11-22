@@ -1,6 +1,8 @@
 import axios from "axios";
 import fs from "node:fs";
 import path from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { Prisma } from "@prisma/client";
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
@@ -110,7 +112,35 @@ type SendMediaMessageParams = {
         size: number;
     };
     caption?: string | null;
+    voiceNote?: boolean;
 };
+
+const execFileAsync = promisify(execFile);
+
+async function encodeVoiceNote(file: SendMediaMessageParams["file"]) {
+    const outputPath = `${file.path}.voice.ogg`;
+    try {
+        await execFileAsync("ffmpeg", [
+            "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+            "-i", file.path,
+            "-map", "0:a:0", "-vn", "-ac", "1",
+            "-c:a", "libopus", "-b:a", "32k", "-application", "voip",
+            "-f", "ogg", outputPath
+        ], { timeout: 60_000, maxBuffer: 1024 * 1024 });
+        const stats = await fs.promises.stat(outputPath);
+        if (!stats.size) throw new Error("empty_audio");
+        return {
+            ...file,
+            path: outputPath,
+            originalname: `${path.parse(file.originalname).name || "nota-de-voz"}.ogg`,
+            mimetype: "audio/ogg; codecs=opus",
+            size: stats.size
+        };
+    } catch {
+        await fs.promises.unlink(outputPath).catch(() => undefined);
+        throw new Error("No se pudo procesar la nota de voz. Inténtalo de nuevo.");
+    }
+}
 
 export class MessageService {
     static async sendLocalMessage(params: SendLocalMessageParams) {
@@ -1523,15 +1553,26 @@ export class MessageService {
      * obtener el `media id` con el que se envía.
      */
     static async sendMediaMessage(params: SendMediaMessageParams) {
+        let convertedPath: string | null = null;
         try {
-            return await this.dispatchMediaMessage(params);
+            const normalizedParams = params.voiceNote
+                ? { ...params, file: await encodeVoiceNote(params.file) }
+                : params;
+            if (normalizedParams.file.path !== params.file.path) {
+                convertedPath = normalizedParams.file.path;
+            }
+            return await this.dispatchMediaMessage(normalizedParams);
         } finally {
             /**
              * El temporal de multer se borra siempre, incluso cuando el
              * envío se rechaza antes de subir (ventana cerrada, formato
              * no permitido, archivo demasiado grande).
              */
-            fs.promises.unlink(params.file.path).catch(() => undefined);
+            await Promise.all(
+                [params.file.path, convertedPath]
+                    .filter((filePath): filePath is string => Boolean(filePath))
+                    .map((filePath) => fs.promises.unlink(filePath).catch(() => undefined))
+            );
         }
     }
 
@@ -1670,7 +1711,8 @@ export class MessageService {
                 type: upload.type,
                 mediaId,
                 caption,
-                filename: upload.filename
+                filename: upload.filename,
+                voiceNote: params.voiceNote
             });
 
             const response = await axios.post(
