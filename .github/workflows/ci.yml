@@ -49,6 +49,9 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      - name: Instalar frontend Angular
+        run: npm --prefix frontend ci
+
       - name: Validar esquema de Prisma
         run: npx prisma validate
 
@@ -60,6 +63,9 @@ jobs:
 
       - name: Tests
         run: npm test
+
+      - name: Tests del frontend Angular
+        run: npm --prefix frontend test -- --watch=false
 
       - name: Build completo
         run: npm run build
@@ -108,6 +114,9 @@ jobs:
 
       - name: Instalar dependencias
         run: npm install --include=dev --no-audit --no-fund
+
+      - name: Instalar frontend Angular
+        run: npm --prefix frontend install --include=dev --no-audit --no-fund
 
       - name: Generar cliente de Prisma
         run: npx prisma generate

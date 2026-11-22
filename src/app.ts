@@ -95,6 +95,12 @@ app.get("/sw.js", (_req, res) => {
     res.sendFile(path.join(rootDir, "src", "public", "sw.js"));
 });
 
+app.use(
+    "/angular",
+    express.static(path.join(rootDir, "src", "public", "angular"), {
+        index: false
+    })
+);
 app.use(express.static(path.join(rootDir, "src", "public")));
 
 /**

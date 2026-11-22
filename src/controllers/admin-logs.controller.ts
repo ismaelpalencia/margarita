@@ -16,14 +16,11 @@ export class AdminLogsController {
                     : undefined
         });
 
-        return res.render("pages/admin/logs/index", {
-            user: req.user,
-            logs,
-            filters: {
-                level: req.query.level || "",
-                module: req.query.module || ""
-            }
-        });
+        if (req.accepts("json") && !req.accepts("html")) {
+            return res.json({ logs: logs.map(({ id, level, module, createdAt, action, message, payload }) => ({ id, level, module, createdAt, action, message, payload })), filters: { level: req.query.level || "", module: req.query.module || "" } });
+        }
+        const query = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
+        return res.redirect(`/panel/admin/logs${query}`);
     }
 
     /**
@@ -38,11 +35,7 @@ export class AdminLogsController {
             workspaceId: req.user!.workspaceId
         });
 
-        return res.render("pages/admin/logs/webhooks", {
-            user: req.user,
-            events,
-            /** Se muestra el JSON indentado, que es lo que se copia. */
-            prettyPrint: (value: unknown) => JSON.stringify(value, null, 2)
-        });
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ events });
+        return res.redirect("/panel/admin/logs/webhooks");
     }
 }

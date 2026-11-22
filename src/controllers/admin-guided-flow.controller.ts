@@ -56,7 +56,13 @@ async function uniqueGuidedSlug(workspaceId: string, base: string) {
 }
 
 function leadFieldsFrom(value: unknown): string[] {
-    const values = Array.isArray(value) ? value : value ? [value] : [];
+    const values = Array.isArray(value)
+        ? value
+        : typeof value === "string"
+          ? value.split(",")
+          : value
+            ? [value]
+            : [];
 
     return Array.from(
         new Set(
@@ -96,12 +102,12 @@ export class AdminGuidedFlowController {
             ]
         });
 
-        return res.render("pages/admin/ai/guided-flows", {
-            user: req.user,
-            flows,
-            success: req.query.success || null,
-            error: req.query.error || null
-        });
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ flows: flows.map(({ id, name, slug, trigger, isActive, isDraft, draftSummary, draftMissing, createdAt }) => ({ id, name, slug, trigger, isActive, isDraft, draftSummary, draftMissing, createdAt })) });
+
+        const query = req.originalUrl.includes("?")
+            ? req.originalUrl.slice(req.originalUrl.indexOf("?"))
+            : "";
+        return res.redirect(`/panel/admin/ai/guided-flows${query}`);
     }
 
     static async generate(req: Request, res: Response) {
@@ -137,30 +143,21 @@ export class AdminGuidedFlowController {
                 }
             });
 
-            return res.redirect(
-                `/admin/ai/guided-flows/${flow.id}?draft=1`
-            );
+            const redirectUrl = `/panel/admin/ai/guided-flows/${flow.id}?draft=1`;
+            if (req.accepts("json")) {
+                return res.json({ ok: true, redirectUrl });
+            }
+            return res.redirect(redirectUrl);
         } catch (error) {
-            return res.status(400).render("pages/admin/ai/guided-flow-edit", {
-                user: req.user,
-                flow: null,
-                stepsJson: "[]",
-                values: {
-                    name: "",
-                    slug: "",
-                    trigger: "",
-                    isActive: true
-                },
-                error:
-                    error instanceof GuidedFlowGenerationError
-                        ? error.message
-                        : "No se pudo generar el flujo. Intenta de nuevo.",
-                summary: null,
-                missing: [],
-                aiSource: source,
-                aiContext: context,
-                aiInstructions: instructions
-            });
+            const message =
+                error instanceof GuidedFlowGenerationError
+                    ? error.message
+                    : "No se pudo generar el flujo. Intenta de nuevo.";
+
+            if (req.accepts("json")) {
+                return res.status(400).json({ error: message });
+            }
+            return res.redirect("/panel/admin/ai/guided-flows/new?error=generate");
         }
     }
 
@@ -172,32 +169,20 @@ export class AdminGuidedFlowController {
         });
 
         if (!flow) {
-            return res.redirect("/admin/ai/guided-flows?error=not_found");
+            if (req.accepts("json")) {
+                return res.status(404).json({ error: "No se encontró el flujo." });
+            }
+            return res.redirect("/panel/admin/ai/guided-flows?error=not_found");
         }
 
         if (!prompt) {
-            return res.status(400).render("pages/admin/ai/guided-flow-edit", {
-                user: req.user,
-                flow,
-                stepsJson: JSON.stringify(flow.steps, null, 2),
-                values: {
-                    name: flow.name,
-                    slug: flow.slug,
-                    trigger: flow.trigger,
-                    isActive: flow.isActive,
-                    leadCapture: flow.leadCapture,
-                    requiresApproval: flow.requiresApproval,
-                    leadNameField: flow.leadNameField || "",
-                    leadEmailField: flow.leadEmailField || "",
-                    leadInterestField: flow.leadInterestField || "",
-                    leadFields: flow.leadFields
-                },
-                error: "Escribe los cambios que quieres hacerle al flujo.",
-                summary: null,
-                missing: [],
-                aiSource: prompt,
-                draft: flow.isDraft
-            });
+            const message = "Escribe los cambios que quieres hacerle al flujo.";
+            if (req.accepts("json")) {
+                return res.status(400).json({ error: message });
+            }
+            return res.redirect(
+                `/panel/admin/ai/guided-flows/${flow.id}?error=prompt`
+            );
         }
 
         const current = JSON.stringify(
@@ -219,105 +204,47 @@ export class AdminGuidedFlowController {
                     "Devuelve el flujo completo modificado. Conserva los pasos, textos, ids y ramas que no se piden cambiar. No inventes integraciones ni prometas montos."
             });
 
-            return res.render("pages/admin/ai/guided-flow-edit", {
-                user: req.user,
-                flow,
-                stepsJson: JSON.stringify(result.steps, null, 2),
-                values: {
-                    name: result.name || flow.name,
-                    slug: flow.slug,
-                    trigger: result.trigger || flow.trigger,
-                    isActive: flow.isActive,
-                    leadCapture: flow.leadCapture,
-                    requiresApproval: flow.requiresApproval,
-                    leadNameField: flow.leadNameField || "",
-                    leadEmailField: flow.leadEmailField || "",
-                    leadInterestField: flow.leadInterestField || "",
-                    leadFields: flow.leadFields
-                },
-                error: null,
-                summary: result.summary || null,
-                missing: result.missing,
-                aiSource: prompt,
-                draft: true
-            });
+            if (req.accepts("json")) return res.json({ values: { name: result.name || flow.name, slug: flow.slug, trigger: result.trigger || flow.trigger, isActive: flow.isActive, leadCapture: flow.leadCapture, requiresApproval: flow.requiresApproval, leadNameField: flow.leadNameField || "", leadEmailField: flow.leadEmailField || "", leadInterestField: flow.leadInterestField || "", leadFields: flow.leadFields }, steps: result.steps, summary: result.summary || null, missing: result.missing });
+
+            return res.redirect(`/panel/admin/ai/guided-flows/${flow.id}?draft=1`);
         } catch (error) {
-            return res.status(400).render("pages/admin/ai/guided-flow-edit", {
-                user: req.user,
-                flow,
-                stepsJson: JSON.stringify(flow.steps, null, 2),
-                values: {
-                    name: flow.name,
-                    slug: flow.slug,
-                    trigger: flow.trigger,
-                    isActive: flow.isActive,
-                    leadCapture: flow.leadCapture,
-                    requiresApproval: flow.requiresApproval,
-                    leadNameField: flow.leadNameField || "",
-                    leadEmailField: flow.leadEmailField || "",
-                    leadInterestField: flow.leadInterestField || "",
-                    leadFields: flow.leadFields
-                },
-                error:
-                    error instanceof GuidedFlowGenerationError
-                        ? error.message
-                        : "No se pudo modificar el flujo. Intenta de nuevo.",
-                summary: null,
-                missing: [],
-                aiSource: prompt
-            });
+            const message =
+                error instanceof GuidedFlowGenerationError
+                    ? error.message
+                    : "No se pudo modificar el flujo. Intenta de nuevo.";
+
+            if (req.accepts("json")) {
+                return res.status(400).json({ error: message });
+            }
+            return res.redirect(
+                `/panel/admin/ai/guided-flows/${flow.id}?error=revise`
+            );
         }
     }
 
     static async newForm(req: Request, res: Response) {
         const template = req.query.template === "pension";
 
-        return res.render("pages/admin/ai/guided-flow-edit", {
-            user: req.user,
-            flow: null,
-            stepsJson: JSON.stringify(
-                template ? PENSION_GUIDED_TEMPLATE.steps : [],
-                null,
-                2
-            ),
-            values: {
-                name: template ? PENSION_GUIDED_TEMPLATE.name : "",
-                slug: template ? PENSION_GUIDED_TEMPLATE.slug : "",
-                trigger: template ? PENSION_GUIDED_TEMPLATE.trigger : "",
-                isActive: true,
-                leadCapture: false,
-                requiresApproval: false,
-                leadNameField: "",
-                leadEmailField: "",
-                leadInterestField: "",
-                leadFields: []
-            },
-            error: null
-        });
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ flow: null, values: { name: template ? PENSION_GUIDED_TEMPLATE.name : "", slug: template ? PENSION_GUIDED_TEMPLATE.slug : "", trigger: template ? PENSION_GUIDED_TEMPLATE.trigger : "", isActive: true, leadCapture: false, requiresApproval: false, leadNameField: "", leadEmailField: "", leadInterestField: "", leadFields: [] }, steps: template ? PENSION_GUIDED_TEMPLATE.steps : [] });
+
+        const query = req.originalUrl.includes("?")
+            ? req.originalUrl.slice(req.originalUrl.indexOf("?"))
+            : "";
+        return res.redirect(`/panel/admin/ai/guided-flows/new${query}`);
     }
 
     static async create(req: Request, res: Response) {
         const parsed = formSchema.safeParse(req.body);
 
         if (!parsed.success) {
-            return res.status(400).render("pages/admin/ai/guided-flow-edit", {
-                user: req.user,
-                flow: null,
-                stepsJson: String(req.body?.steps || ""),
-                values: {
-                    name: String(req.body?.name || ""),
-                    slug: String(req.body?.slug || ""),
-                    trigger: String(req.body?.trigger || ""),
-                    isActive: req.body?.isActive === "on",
-                    leadCapture: req.body?.leadCapture === "on",
-                    requiresApproval: req.body?.requiresApproval === "on",
-                    leadNameField: String(req.body?.leadNameField || ""),
-                    leadEmailField: String(req.body?.leadEmailField || ""),
-                    leadInterestField: String(req.body?.leadInterestField || ""),
-                    leadFields: leadFieldsFrom(req.body?.leadFields)
-                },
-                error: parsed.error.issues[0]?.message || "Datos inválidos."
-            });
+            const message =
+                parsed.error.issues[0]?.message || "Datos inválidos.";
+            if (req.accepts("json")) {
+                return res.status(400).json({ error: message });
+            }
+            return res.redirect(
+                "/panel/admin/ai/guided-flows/new?error=validation"
+            );
         }
 
         try {
@@ -349,29 +276,23 @@ export class AdminGuidedFlowController {
                 payload: { flowId: flow.id }
             }).catch(() => undefined);
 
-            return res.redirect("/admin/ai/guided-flows?success=created");
+            const redirectUrl = "/panel/admin/ai/guided-flows?success=created";
+            if (req.accepts("json")) {
+                return res.json({ ok: true, redirectUrl });
+            }
+            return res.redirect(redirectUrl);
         } catch (error) {
-            return res.status(400).render("pages/admin/ai/guided-flow-edit", {
-                user: req.user,
-                flow: null,
-                stepsJson: parsed.data.steps,
-                values: {
-                    name: parsed.data.name,
-                    slug: parsed.data.slug,
-                    trigger: parsed.data.trigger,
-                    isActive: parsed.data.isActive === "on",
-                    leadCapture: parsed.data.leadCapture === "on",
-                    requiresApproval: parsed.data.requiresApproval === "on",
-                    leadNameField: parsed.data.leadNameField,
-                    leadEmailField: parsed.data.leadEmailField,
-                    leadInterestField: parsed.data.leadInterestField,
-                    leadFields: leadFieldsFrom(parsed.data.leadFields)
-                },
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "No se pudo crear el flujo."
-            });
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "No se pudo crear el flujo.";
+
+            if (req.accepts("json")) {
+                return res.status(400).json({ error: message });
+            }
+            return res.redirect(
+                "/panel/admin/ai/guided-flows/new?error=create"
+            );
         }
     }
 
@@ -382,33 +303,24 @@ export class AdminGuidedFlowController {
         });
 
         if (!flow) {
-            return res.redirect("/admin/ai/guided-flows?error=not_found");
+            if (req.accepts("json")) {
+                return res.status(404).json({ error: "No se encontró el flujo." });
+            }
+            return res.redirect("/panel/admin/ai/guided-flows?error=not_found");
         }
 
         const missing = flow.isDraft && Array.isArray(flow.draftMissing)
             ? (flow.draftMissing as string[])
             : [];
 
-        return res.render("pages/admin/ai/guided-flow-edit", {
-            user: req.user,
-            flow,
-            stepsJson: JSON.stringify(flow.steps, null, 2),
-            values: {
-                name: flow.name,
-                slug: flow.slug,
-                trigger: flow.trigger,
-                isActive: flow.isDraft ? true : flow.isActive,
-                leadCapture: flow.leadCapture,
-                leadNameField: flow.leadNameField || "",
-                leadEmailField: flow.leadEmailField || "",
-                leadInterestField: flow.leadInterestField || "",
-                leadFields: flow.leadFields
-            },
-            error: null,
-            summary: flow.isDraft ? flow.draftSummary : null,
-            missing,
-            draft: flow.isDraft
-        });
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ flow: { id: flow.id, isDraft: flow.isDraft, draftSummary: flow.draftSummary, draftMissing: missing }, values: { name: flow.name, slug: flow.slug, trigger: flow.trigger, isActive: flow.isDraft ? true : flow.isActive, leadCapture: flow.leadCapture, requiresApproval: flow.requiresApproval, leadNameField: flow.leadNameField || "", leadEmailField: flow.leadEmailField || "", leadInterestField: flow.leadInterestField || "", leadFields: flow.leadFields }, steps: flow.steps });
+
+        const query = req.originalUrl.includes("?")
+            ? req.originalUrl.slice(req.originalUrl.indexOf("?"))
+            : "";
+        return res.redirect(
+            `/panel/admin/ai/guided-flows/${encodeURIComponent(flow.id)}${query}`
+        );
     }
 
     static async update(req: Request, res: Response) {
@@ -418,30 +330,23 @@ export class AdminGuidedFlowController {
         });
 
         if (!flow) {
-            return res.redirect("/admin/ai/guided-flows?error=not_found");
+            if (req.accepts("json")) {
+                return res.status(404).json({ error: "No se encontró el flujo." });
+            }
+            return res.redirect("/panel/admin/ai/guided-flows?error=not_found");
         }
 
         const parsed = formSchema.safeParse(req.body);
 
         if (!parsed.success) {
-            return res.status(400).render("pages/admin/ai/guided-flow-edit", {
-                user: req.user,
-                flow,
-                stepsJson: String(req.body?.steps || ""),
-                values: {
-                    name: String(req.body?.name || ""),
-                    slug: String(req.body?.slug || ""),
-                    trigger: String(req.body?.trigger || ""),
-                    isActive: req.body?.isActive === "on",
-                    leadCapture: req.body?.leadCapture === "on",
-                    requiresApproval: req.body?.requiresApproval === "on",
-                    leadNameField: String(req.body?.leadNameField || ""),
-                    leadEmailField: String(req.body?.leadEmailField || ""),
-                    leadInterestField: String(req.body?.leadInterestField || ""),
-                    leadFields: leadFieldsFrom(req.body?.leadFields)
-                },
-                error: parsed.error.issues[0]?.message || "Datos inválidos."
-            });
+            const message =
+                parsed.error.issues[0]?.message || "Datos inválidos.";
+            if (req.accepts("json")) {
+                return res.status(400).json({ error: message });
+            }
+            return res.redirect(
+                `/panel/admin/ai/guided-flows/${flow.id}?error=validation`
+            );
         }
 
         try {
@@ -484,34 +389,23 @@ export class AdminGuidedFlowController {
                 payload: { flowId: flow.id }
             }).catch(() => undefined);
 
-            return res.redirect("/admin/ai/guided-flows?success=updated");
+            const redirectUrl = "/panel/admin/ai/guided-flows?success=updated";
+            if (req.accepts("json")) {
+                return res.json({ ok: true, redirectUrl });
+            }
+            return res.redirect(redirectUrl);
         } catch (error) {
-            return res.status(400).render("pages/admin/ai/guided-flow-edit", {
-                user: req.user,
-                flow,
-                stepsJson: parsed.data.steps,
-                values: {
-                    name: parsed.data.name,
-                    slug: parsed.data.slug,
-                    trigger: parsed.data.trigger,
-                    isActive: parsed.data.isActive === "on",
-                    leadCapture: parsed.data.leadCapture === "on",
-                    requiresApproval: parsed.data.requiresApproval === "on",
-                    leadNameField: parsed.data.leadNameField,
-                    leadEmailField: parsed.data.leadEmailField,
-                    leadInterestField: parsed.data.leadInterestField,
-                    leadFields: leadFieldsFrom(parsed.data.leadFields)
-                },
-                summary: flow.isDraft ? flow.draftSummary : null,
-                missing:
-                    flow.isDraft && Array.isArray(flow.draftMissing)
-                        ? (flow.draftMissing as string[])
-                        : [],
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "No se pudo actualizar el flujo."
-            });
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "No se pudo actualizar el flujo.";
+
+            if (req.accepts("json")) {
+                return res.status(400).json({ error: message });
+            }
+            return res.redirect(
+                `/panel/admin/ai/guided-flows/${flow.id}?error=update`
+            );
         }
     }
 
@@ -522,7 +416,10 @@ export class AdminGuidedFlowController {
         });
 
         if (!flow) {
-            return res.redirect("/admin/ai/guided-flows?error=not_found");
+            if (req.accepts("json")) {
+                return res.status(404).json({ error: "No se encontró el flujo." });
+            }
+            return res.redirect("/panel/admin/ai/guided-flows?error=not_found");
         }
 
         await prisma.guidedFlow.delete({ where: { id: flow.id } });
@@ -536,7 +433,7 @@ export class AdminGuidedFlowController {
             payload: { flowId: flow.id }
         }).catch(() => undefined);
 
-        return res.redirect("/admin/ai/guided-flows?success=deleted");
+        return res.redirect("/panel/admin/ai/guided-flows?success=deleted");
     }
 
     static async toggle(req: Request, res: Response) {
@@ -546,7 +443,10 @@ export class AdminGuidedFlowController {
         });
 
         if (!flow) {
-            return res.redirect("/admin/ai/guided-flows?error=not_found");
+            if (req.accepts("json")) {
+                return res.status(404).json({ error: "No se encontró el flujo." });
+            }
+            return res.redirect("/panel/admin/ai/guided-flows?error=not_found");
         }
 
         await prisma.guidedFlow.update({
@@ -572,6 +472,6 @@ export class AdminGuidedFlowController {
             payload: { flowId: flow.id }
         }).catch(() => undefined);
 
-        return res.redirect("/admin/ai/guided-flows?success=toggled");
+        return res.redirect("/panel/admin/ai/guided-flows?success=toggled");
     }
 }

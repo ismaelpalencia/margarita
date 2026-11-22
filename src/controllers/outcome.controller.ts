@@ -105,6 +105,9 @@ export class OutcomeController {
         const parsed = markOutcomeSchema.safeParse(req.body);
 
         if (!parsed.success) {
+            if (req.accepts("json") && !req.accepts("html")) {
+                return res.status(400).json({ error: parsed.error.issues[0]?.message || "Datos inválidos." });
+            }
             return res.redirect(
                 `/admin/contacts/${contactId}/edit?error=outcome`
             );
@@ -122,6 +125,7 @@ export class OutcomeController {
                 paidDate: parsed.data.paidDate
             });
 
+            if (req.accepts("json") && !req.accepts("html")) return res.json({ ok: true });
             return res.redirect(
                 `/admin/contacts/${contactId}/edit?success=outcome`
             );
@@ -130,6 +134,9 @@ export class OutcomeController {
                 error instanceof OutcomeValidationError ||
                 OutcomeController.isNotVisibleConversation(error)
             ) {
+                if (req.accepts("json") && !req.accepts("html")) {
+                    return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo guardar el resultado." });
+                }
                 return res.redirect(
                     `/admin/contacts/${contactId}/edit?error=outcome`
                 );

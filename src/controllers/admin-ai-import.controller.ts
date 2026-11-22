@@ -37,34 +37,16 @@ export class AdminAiImportController {
     }
 
     static async form(req: Request, res: Response) {
-        return res.render("pages/admin/ai/import", {
-            user: req.user,
-            error: req.query.error || null,
-            source: "",
-            instructions: "",
-            drafts: await AdminAiImportController.draftsFor(
-                req.user!.workspaceId
-            ),
-            lastReplace: await BusinessImportService.lastReplace(
-                req.user!.workspaceId
-            ),
-            success: req.query.success || null
-        });
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ drafts: await AdminAiImportController.draftsFor(req.user!.workspaceId), lastReplace: await BusinessImportService.lastReplace(req.user!.workspaceId) });
+        return res.redirect("/panel/admin/ai/import");
     }
 
     static async analyze(req: Request, res: Response) {
         const parsed = formSchema.safeParse(req.body);
 
         if (!parsed.success) {
-            return res.status(400).render("pages/admin/ai/import", {
-                user: req.user,
-                error: parsed.error.issues[0]?.message || "Datos inválidos.",
-                source: String(req.body?.source || ""),
-                instructions: String(req.body?.instructions || ""),
-                drafts: await AdminAiImportController.draftsFor(
-                    req.user!.workspaceId
-                )
-            });
+            if (req.accepts("json")) return res.status(400).json({ error: parsed.error.issues[0]?.message || "Datos inválidos." });
+            return res.redirect("/panel/admin/ai/import?error=validation");
         }
 
         try {
@@ -75,24 +57,11 @@ export class AdminAiImportController {
                 instructions: parsed.data.instructions
             });
 
-            return res.render("pages/admin/ai/import-preview", {
-                user: req.user,
-                importId: result.importId,
-                data: result.data
-            });
+            if (req.accepts("json")) return res.json({ importId: result.importId });
+            return res.redirect(`/panel/admin/ai/import/${result.importId}`);
         } catch (error) {
-            return res.status(400).render("pages/admin/ai/import", {
-                user: req.user,
-                error:
-                    error instanceof BusinessImportError
-                        ? error.message
-                        : "No se pudo analizar el documento. Intenta de nuevo.",
-                source: parsed.data.source,
-                instructions: parsed.data.instructions,
-                drafts: await AdminAiImportController.draftsFor(
-                    req.user!.workspaceId
-                )
-            });
+            if (req.accepts("json")) return res.status(400).json({ error: error instanceof BusinessImportError ? error.message : "No se pudo analizar el documento. Intenta de nuevo." });
+            return res.redirect("/panel/admin/ai/import?error=analyze");
         }
     }
 
@@ -105,14 +74,10 @@ export class AdminAiImportController {
                 importId
             );
 
-            return res.render("pages/admin/ai/import-preview", {
-                user: req.user,
-                importId: draft.record.id,
-                data: draft.data,
-                success: req.query.success || null
-            });
+            if (req.accepts("json") && !req.accepts("html")) return res.json({ importId: draft.record.id, data: draft.data, success: req.query.success || null });
+            return res.redirect(`/panel/admin/ai/import/${draft.record.id}`);
         } catch {
-            return res.redirect("/admin/ai/import?error=draft");
+            return res.redirect("/panel/admin/ai/import?error=draft");
         }
     }
 
@@ -125,14 +90,10 @@ export class AdminAiImportController {
                 importId
             );
 
-            return res.render("pages/admin/ai/import-edit", {
-                user: req.user,
-                importId: draft.record.id,
-                resultJson: JSON.stringify(draft.record.result, null, 2),
-                error: req.query.error || null
-            });
+            if (req.accepts("json") && !req.accepts("html")) return res.json({ importId: draft.record.id, result: draft.record.result });
+            return res.redirect(`/panel/admin/ai/import/${draft.record.id}/edit`);
         } catch {
-            return res.redirect("/admin/ai/import?error=draft");
+            return res.redirect("/panel/admin/ai/import?error=draft");
         }
     }
 
@@ -145,12 +106,10 @@ export class AdminAiImportController {
         try {
             parsedJson = JSON.parse(resultJson);
         } catch {
-            return res.status(400).render("pages/admin/ai/import-edit", {
-                user: req.user,
-                importId,
-                resultJson,
-                error: "El JSON no es válido. Revisa comas, llaves y comillas."
-            });
+            if (req.accepts("json")) return res.status(400).json({ error: "El JSON no es válido. Revisa comas, llaves y comillas." });
+            return res.redirect(
+                `/panel/admin/ai/import/${importId}/edit?error=json`
+            );
         }
 
         try {
@@ -160,19 +119,16 @@ export class AdminAiImportController {
                 result: parsedJson
             });
 
+            if (req.accepts("json")) return res.json({ ok: true });
+
             return res.redirect(
-                `/admin/ai/import/${importId}?success=saved`
+                `/panel/admin/ai/import/${importId}?success=saved`
             );
         } catch (error) {
-            return res.status(400).render("pages/admin/ai/import-edit", {
-                user: req.user,
-                importId,
-                resultJson,
-                error:
-                    error instanceof BusinessImportError
-                        ? error.message
-                        : "No se pudo guardar el borrador."
-            });
+            if (req.accepts("json")) return res.status(400).json({ error: error instanceof BusinessImportError ? error.message : "No se pudo guardar el borrador." });
+            return res.redirect(
+                `/panel/admin/ai/import/${importId}/edit?error=save`
+            );
         }
     }
 
@@ -183,9 +139,9 @@ export class AdminAiImportController {
                 userId: req.user!.id
             });
 
-            return res.redirect("/admin/ai/import?success=undo");
+            return res.redirect("/panel/admin/ai/import?success=undo");
         } catch {
-            return res.redirect("/admin/ai/import?error=undo");
+            return res.redirect("/panel/admin/ai/import?error=undo");
         }
     }
 
@@ -201,9 +157,9 @@ export class AdminAiImportController {
                 mode
             });
 
-            return res.redirect("/admin/ai/import?success=applied");
+            return res.redirect("/panel/admin/ai/import?success=applied");
         } catch {
-            return res.redirect("/admin/ai/import?error=apply");
+            return res.redirect("/panel/admin/ai/import?error=apply");
         }
     }
 }

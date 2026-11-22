@@ -3,20 +3,11 @@ import { Request, Response } from "express";
 import { ContactService } from "../services/contact.service";
 import { ContactOutcomeService } from "../services/contact-outcome.service";
 import { SendPolicyService } from "../services/send-policy.service";
+import { startOfTodayIn } from "../utils/date";
 import {
-    formatDateTimeMX,
-    formatWaitingTime,
-    startOfTodayIn
-} from "../utils/date";
-import {
-    OUTCOME_BADGE_CLASSES,
     OUTCOME_LABELS,
-    OUTCOME_SHORT_LABELS,
     OUTCOME_TYPES,
-    daysOverdue,
-    formatAmount,
-    isOpenPromise,
-    parseAmount
+    daysOverdue
 } from "../utils/outcome";
 import { TagService } from "../services/tag.service";
 import { getRequiredParam } from "../utils/request";
@@ -26,7 +17,18 @@ import {
 } from "../validations/contact.validation";
 
 export class AdminContactsController {
+    private static wantsJson(req: Request): boolean {
+        return Boolean(req.accepts("json") && !req.accepts("html"));
+    }
+
     static async index(req: Request, res: Response) {
+        if (!(req.accepts("json") && !req.accepts("html"))) {
+            const query = req.originalUrl.includes("?")
+                ? req.originalUrl.slice(req.originalUrl.indexOf("?"))
+                : "";
+            return res.redirect(`/panel/admin/contacts${query}`);
+        }
+
         const search =
             typeof req.query.search === "string" ? req.query.search : "";
 
@@ -75,50 +77,58 @@ export class AdminContactsController {
             contacts.map((contact) => contact.id)
         );
 
-        return res.render("pages/admin/contacts/index", {
-            user: req.user,
-            contacts,
-            tags,
-            search,
-            tagId,
-            onlyOptedOut,
-            outcomeType: outcomeType || "",
-            overdueOnly,
-            withoutOutcomeOnly,
-            neverAnsweredOnly,
-            minAttempts: minAttempts || "",
-            attempts,
-            outcomeLabels: OUTCOME_LABELS,
-            outcomeBadgeClasses: OUTCOME_BADGE_CLASSES,
-            outcomeTypes: OUTCOME_TYPES,
-            formatAmount,
-            daysLate: (contact: { outcomeDueAt: Date | null }) =>
-                daysOverdue(contact.outcomeDueAt, todayStart),
-            success: req.query.success || null,
-            error: req.query.error || null
+        return res.json({
+            contacts: contacts.map((contact) => ({
+                id: contact.id,
+                customName: contact.customName,
+                phone: contact.phone,
+                optOutAt: contact.optOutAt,
+                outcomeType: contact.outcomeType,
+                outcomeDueAt: contact.outcomeDueAt,
+                tags: contact.tags.map((item) => ({
+                    tag: {
+                        id: item.tag.id,
+                        name: item.tag.name,
+                        color: item.tag.color
+                    }
+                })),
+                attempts: attempts.get(contact.id) ?? {
+                    attempts: 0,
+                    hasInbound: false,
+                    lastInboundAt: null
+                },
+                daysLate: daysOverdue(contact.outcomeDueAt, todayStart)
+            })),
+            tags: tags.map(({ id, name, color }) => ({ id, name, color })),
+            filters: {
+                search,
+                tagId,
+                onlyOptedOut,
+                outcomeType: outcomeType || "",
+                overdueOnly,
+                withoutOutcomeOnly,
+                neverAnsweredOnly,
+                minAttempts: minAttempts || ""
+            }
         });
+
     }
 
     static async showCreate(req: Request, res: Response) {
+        if (!(req.accepts("json") && !req.accepts("html"))) {
+            return res.redirect("/panel/admin/contacts/new");
+        }
         const tags = await TagService.listTags(req.user!.workspaceId);
-
-        return res.render("pages/admin/contacts/create", {
-            user: req.user,
-            tags,
-            error: null,
-            old: {
-                customName: "",
-                phone: "",
-                notes: "",
-                tagIds: []
-            }
-        });
+        return res.json({ tags: tags.map(({ id, name, color }) => ({ id, name, color })) });
     }
 
     static async create(req: Request, res: Response) {
         const parsed = createContactSchema.safeParse(req.body);
 
         if (!parsed.success) {
+            if (req.is("application/json")) {
+                return res.status(400).json({ error: parsed.error.issues[0]?.message || "Datos inválidos." });
+            }
             const tags = await TagService.listTags(req.user!.workspaceId);
 
             return res.status(400).render("pages/admin/contacts/create", {
@@ -144,8 +154,14 @@ export class AdminContactsController {
                 parsed.data
             );
 
+            if (req.is("application/json")) return res.status(201).json({ ok: true });
+
             return res.redirect("/admin/contacts?success=created");
         } catch (error) {
+            if (req.is("application/json")) {
+                const message = error instanceof Error ? error.message : "No se pudo crear el contacto.";
+                return res.status(400).json({ error: message });
+            }
             const tags = await TagService.listTags(req.user!.workspaceId);
 
             const message =
@@ -174,6 +190,9 @@ export class AdminContactsController {
     static async showEdit(req: Request, res: Response) {
         const id = getRequiredParam(req, "id");
 
+        const wantsJson = req.accepts("json") && !req.accepts("html");
+        if (!wantsJson) return res.redirect(`/panel/admin/contacts/${id}`);
+
         try {
             const [contact, tags] = await Promise.all([
                 ContactService.getContactById(req.user!.workspaceId, id),
@@ -189,32 +208,48 @@ export class AdminContactsController {
                 req.user!.workspaceId
             );
 
-            return res.render("pages/admin/contacts/edit", {
-                user: req.user,
-                contact,
-                tags,
-                history,
+            return res.json({
+                contact: {
+                    id: contact.id,
+                    customName: contact.customName,
+                    profileName: contact.profileName,
+                    phone: contact.phone,
+                    notes: contact.notes,
+                    optOutAt: contact.optOutAt,
+                    optOutSource: contact.optOutSource,
+                    optInAt: contact.optInAt,
+                    optInSource: contact.optInSource,
+                    optInRecordedBy: contact.optInRecordedBy,
+                    pausedAt: contact.pausedAt,
+                    pausedReason: contact.pausedReason,
+                    outcomeType: contact.outcomeType,
+                    outcomeAmount: contact.outcomeAmount,
+                    outcomeDueAt: contact.outcomeDueAt,
+                    outcomePaidAt: contact.outcomePaidAt,
+                    tags: contact.tags.map((item) => ({
+                        tagId: item.tagId,
+                        tag: { id: item.tag.id, name: item.tag.name, color: item.tag.color }
+                    }))
+                },
+                tags: tags.map(({ id, name, color }) => ({ id, name, color })),
+                history: history.map(({ id, type, amount, dueAt, paidAt, note, userName, source, createdAt }) => ({
+                    id, type, amount, dueAt, paidAt, note, userName, source, createdAt
+                })),
                 attempts: attemptsMap.get(id) ?? {
                     attempts: 0,
                     hasInbound: false,
                     lastInboundAt: null
                 },
-                outcomeLabels: OUTCOME_LABELS,
-                outcomeBadgeClasses: OUTCOME_BADGE_CLASSES,
                 outcomeTypes: OUTCOME_TYPES,
-                shortLabels: OUTCOME_SHORT_LABELS,
-                isOpenPromise,
+                outcomeLabels: OUTCOME_LABELS,
                 daysLate: daysOverdue(
                     contact.outcomeDueAt,
                     startOfTodayIn(timezone)
                 ),
-                formatAmount,
-                formatDateTimeMX,
-                formatWaitingTime,
-                error: req.query.error || null,
-                success: req.query.success || null
+                collectionsEnabled: req.workspaceProfile === "COBRANZA"
             });
         } catch {
+            if (wantsJson) return res.status(404).json({ error: "No se encontró el contacto." });
             return res.redirect("/admin/contacts");
         }
     }
@@ -225,6 +260,9 @@ export class AdminContactsController {
         const parsed = updateContactSchema.safeParse(req.body);
 
         if (!parsed.success) {
+            if (req.is("application/json")) {
+                return res.status(400).json({ error: parsed.error.issues[0]?.message || "Datos inválidos." });
+            }
             const [contact, tags] = await Promise.all([
                 ContactService.getContactById(req.user!.workspaceId, id),
                 TagService.listTags(req.user!.workspaceId)
@@ -245,8 +283,13 @@ export class AdminContactsController {
                 parsed.data
             );
 
+            if (req.is("application/json")) return res.json({ ok: true });
+
             return res.redirect("/admin/contacts?success=updated");
-        } catch {
+        } catch (error) {
+            if (req.is("application/json")) {
+                return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo actualizar el contacto." });
+            }
             return res.redirect("/admin/contacts");
         }
     }
@@ -257,8 +300,11 @@ export class AdminContactsController {
         try {
             await ContactService.deactivateContact(req.user!.workspaceId, id);
         } catch {
+            if (AdminContactsController.wantsJson(req)) return res.status(400).json({ error: "No se pudo archivar el contacto." });
             // Por ahora no detenemos la vista.
         }
+
+        if (AdminContactsController.wantsJson(req)) return res.json({ ok: true });
 
         return res.redirect("/admin/contacts?success=deactivated");
     }
@@ -288,6 +334,7 @@ export class AdminContactsController {
                 "admin"
             );
         } catch {
+            if (AdminContactsController.wantsJson(req)) return res.status(400).json({ error: "No se pudo registrar la baja." });
             return res.redirect(
                 AdminContactsController.safeRedirect(
                     req,
@@ -295,6 +342,8 @@ export class AdminContactsController {
                 )
             );
         }
+
+        if (AdminContactsController.wantsJson(req)) return res.json({ ok: true });
 
         return res.redirect(
             AdminContactsController.safeRedirect(
@@ -314,6 +363,7 @@ export class AdminContactsController {
                 userId: req.user!.id
             });
         } catch {
+            if (AdminContactsController.wantsJson(req)) return res.status(400).json({ error: "No se pudo registrar el consentimiento." });
             return res.redirect(
                 AdminContactsController.safeRedirect(
                     req,
@@ -321,6 +371,8 @@ export class AdminContactsController {
                 )
             );
         }
+
+        if (AdminContactsController.wantsJson(req)) return res.json({ ok: true });
 
         return res.redirect(
             AdminContactsController.safeRedirect(
@@ -346,6 +398,7 @@ export class AdminContactsController {
         try {
             await ContactService.setPause(req.user!.workspaceId, id, reason);
         } catch {
+            if (AdminContactsController.wantsJson(req)) return res.status(400).json({ error: "No se pudo poner en pausa." });
             return res.redirect(
                 AdminContactsController.safeRedirect(
                     req,
@@ -353,6 +406,8 @@ export class AdminContactsController {
                 )
             );
         }
+
+        if (AdminContactsController.wantsJson(req)) return res.json({ ok: true });
 
         return res.redirect(
             AdminContactsController.safeRedirect(
@@ -368,6 +423,7 @@ export class AdminContactsController {
         try {
             await ContactService.clearPause(req.user!.workspaceId, id);
         } catch {
+            if (AdminContactsController.wantsJson(req)) return res.status(400).json({ error: "No se pudo quitar la pausa." });
             return res.redirect(
                 AdminContactsController.safeRedirect(
                     req,
@@ -375,6 +431,8 @@ export class AdminContactsController {
                 )
             );
         }
+
+        if (AdminContactsController.wantsJson(req)) return res.json({ ok: true });
 
         return res.redirect(
             AdminContactsController.safeRedirect(

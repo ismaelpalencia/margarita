@@ -15,7 +15,6 @@ import {
 } from "../services/backup-file.service";
 import { runBackupSafely } from "../jobs/backup.job";
 import { humanSize } from "../utils/backup-format";
-import { formatDateTimeMX } from "../utils/date";
 
 function stamp(): string {
     return new Date().toISOString().slice(0, 10);
@@ -32,19 +31,19 @@ export class AdminBackupController {
             Promise.resolve(BackupFileService.list())
         ]);
 
-        return res.render("pages/admin/backup/index", {
-            user: req.user,
-            entities: BACKUP_ENTITIES,
-            maxRows: MAX_ROWS,
-            summary,
-            backup: status,
-            snapshots,
-            formatDateTimeMX,
-            error: req.query.error || null,
-            success: req.query.success || null,
-            /** Filas leídas al verificar un respaldo (llega como local, no de `req`). */
-            rows: Number(req.query.rows) || 0
-        });
+        if (req.accepts("json") && !req.accepts("html")) {
+            return res.json({
+                entities: BACKUP_ENTITIES,
+                maxRows: MAX_ROWS,
+                summary,
+                backup: status,
+                snapshots: snapshots.map(({ file, createdAt, size, sizeLabel }) => ({ file, createdAt, size, sizeLabel })),
+                error: req.query.error || null,
+                success: req.query.success || null,
+                rows: Number(req.query.rows) || 0
+            });
+        }
+        return res.redirect("/panel/admin/backup");
     }
 
     /** Respaldo a mano, sin esperar al job. */
@@ -52,7 +51,7 @@ export class AdminBackupController {
         const result = await runBackupSafely("MANUAL");
 
         if ("error" in result && result.error) {
-            return res.redirect("/admin/backup?error=snapshot");
+            return res.redirect("/panel/admin/backup?error=snapshot");
         }
 
         await LogService.create({
@@ -67,7 +66,7 @@ export class AdminBackupController {
             }
         });
 
-        return res.redirect("/admin/backup?success=snapshot");
+        return res.redirect("/panel/admin/backup?success=snapshot");
     }
 
     /**
@@ -78,7 +77,7 @@ export class AdminBackupController {
         const file = AdminBackupController.snapshotFrom(req);
 
         if (!file) {
-            return res.redirect("/admin/backup?error=snapshot-name");
+            return res.redirect("/panel/admin/backup?error=snapshot-name");
         }
 
         return res.download(file.path, file.file);
@@ -89,7 +88,7 @@ export class AdminBackupController {
         const file = AdminBackupController.snapshotFrom(req);
 
         if (!file) {
-            return res.redirect("/admin/backup?error=snapshot-name");
+            return res.redirect("/panel/admin/backup?error=snapshot-name");
         }
 
         try {
@@ -109,10 +108,10 @@ export class AdminBackupController {
             });
 
             return res.redirect(
-                `/admin/backup?success=verified&rows=${rows}`
+                `/panel/admin/backup?success=verified&rows=${rows}`
             );
         } catch {
-            return res.redirect("/admin/backup?error=snapshot-verify");
+            return res.redirect("/panel/admin/backup?error=snapshot-verify");
         }
     }
 
@@ -147,7 +146,7 @@ export class AdminBackupController {
              */
             return res.redirect("/setup");
         } catch {
-            return res.redirect("/admin/backup?error=purge");
+            return res.redirect("/panel/admin/backup?error=purge");
         }
     }
 
@@ -184,7 +183,7 @@ export class AdminBackupController {
                 typeof req.query.entity === "string" ? req.query.entity : "messages";
 
             if (!isBackupEntity(entity)) {
-                return res.redirect("/admin/backup?error=entity");
+                return res.redirect("/panel/admin/backup?error=entity");
             }
 
             const { filename, content } = await BackupService.toCsv(
@@ -215,7 +214,7 @@ export class AdminBackupController {
         } catch (error) {
             console.error("Error generando el respaldo:", error);
 
-            return res.redirect("/admin/backup?error=download");
+            return res.redirect("/panel/admin/backup?error=download");
         }
     }
 }

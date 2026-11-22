@@ -65,29 +65,28 @@ export class AdminHoursController {
             }
         });
 
-        return res.render("pages/admin/hours/index", {
-            user: req.user,
-            form: formFromWorkspace(workspace),
-            weekdayLabels: WEEKDAY_LABELS,
-            modes: [
+        const form = formFromWorkspace(workspace);
+        const modes = [
                 OffHoursMode.TEXT_ONLY,
                 OffHoursMode.AI_IF_COVERED,
                 OffHoursMode.QUEUE_ONLY
-            ],
-            modeLabels: {
+            ];
+        const modeLabels = {
                 TEXT_ONLY: "Solo mensaje de fuera de horario",
                 AI_IF_COVERED: "IA si la base cubre la pregunta",
                 QUEUE_ONLY: "Solo encolar, sin responder"
-            },
-            success: req.query.success || null,
-            error: req.query.error || null
-        });
+            };
+        if (req.accepts("json") && !req.accepts("html")) {
+            return res.json({ form, weekdayLabels: WEEKDAY_LABELS, modes, modeLabels });
+        }
+        return res.redirect("/panel/admin/hours");
     }
 
     static async save(req: Request, res: Response) {
         const parsed = hoursSchema.safeParse(req.body);
 
         if (!parsed.success) {
+            if (req.is("application/json")) return res.status(400).json({ error: parsed.error.issues[0]?.message || "Revisa los datos del horario." });
             return res.redirect("/admin/hours?error=invalid");
         }
 
@@ -128,9 +127,11 @@ export class AdminHoursController {
                 }
             }).catch(() => undefined);
         } catch {
+            if (req.is("application/json")) return res.status(400).json({ error: "No se pudo guardar el horario. Inténtalo de nuevo." });
             return res.redirect("/admin/hours?error=save");
         }
 
+        if (req.is("application/json")) return res.json({ ok: true });
         return res.redirect("/admin/hours?success=saved");
     }
 }

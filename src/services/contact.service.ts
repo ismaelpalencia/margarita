@@ -191,6 +191,7 @@ export class ContactService {
                 isActive: true
             },
             include: {
+                optInRecordedBy: { select: { name: true } },
                 tags: {
                     include: {
                         tag: true

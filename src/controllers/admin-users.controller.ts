@@ -23,6 +23,14 @@ const EMPTY_FORM = {
     allowedNumberIds: [] as string[]
 };
 
+function wantsJson(req: Request): boolean {
+    return Boolean(req.accepts("json") && !req.accepts("html"));
+}
+
+function safeNumbers(numbers: Awaited<ReturnType<typeof WhatsAppNumberService.listNumbers>>) {
+    return numbers.map(({ id, displayName, phoneNumber }) => ({ id, displayName, phoneNumber }));
+}
+
 export class AdminUsersController {
     static async index(req: Request, res: Response) {
         const workspaceId = req.user!.workspaceId;
@@ -33,14 +41,18 @@ export class AdminUsersController {
             UserService.countActiveAdmins(workspaceId)
         ]);
 
-        return res.render("pages/admin/users/index", {
-            user: req.user,
-            team,
-            usageToday,
-            activeAdmins,
-            error: req.query.error || null,
-            success: req.query.success || null
-        });
+        if (wantsJson(req)) {
+            return res.json({
+                team: team.map(({ id, name, email, role, status, isActive, canSendManualMessages, manualMessageLimit }) => ({
+                    id, name, email, role, status, isActive, canSendManualMessages, manualMessageLimit,
+                    usedToday: usageToday[id] || 0
+                })),
+                activeAdmins,
+                currentUserId: req.user!.id
+            });
+        }
+
+        return res.redirect("/panel/admin/users");
     }
 
     static async showCreate(req: Request, res: Response) {
@@ -48,13 +60,11 @@ export class AdminUsersController {
             req.user!.workspaceId
         );
 
-        return res.render("pages/admin/users/create", {
-            user: req.user,
-            error: null,
-            old: EMPTY_FORM,
-            numbers,
-            suggestedPassword: UserService.suggestPassword()
-        });
+        if (wantsJson(req)) {
+            return res.json({ numbers: safeNumbers(numbers), suggestedPassword: UserService.suggestPassword() });
+        }
+
+        return res.redirect("/panel/admin/users/new");
     }
 
     static async create(req: Request, res: Response) {
@@ -64,6 +74,7 @@ export class AdminUsersController {
         const parsed = createUserSchema.safeParse(req.body);
 
         if (!parsed.success) {
+            if (req.is("application/json")) return res.status(400).json({ error: parsed.error.issues[0]?.message || "Datos inválidos." });
             return res.status(400).render("pages/admin/users/create", {
                 user: req.user,
                 error: parsed.error.issues[0]?.message || "Datos inválidos.",
@@ -86,8 +97,11 @@ export class AdminUsersController {
         try {
             await UserService.createUser(req.user!.workspaceId, parsed.data);
 
+            if (req.is("application/json")) return res.status(201).json({ ok: true });
+
             return res.redirect("/admin/users?success=created");
         } catch (error) {
+            if (req.is("application/json")) return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo crear el usuario." });
             return res.status(400).render("pages/admin/users/create", {
                 user: req.user,
                 error:
@@ -121,16 +135,26 @@ export class AdminUsersController {
                 WhatsAppNumberService.listNumbers(req.user!.workspaceId)
             ]);
 
-            return res.render("pages/admin/users/edit", {
-                user: req.user,
-                member,
-                numbers,
-                activeAdmins,
-                suggestedPassword: UserService.suggestPassword(),
-                error: req.query.error || null,
-                success: req.query.success || null
-            });
+            if (wantsJson(req)) {
+                return res.json({
+                    member: {
+                        id: member.id, name: member.name, email: member.email, role: member.role,
+                        status: member.status, isActive: member.isActive,
+                        canSendManualMessages: member.canSendManualMessages,
+                        manualMessageLimit: member.manualMessageLimit,
+                        allowedNumberIds: member.allowedNumberIds,
+                        lockedUntil: member.lockedUntil,
+                        twoFactorEnabledAt: member.twoFactorEnabledAt
+                    },
+                    numbers: safeNumbers(numbers), activeAdmins,
+                    suggestedPassword: UserService.suggestPassword()
+                });
+            }
+
+            return res.redirect(`/panel/admin/users/${encodeURIComponent(id)}`);
+
         } catch {
+            if (wantsJson(req)) return res.status(404).json({ error: "No se encontró el usuario." });
             return res.redirect("/admin/users");
         }
     }
@@ -141,6 +165,7 @@ export class AdminUsersController {
         const parsed = updateUserSchema.safeParse(req.body);
 
         if (!parsed.success) {
+            if (req.is("application/json")) return res.status(400).json({ error: parsed.error.issues[0]?.message || "Datos inválidos." });
             return res.redirect(
                 `/admin/users/${id}/edit?error=${
                     encodeURIComponent(
@@ -158,8 +183,11 @@ export class AdminUsersController {
                 req.user!.id
             );
 
+            if (req.is("application/json")) return res.json({ ok: true });
+
             return res.redirect("/admin/users?success=updated");
         } catch (error) {
+            if (req.is("application/json")) return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo actualizar." });
             return res.redirect(
                 `/admin/users/${id}/edit?error=${encodeURIComponent(
                     error instanceof Error
@@ -180,6 +208,7 @@ export class AdminUsersController {
                 req.user!.id
             );
         } catch (error) {
+            if (req.is("application/json")) return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo eliminar al agente." });
             return res.redirect(
                 `/admin/users?error=${encodeURIComponent(
                     error instanceof Error
@@ -188,6 +217,8 @@ export class AdminUsersController {
                 )}`
             );
         }
+
+        if (req.is("application/json")) return res.json({ ok: true });
 
         return res.redirect("/admin/users?success=deleted");
     }
@@ -208,6 +239,7 @@ export class AdminUsersController {
                 req.user!.id
             );
         } catch (error) {
+            if (req.is("application/json")) return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo cambiar el estado." });
             return res.redirect(
                 `/admin/users?error=${encodeURIComponent(
                     error instanceof Error
@@ -216,6 +248,8 @@ export class AdminUsersController {
                 )}`
             );
         }
+
+        if (req.is("application/json")) return res.json({ ok: true });
 
         return res.redirect("/admin/users?success=status");
     }
@@ -234,6 +268,7 @@ export class AdminUsersController {
         });
 
         if (!parsed.success) {
+            if (req.is("application/json")) return res.status(400).json({ error: parsed.error.issues[0]?.message || "Contraseña inválida." });
             return res.redirect(
                 `/admin/users/${id}/edit?error=${encodeURIComponent(
                     parsed.error.issues[0]?.message || "Contraseña inválida."
@@ -249,6 +284,7 @@ export class AdminUsersController {
                 req.user!.id
             );
         } catch (error) {
+            if (req.is("application/json")) return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo restablecer." });
             return res.redirect(
                 `/admin/users/${id}/edit?error=${encodeURIComponent(
                     error instanceof Error
@@ -258,26 +294,11 @@ export class AdminUsersController {
             );
         }
 
-        const [member, activeAdmins, numbers] = await Promise.all([
-            UserService.getMemberById(req.user!.workspaceId, id),
-            UserService.countActiveAdmins(req.user!.workspaceId),
-            WhatsAppNumberService.listNumbers(req.user!.workspaceId)
-        ]);
+        if (req.is("application/json")) return res.json({ ok: true });
 
-        /**
-         * Se renderiza la misma ficha con la contraseña que realmente se
-         * guardó. Antes se redirigía y se generaba otra contraseña distinta,
-         * así que el administrador copiaba una que nunca había funcionado.
-         */
-        return res.render("pages/admin/users/edit", {
-            user: req.user,
-            member,
-            numbers,
-            activeAdmins,
-            suggestedPassword: parsed.data.password,
-            error: null,
-            success: "password"
-        });
+        return res.redirect(
+            `/panel/admin/users/${encodeURIComponent(id)}?success=password`
+        );
     }
 
     /** Libera una cuenta bloqueada por intentos fallidos. */
@@ -287,12 +308,15 @@ export class AdminUsersController {
         try {
             await UserService.unlock(req.user!.workspaceId, id, req.user!.id);
         } catch (error) {
+            if (req.is("application/json")) return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo desbloquear." });
             return res.redirect(
                 `/admin/users/${id}/edit?error=${encodeURIComponent(
                     error instanceof Error ? error.message : "No se pudo desbloquear."
                 )}`
             );
         }
+
+        if (req.is("application/json")) return res.json({ ok: true });
 
         return res.redirect(`/admin/users/${id}/edit?success=unlocked`);
     }
@@ -312,6 +336,7 @@ export class AdminUsersController {
                 req.user!.id
             );
         } catch (error) {
+            if (req.is("application/json")) return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo desactivar la verificación en dos pasos." });
             return res.redirect(
                 `/admin/users/${id}/edit?error=${encodeURIComponent(
                     error instanceof Error
@@ -320,6 +345,8 @@ export class AdminUsersController {
                 )}`
             );
         }
+
+        if (req.is("application/json")) return res.json({ ok: true });
 
         return res.redirect(`/admin/users/${id}/edit?success=two-factor`);
     }
@@ -331,19 +358,17 @@ export class AdminUsersController {
  */
 export class AccountController {
     static show(req: Request, res: Response) {
-        return res.render("pages/account/password", {
-            authUser: req.user!,
-            required: req.query.required === "1",
-            success: req.query.success || null,
-            error: req.query.error || null,
-            changed: req.query.changed === "1",
-            /**
-             * Cuántas sesiones se cerraron al cambiar la contraseña. Va como
-             * local porque dentro de la plantilla `req` no existe: usarlo ahí
-             * reventaba la pantalla con un error 500.
-             */
-            closed: Number(req.query.closed) || 0
-        });
+        if (wantsJson(req)) {
+            return res.json({
+                user: { name: req.user!.name, email: req.user!.email },
+                required: req.query.required === "1",
+                changed: req.query.changed === "1",
+                closed: Number(req.query.closed) || 0
+            });
+        }
+        const prefix = req.user!.role === "AGENT" ? "/panel/agent" : "/panel/admin";
+        const query = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
+        return res.redirect(`${prefix}/account/password${query}`);
     }
 
     /** Pantalla de seguridad: contraseña + verificación en dos pasos. */
@@ -365,16 +390,17 @@ export class AccountController {
             }
         }
 
-        return res.render("pages/account/security", {
-            authUser: req.user!,
-            state,
-            qr,
-            formattedSecret: state.pendingSecret
-                ? formatSecretForHumans(state.pendingSecret)
-                : null,
-            error: req.query.error || null,
-            success: req.query.success || null
-        });
+        if (wantsJson(req)) {
+            return res.json({
+                user: { name: req.user!.name, email: req.user!.email },
+                state: { enabled: state.enabled, pending: Boolean(state.pendingSecret) },
+                qr,
+                formattedSecret: state.pendingSecret ? formatSecretForHumans(state.pendingSecret) : null,
+                otpauthUrl: state.otpauthUrl
+            });
+        }
+        const prefix = req.user!.role === "AGENT" ? "/panel/agent" : "/panel/admin";
+        return res.redirect(`${prefix}/account/security`);
     }
 
     /** Página de preferencias de notificación (sonido y navegador). */
@@ -384,24 +410,27 @@ export class AccountController {
             select: { notifySoundEnabled: true, notifyBrowserEnabled: true }
         });
 
-        return res.render("pages/account/notifications", {
-            authUser: req.user!,
-            notifySoundEnabled: user.notifySoundEnabled,
-            notifyBrowserEnabled: user.notifyBrowserEnabled,
-            error: req.query.error || null,
-            success: req.query.success || null
-        });
+        if (wantsJson(req)) {
+            return res.json({
+                user: { name: req.user!.name, email: req.user!.email },
+                notifySoundEnabled: user.notifySoundEnabled,
+                notifyBrowserEnabled: user.notifyBrowserEnabled
+            });
+        }
+        const prefix = req.user!.role === "AGENT" ? "/panel/agent" : "/panel/admin";
+        return res.redirect(`${prefix}/account/notifications`);
     }
 
     static async saveNotifications(req: Request, res: Response) {
         await prisma.user.update({
             where: { id: req.user!.id },
             data: {
-                notifySoundEnabled: req.body?.notifySoundEnabled === "true",
-                notifyBrowserEnabled: req.body?.notifyBrowserEnabled === "true"
+                notifySoundEnabled: req.body?.notifySoundEnabled === "true" || req.body?.notifySoundEnabled === true,
+                notifyBrowserEnabled: req.body?.notifyBrowserEnabled === "true" || req.body?.notifyBrowserEnabled === true
             }
         });
 
+        if (req.is("application/json")) return res.json({ ok: true });
         return res.redirect("/account/notifications?success=saved");
     }
 
@@ -410,6 +439,7 @@ export class AccountController {
         try {
             await UserService.startTwoFactor(req.user!.id);
         } catch (error) {
+            if (req.accepts("json") && !req.accepts("html")) return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo iniciar la activación." });
             return res.redirect(
                 `/account/security?error=${encodeURIComponent(
                     error instanceof Error
@@ -419,6 +449,7 @@ export class AccountController {
             );
         }
 
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ ok: true });
         return res.redirect("/account/security");
     }
 
@@ -426,6 +457,7 @@ export class AccountController {
         const parsed = twoFactorCodeSchema.safeParse(req.body);
 
         if (!parsed.success) {
+            if (req.is("application/json")) return res.status(400).json({ error: parsed.error.issues[0]?.message || "Código inválido." });
             return res.redirect(
                 `/account/security?error=${encodeURIComponent(
                     parsed.error.issues[0]?.message || "Código inválido."
@@ -436,6 +468,7 @@ export class AccountController {
         try {
             await UserService.confirmTwoFactor(req.user!.id, parsed.data.code);
         } catch (error) {
+            if (req.accepts("json") && !req.accepts("html")) return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo confirmar el código." });
             return res.redirect(
                 `/account/security?error=${encodeURIComponent(
                     error instanceof Error
@@ -445,6 +478,7 @@ export class AccountController {
             );
         }
 
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ ok: true });
         return res.redirect("/account/security?success=enabled");
     }
 
@@ -452,6 +486,7 @@ export class AccountController {
         const parsed = twoFactorCodeSchema.safeParse(req.body);
 
         if (!parsed.success) {
+            if (req.is("application/json")) return res.status(400).json({ error: parsed.error.issues[0]?.message || "Código inválido." });
             return res.redirect(
                 `/account/security?error=${encodeURIComponent(
                     parsed.error.issues[0]?.message || "Código inválido."
@@ -462,6 +497,7 @@ export class AccountController {
         try {
             await UserService.disableTwoFactor(req.user!.id, parsed.data.code);
         } catch (error) {
+            if (req.accepts("json") && !req.accepts("html")) return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo desactivar." });
             return res.redirect(
                 `/account/security?error=${encodeURIComponent(
                     error instanceof Error
@@ -471,12 +507,15 @@ export class AccountController {
             );
         }
 
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ ok: true });
         return res.redirect("/account/security?success=disabled");
     }
 
     /** Descartar una activación que nunca se confirmó. */
     static async cancelTwoFactor(req: Request, res: Response) {
         await UserService.cancelTwoFactor(req.user!.id);
+
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ ok: true });
 
         return res.redirect("/account/security?success=cancelled");
     }
@@ -485,6 +524,7 @@ export class AccountController {
         const parsed = changePasswordSchema.safeParse(req.body);
 
         if (!parsed.success) {
+            if (req.is("application/json")) return res.status(400).json({ error: parsed.error.issues[0]?.message || "Datos inválidos." });
             return res.redirect(
                 `/account/password?error=${encodeURIComponent(
                     parsed.error.issues[0]?.message || "Datos inválidos."
@@ -500,10 +540,13 @@ export class AccountController {
                 keepTokenId: req.tokenId
             });
 
+            if (req.is("application/json")) return res.json({ ok: true, otherSessionsClosed: result.otherSessionsClosed });
+
             return res.redirect(
                 `/account/password?changed=1&closed=${result.otherSessionsClosed}`
             );
         } catch (error) {
+            if (req.is("application/json")) return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo cambiar la contraseña." });
             return res.redirect(
                 `/account/password?error=${encodeURIComponent(
                     error instanceof Error

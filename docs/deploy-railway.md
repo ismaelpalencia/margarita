@@ -66,8 +66,8 @@ El build y el arranque están versionados. No los copies a mano en el panel:
 
 `nixpacks.toml` instala y compila:
 
-- `npm install --include=dev --no-audit --no-fund`
-- `npm run build`, que ejecuta `prisma generate`, Tailwind, TypeScript y copia
+- `npm install --include=dev --no-audit --no-fund` y la instalación Angular en `frontend/`
+- `npm run build`, que ejecuta `prisma generate`, Tailwind, Angular, TypeScript y copia
   vistas y assets a `dist/`.
 
 **El Build Command del servicio debe quedar vacío.** Si escribes ahí otro

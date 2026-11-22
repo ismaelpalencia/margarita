@@ -11,10 +11,18 @@ import { mediaUploadSingle } from "../middlewares/upload.middleware";
 
 const router = Router();
 
-router.get("/", AdminConversationsController.index);
+router.get("/", (req, res) =>
+    res.redirect(`/panel/admin/conversations${req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : ""}`)
+);
+router.get("/data", AdminConversationsController.listData);
+router.get("/legacy", AdminConversationsController.index);
+router.get("/:id/data", AdminConversationsController.detailData);
+router.get("/:id/legacy", AdminConversationsController.show);
 router.post("/from-contact/:contactId", AdminConversationsController.openFromContact);
 
-router.get("/:id", AdminConversationsController.show);
+router.get("/:id", (req, res) =>
+    res.redirect(`/panel/admin/conversations/${req.params.id}${req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : ""}`)
+);
 router.post("/:id/messages/local", AdminConversationsController.sendLocalMessage);
 router.post("/:id/messages/template", AdminConversationsController.sendTemplateMessage);
 router.post(

@@ -10,6 +10,28 @@ import { verifyAuthToken } from "../utils/jwt";
 import { SessionService } from "../services/session.service";
 
 export class AuthController {
+    static async loginMeta(req: Request, res: Response) {
+        const notConfigured = await SetupService.isConfigured()
+            .then((configured) => !configured)
+            .catch(() => false);
+        const error = typeof req.query.error === "string" ? req.query.error : "";
+        const messages: Record<string, string> = {
+            workspace_suspended: "El servicio de tu empresa está suspendido.",
+            idle: `Tu sesión se cerró por inactividad (${Math.round(appConfig.sessionIdleMinutes / 60)} horas sin usarla). Vuelve a entrar.`,
+            revoked: "Esa sesión se cerró desde el panel de sesiones."
+        };
+
+        return res.json({
+            notConfigured,
+            error: messages[error] || null,
+            success:
+                req.query.success === "setup"
+                    ? "Instalación creada. Entra con el correo y la contraseña que registraste."
+                    : null,
+            email: typeof req.query.email === "string" ? req.query.email : ""
+        });
+    }
+
     static async showLogin(req: Request, res: Response) {
         /**
          * Si ya hay una sesión válida, no se vuelve a pedir la contraseña:
@@ -49,44 +71,7 @@ export class AuthController {
             }
         }
 
-        /**
-         * Si la instalación todavía no tiene empresa ni administrador, se
-         * avisa aquí: quien llegue al login de un despliegue nuevo tiene que
-         * pasar por el asistente, no adivinar que existe.
-         */
-        const notConfigured = await SetupService.isConfigured()
-            .then((configured) => !configured)
-            .catch(() => false);
-
-        const error = req.query.error;
-        const success = req.query.success;
-
-        let message: string | null = null;
-
-        if (error === "workspace_suspended") {
-            message = "El servicio de tu empresa está suspendido.";
-        } else if (error === "idle") {
-            message =
-                `Tu sesión se cerró por inactividad (${Math.round(
-                    appConfig.sessionIdleMinutes / 60
-                )} horas sin usarla). Vuelve a entrar.`;
-        } else if (error === "revoked") {
-            message = "Esa sesión se cerró desde el panel de sesiones.";
-        }
-
-        return res.render("pages/auth/login", {
-            appName: appConfig.name,
-            notConfigured,
-            error: message,
-            success:
-                success === "setup"
-                    ? "Instalación creada. Entra con el correo y la contraseña que registraste."
-                    : null,
-            old: {
-                email:
-                    typeof req.query.email === "string" ? req.query.email : ""
-            }
-        });
+        return res.redirect(`/panel/login${req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : ""}`);
     }
 
     static async login(req: Request, res: Response) {
@@ -94,6 +79,12 @@ export class AuthController {
             const parsed = loginSchema.safeParse(req.body);
 
             if (!parsed.success) {
+                if (req.accepts("json")) {
+                    return res.status(400).json({
+                        error: parsed.error.issues[0]?.message || "Datos inválidos."
+                    });
+                }
+
                 return res.status(400).render("pages/auth/login", {
                     appName: appConfig.name,
                     error: parsed.error.issues[0]?.message || "Datos inválidos.",
@@ -113,6 +104,14 @@ export class AuthController {
              * correcta, pero todavía no hay sesión. Se pide el código.
              */
             if ("twoFactorRequired" in result) {
+                if (req.accepts("json")) {
+                    return res.json({
+                        twoFactorRequired: true,
+                        challengeToken: result.challengeToken,
+                        email: parsed.data.email
+                    });
+                }
+
                 return res.render("pages/auth/login", {
                     appName: appConfig.name,
                     notConfigured: false,
@@ -134,15 +133,25 @@ export class AuthController {
             });
 
             if (result.user.role === UserRole.ADMIN) {
+                if (req.accepts("json")) {
+                    return res.json({ ok: true, redirectUrl: "/admin/dashboard" });
+                }
                 return res.redirect("/admin/dashboard");
             }
 
+            if (req.accepts("json")) {
+                return res.json({ ok: true, redirectUrl: "/agent/dashboard" });
+            }
             return res.redirect("/agent/dashboard");
         } catch (error) {
             const message =
                 error instanceof Error
                     ? error.message
                     : "No se pudo iniciar sesión.";
+
+            if (req.accepts("json")) {
+                return res.status(400).json({ error: message });
+            }
 
             return res.status(400).render("pages/auth/login", {
                 appName: appConfig.name,
@@ -178,11 +187,29 @@ export class AuthController {
             });
 
             if (result.user.role === UserRole.ADMIN) {
+                if (req.accepts("json")) {
+                    return res.json({ ok: true, redirectUrl: "/admin/dashboard" });
+                }
                 return res.redirect("/admin/dashboard");
             }
 
+            if (req.accepts("json")) {
+                return res.json({ ok: true, redirectUrl: "/agent/dashboard" });
+            }
             return res.redirect("/agent/dashboard");
         } catch (error) {
+            if (req.accepts("json")) {
+                return res.status(400).json({
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : "No se pudo verificar el código.",
+                    twoFactorRequired: true,
+                    challengeToken,
+                    email
+                });
+            }
+
             return res.status(400).render("pages/auth/login", {
                 appName: appConfig.name,
                 notConfigured: false,

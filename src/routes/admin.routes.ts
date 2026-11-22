@@ -39,7 +39,9 @@ router.use(activeNumberMiddleware);
 /** Cupo por persona: quince agentes en la misma oficina no se estorban. */
 router.use(panelRateLimiter);
 
-router.get("/dashboard", AdminDashboardController.index);
+router.get("/dashboard", (_req, res) => res.redirect("/panel/admin/dashboard"));
+router.get("/dashboard/data", AdminDashboardController.data);
+router.get("/dashboard/legacy", AdminDashboardController.index);
 router.post("/number/switch", ActiveNumberController.switch);
 router.use("/users", adminUsersRoutes);
 router.use("/contacts", adminContactsRoutes);

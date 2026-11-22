@@ -16,8 +16,7 @@ const emailField = z
     .transform(normalizeEmail);
 
 const limitField = z
-    .string()
-    .optional()
+    .preprocess((value) => typeof value === "number" ? String(value) : value, z.string().optional())
     .transform((value) => {
         if (!value || value.trim() === "") return null;
 
@@ -31,7 +30,7 @@ const limitField = z
     });
 
 const permissionField = z
-    .optional(z.literal("on"))
+    .preprocess((value) => value === true ? "on" : value === false ? undefined : value, z.optional(z.literal("on")))
     .transform((value) => value === "on");
 
 const numberIdsField = z

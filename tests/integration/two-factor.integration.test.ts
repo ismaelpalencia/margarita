@@ -238,7 +238,8 @@ test("un administrador puede apagarla si alguien pierde el teléfono", async () 
         password: "ClaveDelAgente123",
         role: UserRole.AGENT,
         canSendManualMessages: true,
-        manualMessageLimit: 10
+        manualMessageLimit: 10,
+        allowedNumberIds: []
     });
 
     await enableTwoFactor(agent.id);
@@ -281,7 +282,8 @@ test("una activación a medias se puede descartar sin dejar la cuenta a medias",
         password: "ClaveDelAgente123",
         role: UserRole.AGENT,
         canSendManualMessages: true,
-        manualMessageLimit: 10
+        manualMessageLimit: 10,
+        allowedNumberIds: []
     });
 
     await UserService.startTwoFactor(agent.id);
@@ -370,7 +372,8 @@ test("por HTTP: activar, fallar con un código malo y confirmar con el bueno", a
         password,
         role: UserRole.ADMIN,
         canSendManualMessages: true,
-        manualMessageLimit: null
+        manualMessageLimit: null,
+        allowedNumberIds: []
     });
 
     const login = await postForm("/auth/login", { email, password });

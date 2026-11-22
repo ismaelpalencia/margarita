@@ -211,7 +211,8 @@ test("el correo del usuario queda cifrado y el acceso sigue funcionando", async 
         password: "ClaveDelCorreo123",
         role: UserRole.AGENT,
         canSendManualMessages: true,
-        manualMessageLimit: 10
+        manualMessageLimit: 10,
+        allowedNumberIds: []
     });
 
     /** Lo que hay en la columna, sin descifrar: tiene que ser texto cifrado. */
@@ -263,7 +264,8 @@ test("el correo del usuario queda cifrado y el acceso sigue funcionando", async 
                 password: "ClaveDelCorreo123",
                 role: UserRole.AGENT,
                 canSendManualMessages: true,
-                manualMessageLimit: 10
+                manualMessageLimit: 10,
+                allowedNumberIds: []
             }),
         /ya existe un usuario con ese correo/i,
         "no se puede repetir el correo"

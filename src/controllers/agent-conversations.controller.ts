@@ -42,9 +42,168 @@ import {
     formatWaitingTime
 } from "../utils/date";
 import { templateVariableShape } from "../utils/template";
+import { describeMetaError } from "../utils/meta-error";
 
 
 export class AgentConversationsController {
+    static async detailData(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+        let conversation;
+
+        try {
+            conversation = await ConversationService.getConversationForAgent(
+                req.user!.workspaceId,
+                req.user!.id,
+                conversationId
+            );
+        } catch {
+            return res.status(404).json({ error: "conversation_not_found" });
+        }
+
+        await ConversationService.markAsRead(
+            req.user!.workspaceId,
+            conversation.id
+        );
+
+        const [conversations, quickReplies, timezone] = await Promise.all([
+            ConversationService.listForAgent(
+                req.user!.workspaceId,
+                req.user!.id,
+                conversation.whatsappNumberId,
+                {}
+            ),
+            QuickReplyService.listActive(req.user!.workspaceId),
+            SendPolicyService.timezoneFor(req.user!.workspaceId)
+        ]);
+
+        const now = Date.now();
+        const lastIncomingAt = conversation.lastIncomingMessageAt;
+
+        return res.json({
+            user: { name: req.user!.name },
+            timezone,
+            hasOpenWindow: Boolean(
+                lastIncomingAt && now - new Date(lastIncomingAt).getTime() <= 24 * 60 * 60 * 1000
+            ),
+            conversation: {
+                id: conversation.id,
+                status: conversation.status,
+                operationalStatus: conversation.operationalStatus,
+                source: conversation.source,
+                aiHandoffAt: conversation.aiHandoffAt,
+                aiHandoffReason: conversation.aiHandoffReason,
+                aiPausedAt: conversation.aiPausedAt,
+                lastIncomingMessageAt: conversation.lastIncomingMessageAt,
+                assignedUser: conversation.assignedUser
+                    ? { name: conversation.assignedUser.name }
+                    : null,
+                whatsappNumber: conversation.whatsappNumber
+                    ? {
+                          displayName: conversation.whatsappNumber.displayName,
+                          phoneNumber: conversation.whatsappNumber.phoneNumber
+                      }
+                    : null,
+                contact: {
+                    customName: conversation.contact.customName,
+                    profileName: conversation.contact.profileName,
+                    phone: conversation.contact.phone,
+                    optOutAt: conversation.contact.optOutAt,
+                    outcomeType: conversation.contact.outcomeType,
+                    outcomeAmount: conversation.contact.outcomeAmount,
+                    outcomeDueAt: conversation.contact.outcomeDueAt,
+                    outcomePaidAt: conversation.contact.outcomePaidAt,
+                    tags: conversation.contact.tags.map(({ tag }) => ({
+                        id: tag.id,
+                        name: tag.name,
+                        color: tag.color
+                    }))
+                },
+                messages: conversation.messages.map((message) => ({
+                    id: message.id,
+                    direction: message.direction,
+                    type: message.type,
+                    status: message.status,
+                    source: message.source,
+                    body: message.body,
+                    mediaId: message.mediaId,
+                    isInternalNote: message.isInternalNote,
+                    aiSuggestionId: message.aiSuggestionId,
+                    replyTitle: message.replyTitle,
+                    replyId: message.replyId,
+                    createdAt: message.createdAt,
+                    errorText: describeMetaError(message.metaResponse)
+                }))
+            },
+            conversations: conversations.map((item) => ({
+                id: item.id,
+                unreadCount: item.unreadCount,
+                contactName:
+                    item.contact.customName ||
+                    item.contact.profileName ||
+                    item.contact.phone,
+                lastMessage: item.messages[0]
+                    ? item.messages[0].body || `[${item.messages[0].type}]`
+                    : "—"
+            })),
+            quickReplies: quickReplies.map(({ id, title, body }) => ({
+                id,
+                title,
+                body
+            })),
+            offHoursNow: Boolean(res.locals.offHoursNow)
+        });
+    }
+
+    static async listData(req: Request, res: Response) {
+        const search = typeof req.query.search === "string" ? req.query.search : "";
+        const status = typeof req.query.status === "string" ? req.query.status : "";
+        const onlyUnread = req.query.unread === "1";
+        const assigned = typeof req.query.assigned === "string" ? req.query.assigned : "";
+        const conversations = req.activeNumber
+            ? await ConversationService.listForAgent(
+                  req.user!.workspaceId,
+                  req.user!.id,
+                  req.activeNumber.id,
+                  {
+                      search: search || undefined,
+                      status: status || undefined,
+                      assignedTo: assigned === "unassigned" ? null : undefined,
+                      onlyUnread
+                  }
+              )
+            : [];
+
+        return res.json({
+            conversations: conversations.map((conversation) => {
+                const lastMessage = conversation.messages[0] ?? null;
+                return {
+                    id: conversation.id,
+                    status: conversation.status,
+                    operationalStatus: conversation.operationalStatus,
+                    unreadCount: conversation.unreadCount,
+                    aiHandoffAt: conversation.aiHandoffAt,
+                    assignedUser: conversation.assignedUser
+                        ? { name: conversation.assignedUser.name }
+                        : null,
+                    contact: {
+                        customName: conversation.contact.customName,
+                        profileName: conversation.contact.profileName,
+                        phone: conversation.contact.phone,
+                        optOutAt: conversation.contact.optOutAt
+                    },
+                    lastMessage: lastMessage
+                        ? {
+                              body: lastMessage.body,
+                              type: lastMessage.type,
+                              timeLabel: res.locals.formatTimeMX(lastMessage.createdAt)
+                          }
+                        : null
+                };
+            }),
+            filters: { search, status, onlyUnread }
+        });
+    }
+
     static async index(req: Request, res: Response) {
         const search =
             typeof req.query.search === "string" ? req.query.search : "";
@@ -183,6 +342,27 @@ export class AgentConversationsController {
             conversation.whatsappNumberId,
             {}
         );
+
+        if (req.accepts("json") && !req.accepts("html")) return res.json({
+            templates: templates.map(({ id, name, language, components }) => ({ id, name, language, components })),
+            quickReplies: quickReplies.map(({ id, title, body }) => ({ id, title, body })),
+            aiSuggestion: aiOn && aiSettings.enabled && aiSettings.mode === AiMode.SUGGEST && aiSuggestion ? { id: aiSuggestion.id, body: aiSuggestion.body, confidence: aiSuggestion.confidence, intent: aiSuggestion.intent, handoff: aiSuggestion.handoff, reason: aiSuggestion.reason, createdAt: aiSuggestion.createdAt } : null,
+            aiSettings: { enabled: aiSettings.enabled, mode: aiSettings.mode, confidenceMin: aiSettings.confidenceMin },
+            aiConversation,
+            guidedFlowRun,
+            existingLead,
+            aiDraftBody,
+            outcomeAttempts: attempts.get(conversation.contactId) ?? { attempts: 0, hasInbound: false, lastInboundAt: null },
+            outcomeLabels: OUTCOME_LABELS,
+            outcomeTypes: OUTCOME_TYPES,
+            shortLabels: OUTCOME_SHORT_LABELS,
+            daysLate: daysOverdue(conversation.contact.outcomeDueAt, startOfTodayIn(timezone)),
+            interactiveListsEnabled: Boolean(res.locals.interactiveListsEnabled),
+            collectionsEnabled: Boolean(res.locals.collectionsEnabled),
+            error: req.query.error || null,
+            success: req.query.success || null,
+            mediaError: typeof req.query.detail === "string" ? req.query.detail : null
+        });
 
         return res.render("pages/agent/conversations/show", {
             conversations,

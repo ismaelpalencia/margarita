@@ -9,7 +9,6 @@ import { SendPolicyService } from "../services/send-policy.service";
 import { SystemStatusService } from "../services/system-status.service";
 import { WorkspaceService } from "../services/workspace.service";
 import { appConfig } from "../config/app.config";
-import { formatDateTimeMX } from "../utils/date";
 import { probeObjectStorage } from "../services/object-storage.service";
 import { storageSummary, StorageSummary } from "../services/object-storage.service";
 import {
@@ -41,14 +40,6 @@ async function r2Summary(): Promise<StorageSummary | null> {
     r2Cache = { at: Date.now(), value };
 
     return value;
-}
-
-export function humanBytes(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1048576).toFixed(1)} MB`;
-
-    return `${(bytes / 1073741824).toFixed(2)} GB`;
 }
 
 export class AdminSystemController {
@@ -97,26 +88,42 @@ export class AdminSystemController {
             aiTimezone
         );
 
-        return res.render("pages/admin/system/index", {
-            user: req.user,
-            status,
+        const data = {
+            status: {
+                workspace: status.workspace ? { profile: status.workspace.profile, status: status.workspace.status } : null,
+                whatsappAccount: status.whatsappAccount ? { businessAccountId: status.whatsappAccount.businessAccountId, apiVersion: status.whatsappAccount.apiVersion } : null,
+                approvedTemplates: status.approvedTemplates,
+                totalTemplates: status.totalTemplates,
+                totalContacts: status.totalContacts,
+                activeAgents: status.activeAgents,
+                recentErrors: status.recentErrors.map(({ action, level, message, createdAt }) => ({ action, level, message, createdAt })),
+                recentWebhookLogs: status.recentWebhookLogs.map(({ action, level, message, createdAt }) => ({ action, level, message, createdAt })),
+                recentMetaLogs: status.recentMetaLogs.map(({ action, level, message, createdAt }) => ({ action, level, message, createdAt })),
+                webhookUrl: status.webhookUrl,
+                pendingWebhookEvents: status.pendingWebhookEvents,
+                failedWebhookEvents: status.failedWebhookEvents,
+                hardening: status.hardening,
+                checks: status.checks
+            },
             version: appConfig.version,
             commit: appConfig.commit,
-            formatDateTimeMX,
             r2: await r2Summary(),
-            humanBytes,
             profiles,
             currentProfile,
+            profileLabels: WORKSPACE_PROFILE_LABELS,
+            profileDescriptions: WORKSPACE_PROFILE_DESCRIPTIONS,
             interactiveListsEnabled: Boolean(workspaceFlags?.interactiveListsEnabled),
             handoffEscalationMinutes: workspaceFlags?.handoffEscalationMinutes ?? 15,
             autoAssignToAdmin: Boolean(workspaceFlags?.autoAssignToAdmin ?? true),
             unassignedCount,
             aiUsage,
-            profileLabels: WORKSPACE_PROFILE_LABELS,
-            profileDescriptions: WORKSPACE_PROFILE_DESCRIPTIONS,
             success: req.query.success || null,
             error: req.query.error || null
-        });
+        };
+
+        if (req.accepts("json") && !req.accepts("html")) return res.json(data);
+        return res.redirect("/panel/admin/system");
+
     }
 
     /** Interruptor de listas interactivas (no depende del giro). */
@@ -140,10 +147,10 @@ export class AdminSystemController {
                 payload: { enabled }
             }).catch(() => undefined);
         } catch {
-            return res.redirect("/admin/system?error=lists");
+            return res.redirect("/panel/admin/system?error=lists");
         }
 
-        return res.redirect("/admin/system?success=lists");
+        return res.redirect("/panel/admin/system?success=lists");
     }
 
     /** Configuración de asignación y escalamiento de handoff. */
@@ -160,10 +167,10 @@ export class AdminSystemController {
                 }
             });
         } catch {
-            return res.redirect("/admin/system?error=handoff");
+            return res.redirect("/panel/admin/system?error=handoff");
         }
 
-        return res.redirect("/admin/system?success=handoff");
+        return res.redirect("/panel/admin/system?success=handoff");
     }
 
     /**
@@ -176,7 +183,7 @@ export class AdminSystemController {
         const profile = parseWorkspaceProfile(req.body?.profile);
 
         if (!profile) {
-            return res.redirect("/admin/system?error=profile");
+            return res.redirect("/panel/admin/system?error=profile");
         }
 
         try {
@@ -186,9 +193,9 @@ export class AdminSystemController {
                 req.user!.id
             );
         } catch {
-            return res.redirect("/admin/system?error=profile");
+            return res.redirect("/panel/admin/system?error=profile");
         }
 
-        return res.redirect("/admin/system?success=profile");
+        return res.redirect("/panel/admin/system?success=profile");
     }
 }

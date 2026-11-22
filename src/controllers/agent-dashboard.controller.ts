@@ -23,15 +23,70 @@ export class AgentDashboardController {
         });
     }
 
+    static async data(req: Request, res: Response) {
+        const [dashboard, unassignedCount] = await Promise.all([
+            DashboardService.getAgentDashboard(
+                req.user!.workspaceId,
+                req.user!.id
+            ),
+            ConversationService.countUnassigned(req.user!.workspaceId)
+        ]);
+
+        return res.json({
+            user: { name: req.user!.name, role: req.user!.role },
+            dashboard: {
+                currentAgent: dashboard.currentAgent,
+                stats: dashboard.stats,
+                recentConversations: dashboard.recentConversations.map(
+                    (conversation) => ({
+                        id: conversation.id,
+                        operationalStatus: conversation.operationalStatus,
+                        contact: {
+                            customName: conversation.contact.customName,
+                            profileName: conversation.contact.profileName,
+                            phone: conversation.contact.phone
+                        },
+                        messages: conversation.messages.map((message) => ({
+                            body: message.body,
+                            type: message.type
+                        }))
+                    })
+                ),
+                recentMessages: dashboard.recentMessages.map((message) => ({
+                    direction: message.direction,
+                    body: message.body,
+                    type: message.type,
+                    conversation: {
+                        id: message.conversation.id,
+                        contact: {
+                            customName: message.conversation.contact.customName,
+                            profileName: message.conversation.contact.profileName,
+                            phone: message.conversation.contact.phone
+                        }
+                    }
+                }))
+            },
+            unassignedCount
+        });
+    }
+
     static async updateStatus(req: Request, res: Response) {
         try {
             const status = req.body.status as UserStatus;
 
             await AgentService.updateStatus(req.user!.id, status);
 
-            return res.redirect("/agent/dashboard?success=status");
+            if (req.accepts("json")) {
+                return res.json({ ok: true, status });
+            }
+
+            return res.redirect("/panel/agent/dashboard?success=status");
         } catch {
-            return res.redirect("/agent/dashboard?error=status");
+            if (req.accepts("json")) {
+                return res.status(400).json({ ok: false });
+            }
+
+            return res.redirect("/panel/agent/dashboard?error=status");
         }
     }
 }

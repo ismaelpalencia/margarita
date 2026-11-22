@@ -17,7 +17,7 @@ No hay que configurar nada en el panel de Railway para el build ni el arranque: 
 | Pieza | Qué hace |
 | --- | --- |
 | `package.json` → `engines` | Acepta las ramas parcheadas **22.23.4 LTS, 24.22.1 LTS y 26.12.1+**. Nixpacks lee esta restricción junto con `.nvmrc`. |
-| `nixpacks.toml` | Instala con `npm install --include=dev` (ver abajo por qué no `npm ci`) y compila con `npm run build`. |
+| `nixpacks.toml` | Instala dependencias de Express y Angular (ver abajo por qué se usa `npm install`) y compila con `npm run build`. |
 | `preDeployCommand` | `node dist/tools/deploy-migrations.js` — aplica las migraciones antes de levantar la app, resolviendo el caso de una base nueva, una con tablas y una ya versionada. |
 | `startCommand` | `npm start` |
 | `healthcheckPath` | `/health` — el despliegue se marca sano cuando la base y el worker responden. |

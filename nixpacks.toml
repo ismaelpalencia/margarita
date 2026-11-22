@@ -24,7 +24,10 @@
 # `NIXPACKS_NODE_VERSION=22.23.4` lo resuelve sin tocar el repositorio.
 
 [phases.install]
-cmds = ["npm install --include=dev --no-audit --no-fund"]
+cmds = [
+  "npm install --include=dev --no-audit --no-fund",
+  "npm --prefix frontend install --include=dev --no-audit --no-fund"
+]
 
 [phases.build]
 cmds = ["npm run build"]

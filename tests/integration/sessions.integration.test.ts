@@ -97,7 +97,8 @@ test("restablecer la contraseña cierra sesiones y obliga a cambiarla", async ()
         password: "ClaveDelAgente123",
         role: UserRole.AGENT,
         canSendManualMessages: true,
-        manualMessageLimit: 20
+        manualMessageLimit: 20,
+        allowedNumberIds: []
     });
 
     await AuthService.login(
@@ -168,7 +169,8 @@ test("desactivar a un usuario cierra sus sesiones", async () => {
         password: "ClaveDelUsuario123",
         role: UserRole.AGENT,
         canSendManualMessages: true,
-        manualMessageLimit: 10
+        manualMessageLimit: 10,
+        allowedNumberIds: []
     });
 
     await AuthService.login({ email, password: "ClaveDelUsuario123" }, {});
@@ -215,7 +217,8 @@ test("la instalación nunca se queda sin administrador activo", async () => {
                     name: "Admin de prueba",
                     role: UserRole.AGENT,
                     canSendManualMessages: true,
-                    manualMessageLimit: null
+                    manualMessageLimit: null,
+                    allowedNumberIds: []
                 },
                 fixture.adminId
             ),
@@ -230,7 +233,8 @@ test("la instalación nunca se queda sin administrador activo", async () => {
         password: "ClaveDelSegundo123",
         role: UserRole.ADMIN,
         canSendManualMessages: true,
-        manualMessageLimit: null
+        manualMessageLimit: null,
+        allowedNumberIds: []
     });
 
     const demoted = await UserService.updateUser(
@@ -240,7 +244,8 @@ test("la instalación nunca se queda sin administrador activo", async () => {
             name: "Segundo Admin",
             role: UserRole.AGENT,
             canSendManualMessages: true,
-            manualMessageLimit: 50
+            manualMessageLimit: 50,
+            allowedNumberIds: []
         },
         fixture.adminId
     );
@@ -267,7 +272,8 @@ test("un usuario desactivado no puede entrar", async () => {
         password: "ClaveDelInactivo123",
         role: UserRole.AGENT,
         canSendManualMessages: false,
-        manualMessageLimit: null
+        manualMessageLimit: null,
+        allowedNumberIds: []
     });
 
     await UserService.setActive(fixture.workspaceId, user.id, false, fixture.adminId);

@@ -10,14 +10,17 @@ import { appConfig } from "../config/app.config";
  * que está pospuesto). Al cliente eso no le sirve y, además, le cuenta de más.
  */
 export class AdminGuideController {
-    static async index(_req: Request, res: Response) {
-        return res.render("pages/admin/guide/index", {
-            user: _req.user,
-            supportEmail: appConfig.supportEmail,
-            supportWhatsappDisplay: appConfig.supportWhatsappDisplay,
-            supportWhatsappUrl: appConfig.supportWhatsapp
-                ? `https://wa.me/${appConfig.supportWhatsapp}`
-                : ""
-        });
+    static async index(req: Request, res: Response) {
+        if (req.accepts("json") && !req.accepts("html")) {
+            return res.json({
+                collectionsEnabled: Boolean(res.locals.collectionsEnabled),
+                supportEmail: appConfig.supportEmail,
+                supportWhatsappDisplay: appConfig.supportWhatsappDisplay,
+                supportWhatsappUrl: appConfig.supportWhatsapp
+                    ? `https://wa.me/${appConfig.supportWhatsapp}`
+                    : ""
+            });
+        }
+        return res.redirect("/panel/admin/guide");
     }
 }

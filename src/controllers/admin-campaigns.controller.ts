@@ -78,16 +78,25 @@ export class AdminCampaignsController {
     }
 
     static async index(req: Request, res: Response) {
+        if (!(req.accepts("json") && !req.accepts("html"))) {
+            return res.redirect("/panel/admin/campaigns");
+        }
         const campaigns = await CampaignService.listCampaigns(
             req.user!.workspaceId,
             req.activeNumber?.id
         );
 
-        return res.render("pages/admin/campaigns/index", {
-            user: req.user,
-            campaigns,
-            success: req.query.success || null,
-            error: req.query.error || null
+        return res.json({
+            campaigns: campaigns.map((campaign) => ({
+                id: campaign.id,
+                name: campaign.name,
+                status: campaign.status,
+                createdAt: campaign.createdAt,
+                template: { name: campaign.template.name, language: campaign.template.language },
+                recipientsCount: campaign._count.recipients
+            })),
+            success: req.query.success === "created",
+            error: Boolean(req.query.error)
         });
     }
 
@@ -96,12 +105,12 @@ export class AdminCampaignsController {
             req.user!.workspaceId
         );
 
-        return res.render("pages/admin/campaigns/create", {
-            user: req.user,
-            templates: data.templates,
-            contacts: data.contacts,
-            error: req.query.error || null
-        });
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ templates: data.templates.map(({ id, name, language, variableCount, headerVariableCount, urlVariableCount }) => ({ id, name, language, variableCount, headerVariableCount, urlVariableCount })), contacts: data.contacts.map(({ id, phone, customName, profileName, optOutAt }) => ({ id, phone, customName, profileName, optedOut: Boolean(optOutAt) })) });
+
+        const query = req.originalUrl.includes("?")
+            ? req.originalUrl.slice(req.originalUrl.indexOf("?"))
+            : "";
+        return res.redirect(`/panel/admin/campaigns/create${query}`);
     }
 
     /**
@@ -117,7 +126,7 @@ export class AdminCampaignsController {
             typeof req.query.templateId === "string" ? req.query.templateId : "";
 
         if (!templateId) {
-            return res.redirect("/admin/campaigns/create?error=validation");
+            return res.redirect("/panel/admin/campaigns/create?error=validation");
         }
 
         const template = await prisma.template.findFirst({
@@ -129,7 +138,7 @@ export class AdminCampaignsController {
         });
 
         if (!template) {
-            return res.redirect("/admin/campaigns/create?error=validation");
+            return res.redirect("/panel/admin/campaigns/create?error=validation");
         }
 
         const shape = templateVariableShape(template.components);
@@ -158,7 +167,7 @@ export class AdminCampaignsController {
         const parsed = createCampaignSchema.safeParse(req.body);
 
         if (!parsed.success) {
-            return res.redirect("/admin/campaigns/create?error=validation");
+            return res.redirect("/panel/admin/campaigns/create?error=validation");
         }
 
         try {
@@ -170,7 +179,7 @@ export class AdminCampaignsController {
             );
 
             return res.redirect(
-                `/admin/campaigns/${campaign.id}?success=created`
+                `/panel/admin/campaigns/${campaign.id}?success=created`
             );
         } catch (error) {
             await AdminCampaignsController.logFailure(
@@ -180,7 +189,7 @@ export class AdminCampaignsController {
             );
 
             return res.redirect(
-                `/admin/campaigns/create?error=${AdminCampaignsController.failureCode(error)}`
+                `/panel/admin/campaigns/create?error=${AdminCampaignsController.failureCode(error)}`
             );
         }
     }
@@ -194,17 +203,12 @@ export class AdminCampaignsController {
         );
 
         if (!campaign) {
-            return res.redirect("/admin/campaigns?error=not_found");
+            return res.redirect("/panel/admin/campaigns?error=not_found");
         }
 
-        return res.render("pages/admin/campaigns/show", {
-            /** Para mostrar los valores guardados por destinatario. */
-            readRecipientTemplateValues,
-            user: req.user,
-            campaign,
-            success: req.query.success || null,
-            error: req.query.error || null
-        });
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ campaign: { id: campaign.id, name: campaign.name, status: campaign.status, createdAt: campaign.createdAt, scheduledFor: campaign.scheduledFor, totalRecipients: campaign.totalRecipients, template: { name: campaign.template.name, language: campaign.template.language }, whatsappNumber: campaign.whatsappNumber ? { displayName: campaign.whatsappNumber.displayName, phoneNumber: campaign.whatsappNumber.phoneNumber } : null, recipients: campaign.recipients.map((recipient) => { const values = readRecipientTemplateValues(recipient.variables); return { id: recipient.id, phone: recipient.phone, name: recipient.contact?.customName || recipient.contact?.profileName || recipient.phone, status: recipient.status, errorMessage: recipient.errorMessage, hasMessage: Boolean(recipient.message), variables: [values.header ? `Encabezado: ${values.header}` : null, ...values.body, values.button ? `Botón: ${values.button}` : null].filter(Boolean) }; }) }, success: req.query.success || null, error: req.query.error || null });
+
+        return res.redirect(`/panel/admin/campaigns/${encodeURIComponent(campaign.id)}`);
     }
 
     static async retryFailed(req: Request, res: Response) {
@@ -217,7 +221,7 @@ export class AdminCampaignsController {
             );
 
             return res.redirect(
-                `/admin/campaigns/${campaignId}?success=retry_failed`
+                `/panel/admin/campaigns/${campaignId}?success=retry_failed`
             );
         } catch (error) {
             await AdminCampaignsController.logFailure(
@@ -227,7 +231,7 @@ export class AdminCampaignsController {
             );
 
             return res.redirect(
-                `/admin/campaigns/${campaignId}?error=retry_failed`
+                `/panel/admin/campaigns/${campaignId}?error=retry_failed`
             );
         }
     }
@@ -241,7 +245,7 @@ export class AdminCampaignsController {
                 campaignId
             );
 
-            return res.redirect(`/admin/campaigns/${campaignId}?success=paused`);
+            return res.redirect(`/panel/admin/campaigns/${campaignId}?success=paused`);
         } catch (error) {
             await AdminCampaignsController.logFailure(
                 req,
@@ -249,7 +253,7 @@ export class AdminCampaignsController {
                 "CAMPAIGN_PAUSE_FAILED"
             );
 
-            return res.redirect(`/admin/campaigns/${campaignId}?error=pause`);
+            return res.redirect(`/panel/admin/campaigns/${campaignId}?error=pause`);
         }
     }
 
@@ -263,7 +267,7 @@ export class AdminCampaignsController {
             );
 
             return res.redirect(
-                `/admin/campaigns/${campaignId}?success=resumed`
+                `/panel/admin/campaigns/${campaignId}?success=resumed`
             );
         } catch (error) {
             await AdminCampaignsController.logFailure(
@@ -272,7 +276,7 @@ export class AdminCampaignsController {
                 "CAMPAIGN_RESUME_FAILED"
             );
 
-            return res.redirect(`/admin/campaigns/${campaignId}?error=resume`);
+            return res.redirect(`/panel/admin/campaigns/${campaignId}?error=resume`);
         }
     }
 
@@ -286,7 +290,7 @@ export class AdminCampaignsController {
             );
 
             return res.redirect(
-                `/admin/campaigns/${campaignId}?success=cancelled`
+                `/panel/admin/campaigns/${campaignId}?success=cancelled`
             );
         } catch (error) {
             await AdminCampaignsController.logFailure(
@@ -295,7 +299,7 @@ export class AdminCampaignsController {
                 "CAMPAIGN_CANCEL_FAILED"
             );
 
-            return res.redirect(`/admin/campaigns/${campaignId}?error=cancel`);
+            return res.redirect(`/panel/admin/campaigns/${campaignId}?error=cancel`);
         }
     }
 
@@ -309,7 +313,7 @@ export class AdminCampaignsController {
             );
 
             return res.redirect(
-                `/admin/campaigns/${campaignId}?success=sent`
+                `/panel/admin/campaigns/${campaignId}?success=sent`
             );
         } catch (error) {
             await AdminCampaignsController.logFailure(
@@ -319,7 +323,7 @@ export class AdminCampaignsController {
             );
 
             return res.redirect(
-                `/admin/campaigns/${campaignId}?error=send`
+                `/panel/admin/campaigns/${campaignId}?error=send`
             );
         }
     }
@@ -332,7 +336,7 @@ export class AdminCampaignsController {
                 fs.unlinkSync(req.file.path);
             }
 
-            return res.redirect("/admin/campaigns/create?error=excel_validation");
+            return res.redirect("/panel/admin/campaigns/create?error=excel_validation");
         }
 
         try {
@@ -349,7 +353,7 @@ export class AdminCampaignsController {
             }
 
             return res.redirect(
-                `/admin/campaigns/${campaign.id}?success=created_excel`
+                `/panel/admin/campaigns/${campaign.id}?success=created_excel`
             );
         } catch (error) {
             if (req.file?.path && fs.existsSync(req.file.path)) {
@@ -365,7 +369,7 @@ export class AdminCampaignsController {
             const code = AdminCampaignsController.failureCode(error);
 
             return res.redirect(
-                `/admin/campaigns/create?error=${code === "create" ? "excel_create" : code}`
+                `/panel/admin/campaigns/create?error=${code === "create" ? "excel_create" : code}`
             );
         }
     }

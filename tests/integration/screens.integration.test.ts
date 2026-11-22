@@ -72,13 +72,19 @@ test("ninguna pantalla del panel responde 500", async () => {
 
     assert.ok(cookie, "el admin de prueba debe poder entrar");
 
+    const panelAdmin = await visit("/panel/admin/dashboard", cookie);
+    assert.equal(panelAdmin.status, 200, "el dashboard Angular del admin debe servirse");
+    assert.match(panelAdmin.body, /<app-root>/, "Express debe devolver el shell Angular");
+    assert.match(panelAdmin.body, /\/angular\/main-/, "el shell debe enlazar el bundle Angular");
+
     const member = await UserService.createUser(fixture.workspaceId, {
         name: "Persona de pantallas",
         email: `prueba-integracion-pantallas-${Date.now()}@ejemplo.mx`,
         password: "ClaveDePantallas123",
         role: UserRole.AGENT,
         canSendManualMessages: true,
-        manualMessageLimit: 10
+        manualMessageLimit: 10,
+        allowedNumberIds: []
     });
 
     /** Las pantallas de siempre. Si alguna truena, aquí se ve. */
@@ -149,12 +155,20 @@ test("ninguna pantalla del panel responde 500", async () => {
         password,
         role: UserRole.AGENT,
         canSendManualMessages: true,
-        manualMessageLimit: 10
+        manualMessageLimit: 10,
+        allowedNumberIds: []
     });
 
     const agente = await login(email, password);
 
     assert.ok(agente.cookie, "el agente debe poder entrar");
+
+    const panelAgente = await visit("/panel/agent/dashboard", agente.cookie);
+    assert.equal(panelAgente.status, 200, "el dashboard Angular del agente debe servirse");
+    assert.match(panelAgente.body, /<app-root>/, "el agente también recibe el shell Angular");
+
+    const accesoAdmin = await visit("/panel/admin/dashboard", agente.cookie);
+    assert.equal(accesoAdmin.status, 403, "el área admin debe seguir protegida por rol");
 
     const pantallasDelAgente = [
         "/agent/dashboard",
@@ -252,7 +266,8 @@ test("cambiar la contraseña no rompe la pantalla de confirmación", async () =>
         password: original,
         role: UserRole.AGENT,
         canSendManualMessages: true,
-        manualMessageLimit: 10
+        manualMessageLimit: 10,
+        allowedNumberIds: []
     });
 
     const { cookie } = await login(email, original);
@@ -301,7 +316,8 @@ test("restablecer la contraseña desde Equipo deja la ficha en pie", async () =>
         password: "ClaveDeReset123",
         role: UserRole.AGENT,
         canSendManualMessages: true,
-        manualMessageLimit: 10
+        manualMessageLimit: 10,
+        allowedNumberIds: []
     });
 
     const reset = await fetch(`${baseUrl()}/admin/users/${member.id}/password`, {

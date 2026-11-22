@@ -7,6 +7,9 @@ export const hoursSchema = z.object({
     businessHoursEnabled: z
         .preprocess(
             (value) =>
+                typeof value === "boolean"
+                    ? String(value)
+                    :
                 Array.isArray(value)
                     ? value.includes("true")
                         ? "true"

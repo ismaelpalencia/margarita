@@ -10,7 +10,8 @@ const STATUSES = [LeadStatus.NUEVO, LeadStatus.CONTACTADO, LeadStatus.CONVERTIDO
 
 export class AdminLeadsController {
     static async index(req: Request, res: Response) {
-        const status = typeof req.query.status === "string" ? req.query.status : "ALL";
+        const requestedStatus = typeof req.query.status === "string" ? req.query.status : "ALL";
+        const status = requestedStatus === "ALL" || (STATUSES as readonly string[]).includes(requestedStatus) ? requestedStatus : "ALL";
         const [leads, flags, contacts] = await Promise.all([
             LeadService.list(req.user!.workspaceId, status),
             prisma.workspace.findUniqueOrThrow({
@@ -49,23 +50,32 @@ export class AdminLeadsController {
             leads.map((lead) => lead.contactId).filter(Boolean)
         );
 
-        return res.render("pages/admin/leads/index", {
-            user: req.user,
-            leads,
-            statuses: STATUSES,
-            currentStatus: status,
-            leadsEnabled: flags.leadsEnabled,
-            leadWebhookUrl: flags.leadWebhookUrl ?? "",
-            hasWebhookSecret: Boolean(flags.leadWebhookSecret),
-            leadSheetsWebhookUrl: flags.leadSheetsWebhookUrl ?? "",
-            hasSheetsSecret: Boolean(flags.leadSheetsWebhookSecret),
-            contacts,
-            leadContactIds,
-            csvColumns: LEAD_CSV_COLUMNS,
-            deletedCount: Number(req.query.count || 0),
-            success: req.query.success || null,
-            error: req.query.error || null
-        });
+        if (req.accepts("json") && !req.accepts("html")) {
+            return res.json({
+                leads: leads.map(({ id, contactId, conversationId, name, phone, email, interest, notes, fields, source, status, webhookSentAt, webhookFailedAt, webhookAttempts, createdAt }) => ({ id, contactId, conversationId, name, phone, email, interest, notes, fields, source, status, webhookSentAt, webhookFailedAt, webhookAttempts, createdAt })),
+                statuses: STATUSES,
+                currentStatus: status,
+                settings: {
+                    leadsEnabled: flags.leadsEnabled,
+                    leadWebhookUrl: flags.leadWebhookUrl ?? "",
+                    hasWebhookSecret: Boolean(flags.leadWebhookSecret),
+                    leadSheetsWebhookUrl: flags.leadSheetsWebhookUrl ?? "",
+                    hasSheetsSecret: Boolean(flags.leadSheetsWebhookSecret)
+                },
+                contacts: contacts.map((contact) => ({
+                    id: contact.id,
+                    profileName: contact.profileName,
+                    customName: contact.customName,
+                    phone: contact.phone,
+                    conversationId: contact.conversations[0]?.id ?? null,
+                    hasLead: leadContactIds.has(contact.id)
+                })),
+                csvColumns: LEAD_CSV_COLUMNS
+            });
+        }
+
+        const query = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
+        return res.redirect(`/panel/admin/leads${query}`);
     }
 
     static async saveSettings(req: Request, res: Response) {
@@ -95,10 +105,10 @@ export class AdminLeadsController {
                 }
             });
         } catch {
-            return res.redirect("/admin/leads?error=settings");
+            return res.redirect("/panel/admin/leads?error=settings");
         }
 
-        return res.redirect("/admin/leads?success=settings");
+        return res.redirect("/panel/admin/leads?success=settings");
     }
 
     static async create(req: Request, res: Response) {
@@ -126,7 +136,7 @@ export class AdminLeadsController {
             });
 
             if (!contact) {
-                return res.redirect("/admin/leads?error=contact");
+                return res.redirect("/panel/admin/leads?error=contact");
             }
 
             const existing = await prisma.lead.findFirst({
@@ -138,7 +148,7 @@ export class AdminLeadsController {
             });
 
             if (existing) {
-                return res.redirect("/admin/leads?error=lead_exists");
+                return res.redirect("/panel/admin/leads?error=lead_exists");
             }
 
             name =
@@ -151,7 +161,7 @@ export class AdminLeadsController {
         }
 
         if (!name || !phone) {
-            return res.redirect("/admin/leads?error=name_phone");
+            return res.redirect("/panel/admin/leads?error=name_phone");
         }
 
         try {
@@ -167,10 +177,10 @@ export class AdminLeadsController {
                 source: contactId ? "MANUAL_CONTACT" : "MANUAL"
             });
         } catch {
-            return res.redirect("/admin/leads?error=create");
+            return res.redirect("/panel/admin/leads?error=create");
         }
 
-        return res.redirect("/admin/leads?success=created");
+        return res.redirect("/panel/admin/leads?success=created");
     }
 
     static async updateStatus(req: Request, res: Response) {
@@ -178,28 +188,28 @@ export class AdminLeadsController {
         const status = String(req.body?.status || "") as LeadStatus;
 
         if (!(STATUSES as readonly string[]).includes(status)) {
-            return res.redirect("/admin/leads?error=status");
+            return res.redirect("/panel/admin/leads?error=status");
         }
 
         await LeadService.updateStatus(req.user!.workspaceId, id, status);
 
-        return res.redirect("/admin/leads?success=status");
+        return res.redirect("/panel/admin/leads?success=status");
     }
 
     static async removeAll(req: Request, res: Response) {
         const confirmation = String(req.body?.confirm || "").trim();
 
         if (confirmation.toUpperCase() !== "BORRAR") {
-            return res.redirect("/admin/leads?error=delete_all_confirm");
+            return res.redirect("/panel/admin/leads?error=delete_all_confirm");
         }
 
         try {
             const count = await LeadService.deleteAll(req.user!.workspaceId);
             return res.redirect(
-                `/admin/leads?success=deleted_all&count=${count}`
+                `/panel/admin/leads?success=deleted_all&count=${count}`
             );
         } catch {
-            return res.redirect("/admin/leads?error=delete_all");
+            return res.redirect("/panel/admin/leads?error=delete_all");
         }
     }
 
@@ -208,9 +218,9 @@ export class AdminLeadsController {
 
         try {
             await LeadService.delete(req.user!.workspaceId, id);
-            return res.redirect("/admin/leads?success=deleted");
+            return res.redirect("/panel/admin/leads?success=deleted");
         } catch {
-            return res.redirect("/admin/leads?error=delete");
+            return res.redirect("/panel/admin/leads?error=delete");
         }
     }
 
@@ -220,9 +230,9 @@ export class AdminLeadsController {
         try {
             await LeadService.retry(req.user!.workspaceId, id);
 
-            return res.redirect("/admin/leads?success=retry");
+            return res.redirect("/panel/admin/leads?success=retry");
         } catch {
-            return res.redirect("/admin/leads?error=retry");
+            return res.redirect("/panel/admin/leads?error=retry");
         }
     }
 

@@ -47,32 +47,37 @@ export class AdminWhatsAppController {
 
             const suggested = NumberUsageService.suggested(usage);
 
-            return res.render("pages/admin/whatsapp/show", {
-                user: req.user,
-                account,
-                numbers,
-                usage,
-                suggestedNumberId: suggested?.numberId || null,
-                webhookUrl,
-                success: req.query.success || null,
-                error: req.query.error || null
-            });
+            if (req.accepts("json") && !req.accepts("html")) {
+                return res.json({
+                    webhookUrl,
+                    account: {
+                        businessAccountId: account.businessAccountId,
+                        apiVersion: account.apiVersion,
+                        maskedAccessToken: account.maskedAccessToken,
+                        maskedVerifyToken: account.maskedVerifyToken,
+                        encryptedAtRest: account.encryptedAtRest
+                    },
+                    numbers: numbers.map(({ id, displayName, phoneNumber, phoneNumberId, isActive, aiEnabled, flowsEnabled, guidedFlowsEnabled, status, qualityRating }) => ({ id, displayName, phoneNumber, phoneNumberId, isActive, aiEnabled, flowsEnabled, guidedFlowsEnabled, status, qualityRating })),
+                    usage,
+                    suggestedNumberId: suggested?.numberId || null,
+                    success: req.query.success || null,
+                    error: req.query.error || null
+                });
+            }
+
+            return res.redirect("/panel/admin/whatsapp");
         } catch (error) {
             const message =
                 error instanceof Error
                     ? error.message
                     : "No se pudo cargar la cuenta de WhatsApp.";
-
-            return res.render("pages/admin/whatsapp/show", {
-                user: req.user,
-                account: null,
-                numbers: [],
-                usage: [],
-                suggestedNumberId: null,
-                webhookUrl,
-                success: null,
-                error: message
-            });
+            if (req.accepts("json") && !req.accepts("html")) {
+                if (message === "No hay cuenta de WhatsApp configurada.") {
+                    return res.json({ account: null, numbers: [], usage: [], suggestedNumberId: null, webhookUrl, error: null });
+                }
+                return res.status(500).json({ error: message });
+            }
+            return res.redirect(`/panel/admin/whatsapp?error=${encodeURIComponent(message)}`);
         }
     }
 
@@ -80,7 +85,7 @@ export class AdminWhatsAppController {
         const parsed = createWhatsAppAccountSchema.safeParse(req.body);
 
         if (!parsed.success) {
-            return res.redirect("/admin/whatsapp?error=validation");
+            return res.redirect("/panel/admin/whatsapp?error=validation");
         }
 
         try {
@@ -91,9 +96,9 @@ export class AdminWhatsAppController {
                 verifyToken: parsed.data.verifyToken
             });
 
-            return res.redirect("/admin/whatsapp?success=account_created");
+            return res.redirect("/panel/admin/whatsapp?success=account_created");
         } catch {
-            return res.redirect("/admin/whatsapp?error=account_create");
+            return res.redirect("/panel/admin/whatsapp?error=account_create");
         }
     }
 
@@ -101,7 +106,7 @@ export class AdminWhatsAppController {
         const parsed = updateWhatsAppCredentialsSchema.safeParse(req.body);
 
         if (!parsed.success) {
-            return res.redirect("/admin/whatsapp?error=validation");
+            return res.redirect("/panel/admin/whatsapp?error=validation");
         }
 
         try {
@@ -110,9 +115,9 @@ export class AdminWhatsAppController {
                 parsed.data
             );
 
-            return res.redirect("/admin/whatsapp?success=updated");
+            return res.redirect("/panel/admin/whatsapp?success=updated");
         } catch {
-            return res.redirect("/admin/whatsapp?error=update");
+            return res.redirect("/panel/admin/whatsapp?error=update");
         }
     }
 
@@ -120,7 +125,7 @@ export class AdminWhatsAppController {
         const parsed = createNumberSchema.safeParse(req.body);
 
         if (!parsed.success) {
-            return res.redirect("/admin/whatsapp?error=number_validation");
+            return res.redirect("/panel/admin/whatsapp?error=number_validation");
         }
 
         try {
@@ -130,9 +135,9 @@ export class AdminWhatsAppController {
                 phoneNumberId: parsed.data.phoneNumberId
             });
 
-            return res.redirect("/admin/whatsapp?success=number_created");
+            return res.redirect("/panel/admin/whatsapp?success=number_created");
         } catch {
-            return res.redirect("/admin/whatsapp?error=number_create");
+            return res.redirect("/panel/admin/whatsapp?error=number_create");
         }
     }
 
@@ -141,7 +146,7 @@ export class AdminWhatsAppController {
         const parsed = updateNumberSchema.safeParse(req.body);
 
         if (!parsed.success) {
-            return res.redirect("/admin/whatsapp?error=number_validation");
+            return res.redirect("/panel/admin/whatsapp?error=number_validation");
         }
 
         try {
@@ -151,9 +156,9 @@ export class AdminWhatsAppController {
                 parsed.data
             );
 
-            return res.redirect("/admin/whatsapp?success=number_updated");
+            return res.redirect("/panel/admin/whatsapp?success=number_updated");
         } catch {
-            return res.redirect("/admin/whatsapp?error=number_update");
+            return res.redirect("/panel/admin/whatsapp?error=number_update");
         }
     }
 
@@ -167,7 +172,7 @@ export class AdminWhatsAppController {
             );
 
             if (!number) {
-                return res.redirect("/admin/whatsapp?error=number_update");
+                return res.redirect("/panel/admin/whatsapp?error=number_update");
             }
 
             await WhatsAppNumberService.setActive(
@@ -176,9 +181,9 @@ export class AdminWhatsAppController {
                 !number.isActive
             );
 
-            return res.redirect("/admin/whatsapp?success=number_updated");
+            return res.redirect("/panel/admin/whatsapp?success=number_updated");
         } catch {
-            return res.redirect("/admin/whatsapp?error=number_update");
+            return res.redirect("/panel/admin/whatsapp?error=number_update");
         }
     }
 
@@ -193,7 +198,7 @@ export class AdminWhatsAppController {
             );
 
             if (!number) {
-                return res.redirect("/admin/whatsapp?error=number_update");
+                return res.redirect("/panel/admin/whatsapp?error=number_update");
             }
 
             await WhatsAppNumberService.setAiEnabled(
@@ -213,9 +218,9 @@ export class AdminWhatsAppController {
                 payload: { numberId, phoneNumber: number.phoneNumber }
             }).catch(() => undefined);
 
-            return res.redirect("/admin/whatsapp?success=number_ai");
+            return res.redirect("/panel/admin/whatsapp?success=number_ai");
         } catch {
-            return res.redirect("/admin/whatsapp?error=number_update");
+            return res.redirect("/panel/admin/whatsapp?error=number_update");
         }
     }
 
@@ -230,7 +235,7 @@ export class AdminWhatsAppController {
             );
 
             if (!number) {
-                return res.redirect("/admin/whatsapp?error=number_update");
+                return res.redirect("/panel/admin/whatsapp?error=number_update");
             }
 
             await WhatsAppNumberService.setFlowsEnabled(
@@ -250,9 +255,9 @@ export class AdminWhatsAppController {
                 payload: { numberId, phoneNumber: number.phoneNumber }
             }).catch(() => undefined);
 
-            return res.redirect("/admin/whatsapp?success=number_flows");
+            return res.redirect("/panel/admin/whatsapp?success=number_flows");
         } catch {
-            return res.redirect("/admin/whatsapp?error=number_update");
+            return res.redirect("/panel/admin/whatsapp?error=number_update");
         }
     }
 
@@ -267,7 +272,7 @@ export class AdminWhatsAppController {
             );
 
             if (!number) {
-                return res.redirect("/admin/whatsapp?error=number_update");
+                return res.redirect("/panel/admin/whatsapp?error=number_update");
             }
 
             await WhatsAppNumberService.setGuidedFlowsEnabled(
@@ -289,9 +294,9 @@ export class AdminWhatsAppController {
                 payload: { numberId, phoneNumber: number.phoneNumber }
             }).catch(() => undefined);
 
-            return res.redirect("/admin/whatsapp?success=number_guided_flows");
+            return res.redirect("/panel/admin/whatsapp?success=number_guided_flows");
         } catch {
-            return res.redirect("/admin/whatsapp?error=number_update");
+            return res.redirect("/panel/admin/whatsapp?error=number_update");
         }
     }
 
@@ -304,10 +309,10 @@ export class AdminWhatsAppController {
         );
 
         if (result.ok) {
-            return res.redirect("/admin/whatsapp?success=connection");
+            return res.redirect("/panel/admin/whatsapp?success=connection");
         }
 
-        return res.redirect("/admin/whatsapp?error=connection");
+        return res.redirect("/panel/admin/whatsapp?error=connection");
     }
 
     static async encryptSecrets(req: Request, res: Response) {
@@ -318,11 +323,11 @@ export class AdminWhatsAppController {
 
             return res.redirect(
                 result.changed
-                    ? "/admin/whatsapp?success=encrypted"
-                    : "/admin/whatsapp?success=already_encrypted"
+                    ? "/panel/admin/whatsapp?success=encrypted"
+                    : "/panel/admin/whatsapp?success=already_encrypted"
             );
         } catch {
-            return res.redirect("/admin/whatsapp?error=encrypt");
+            return res.redirect("/panel/admin/whatsapp?error=encrypt");
         }
     }
 }

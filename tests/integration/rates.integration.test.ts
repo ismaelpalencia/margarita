@@ -69,7 +69,8 @@ test("quince agentes desde la misma IP no se estorban entre sí", async () => {
             password,
             role: UserRole.AGENT,
             canSendManualMessages: true,
-            manualMessageLimit: 10
+            manualMessageLimit: 10,
+            allowedNumberIds: []
         });
 
         const cookie = await login(email, password);

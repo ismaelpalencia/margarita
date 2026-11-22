@@ -1,0 +1,11 @@
+* { box-sizing: border-box; }
+html, body { min-height: 100%; margin: 0; }
+body { color: #263b33; background: #f7f9f7; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.message-bubble footer form { margin: 0; }
+.message-bubble footer button { padding: 0 3px; border: 0; color: inherit; background: transparent; font: inherit; font-size: 12px; line-height: 1; opacity: .65; cursor: pointer; }
+.message-bubble footer button:hover { opacity: 1; }
+.internal-copy { margin: -6px 0 8px; color: #909d96; font-size: 8px; }
+.note-form { display: grid; gap: 6px; }
+.note-form textarea { resize: vertical; padding: 8px; border: 1px solid #e0e7e2; border-radius: 7px; font: inherit; font-size: 9px; }
+.note-form button { justify-self: end; min-height: 27px; padding: 0 9px; border: 0; border-radius: 6px; color: #fff; background: #465750; font: inherit; font-size: 8px; font-weight: 650; cursor: pointer; }

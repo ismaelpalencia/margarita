@@ -41,23 +41,18 @@ export class AdminFlowController {
             })
         ]);
 
-        return res.render("pages/admin/ai/package", {
-            user: req.user,
-            packages,
-            flows,
-            loadedFlows: flows.length,
-            flowsEnabled: flags.flowsEnabled,
-            success: req.query.success || null,
-            error: req.query.error || null,
-            counts: req.query.counts || null
-        });
+        if (req.accepts("json") && !req.accepts("html")) {
+            return res.json({ packages, flows: flows.map(({ id, name, slug, trigger, isActive }) => ({ id, name, slug, trigger, isActive })), loadedFlows: flows.length, flowsEnabled: flags.flowsEnabled });
+        }
+
+        return res.redirect("/panel/admin/ai/package");
     }
 
     static async load(req: Request, res: Response) {
         const vertical = String(req.body?.vertical || "");
 
         if (!["comercio", "servicios", "generico"].includes(vertical)) {
-            return res.redirect("/admin/ai/package?error=invalid");
+            return res.redirect("/panel/admin/ai/package?error=invalid");
         }
 
         const flowSlugs = toStringArray(req.body?.flows);
@@ -76,9 +71,9 @@ export class AdminFlowController {
 
             const counts = encodeURIComponent(JSON.stringify(result));
 
-            return res.redirect(`/admin/ai/package?success=loaded&counts=${counts}`);
+            return res.redirect(`/panel/admin/ai/package?success=loaded&counts=${counts}`);
         } catch {
-            return res.redirect("/admin/ai/package?error=load");
+            return res.redirect("/panel/admin/ai/package?error=load");
         }
     }
 
@@ -102,7 +97,7 @@ export class AdminFlowController {
             payload: { enabled }
         }).catch(() => undefined);
 
-        return res.redirect("/admin/ai/package?success=flows");
+        return res.redirect("/panel/admin/ai/package?success=flows");
     }
 
     /** Activa o desactiva un flujo concreto. */
@@ -113,7 +108,7 @@ export class AdminFlowController {
         });
 
         if (!flow) {
-            return res.redirect("/admin/ai/package?error=flow");
+            return res.redirect("/panel/admin/ai/package?error=flow");
         }
 
         await prisma.flow.update({
@@ -130,7 +125,7 @@ export class AdminFlowController {
             payload: { flowId: flow.id, slug: flow.slug }
         }).catch(() => undefined);
 
-        return res.redirect("/admin/ai/package?success=flow");
+        return res.redirect("/panel/admin/ai/package?success=flow");
     }
 
     /** Elimina un flujo concreto del workspace. */
@@ -141,7 +136,7 @@ export class AdminFlowController {
         });
 
         if (!flow) {
-            return res.redirect("/admin/ai/package?error=flow");
+            return res.redirect("/panel/admin/ai/package?error=flow");
         }
 
         await prisma.flow.delete({ where: { id: flow.id } });
@@ -155,7 +150,7 @@ export class AdminFlowController {
             payload: { flowId: flow.id, slug: flow.slug }
         }).catch(() => undefined);
 
-        return res.redirect("/admin/ai/package?success=flow_deleted");
+        return res.redirect("/panel/admin/ai/package?success=flow_deleted");
     }
 
     /** Formulario para editar el trigger, la respuesta y los botones. */
@@ -166,21 +161,16 @@ export class AdminFlowController {
         });
 
         if (!flow) {
-            return res.redirect("/admin/ai/package?error=flow");
+            return res.redirect("/panel/admin/ai/package?error=flow");
         }
 
         const buttons = (flow.buttons as FlowButton[] | null) ?? [];
         const list = (flow.list as FlowList | null) ?? null;
 
-        return res.render("pages/admin/ai/flow-edit", {
-            user: req.user,
-            flow,
-            buttons,
-            list,
-            isList: Boolean(flow.list),
-            error: req.query.error || null,
-            success: req.query.success || null
-        });
+        if (req.accepts("json") && !req.accepts("html")) {
+            return res.json({ flow: { id: flow.id, name: flow.name, slug: flow.slug, trigger: flow.trigger, reply: flow.reply, buttons, list, isActive: flow.isActive }, interactiveListsEnabled: Boolean(res.locals.interactiveListsEnabled) });
+        }
+        return res.redirect(`/panel/admin/ai/flows/${encodeURIComponent(flow.id)}`);
     }
 
     static async update(req: Request, res: Response) {
@@ -190,14 +180,14 @@ export class AdminFlowController {
         });
 
         if (!flow) {
-            return res.redirect("/admin/ai/package?error=flow");
+            return res.redirect("/panel/admin/ai/package?error=flow");
         }
 
         const trigger = String(req.body?.trigger || "").trim();
         const reply = String(req.body?.reply || "").trim();
 
         if (!trigger || !reply) {
-            return res.redirect(`/admin/ai/flows/${id}?error=empty`);
+            return res.redirect(`/panel/admin/ai/flows/${id}?error=empty`);
         }
 
         const removeButtons = req.body?.removeButtons === "true";
@@ -214,7 +204,7 @@ export class AdminFlowController {
             }
 
             if (title.length > 20) {
-                return res.redirect(`/admin/ai/flows/${id}?error=title`);
+                return res.redirect(`/panel/admin/ai/flows/${id}?error=title`);
             }
 
             const existing = current[index];
@@ -224,11 +214,11 @@ export class AdminFlowController {
         }
 
         if (buttons.length > 3) {
-            return res.redirect(`/admin/ai/flows/${id}?error=count`);
+            return res.redirect(`/panel/admin/ai/flows/${id}?error=count`);
         }
 
         if (new Set(buttons.map((button) => button.id)).size !== buttons.length) {
-            return res.redirect(`/admin/ai/flows/${id}?error=duplicate`);
+            return res.redirect(`/panel/admin/ai/flows/${id}?error=duplicate`);
         }
 
         const data: Prisma.FlowUpdateInput = { trigger, reply };
@@ -261,13 +251,13 @@ export class AdminFlowController {
                     }
 
                     if (title.length > 24) {
-                        return res.redirect(`/admin/ai/flows/${id}?error=listTitle`);
+                        return res.redirect(`/panel/admin/ai/flows/${id}?error=listTitle`);
                     }
 
                     const description = rowDescriptions[index] || "";
 
                     if (description.length > 72) {
-                        return res.redirect(`/admin/ai/flows/${id}?error=listDescription`);
+                        return res.redirect(`/panel/admin/ai/flows/${id}?error=listDescription`);
                     }
 
                     rows.push({
@@ -278,23 +268,23 @@ export class AdminFlowController {
                 }
 
                 if (rows.length > 10) {
-                    return res.redirect(`/admin/ai/flows/${id}?error=listCount`);
+                    return res.redirect(`/panel/admin/ai/flows/${id}?error=listCount`);
                 }
 
                 if (rows.length > 0 && !buttonLabel) {
-                    return res.redirect(`/admin/ai/flows/${id}?error=listLabel`);
+                    return res.redirect(`/panel/admin/ai/flows/${id}?error=listLabel`);
                 }
 
                 if (buttonLabel.length > 20) {
-                    return res.redirect(`/admin/ai/flows/${id}?error=listLabel`);
+                    return res.redirect(`/panel/admin/ai/flows/${id}?error=listLabel`);
                 }
 
                 if (sectionTitle.length > 24) {
-                    return res.redirect(`/admin/ai/flows/${id}?error=listSection`);
+                    return res.redirect(`/panel/admin/ai/flows/${id}?error=listSection`);
                 }
 
                 if (new Set(rows.map((row) => row.id)).size !== rows.length) {
-                    return res.redirect(`/admin/ai/flows/${id}?error=listDuplicate`);
+                    return res.redirect(`/panel/admin/ai/flows/${id}?error=listDuplicate`);
                 }
 
                 if (rows.length > 0) {
@@ -321,6 +311,6 @@ export class AdminFlowController {
             payload: { flowId: flow.id, slug: flow.slug }
         }).catch(() => undefined);
 
-        return res.redirect(`/admin/ai/flows/${id}?success=saved`);
+        return res.redirect(`/panel/admin/ai/flows/${id}?success=saved`);
     }
 }

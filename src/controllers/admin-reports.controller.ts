@@ -85,6 +85,17 @@ export class AdminReportsController {
 
     static async index(req: Request, res: Response) {
         /**
+         * El panel Angular consume este endpoint como JSON. Las visitas
+         * directas a la URL vieja se mandan al panel para no servir EJS.
+         */
+        if (!(req.accepts("json") && !req.accepts("html"))) {
+            const query = req.originalUrl.includes("?")
+                ? req.originalUrl.slice(req.originalUrl.indexOf("?"))
+                : "";
+            return res.redirect(`/panel/admin/reports${query}`);
+        }
+
+        /**
          * Se llama por el nombre de la clase y no con `this`: Express invoca
          * el handler suelto, así que `this` es `undefined` dentro del método.
          */
@@ -127,7 +138,7 @@ export class AdminReportsController {
                     : null
             ]);
 
-        return res.render("pages/admin/reports/index", {
+        const payload = {
             user: req.user,
             view,
             summary,
@@ -166,7 +177,8 @@ export class AdminReportsController {
             today: range.todayStart,
             success: req.query.success || null,
             error: req.query.error || null
-        });
+        };
+        return res.json(payload);
     }
 
     /** Descarga en CSV de la vista que se está viendo, con los mismos filtros. */
@@ -304,10 +316,10 @@ export class AdminReportsController {
                 source: "BULK"
             });
         } catch {
-            return res.redirect("/admin/reports?vista=intentos&error=mark");
+            return res.redirect("/panel/admin/reports?vista=intentos&error=mark");
         }
 
-        return res.redirect("/admin/reports?vista=intentos&success=marked");
+        return res.redirect("/panel/admin/reports?vista=intentos&success=marked");
     }
 
     /**
@@ -332,7 +344,7 @@ export class AdminReportsController {
          * sería inventar el dato. El aviso manda a la ficha.
          */
         if (!quickTypes.includes(requested as never)) {
-            return res.redirect("/admin/reports?vista=hoy&error=mark");
+            return res.redirect("/panel/admin/reports?vista=hoy&error=mark");
         }
 
         const type = requested as ContactOutcomeType;
@@ -350,10 +362,10 @@ export class AdminReportsController {
                 source: "PANEL"
             });
         } catch {
-            return res.redirect("/admin/reports?vista=hoy&error=mark");
+            return res.redirect("/panel/admin/reports?vista=hoy&error=mark");
         }
 
-        return res.redirect("/admin/reports?vista=hoy&success=marked");
+        return res.redirect("/panel/admin/reports?vista=hoy&success=marked");
     }
 
     /**
@@ -384,9 +396,9 @@ export class AdminReportsController {
                 });
             }
         } catch {
-            return res.redirect("/admin/reports?vista=hoy&error=mark");
+            return res.redirect("/panel/admin/reports?vista=hoy&error=mark");
         }
 
-        return res.redirect("/admin/reports?vista=hoy&success=marked");
+        return res.redirect("/panel/admin/reports?vista=hoy&success=marked");
     }
 }

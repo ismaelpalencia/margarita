@@ -99,8 +99,9 @@ La página pública `margaritaapp.org/demo` corre en un **microservicio Go apart
 | Runtime | Node.js 22.23.4 LTS (Prisma 7 requiere Node.js 20.19+, 22.12+ o 24+) |
 | Lenguaje | TypeScript 5 (CommonJS, `strict`) |
 | Servidor | Express 4 |
-| Vistas | EJS renderizado en servidor |
-| Estilos | Tailwind CSS 4 (CLI, compilado a `src/public/css/style.css`) |
+| Panel | Angular 21 (standalone components), servido por Express bajo `/panel` |
+| Vistas públicas y compatibilidad | EJS renderizado en servidor |
+| Estilos | Angular CSS + Tailwind CSS 4 para vistas EJS (CLI, compilado a `src/public/css/style.css`) |
 | Tiempo real | Socket.IO 4 |
 | Base de datos | PostgreSQL |
 | ORM | Prisma 7.10.1 con `@prisma/adapter-pg` |
@@ -111,7 +112,7 @@ La página pública `margaritaapp.org/demo` corre en un **microservicio Go apart
 | Archivos | Multer (Excel/CSV hasta 5 MB) + ExcelJS para parseo |
 | Logs | Pino a stdout y auditoría persistida en la tabla `Log` |
 
-Sin frameworks de frontend: el HTML es EJS y el único JavaScript de cliente es `src/public/js/live.js`.
+El panel autenticado usa Angular. Express conserva la sesión, autorización, alcance por workspace/número y acceso a servicios; Angular consume sus rutas JSON con la cookie existente. Las páginas públicas siguen usando EJS y Tailwind. Las rutas antiguas del panel se conservan durante la transición por compatibilidad.
 
 ---
 
@@ -130,8 +131,9 @@ src/
 ├── validations/            # esquemas Zod
 ├── utils/                  # teléfono, plantillas, fechas, JWT, firma de webhook
 ├── types/                  # tipos de auth, webhook de Meta y de Express
-├── views/                  # plantillas EJS (admin, agent, auth, home)
-└── public/                 # CSS compilado, imágenes y JS de cliente
+├── views/                  # plantillas EJS públicas y compatibilidad
+├── public/                 # CSS, imágenes, JS y build Angular en public/angular/
+└── ../frontend/            # aplicación Angular del panel
 ```
 
 El patrón es siempre el mismo: la ruta llama a un controlador, el controlador valida con Zod y delega en un servicio estático que habla con Prisma o con Meta.
@@ -393,7 +395,10 @@ Si todavía no la tienes, la app funciona y guarda todo en texto plano; el panel
 | Script | Qué hace |
 | --- | --- |
 | `npm run dev` | Servidor en modo watch con `tsx` |
-| `npm run build` | `prisma generate` + Tailwind + `tsc` + copia de assets a `dist/` |
+| `npm run build` | `prisma generate` + Tailwind + frontend Angular + `tsc` + copia de assets a `dist/` |
+| `npm run frontend:dev` | Inicia Angular CLI para desarrollar la nueva interfaz |
+| `npm run frontend:build` | Compila Angular en `src/public/angular/` para servirlo desde Express |
+| `npm --prefix frontend test -- --watch=false` | Ejecuta las pruebas unitarias del panel Angular |
 | `npm start` | Ejecuta `node dist/server.js` (requiere build previo) |
 | `npm run css` | Tailwind en modo watch |
 | `npm run css:build` | Compila y minifica el CSS |
@@ -401,7 +406,7 @@ Si todavía no la tienes, la app funciona y guarda todo en texto plano; el panel
 | `npm run db:push` | Aplica el esquema a la base sin migraciones |
 | `npm run db:migrate` | Crea y aplica una migración de desarrollo |
 | `npm run db:migrate-deploy` | Aplica las migraciones resolviendo solo el estado de la base (idempotente) |
-| `npm test` | Corre los tests unitarios con el runner de Node |
+| `npm test` | Corre los tests unitarios del backend con el runner de Node |
 | `npm run test:integration` | Levanta la app y corre las pruebas de integración contra una base real (crea y borra su propia empresa de prueba) |
 | `npm run typecheck:all` | Verifica tipos incluyendo las pruebas de integración |
 | `npm run db:encrypt-secrets` | Cifra las credenciales de Meta que siguen en texto plano |
@@ -622,7 +627,7 @@ La guía completa paso a paso está en [`docs/deploy-railway.md`](docs/deploy-ra
 
 | Concepto | Valor |
 | --- | --- |
-| Build command | **Déjalo vacío** en el panel: viene en `nixpacks.toml` (`npm install --include=dev` + `npm run build`). Si pones otro `npm ci` ahí, corre dos veces y falla con `EBUSY` al borrar `node_modules` |
+| Build command | **Déjalo vacío** en el panel: viene en `nixpacks.toml` (instala dependencias de Node y Angular, luego ejecuta `npm run build`). Si pones otro `npm ci` ahí, corre dos veces y falla con `EBUSY` al borrar `node_modules` |
 | Start command | `npm start` |
 | Healthcheck | `/health` |
 | Puerto | **No definas `PORT`**: Railway la inyecta y la app escucha ahí |
@@ -743,7 +748,7 @@ El límite vigente, con su explicación, está en [`docs/alcance-produccion.md`]
 - **JSON de Prisma**: se normaliza con `toPrismaJson` antes de guardar payloads de Meta.
 - **Auditoría**: cualquier acción relevante (webhook, campaña, asignación, auth y **envíos de mensajes**) se registra con `LogService.create` indicando nivel, módulo y acción.
 - **Errores de Meta**: `src/utils/meta-error.ts` extrae el error de cualquiera de las formas en que llega (respuesta de un envío rechazado, `errors` del webhook de estado o el estado más reciente guardado) y traduce los códigos frecuentes. Se usa en la bitácora y para mostrar el motivo en la conversación.
-- **Vistas**: EJS con Tailwind. Si agregas clases nuevas en EJS o en JavaScript de cliente, vuelve a correr `npm run css:build` para que entren al CSS compilado.
+- **Interfaz**: el panel autenticado se implementa en `frontend/src/app/` con Angular. Las vistas públicas que siguen en EJS usan Tailwind; si agregas clases nuevas allí o en su JavaScript de cliente, vuelve a correr `npm run css:build`.
 
 Antes de subir cambios:
 

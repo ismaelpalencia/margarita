@@ -21,7 +21,9 @@ router.use(activeNumberMiddleware);
 /** El cupo es de la persona, no de la IP compartida de la oficina. */
 router.use(panelRateLimiter);
 
-router.get("/dashboard", AgentDashboardController.index);
+router.get("/dashboard", (_req, res) => res.redirect("/panel/agent/dashboard"));
+router.get("/dashboard/data", AgentDashboardController.data);
+router.get("/dashboard/legacy", AgentDashboardController.index);
 router.post("/number/switch", ActiveNumberController.switch);
 router.post("/status", AgentDashboardController.updateStatus);
 router.use("/conversations", agentConversationsRoutes);

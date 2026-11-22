@@ -30,11 +30,8 @@ export class AdminServiceMetricsController {
             timezone
         );
 
-        return res.render("pages/admin/service-metrics/index", {
-            user: req.user,
-            metrics,
-            timezone
-        });
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ metrics, timezone });
+        return res.redirect("/panel/admin/service-metrics");
     }
 
     /** Consumo mensual de IA: vista del operador, siempre completa. */
@@ -47,12 +44,8 @@ export class AdminServiceMetricsController {
             AiUsageService.getMonthlyReport(req.user!.workspaceId, 12)
         ]);
 
-        return res.render("pages/admin/service-metrics/ai-usage", {
-            user: req.user,
-            timezone,
-            current,
-            report
-        });
+        if (req.accepts("json") && !req.accepts("html")) return res.json({ timezone, current, report });
+        return res.redirect("/panel/admin/service-metrics/ai-usage");
     }
 
     static async exportAiUsage(_req: Request, res: Response) {

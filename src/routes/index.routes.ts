@@ -1,9 +1,14 @@
 import { Router } from "express";
+import path from "node:path";
 
 import { HomeController } from "../controllers/home.controller";
 import { SetupController } from "../controllers/setup.controller";
+import { PanelShellController } from "../controllers/panel-shell.controller";
+import { activeNumberMiddleware } from "../middlewares/active-number.middleware";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { AccountController } from "../controllers/admin-users.controller";
+import { requireRole } from "../middlewares/role.middleware";
+import { UserRole } from "@prisma/client";
 import authRoutes from "./auth.routes";
 import adminRoutes from "./admin.routes";
 import agentRoutes from "./agent.routes";
@@ -13,6 +18,27 @@ import webhookRoutes from "./webhook.routes";
 
 
 const router = Router();
+
+/** Angular se sirve bajo la sesión actual; sus bundles salen por /angular. */
+const angularPanel = (_req: import("express").Request, res: import("express").Response) =>
+    res.sendFile(path.join(process.cwd(), "src", "public", "angular", "index.html"));
+
+router.get("/panel/login", angularPanel);
+/** Armazón del panel: números y contadores para la navegación Angular. */
+router.get(
+    "/panel/shell",
+    authMiddleware,
+    activeNumberMiddleware,
+    PanelShellController.data
+);
+/** El armazón decide a qué resumen mandar según el rol (ver `NotFoundPage`). */
+router.get("/panel", authMiddleware, angularPanel);
+router.get("/panel/admin/whatsapp", authMiddleware, requireRole(UserRole.ADMIN), angularPanel);
+router.get("/panel/admin/backup", authMiddleware, requireRole(UserRole.ADMIN), angularPanel);
+router.get("/panel/admin/system", authMiddleware, requireRole(UserRole.ADMIN), angularPanel);
+router.get("/panel/admin/*", authMiddleware, requireRole(UserRole.ADMIN), angularPanel);
+router.get("/panel/agent", authMiddleware, requireRole(UserRole.AGENT), angularPanel);
+router.get("/panel/agent/*", authMiddleware, requireRole(UserRole.AGENT), angularPanel);
 
 router.get("/", HomeController.index);
 /** Oferta de IA con control humano: la puerta que pide el mercado de soporte. */

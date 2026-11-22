@@ -141,17 +141,17 @@ export class AdminAiController {
             select: { aiMultilangLanguages: true }
         });
 
-        return res.render("pages/admin/ai/index", {
-            user: req.user,
+        const response = {
             multilangLanguages: workspace?.aiMultilangLanguages ?? [],
             aiLimitsHidden: appConfig.aiLimitsHidden,
             ...data,
             success: req.query.success || null,
-            error: req.query.error || null,
-            testQuestion: "",
-            testResult: null,
-            testError: null
-        });
+            error: req.query.error || null
+        };
+        if (req.accepts("json") && !req.accepts("html")) {
+            return res.json({ ...response, entries: data.entries.map(({ id, question, answer, buttons, keywords, priority, isActive }) => ({ id, question, answer, buttons, keywords, priority, isActive })) });
+        }
+        return res.redirect("/panel/admin/ai");
     }
 
     /** Idiomas de respuesta de la IA: español siempre; inglés/portugués opt-in. */
@@ -161,9 +161,9 @@ export class AdminAiController {
                 req.user!.workspaceId,
                 req.user!.id
             );
-            return res.redirect("/admin/ai?success=reset");
+            return res.redirect("/panel/admin/ai?success=reset");
         } catch {
-            return res.redirect("/admin/ai?error=settings");
+            return res.redirect("/panel/admin/ai?error=settings");
         }
     }
 
@@ -183,14 +183,14 @@ export class AdminAiController {
             data: { aiMultilangLanguages: languages }
         });
 
-        return res.redirect("/admin/ai?success=languages");
+        return res.redirect("/panel/admin/ai?success=languages");
     }
 
     static async saveSettings(req: Request, res: Response) {
         const parsed = aiSettingsSchema.safeParse(req.body);
 
         if (!parsed.success) {
-            return res.redirect("/admin/ai?error=validation");
+            return res.redirect("/panel/admin/ai?error=validation");
         }
 
         try {
@@ -229,9 +229,9 @@ export class AdminAiController {
                 }
             });
 
-            return res.redirect("/admin/ai?success=settings");
+            return res.redirect("/panel/admin/ai?success=settings");
         } catch {
-            return res.redirect("/admin/ai?error=settings");
+            return res.redirect("/panel/admin/ai?error=settings");
         }
     }
 
@@ -239,7 +239,7 @@ export class AdminAiController {
         const parsed = createKnowledgeEntrySchema.safeParse(req.body);
 
         if (!parsed.success) {
-            return res.redirect("/admin/ai?error=validation");
+            return res.redirect("/panel/admin/ai?error=validation");
         }
 
         let buttons: InteractiveButton[] | null;
@@ -249,7 +249,7 @@ export class AdminAiController {
                 toStringArray(req.body?.buttonTitle)
             );
         } catch {
-            return res.redirect("/admin/ai?error=buttons");
+            return res.redirect("/panel/admin/ai?error=buttons");
         }
 
         try {
@@ -274,9 +274,9 @@ export class AdminAiController {
                 payload: { entryId: entry.id }
             });
 
-            return res.redirect("/admin/ai?success=knowledge");
+            return res.redirect("/panel/admin/ai?success=knowledge");
         } catch {
-            return res.redirect("/admin/ai?error=knowledge");
+            return res.redirect("/panel/admin/ai?error=knowledge");
         }
     }
 
@@ -289,13 +289,12 @@ export class AdminAiController {
                 entryId
             );
 
-            return res.render("pages/admin/ai/edit-entry", {
-                user: req.user,
-                entry,
-                error: req.query.error || null
-            });
+            if (req.accepts("json") && !req.accepts("html")) {
+                return res.json({ entry: { id: entry.id, question: entry.question, answer: entry.answer, buttons: entry.buttons, keywords: entry.keywords, priority: entry.priority, isActive: entry.isActive } });
+            }
+            return res.redirect(`/panel/admin/ai/knowledge/${encodeURIComponent(entryId)}${req.query.error ? `?error=${encodeURIComponent(String(req.query.error))}` : ""}`);
         } catch {
-            return res.redirect("/admin/ai?error=knowledge");
+            return res.redirect("/panel/admin/ai?error=knowledge");
         }
     }
 
@@ -310,14 +309,10 @@ export class AdminAiController {
             ).catch(() => null);
 
             if (!entry) {
-                return res.redirect("/admin/ai?error=knowledge");
+                return res.redirect("/panel/admin/ai?error=knowledge");
             }
 
-            return res.status(400).render("pages/admin/ai/edit-entry", {
-                user: req.user,
-                entry,
-                error: parsed.error.issues[0]?.message || "Datos inválidos."
-            });
+            return res.redirect(`/panel/admin/ai/knowledge/${encodeURIComponent(entryId)}?error=validation`);
         }
 
         let buttons: InteractiveButton[] | null;
@@ -327,9 +322,7 @@ export class AdminAiController {
                 toStringArray(req.body?.buttonTitle)
             );
         } catch {
-            return res.redirect(
-                `/admin/ai/knowledge/${entryId}?error=buttons`
-            );
+            return res.redirect(`/panel/admin/ai/knowledge/${encodeURIComponent(entryId)}?error=buttons`);
         }
 
         try {
@@ -354,9 +347,9 @@ export class AdminAiController {
                 payload: { entryId }
             });
 
-            return res.redirect("/admin/ai?success=knowledge");
+            return res.redirect("/panel/admin/ai?success=knowledge");
         } catch {
-            return res.redirect("/admin/ai?error=knowledge");
+            return res.redirect("/panel/admin/ai?error=knowledge");
         }
     }
 
@@ -371,9 +364,9 @@ export class AdminAiController {
                 isActive
             );
 
-            return res.redirect("/admin/ai?success=knowledge");
+            return res.redirect("/panel/admin/ai?success=knowledge");
         } catch {
-            return res.redirect("/admin/ai?error=knowledge");
+            return res.redirect("/panel/admin/ai?error=knowledge");
         }
     }
 
@@ -387,7 +380,7 @@ export class AdminAiController {
             );
 
             if (!entry) {
-                return res.redirect("/admin/ai?error=knowledge");
+                return res.redirect("/panel/admin/ai?error=knowledge");
             }
 
             await KnowledgeService.remove(req.user!.workspaceId, entry.id);
@@ -401,9 +394,9 @@ export class AdminAiController {
                 payload: { entryId: entry.id }
             }).catch(() => undefined);
 
-            return res.redirect("/admin/ai?success=knowledge_deleted");
+            return res.redirect("/panel/admin/ai?success=knowledge_deleted");
         } catch {
-            return res.redirect("/admin/ai?error=knowledge");
+            return res.redirect("/panel/admin/ai?error=knowledge");
         }
     }
 
@@ -411,11 +404,9 @@ export class AdminAiController {
         const parsed = aiTestSchema.safeParse(req.body);
 
         if (!parsed.success) {
-            return res.redirect("/admin/ai?error=test");
+            if (req.accepts("json") && !req.accepts("html")) return res.status(400).json({ error: parsed.error.issues[0]?.message || "Pregunta inválida." });
+            return res.redirect("/panel/admin/ai?error=test");
         }
-
-        /** Se nombra la clase a propósito: Express llama al handler sin `this`. */
-        const data = await AdminAiController.loadIndexData(req);
 
         try {
             const testResult = await AiSuggestionService.preview({
@@ -423,28 +414,11 @@ export class AdminAiController {
                 question: parsed.data.question
             });
 
-            return res.render("pages/admin/ai/index", {
-                user: req.user,
-                ...data,
-                success: null,
-                error: null,
-                testQuestion: parsed.data.question,
-                testResult,
-                testError: null
-            });
+            if (req.accepts("json") && !req.accepts("html")) return res.json({ testResult });
+            return res.redirect("/panel/admin/ai?success=test");
         } catch (error) {
-            return res.status(400).render("pages/admin/ai/index", {
-                user: req.user,
-                ...data,
-                success: null,
-                error: null,
-                testQuestion: parsed.data.question,
-                testResult: null,
-                testError:
-                    error instanceof Error
-                        ? error.message
-                        : "No se pudo probar la IA."
-            });
+            if (req.accepts("json") && !req.accepts("html")) return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo probar la IA." });
+            return res.redirect("/panel/admin/ai?error=test");
         }
     }
 }

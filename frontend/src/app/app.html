@@ -1,0 +1,61 @@
+@if (isPublic) {
+  <router-outlet />
+} @else {
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" [routerLink]="isAgent ? '/panel/agent/dashboard' : '/panel/admin/dashboard'" aria-label="Margarita, inicio">
+      <span class="brand-mark">M</span><span>Margarita<small>WhatsApp Business</small></span>
+    </a>
+    @if (shell(); as data) {
+      @if (data.numbers.length > 1) {
+        <form class="number-switch" [action]="isAgent ? '/agent/number/switch' : '/admin/number/switch'" method="post" (change)="switchNumber($event)">
+          <input type="hidden" name="redirectTo" value="">
+          <select name="numberId" aria-label="Número activo">
+            @for (number of data.numbers; track number.id) {
+              <option [value]="number.id" [selected]="number.id === data.activeNumberId">{{ number.displayName || number.phoneNumber }}</option>
+            }
+          </select>
+        </form>
+      } @else if (data.numbers.length === 1) {
+        <p class="number-single">{{ data.numbers[0].displayName || data.numbers[0].phoneNumber }}</p>
+      }
+    }
+    <p class="nav-label">{{ isAgent ? 'MI TRABAJO' : 'OPERACIÓN' }}</p>
+    <nav aria-label="Navegación principal">
+      @if (isAgent) {
+        <a class="nav-link" routerLink="/panel/agent/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><span class="nav-icon">⌂</span>Resumen</a>
+        <a class="nav-link" routerLink="/panel/agent/conversations" routerLinkActive="active"><span class="nav-icon">◷</span>Conversaciones@if (unreadTotal() > 0) { <span class="nav-badge">{{ unreadTotal() }}</span> }</a>
+        <a class="nav-link" href="/panel/agent/conversations?assigned=unassigned"><span class="nav-icon">!</span>Sin asignar@if (unassignedCount() > 0) { <span class="nav-badge unassigned">{{ unassignedCount() }}</span> }</a>
+        <a class="nav-link" routerLink="/panel/agent/sessions" routerLinkActive="active"><span class="nav-icon">◉</span>Sesiones</a>
+      } @else {
+      <a class="nav-link" routerLink="/panel/admin/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><span class="nav-icon">⌂</span>Resumen</a>
+      <a class="nav-link" routerLink="/panel/admin/conversations" routerLinkActive="active"><span class="nav-icon">◷</span>Conversaciones@if (unreadTotal() > 0) { <span class="nav-badge">{{ unreadTotal() }}</span> }</a>
+      <a class="nav-link" href="/panel/admin/conversations?assigned=unassigned"><span class="nav-icon">!</span>Sin asignar@if (unassignedCount() > 0) { <span class="nav-badge unassigned">{{ unassignedCount() }}</span> }</a>
+      <a class="nav-link" routerLink="/panel/admin/contacts" routerLinkActive="active"><span class="nav-icon">♙</span>Contactos</a>
+      <a class="nav-link" routerLink="/panel/admin/tags" routerLinkActive="active"><span class="nav-icon">⌑</span>Etiquetas</a>
+      <a class="nav-link" routerLink="/panel/admin/quick-replies" routerLinkActive="active"><span class="nav-icon">☷</span>Respuestas rápidas</a>
+      <a class="nav-link" routerLink="/panel/admin/replies" routerLinkActive="active"><span class="nav-icon">✓</span>Botones y listas</a>
+      <a class="nav-link" routerLink="/panel/admin/templates" routerLinkActive="active"><span class="nav-icon">▤</span>Plantillas</a>
+      <a class="nav-link" routerLink="/panel/admin/hours" routerLinkActive="active"><span class="nav-icon">◷</span>Horarios</a>
+      <a class="nav-link" routerLink="/panel/admin/guide" routerLinkActive="active"><span class="nav-icon">?</span>Guía</a>
+      <a class="nav-link" routerLink="/panel/admin/sessions" routerLinkActive="active"><span class="nav-icon">◉</span>Sesiones</a>
+      <a class="nav-link" routerLink="/panel/admin/users" routerLinkActive="active"><span class="nav-icon">♧</span>Equipo</a>
+      <a class="nav-link" routerLink="/panel/admin/whatsapp" routerLinkActive="active"><span class="nav-icon">⌁</span>WhatsApp</a>
+      <a class="nav-link" routerLink="/panel/admin/backup" routerLinkActive="active"><span class="nav-icon">⇩</span>Respaldos</a>
+      <a class="nav-link" routerLink="/panel/admin/system" routerLinkActive="active"><span class="nav-icon">⚙</span>Sistema</a>
+      <a class="nav-link" routerLink="/panel/admin/service-metrics" routerLinkActive="active"><span class="nav-icon">▥</span>Servicio</a>
+      <a class="nav-link" routerLink="/panel/admin/logs" routerLinkActive="active"><span class="nav-icon">≡</span>Bitácora</a>
+      <a class="nav-link" routerLink="/panel/admin/leads" routerLinkActive="active"><span class="nav-icon">♧</span>Leads</a>
+      <a class="nav-link" routerLink="/panel/admin/ai" routerLinkActive="active"><span class="nav-icon">✧</span>IA</a>
+      <a class="nav-link" routerLink="/panel/admin/campaigns" routerLinkActive="active"><span class="nav-icon">↗</span>Campañas</a>
+      <a class="nav-link" routerLink="/panel/admin/reports" routerLinkActive="active"><span class="nav-icon">▥</span>Reportes</a>
+      }
+    </nav>
+    <div class="sidebar-bottom"><span class="online-dot"></span><span>Conexión segura</span><form action="/auth/logout" method="post" class="logout-form"><button type="submit">Salir</button></form></div>
+  </aside>
+  <main class="main-area">
+    <header class="topbar"><div class="breadcrumbs">Panel <span>/</span> {{ pageName }}</div><a class="account-link" [href]="isAgent ? '/panel/agent/account/security' : '/panel/admin/account/security'"><span class="avatar">M</span><span>Mi cuenta</span></a></header>
+    <section class="page-content"><router-outlet /></section>
+  </main>
+</div>
+}

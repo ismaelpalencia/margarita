@@ -1,0 +1,273 @@
+import { Component, OnDestroy, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+
+interface ConversationMessage {
+  id: string;
+  direction: string;
+  type: string;
+  status: string;
+  source: string;
+  body: string | null;
+  mediaId: string | null;
+  isInternalNote: boolean;
+  aiSuggestionId: string | null;
+  replyTitle: string | null;
+  replyId: string | null;
+  createdAt: string;
+  errorText: string | null;
+  deletedAt?: string | null;
+}
+
+interface AgentConversationDetail {
+  timezone: string;
+  hasOpenWindow: boolean;
+  offHoursNow: boolean;
+  conversation: {
+    id: string;
+    status: string;
+    operationalStatus: string;
+    source: string;
+    aiHandoffAt: string | null;
+    aiHandoffReason: string | null;
+    aiPausedAt: string | null;
+    lastIncomingMessageAt: string | null;
+    assignedUser: { name: string } | null;
+    whatsappNumber: { displayName: string | null; phoneNumber: string } | null;
+    contact: {
+      customName: string | null;
+      profileName: string | null;
+      phone: string;
+      optOutAt: string | null;
+      outcomeType?: string | null;
+      outcomeAmount?: number | string | null;
+      outcomeDueAt?: string | null;
+      outcomePaidAt?: string | null;
+      tags: Array<{ id: string; name: string; color: string | null }>;
+    };
+    messages: ConversationMessage[];
+  };
+  conversations: Array<{ id: string; unreadCount: number; contactName: string; lastMessage: string }>;
+  quickReplies: Array<{ id: string; title: string; body: string }>;
+}
+
+interface AdvancedConversationData {
+  agents?: Array<{ id: string; name: string; status: string }>;
+  templates: Array<{ id: string; name: string; language: string; components: unknown }>;
+  aiSuggestion: { id: string; body: string; confidence: number; intent: string | null; handoff: boolean; reason: string | null } | null;
+  aiSettings: { enabled: boolean; mode: string; confidenceMin: number };
+  guidedFlowRun: { status?: string; flowName?: string; pending?: { text: string; options: string[] } | null; [key: string]: unknown } | null;
+  existingLead: { id?: string; name?: string; phone?: string; email?: string | null; interest?: string | null; notes?: string | null } | null;
+  interactiveListsEnabled: boolean;
+  error: string | null;
+  success: string | null;
+  outcomeAttempts: { attempts: number; hasInbound: boolean };
+  outcomeLabels: Record<string, string>;
+  shortLabels: Record<string, string>;
+  outcomeTypes: string[];
+  daysLate: number;
+}
+
+@Component({
+  selector: 'app-agent-conversation-page',
+  standalone: true,
+  template: `
+    @if (loading()) {
+      <div class="detail-loading"><span class="spinner"></span>Cargando conversación…</div>
+    } @else if (error()) {
+      <section class="detail-error" role="alert"><b>!</b><div><h1>No pudimos abrir la conversación</h1><p>{{ error() }}</p><a [href]="listUrl()">Volver a la bandeja</a></div></section>
+    } @else if (data(); as model) {
+      <header class="detail-intro"><a [href]="listUrl()" class="back-link">← Bandeja</a><div class="detail-heading"><span class="detail-avatar">{{ initials(contactName(model)) }}</span><div class="contact-heading"><h1>{{ contactName(model) }}</h1><p>{{ model.conversation.contact.phone }}</p></div><div class="detail-header-badges">@if (model.conversation.whatsappNumber) { <span class="detail-pill">{{ model.conversation.whatsappNumber.displayName || model.conversation.whatsappNumber.phoneNumber }}</span> }<span class="detail-pill" [class.open-pill]="model.conversation.status === 'OPEN'">{{ model.conversation.status === 'OPEN' ? 'Abierta' : 'Cerrada' }}</span>@if (model.conversation.aiHandoffAt) { <span class="detail-pill handoff-pill">IA pidió atención</span> }</div></div>
+      </header>
+
+      <div class="conversation-layout">
+        <section class="chat-card">
+          <header class="chat-heading"><div><strong>Conversación</strong><small>{{ model.conversation.operationalStatus }}@if (model.offHoursNow) { · Fuera de horario }</small></div></header>
+          @if (isAdmin) { <label class="deleted-toggle"><input type="checkbox" [checked]="showDeleted()" (change)="toggleDeleted($event)"> Mostrar mensajes eliminados</label> }
+          <div class="message-thread" #thread>
+            @if (model.conversation.messages.length === 0) { <div class="thread-empty">Todavía no hay mensajes en esta conversación.</div> }
+            @for (message of model.conversation.messages; track message.id) {
+              <div class="message-line" [class.outgoing]="message.direction === 'OUT'">
+                <article class="message-bubble" [class.internal-note]="message.isInternalNote" [class.outgoing-bubble]="message.direction === 'OUT' && !message.isInternalNote" [class.deleted-message]="message.deletedAt">
+                  @if (message.deletedAt) { <small class="message-label">ELIMINADO</small> }
+                  @if (message.isInternalNote) { <small class="message-label">NOTA INTERNA · SOLO EL EQUIPO</small> }
+                  @if (message.source === 'AUTOMATIC' && message.aiSuggestionId) { <small class="message-label">RESPUESTA AUTOMÁTICA DE IA</small> }
+                  @if (message.mediaId) { <a class="media-link" [href]="'/media/' + message.mediaId" target="_blank" rel="noopener">{{ mediaLabel(message.type) }} · Abrir archivo</a> }
+                  @if (message.body && !(message.mediaId && isPlaceholder(message.body))) { <p>{{ message.body }}</p> }
+                  @if (!message.body && !message.mediaId) { <p>[{{ message.type }}]</p> }
+                  @if (message.replyTitle || message.replyId) { <small class="reply-label">Respuesta: {{ message.replyTitle || message.replyId }}</small> }
+                  <footer><span>{{ dateLabel(message.createdAt, model.timezone) }}</span>@if (message.direction === 'OUT' && !message.isInternalNote) { <span [title]="message.status">{{ tick(message.status) }}</span> }@if (message.deletedAt && isAdmin) { <form [action]="restoreUrl(model, message)" method="post"><button type="submit" aria-label="Restaurar mensaje" title="Restaurar mensaje">↶</button></form> }@else if (!message.deletedAt) { <form [action]="deleteUrl(model, message)" method="post"><button type="submit" aria-label="Eliminar mensaje" title="Eliminar mensaje">×</button></form> }</footer>
+                  @if (message.errorText) { <small class="message-error">{{ message.errorText }}</small> }
+                </article>
+              </div>
+            }
+          </div>
+          <div class="composer">
+            @if (model.conversation.contact.optOutAt) {
+              <p class="composer-warning danger">Este contacto pidió la baja. No se pueden enviar mensajes.</p>
+            } @else if (model.conversation.status !== 'OPEN') {
+              <p class="composer-warning">Esta conversación está cerrada.</p>
+            } @else if (model.hasOpenWindow) {
+              @if (model.quickReplies.length > 0) {
+                <div class="quick-replies"><span>Respuestas rápidas</span>@for (reply of model.quickReplies; track reply.id) { <button type="button" (click)="useQuickReply(reply.body)">{{ reply.title }}</button> }</div>
+              }
+              <form [action]="messageUrl(model)" method="post" class="send-form">
+                <textarea name="body" required maxlength="4000" rows="3" [value]="draft()" (input)="setDraft($event)" placeholder="Escribe un mensaje" aria-label="Mensaje para el contacto"></textarea>
+                <button type="submit">Enviar mensaje</button>
+              </form>
+              <p class="composer-note">La ventana de atención de 24 horas está abierta.</p>
+              <form [action]="mediaUrl(model)" method="post" enctype="multipart/form-data" class="upload-form">
+                <input type="file" name="file" required aria-label="Archivo para enviar">
+                <input type="text" name="caption" maxlength="1024" placeholder="Texto opcional">
+                <button type="submit">Adjuntar</button>
+              </form>
+            } @else {
+              <p class="composer-warning">La ventana de 24 horas está cerrada. Usa una plantilla aprobada para reabrirla.</p>
+            }
+            @if (advanced(); as tools) { @if (tools.templates.length > 0 && model.conversation.status === 'OPEN' && !model.conversation.contact.optOutAt) {
+              <form [action]="templateUrl(model)" method="post" class="send-form advanced-form"><strong>Enviar plantilla aprobada</strong><select name="templateId" required><option value="">Selecciona una plantilla</option>@for (template of tools.templates; track template.id) { <option [value]="template.id">{{ template.name }} · {{ template.language }}</option> }</select><input name="variable1" placeholder="Variable 1 (opcional)"><input name="variable2" placeholder="Variable 2 (opcional)"><input name="variable3" placeholder="Variable 3 (opcional)"><button type="submit">Enviar plantilla</button></form>
+            } }
+            @if (advanced(); as tools) { @if (model.hasOpenWindow && model.conversation.status === 'OPEN' && !model.conversation.contact.optOutAt) {
+              <details class="detail-card interactive-tools"><summary>Mensajes interactivos</summary><form [action]="interactiveUrl(model)" method="post" class="advanced-form"><strong>Enviar botones rápidos</strong><textarea name="body" required maxlength="1024" placeholder="Texto del mensaje"></textarea><input name="footer" maxlength="60" placeholder="Pie (opcional)"><input name="button1" maxlength="20" placeholder="Botón 1"><input name="button2" maxlength="20" placeholder="Botón 2 (opcional)"><input name="button3" maxlength="20" placeholder="Botón 3 (opcional)"><button type="submit">Enviar botones</button></form>
+                @if (tools.interactiveListsEnabled) { <form [action]="interactiveListUrl(model)" method="post" class="advanced-form"><strong>Enviar lista de opciones</strong><textarea name="body" required maxlength="1024" placeholder="Texto del mensaje"></textarea><input name="footer" maxlength="60" placeholder="Pie (opcional)"><input name="buttonLabel" required maxlength="20" placeholder="Botón que abre la lista"><input name="sectionTitle" maxlength="24" placeholder="Título de sección">@for (index of listRows; track index) { <input name="rowTitle" maxlength="24" [placeholder]="'Opción ' + (index + 1)"><input name="rowDescription" maxlength="72" placeholder="Descripción (opcional)"> }<button type="submit">Enviar lista</button></form> }
+              </details>
+            } }
+          </div>
+        </section>
+
+        <aside class="detail-aside">
+          <section class="detail-card"><h2>Datos del contacto</h2><dl><div><dt>Nombre</dt><dd>{{ contactName(model) }}</dd></div><div><dt>Teléfono</dt><dd>{{ model.conversation.contact.phone }}</dd></div><div><dt>Estado</dt><dd>{{ model.conversation.status === 'OPEN' ? 'Abierta' : 'Cerrada' }}</dd></div><div><dt>Origen</dt><dd>{{ model.conversation.source }}</dd></div><div><dt>Agente</dt><dd>{{ model.conversation.assignedUser?.name || 'Sin asignar' }}</dd></div></dl></section>
+          @if (isAdmin && advanced(); as tools) { <section class="detail-card"><h2>Asignación</h2><form [action]="assignUrl(model)" method="post" class="advanced-form"><select name="agentId"><option value="">Sin asignar</option>@for (agent of tools.agents || []; track agent.id) { <option [value]="agent.id" [selected]="model.conversation.assignedUser?.name === agent.name">{{ agent.name }} · {{ agent.status }}</option> }</select><button type="submit">Guardar asignación</button></form></section> }
+          <section class="detail-card"><h2>Nota interna</h2><p class="internal-copy">Solo la ve el equipo; no se envía al cliente.</p><form [action]="localMessageUrl(model)" method="post" class="note-form"><textarea name="body" required maxlength="4000" rows="3" placeholder="Agrega una nota para el equipo"></textarea><button type="submit">Guardar nota</button></form></section>
+          <section class="detail-card"><h2>Etiquetas</h2>@if (model.conversation.contact.tags.length === 0) { <p class="no-tags">Sin etiquetas</p> }<div class="tag-list">@for (tag of model.conversation.contact.tags; track tag.id) { <span [style.backgroundColor]="tag.color || '#34836a'">{{ tag.name }}</span> }</div></section>
+          @if (model.conversation.aiHandoffAt || model.conversation.aiPausedAt) { <section class="detail-card ai-note"><h2>Atención de IA</h2>@if (model.conversation.aiHandoffAt) { <p>La IA pidió atención humana.</p>@if (model.conversation.aiHandoffReason) { <small>{{ model.conversation.aiHandoffReason }}</small> } }@if (model.conversation.aiPausedAt) { <p>La IA está pausada en esta conversación.</p> }</section> }
+          @if (model.conversation.status === 'OPEN') { <form [action]="closeUrl(model)" method="post"><button class="close-button" type="submit">Cerrar conversación</button></form> }
+          @if (isAdmin && model.conversation.status !== 'OPEN') { <form [action]="reopenUrl(model)" method="post"><button class="close-button reopen-button" type="submit">Reabrir conversación</button></form> }
+          @if (advanced(); as tools) {
+            @if (tools.success) { <p class="advanced-notice">{{ tools.success }}</p> }
+            @if (tools.error) { <p class="advanced-error">No se pudo completar la acción ({{ tools.error }}).</p> }
+            @if (tools.aiSuggestion) { <section class="detail-card"><h2>Sugerencia de IA</h2><p>{{ tools.aiSuggestion.body }}</p><form [action]="aiUseUrl(model, tools.aiSuggestion.id)" method="post"><button type="submit">Usar sugerencia</button></form><form [action]="aiDiscardUrl(model, tools.aiSuggestion.id)" method="post"><button type="submit">Descartar</button></form></section> }
+            @if (tools.existingLead) { <section class="detail-card"><h2>Prospecto vinculado</h2><p>{{ tools.existingLead.name || tools.existingLead.phone }}</p><small>{{ tools.existingLead.interest }}</small></section> } @else { <section class="detail-card"><h2>Crear prospecto</h2><form [action]="leadUrl(model)" method="post" class="advanced-form"><input name="name" placeholder="Nombre"><input name="phone" [value]="model.conversation.contact.phone" placeholder="Teléfono"><input name="email" type="email" placeholder="Correo"><input name="interest" placeholder="Interés"><textarea name="notes" placeholder="Notas"></textarea><button type="submit">Crear prospecto</button></form></section> }
+            <section class="detail-card"><h2>Resultado de gestión</h2>@if (model.conversation.contact.outcomeType) { <p><strong>{{ tools.outcomeLabels[model.conversation.contact.outcomeType] || model.conversation.contact.outcomeType }}</strong>@if (tools.daysLate > 0) { · {{ tools.daysLate }} días de atraso }</p>@if (model.conversation.contact.outcomeAmount) { <p>Monto: {{ model.conversation.contact.outcomeAmount }}</p> }@if (model.conversation.contact.outcomeDueAt) { <p>Compromiso: {{ dateLabel(model.conversation.contact.outcomeDueAt, model.timezone) }}</p> } } @else { <p>Sin resultado registrado.</p> }<p>{{ tools.outcomeAttempts.attempts }} intentos · {{ tools.outcomeAttempts.hasInbound ? 'Ya respondió' : 'Nunca ha respondido' }}</p><form [action]="outcomeUrl(model)" method="post" class="advanced-form"><input name="amount" inputmode="decimal" placeholder="Monto"><input name="dueDate" type="date"><input name="paidDate" type="date"><input name="note" maxlength="500" placeholder="Nota de gestión">@for (type of tools.outcomeTypes; track type) { <button name="type" [value]="type" type="submit">{{ tools.shortLabels[type] }}</button> }</form></section>
+            @if (tools.guidedFlowRun) { <section class="detail-card"><h2>Flujo guiado · {{ tools.guidedFlowRun.flowName }}</h2><p>{{ tools.guidedFlowRun.status === 'ACTIVE' ? 'En curso' : 'Completado' }}</p>@if (tools.guidedFlowRun.pending; as pending) { <p>{{ pending.text }}</p>@for (option of pending.options; track option) { <small>{{ option }} · </small> }<form [action]="guidedFlowApproveUrl(model)" method="post"><button type="submit">Aprobar y enviar</button></form> }@if (tools.guidedFlowRun.status === 'ACTIVE') { <form [action]="guidedFlowEndUrl(model)" method="post"><button type="submit">Terminar flujo</button></form> }</section> }
+            @if (tools.aiSettings.enabled) { <section class="detail-card"><h2>Asistencia de IA</h2>@if (model.conversation.aiPausedAt) { <form [action]="aiResumeUrl(model)" method="post"><button type="submit">Reanudar IA</button></form> } @else { <form [action]="aiPauseUrl(model)" method="post"><button type="submit">Pausar IA</button></form> }</section> }
+            @if (isAdmin) { <section class="detail-card purge-card"><h2>Zona de riesgo</h2><p>Borra definitivamente todos los mensajes de esta conversación. Escribe BORRAR para confirmar.</p><form [action]="purgeUrl(model)" method="post" class="advanced-form" (submit)="confirmPurge($event)"><input name="confirm" required autocomplete="off" placeholder="BORRAR"><button type="submit">Borrar todo el chat</button></form></section> }
+          }
+        </aside>
+      </div>
+    }
+  `,
+  styleUrl: './agent-conversation.page.css',
+})
+export class AgentConversationPage implements OnDestroy {
+  protected readonly data = signal<AgentConversationDetail | null>(null);
+  protected readonly error = signal('');
+  protected readonly loading = signal(true);
+  protected readonly draft = signal('');
+  protected readonly advanced = signal<AdvancedConversationData | null>(null);
+  protected readonly showDeleted = signal(false);
+  protected readonly listRows = Array.from({ length: 10 }, (_, index) => index);
+  private readonly id: string;
+  protected readonly isAdmin = window.location.pathname.startsWith('/panel/admin/conversations/');
+  private readonly socket = window.io?.({ withCredentials: true });
+  private connectedBefore = false;
+  private readonly refreshTimer = window.setInterval(() => {
+    if (!this.socket?.connected) void this.load(false);
+  }, 20000);
+
+  constructor(route: ActivatedRoute) {
+    this.id = route.snapshot.paramMap.get('id') || '';
+    this.showDeleted.set(new URLSearchParams(window.location.search).get('deleted') === '1');
+    this.socket?.on('connect', () => {
+      if (this.connectedBefore) void this.load(false);
+      this.connectedBefore = true;
+    });
+    for (const eventName of ['conversation:message', 'conversation:assigned', 'conversation:ai-paused', 'conversation:ai-resumed', 'conversation:ai-handoff']) {
+      this.socket?.on(eventName, (payload) => {
+        const event = payload as { conversationId?: string } | undefined;
+        if (event?.conversationId === this.id) void this.load(false);
+      });
+    }
+    void this.load();
+  }
+
+  ngOnDestroy(): void {
+    window.clearInterval(this.refreshTimer);
+    this.socket?.disconnect();
+  }
+
+  protected contactName(model: AgentConversationDetail): string {
+    const contact = model.conversation.contact;
+    return contact.customName || contact.profileName || contact.phone;
+  }
+
+  protected initials(name: string): string {
+    return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+  }
+
+  protected useQuickReply(body: string): void { this.draft.set(body); }
+  protected setDraft(event: Event): void { this.draft.set((event.target as HTMLTextAreaElement).value); }
+  protected listUrl(): string { return this.isAdmin ? '/panel/admin/conversations' : '/panel/agent/conversations'; }
+  protected messageUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/free-text`; }
+  protected localMessageUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/local`; }
+  protected deleteUrl(model: AgentConversationDetail, message: ConversationMessage): string { return `${this.routeBase()}/${model.conversation.id}/messages/${message.id}/delete`; }
+  protected restoreUrl(model: AgentConversationDetail, message: ConversationMessage): string { return `/admin/conversations/${model.conversation.id}/messages/${message.id}/restore`; }
+  protected mediaUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/media`; }
+  protected templateUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/template`; }
+  protected interactiveUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/interactive`; }
+  protected interactiveListUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/interactive-list`; }
+  protected assignUrl(model: AgentConversationDetail): string { return `/admin/conversations/${model.conversation.id}/assign`; }
+  protected leadUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/lead`; }
+  protected outcomeUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/outcome`; }
+  protected guidedFlowEndUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/guided-flow/end`; }
+  protected guidedFlowApproveUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/guided-flow/approve`; }
+  protected aiPauseUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/ai-pause`; }
+  protected aiResumeUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/ai-resume`; }
+  protected aiUseUrl(model: AgentConversationDetail, suggestionId: string): string { return `${this.routeBase()}/${model.conversation.id}/ai/${suggestionId}/use`; }
+  protected aiDiscardUrl(model: AgentConversationDetail, suggestionId: string): string { return `${this.routeBase()}/${model.conversation.id}/ai/${suggestionId}/discard`; }
+  protected closeUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/close`; }
+  protected reopenUrl(model: AgentConversationDetail): string { return `/admin/conversations/${model.conversation.id}/reopen`; }
+  protected purgeUrl(model: AgentConversationDetail): string { return `/admin/conversations/${model.conversation.id}/purge`; }
+  protected isPlaceholder(body: string): boolean { return body.startsWith('[') && body.endsWith(']'); }
+  protected mediaLabel(type: string): string { return ({ IMAGE: 'Imagen', VIDEO: 'Video', AUDIO: 'Audio', DOCUMENT: 'Documento' } as Record<string, string>)[type] || 'Archivo'; }
+  protected tick(status: string): string { return ({ CREATED: '🕓', SENDING: '🕓', SENT: '✓', DELIVERED: '✓✓', READ: '✓✓', FAILED: '⚠' } as Record<string, string>)[status] || '🕓'; }
+
+  protected dateLabel(value: string, timezone: string): string {
+    const date = new Date(value);
+    return `${date.toLocaleDateString('es-MX', { timeZone: timezone, day: 'numeric', month: 'short' })} · ${date.toLocaleTimeString('es-MX', { timeZone: timezone, hour: '2-digit', minute: '2-digit' })}`;
+  }
+
+  protected toggleDeleted(event: Event): void {
+    this.showDeleted.set((event.target as HTMLInputElement).checked);
+    const query = this.showDeleted() ? '?deleted=1' : '';
+    window.history.replaceState({}, '', `${window.location.pathname}${query}`);
+    void this.load(false);
+  }
+
+  protected confirmPurge(event: Event): void {
+    if (!window.confirm('Se eliminarán definitivamente todos los mensajes de esta conversación. ¿Continuar?')) event.preventDefault();
+  }
+
+  private async load(showLoading = true): Promise<void> {
+    if (showLoading) this.loading.set(true);
+    try {
+      const deletedQuery = this.isAdmin && this.showDeleted() ? '?deleted=1' : '';
+      const response = await fetch(`${this.routeBase()}/${encodeURIComponent(this.id)}/data${deletedQuery}`, {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
+      if (response.status === 404) throw new Error('La conversación no existe o no tienes acceso.');
+      if (!response.ok) throw new Error('No se pudo cargar la conversación.');
+      if (!(response.headers.get('content-type') || '').includes('application/json')) throw new Error('La sesión venció. Inicia sesión para continuar.');
+      this.data.set(await response.json() as AgentConversationDetail);
+      const advancedResponse = await fetch(`${this.routeBase()}/${encodeURIComponent(this.id)}/legacy${deletedQuery}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      if (advancedResponse.ok && (advancedResponse.headers.get('content-type') || '').includes('application/json')) this.advanced.set(await advancedResponse.json() as AdvancedConversationData);
+      this.error.set('');
+    } catch (reason: unknown) {
+      this.error.set(reason instanceof Error ? reason.message : 'Ocurrió un error inesperado.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  private routeBase(): string { return this.isAdmin ? '/admin/conversations' : '/agent/conversations'; }
+}

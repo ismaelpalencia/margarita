@@ -1,0 +1,31 @@
+{
+  "/admin/**": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/agent/**": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/auth/**": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/account/**": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/media/**": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/api/**": {
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/socket.io/**": {
+    "target": "http://localhost:3000",
+    "secure": false,
+    "ws": true
+  }
+}
