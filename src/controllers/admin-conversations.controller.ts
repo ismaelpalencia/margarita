@@ -14,6 +14,7 @@ import { AiSettingsService } from "../services/ai/settings.service";
 import { AiSuggestionService } from "../services/ai/suggestion.service";
 import { GuidedFlowService } from "../services/guided-flow.service";
 import { monthKeyIn, startOfMonthIn, startOfTodayIn } from "../utils/date";
+import { sharedContactDetailsFromPayload } from "../utils/shared-contact";
 import { NumberUsageService } from "../services/number-usage.service";
 import { templateVariableShape } from "../utils/template";
 import {
@@ -99,7 +100,9 @@ export class AdminConversationsController {
                     type: message.type,
                     status: message.status,
                     source: message.source,
-                    body: message.body,
+                    body: message.type === "CONTACT"
+                        ? sharedContactDetailsFromPayload(message.metaPayload) || message.body
+                        : message.body,
                     mediaId: message.mediaId,
                     isInternalNote: message.isInternalNote,
                     aiSuggestionId: message.aiSuggestionId,

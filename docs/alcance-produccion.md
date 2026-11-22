@@ -159,7 +159,7 @@ La restricción del agente se aplica **en la consulta a la base**, no solo en la
 | Pantalla | Qué hace |
 | --- | --- |
 | **Dashboard** | KPIs de conversaciones abiertas/sin asignar/asignadas/en progreso, banner rojo si hay sin asignar, **tarjeta de handoffs de la IA** (asignado o sin asignar) y toast en vivo, últimos mensajes y errores. |
-| **Conversaciones** | Bandeja de administración o agente con filtros por estado, asignación, no leídos y búsqueda; el hilo abre en su propia ruta, muestra estado y controles del contacto, y en móvil conserva navegación compacta. Audio entrante reproducible en el hilo. |
+| **Conversaciones** | Bandeja de administración o agente con filtros por estado, asignación, no leídos y búsqueda; el hilo abre en su propia ruta, muestra estado y controles del contacto, y en móvil conserva navegación compacta. Abre en el mensaje más reciente; al desplazarse hacia arriba muestra un botón para volver al final. En el panel lateral quedan visibles los datos del contacto y la asignación; el resto de acciones se agrupa en **Más acciones**. Incluye etiquetas, notas internas, controles de IA, leads, cierre y acciones de administración. Audio entrante reproducible en el hilo. |
 | **Contactos** | Alta, edición, búsqueda por nombre completo o teléfono completo, etiquetas, opt-in/opt-out, pausa. |
 | **Etiquetas** | CRUD y asignación a contactos. |
 | **Campañas** | Crear desde contactos o Excel/CSV, variables, cola por lotes, pausa/reanudación/cancelación, programación y reintento de fallidos. |
@@ -188,6 +188,8 @@ La restricción del agente se aplica **en la consulta a la base**, no solo en la
 - Solo ve sus conversaciones y las sin asignar.
 - Cambia su estado (`AVAILABLE`, `BUSY`, `BREAK`, `OFFLINE`).
 - Responde de cuatro formas: **nota interna** (no sale a WhatsApp), **texto libre** dentro de la ventana de 24 h, **archivos** (imagen/video/audio/documento) y **plantilla aprobada** cuando la ventana está cerrada.
+- Puede grabar, escuchar y enviar audio desde Chrome. Las grabaciones y archivos OGG/WebM se convierten a M4A/AAC (`audio/mp4`) antes de subirlos; WhatsApp los recibe como audio normal, no como burbuja PTT de nota de voz.
+- Al abrir la conversación, el hilo se desplaza al mensaje más reciente. Si el agente vuelve hacia mensajes anteriores, aparece un botón flotante para bajar al final y este se oculta al llegar abajo.
 - **Botones** (hasta 3) y **listas** dentro de la ventana.
 - **Borrador de IA**: usar o descartar; el agente decide qué se envía. En modo automático puede pausar/reactivar la IA en ese hilo.
 - **Respuestas rápidas** con nombre y teléfono.
@@ -406,7 +408,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - **Estados reales**: `sent`, `delivered`, `read`, `failed` propagados al hilo y a campañas.
 - **Contactos y conversaciones** se crean o reabren al recibir un mensaje.
 - **Contenido entrante**: el hilo reproduce audio con controles integrados; imágenes, video y documentos se abren desde su enlace. Las tarjetas de contacto compartidas muestran nombre, teléfonos, correo, empresa y otros datos incluidos por WhatsApp. Los archivos se descargan de Meta al abrirse (las imágenes se descargan al recibir); si R2 está configurado, se copian al bucket. La ruta de medios valida autorización por ID del mensaje.
-- **Envío de archivos** dentro de la ventana de 24 h con límites de Meta (imagen 5 MB, video/audio 16 MB, documento 100 MB). El panel también graba, permite escuchar y envía notas de voz; normaliza el formato del navegador a OGG/Opus.
+- **Envío de archivos** dentro de la ventana de 24 h con límites de Meta (imagen 5 MB, video/audio 16 MB, documento 100 MB). El panel graba y permite preescuchar audio. Las grabaciones de Chrome y los archivos OGG/Opus/WebM se convierten a M4A/AAC (`audio/mp4`) antes de subirse; se envían como audio convencional, no como nota de voz PTT. MP3, AAC/MP4 y AMR admitidos se envían en su formato original.
 - **Varios números** de la misma WABA; el panel trabaja “desde” un número activo. La IA y los flujos se pueden apagar por número.
 - **Ventana de 24 h**: fuera de ella solo plantillas aprobadas.
 - **Borrado de mensajes**: ocultar (reversible) o borrar el hilo definitivamente escribiendo `BORRAR`.
@@ -509,6 +511,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Búsqueda exacta | Teléfono/nombre cifrados: solo coincidencia completa, no parcial. |
 | Sin correo saliente | No hay “recuperar contraseña por correo”; se resuelve con otro admin o `npm run admin:reset-password`. |
 | Archivos con caducidad | Meta conserva ~30 días; si nadie los abrió, ya no se recuperan. |
+| Notas de voz PTT salientes | El panel envía grabaciones como audio M4A/AAC convencional para evitar el error de procesamiento OGG/Opus de Meta (`131053`); no genera la burbuja PTT especial de WhatsApp. |
 | Costo estimado | Las tarifas (`SERVICE_MESSAGE_RATE`, etc.) son referencia, no factura. |
 | Opt-in registrado, no verificado | Se guarda fecha, canal y quién; la app no comprueba el consentimiento. |
 | Baja por palabra clave | Solo detecta la palabra al inicio; otras formas se marcan a mano. |

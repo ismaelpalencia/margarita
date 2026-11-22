@@ -18,6 +18,11 @@ interface ConversationMessage {
   deletedAt?: string | null;
 }
 
+interface SharedContactCard {
+  name: string;
+  fields: Array<{ label: string; value: string }>;
+}
+
 interface AgentConversationDetail {
   timezone: string;
   hasOpenWindow: boolean;
@@ -91,11 +96,24 @@ interface AdvancedConversationData {
                   @if (message.deletedAt) { <small class="message-label">ELIMINADO</small> }
                   @if (message.isInternalNote) { <small class="message-label">NOTA INTERNA · SOLO EL EQUIPO</small> }
                   @if (message.source === 'AUTOMATIC' && message.aiSuggestionId) { <small class="message-label">RESPUESTA AUTOMÁTICA DE IA</small> }
-                  @if (message.type === 'CONTACT') { <small class="contact-share-label">CONTACTO COMPARTIDO</small> }
+                  @if (message.type === 'CONTACT') {
+                    <section class="detail-card shared-contact-card" aria-label="Contacto compartido">
+                      <small class="contact-share-label">CONTACTO COMPARTIDO</small>
+                      @for (contact of sharedContactCards(message.body); track $index) {
+                        <div class="shared-contact-entry">
+                          <strong>{{ contact.name }}</strong>
+                          @if (contact.fields.length) {
+                            <dl>@for (field of contact.fields; track $index) { <div><dt>{{ field.label }}</dt><dd>{{ field.value }}</dd></div> }</dl>
+                          }
+                        </div>
+                      }
+                      @if (!sharedContactCards(message.body).length) { <p class="shared-contact-empty">WhatsApp no incluyó datos visibles en esta tarjeta.</p> }
+                    </section>
+                  }
                   @if (message.mediaId && message.type === 'AUDIO') { <audio class="audio-player" controls preload="none" [src]="mediaFileUrl(message)" [attr.aria-label]="'Audio recibido · ' + dateLabel(message.createdAt, model.timezone)">Tu navegador no puede reproducir este audio.</audio><a class="media-link" [href]="mediaFileUrl(message)" target="_blank" rel="noopener">Descargar audio</a> }
                   @else if (message.mediaId) { <a class="media-link" [href]="mediaFileUrl(message)" target="_blank" rel="noopener">{{ mediaLabel(message.type) }} · Abrir archivo</a> }
-                  @if (message.body && !(message.mediaId && isPlaceholder(message.body))) { <p>{{ message.body }}</p> }
-                  @if (!message.body && !message.mediaId) { <p>[{{ message.type }}]</p> }
+                  @if (message.type !== 'CONTACT' && message.body && !(message.mediaId && isPlaceholder(message.body))) { <p>{{ message.body }}</p> }
+                  @if (message.type !== 'CONTACT' && !message.body && !message.mediaId) { <p>[{{ message.type }}]</p> }
                   @if (message.replyTitle || message.replyId) { <small class="reply-label">Respuesta: {{ message.replyTitle || message.replyId }}</small> }
                   <footer><span>{{ dateLabel(message.createdAt, model.timezone) }}</span>@if (message.direction === 'OUT' && !message.isInternalNote) { <span [title]="message.status">{{ tick(message.status) }}</span> }@if (message.deletedAt && isAdmin) { <form [action]="restoreUrl(model, message)" method="post"><button type="submit" aria-label="Restaurar mensaje" title="Restaurar mensaje">↶</button></form> }@else if (!message.deletedAt) { <form [action]="deleteUrl(model, message)" method="post"><button type="submit" aria-label="Eliminar mensaje" title="Eliminar mensaje">×</button></form> }</footer>
                   @if (message.errorText) { <small class="message-error">{{ message.errorText }}</small> }
@@ -258,6 +276,24 @@ export class AgentConversationPage implements OnDestroy {
   protected contactName(model: AgentConversationDetail): string {
     const contact = model.conversation.contact;
     return contact.customName || contact.profileName || contact.phone;
+  }
+
+  protected sharedContactCards(body: string | null): SharedContactCard[] {
+    if (!body) return [];
+
+    return body.split(/\n\s*\n/).map((block, index) => {
+      const fields = block.split('\n').map((line) => {
+        const separator = line.indexOf(':');
+        return separator < 0
+          ? null
+          : { label: line.slice(0, separator).trim(), value: line.slice(separator + 1).trim() };
+      }).filter((field): field is { label: string; value: string } => Boolean(field?.value));
+      const name = fields.find((field) => field.label === 'Nombre')?.value
+        || fields.find((field) => field.label.startsWith('Contacto'))?.label
+        || (fields.length ? `Contacto ${index + 1}` : '');
+
+      return { name, fields: fields.filter((field) => field.label !== 'Nombre' && !field.label.startsWith('Contacto')) };
+    }).filter((contact) => contact.name || contact.fields.length);
   }
 
   protected initials(name: string): string {

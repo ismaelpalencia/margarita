@@ -43,7 +43,7 @@ La página pública `margaritaapp.org/demo` corre en un **microservicio Go apart
 - Teléfonos de México con 10 dígitos e internacionales con `+` y lada; el número se guarda normalizado para WhatsApp.
 - Etiquetas: crear, editar y desactivar.
 - Equipo: crear **administradores y agentes**, cambiar el rol, activar o desactivar y **restablecer contraseñas**. Nunca se puede dejar la instalación sin un administrador activo. Los agentes tienen permisos y **límite diario** de mensajes manuales aplicado de verdad, con el uso de hoy a la vista.
-- Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo), búsqueda por nombre completo o teléfono completo, filtros por estado, asignación y no leídos, y contador de pendientes por hilo y en el encabezado.
+- Conversaciones: ver todas, abrir desde un contacto, responder, asignar, reasignar, cerrar y reabrir, con hilo estilo chat (burbujas, separadores de fecha, palomitas de estado reales y actualización en vivo), búsqueda por nombre completo o teléfono completo, filtros por estado, asignación y no leídos, y contador de pendientes por hilo y en el encabezado. El hilo abre en el mensaje más reciente; si se sube en el historial aparece un botón para volver al final. En el panel lateral quedan visibles los datos del contacto y la asignación; notas, etiquetas, IA, leads y demás controles están agrupados en **Más acciones**.
 - Respuestas rápidas: textos guardados que se insertan con un clic (con `{nombre}` y `{telefono}` del contacto), editables en Admin → Respuestas.
 - Botones y listas: enviar hasta 3 botones o una lista de 10 opciones dentro de la ventana de 24 horas, con sus respuestas interpretadas.
 - IA de respuestas (sugerencias y automático acotado): con `AI_ENABLED=true` y una llave de DeepSeek (o cualquier API compatible con OpenAI), cada mensaje entrante puede generar una respuesta. En **sugerencias**, aparece como borrador en la bandeja con su confianza y su motivo; el equipo lo usa —se copia al compositor— o lo descarta, y nada se envía solo. En **automático acotado**, la IA responde sola únicamente cuando la pregunta está cubierta por la base de conocimiento, la confianza alcanza el mínimo, no hay baja ni pausa, la ventana de 24 horas está abierta, no intervino una persona y quedan límites y presupuesto; si duda, entrega el hilo a una persona. Admin → IA permite ajustar modo, tono, umbral, límites, presupuesto y base de conocimiento, y probar preguntas sin tocar un hilo real. Se puede pausar o reactivar la IA por conversación; responder a mano la pausa sola. Con `AI_ENABLED=false` la herramienta funciona igual que antes. La base de conocimiento admite **botones de respuesta rápida** (hasta 3) y los flujos se editan desde Admin → IA → Paquete inicial; ambos se pueden apagar por número y eliminar entrada por entrada. La IA y los flujos son independientes, y un flujo que responde evita el doble envío de la IA.
@@ -69,7 +69,7 @@ La página pública `margaritaapp.org/demo` corre en un **microservicio Go apart
 
 - Solo ve las conversaciones asignadas a él.
 - Estado operativo: `AVAILABLE`, `BUSY`, `BREAK`, `OFFLINE`. Al iniciar sesión no queda disponible automáticamente; debe activarse.
-- Responde con cuatro modos: nota interna (marcada como tal en el hilo, no sale a WhatsApp), texto libre dentro de la ventana de 24 horas, archivos en la misma ventana, y plantilla aprobada cuando está cerrada.
+- Responde con cuatro modos: nota interna (marcada como tal en el hilo, no sale a WhatsApp), texto libre dentro de la ventana de 24 horas, archivos en la misma ventana, y plantilla aprobada cuando está cerrada. Puede grabar, escuchar y enviar audio desde Chrome; las grabaciones y archivos OGG/WebM se convierten a M4A/AAC antes de enviarse. WhatsApp los recibe como audio normal, no como burbuja PTT de nota de voz.
 - Respuestas rápidas de un clic y bandeja con búsqueda, filtros y contador de no leídos.
 - Ve su tope diario de mensajes manuales y cuántos lleva usados.
 - Cierra conversaciones cuando terminan.
@@ -88,7 +88,7 @@ La página pública `margaritaapp.org/demo` corre en un **microservicio Go apart
 - Cifrado en reposo de los datos personales: teléfonos, notas, contenido de los mensajes, payloads y eventos de Meta, variables de campaña y bitácora (AES-256-GCM), con índice ciego para el teléfono.
 - Bitácora con retención automática y credenciales redactadas.
 - Multimedia entrante y tarjetas de contacto: fotos, videos y documentos se abren desde el hilo; los audios tienen reproductor integrado y las tarjetas muestran nombre, teléfonos, correo y demás datos que envíe WhatsApp. El servidor autoriza cada archivo por el ID del mensaje y descarga de Meta cuando hace falta.
-- Envío de archivos: adjuntar imágenes, video, audio o documentos dentro de la ventana de 24 horas, con texto opcional; grabar, escuchar y enviar notas de voz desde el panel.
+- Envío de archivos: adjuntar imágenes, video, audio o documentos dentro de la ventana de 24 horas, con texto opcional. Las grabaciones del panel y los audios OGG/WebM se convierten a M4A/AAC (`audio/mp4`) para el envío a Meta; se entregan como audio normal de WhatsApp, no como mensaje PTT. Los audios entrantes tienen reproductor integrado.
 
 ---
 
