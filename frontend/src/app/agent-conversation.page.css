@@ -13,4 +13,3 @@
 
 .composer { flex: 0 0 auto; }
 .composer-actions > summary { padding: 7px 2px; color: #587165; font-size: 10px; cursor: pointer; }.composer-action-list { max-height: 30vh; overflow: auto; }
-@media (max-width: 850px) { .chat-card { height: 80vh; min-height: 480px; } }
