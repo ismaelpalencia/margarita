@@ -38,6 +38,9 @@ html[data-theme="dark"] .page-content :is(.open-button,.refresh-button,.unread-f
 html[data-theme="dark"] .page-content :is(.open-button:hover,.refresh-button:hover,.unread-filter:hover,.status-actions button:hover,.report-action button:hover,.reply-actions button:hover,.quick-replies button:hover) { border-color: #5a8068 !important; background-color: #2c3d32 !important; }
 html[data-theme="dark"] .page-content :is(.send-form button,.upload-form button,.report-button,.reply-save,.primary-button) { border-color: transparent !important; color: #fff !important; background-color: #17865a !important; }
 html[data-theme="dark"] .page-content :is(.send-form button:hover,.upload-form button:hover,.report-button:hover,.reply-save:hover,.primary-button:hover) { background-color: #1b9a67 !important; }
+html[data-theme="dark"] .live-toast { border-color: #34423a; color: #e7eee9; background-color: #1a2420; }
+html[data-theme="dark"] .live-toast strong { color: #acd7b8; }
+html[data-theme="dark"] .live-toast span { color: #bdc9c1; }
 .message-bubble footer form { margin: 0; }
 .message-bubble footer button { padding: 0 3px; border: 0; color: inherit; background: transparent; font: inherit; font-size: 12px; line-height: 1; opacity: .65; cursor: pointer; }
 .message-bubble footer button:hover { opacity: 1; }

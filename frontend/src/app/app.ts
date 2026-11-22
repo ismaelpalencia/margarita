@@ -16,6 +16,12 @@ interface ShellData {
   unassignedCount: number;
 }
 
+interface LiveToast {
+  title: string;
+  body: string;
+  href: string;
+}
+
 interface InstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
@@ -37,11 +43,17 @@ export class App {
   protected readonly pushSupported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'Notification' in window && 'PushManager' in window;
   protected readonly pushSubscribed = signal(false);
   protected readonly pwaMessage = signal('');
+  protected readonly liveToast = signal<LiveToast | null>(null);
   protected readonly darkMode = signal(this.readDarkMode());
   private readonly installPrompt = signal<InstallPromptEvent | null>(null);
   private readonly installed = signal(false);
   private readonly isMobile = typeof navigator !== 'undefined' && /iphone|ipad|ipod|android/i.test(navigator.userAgent);
   private readonly isStandalone = typeof window !== 'undefined' && (window.matchMedia?.('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true);
+  private socket: ReturnType<NonNullable<Window['io']>> | null = null;
+  private latestBadges: { dashboardUnread: number; unassigned: number } | null = null;
+  private soundNotifications = false;
+  private browserNotifications = false;
+  private toastTimer: number | null = null;
   protected readonly showInstall = computed(() => !this.installed() && (Boolean(this.installPrompt()) || (this.isMobile && !this.isStandalone)));
   private registration: ServiceWorkerRegistration | null = null;
 
@@ -59,7 +71,13 @@ export class App {
       });
       if ('serviceWorker' in navigator) void this.registerServiceWorker();
     }
-    if (!this.isPublic) void this.loadShell();
+    if (!this.isPublic) {
+      this.socket = window.io?.({ withCredentials: true }) || null;
+      void this.loadShell();
+      void this.loadNotificationPreferences();
+      this.socket?.on('badges:update', (payload) => this.updateBadges(payload));
+      this.socket?.on('conversation:message', (payload) => this.handleIncomingMessage(payload));
+    }
   }
 
   protected toggleTheme(): void {
@@ -163,9 +181,98 @@ export class App {
         headers: { Accept: 'application/json' }
       });
       if (!response.ok) return;
-      this.shell.set(await response.json() as ShellData);
+      const data = await response.json() as ShellData;
+      this.shell.set(this.latestBadges ? {
+        ...data,
+        unreadTotal: this.latestBadges.dashboardUnread,
+        unassignedCount: this.latestBadges.unassigned
+      } : data);
     } catch {
       /** Si el armazón falla, la página sigue sin contadores. */
+    }
+  }
+
+  private async loadNotificationPreferences(): Promise<void> {
+    try {
+      const response = await fetch('/account/notifications', {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' }
+      });
+      if (!response.ok) return;
+      const result = await response.json() as { notifySoundEnabled?: boolean; notifyBrowserEnabled?: boolean };
+      this.soundNotifications = Boolean(result.notifySoundEnabled);
+      this.browserNotifications = Boolean(result.notifyBrowserEnabled);
+    } catch {
+      // Las notificaciones son opcionales; no afectan al panel si falla esta consulta.
+    }
+  }
+
+  private updateBadges(payload: unknown): void {
+    if (!payload || typeof payload !== 'object') return;
+    const badges = payload as { dashboardUnread?: number; unassigned?: number };
+    this.latestBadges = {
+      dashboardUnread: Number(badges.dashboardUnread) || 0,
+      unassigned: Number(badges.unassigned) || 0
+    };
+    const current = this.shell();
+    if (!current) return;
+    this.shell.set({
+      ...current,
+      unreadTotal: this.latestBadges.dashboardUnread,
+      unassignedCount: this.latestBadges.unassigned
+    });
+  }
+
+  private handleIncomingMessage(payload: unknown): void {
+    if (!payload || typeof payload !== 'object') return;
+    const event = payload as {
+      conversationId?: string;
+      contact?: { name?: string };
+      message?: { direction?: string; body?: string | null; type?: string };
+    };
+    if (event.message?.direction !== 'IN' || !event.conversationId) return;
+
+    const currentConversation = window.location.pathname.match(/\/conversations\/([^/]+)/)?.[1];
+    if (currentConversation === event.conversationId) return;
+
+    const name = event.contact?.name || 'Contacto';
+    const body = event.message.body || `[${event.message.type || 'MENSAJE'}]`;
+    const href = `${this.isAgent ? '/panel/agent' : '/panel/admin'}/conversations/${encodeURIComponent(event.conversationId)}`;
+    this.liveToast.set({ title: `Nuevo mensaje · ${name}`, body, href });
+    if (this.toastTimer !== null) window.clearTimeout(this.toastTimer);
+    this.toastTimer = window.setTimeout(() => this.liveToast.set(null), 7000);
+
+    if (this.soundNotifications) this.playNotificationSound();
+    if (this.browserNotifications && document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        const notification = new Notification(`Nuevo mensaje · ${name}`, { body, tag: `margarita-${event.conversationId}` });
+        notification.onclick = () => {
+          window.focus();
+          window.location.href = href;
+          notification.close();
+        };
+      } catch {
+        // El navegador puede restringir notificaciones aunque ya tengan permiso.
+      }
+    }
+  }
+
+  private playNotificationSound(): void {
+    try {
+      const context = new AudioContext();
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.frequency.value = 660;
+      gain.gain.value = 0.07;
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start();
+      window.setTimeout(() => {
+        oscillator.stop();
+        void context.close();
+      }, 180);
+    } catch {
+      // El sonido es opcional y no debe bloquear el panel.
     }
   }
 

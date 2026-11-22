@@ -215,7 +215,7 @@ export class ConversationService {
      * leídos. El contador es por conversación, no por persona: si otro
      * usuario tenía el hilo abierto, el aviso desaparece para todos.
      */
-    static async markAsRead(workspaceId: string, conversationId: string) {
+    static async markAsRead(workspaceId: string, conversationId: string, readerUserId?: string) {
         const conversation = await prisma.conversation.findFirst({
             where: { id: conversationId, workspaceId },
             select: { assignedUserId: true, unreadCount: true }
@@ -241,7 +241,7 @@ export class ConversationService {
         /** Otras pestañas y el resto del equipo se enteran del decremento. */
         emitToWorkspaceAndUsers(
             workspaceId,
-            [conversation.assignedUserId],
+            [conversation.assignedUserId, readerUserId],
             "conversation:read",
             { conversationId }
         );

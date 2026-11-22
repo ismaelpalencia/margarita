@@ -66,5 +66,10 @@
     @if (pwaMessage()) { <p class="pwa-message" role="status">{{ pwaMessage() }}</p> }
     <section class="page-content"><router-outlet /></section>
   </main>
+  @if (liveToast(); as toast) {
+    <a class="live-toast" [href]="toast.href" role="status" aria-live="polite">
+      <strong>{{ toast.title }}</strong><span>{{ toast.body }}</span>
+    </a>
+  }
 </div>
 }

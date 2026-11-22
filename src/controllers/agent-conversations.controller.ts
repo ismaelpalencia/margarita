@@ -62,7 +62,8 @@ export class AgentConversationsController {
 
         await ConversationService.markAsRead(
             req.user!.workspaceId,
-            conversation.id
+            conversation.id,
+            req.user!.id
         );
 
         const [conversations, quickReplies, timezone] = await Promise.all([
@@ -313,7 +314,8 @@ export class AgentConversationsController {
 
         await ConversationService.markAsRead(
             req.user!.workspaceId,
-            conversation.id
+            conversation.id,
+            req.user!.id
         );
 
         /** Recalcula los contadores de la página que se está pintando. */
