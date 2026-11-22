@@ -87,7 +87,7 @@ La página pública `margaritaapp.org/demo` corre en un **microservicio Go apart
 - Cola de webhooks con reintentos y backoff: un fallo temporal ya no pierde mensajes.
 - Cifrado en reposo de los datos personales: teléfonos, notas, contenido de los mensajes, payloads y eventos de Meta, variables de campaña y bitácora (AES-256-GCM), con índice ciego para el teléfono.
 - Bitácora con retención automática y credenciales redactadas.
-- Multimedia entrante: las fotos, el video, el audio y los documentos de los clientes se ven en el hilo. Las imágenes se descargan al recibirlas; el resto, cuando alguien lo abre.
+- Multimedia entrante: fotos, videos y documentos se abren desde el hilo; los audios tienen reproductor integrado. El servidor autoriza cada archivo por el ID del mensaje y descarga de Meta cuando hace falta.
 - Envío de archivos: adjuntar imágenes, video, audio o documentos dentro de la ventana de 24 horas, con texto opcional.
 
 ---
@@ -661,7 +661,7 @@ correr con **una sola réplica**.
 
 ## 14. Estado del proyecto y pendientes
 
-Estado actual: la V1 está completa y funcional para producción. `npx tsc --noEmit` pasa limpio, hay **375 pruebas unitarias en 57 archivos** y una **suite de integración** contra PostgreSQL (esta última corre en CI con una base desechable), y los flujos críticos están verificados de punta a punta contra una base de datos real: firma del webhook, encolado, procesamiento por el worker, guardado del mensaje, emisión en vivo por socket, CSRF, bloqueo de login, verificación en dos pasos (desafío sin sesión, código válido y rescate por administrador), cifrado en reposo de todos los campos sensibles —incluidos nombres y correos— (con la misma lectura antes y después de cifrar), baja automática por `STOP`, límites diarios de mensajes manuales, respuestas rápidas, no leídos, exclusión de contactos dados de baja en campañas, resultados de gestión con reportes de cobranza, control de sesiones, varios administradores con recuperación de contraseñas, **restauración de un respaldo probada borrando datos a propósito** y **alta de una instalación vacía recorriendo el asistente como un cliente nuevo**.
+Estado actual: la V1 está completa y funcional para producción. La verificación vigente y el alcance operativo están en [`docs/alcance-produccion.md`](docs/alcance-produccion.md). El panel autenticado está en Angular; las rutas de servidor y vistas públicas continúan en Express/EJS. La suite unitaria y la cobertura de integración con PostgreSQL se describen con sus cifras actuales en ese documento.
 
 Lo que se cerró en el sprint de endurecimiento:
 
@@ -759,7 +759,7 @@ npm run build       # build completo
 
 ### Assets de marca
 
-Todas las vistas cargan los íconos desde `src/views/partials/brand-head.ejs`, que se incluye dentro del `<head>`. Si agregas una vista nueva, inclúyelo para que herede favicon, manifest y `theme-color`.
+Las vistas EJS cargan los íconos desde `src/views/partials/brand-head.ejs`. El shell Angular mantiene sus propios enlaces a favicon y manifest en `frontend/src/index.html`; al agregar una superficie nueva, conserva esos metadatos y el `theme-color`.
 
 | Archivo | Uso |
 | --- | --- |

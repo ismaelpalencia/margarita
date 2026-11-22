@@ -91,7 +91,8 @@ interface AdvancedConversationData {
                   @if (message.deletedAt) { <small class="message-label">ELIMINADO</small> }
                   @if (message.isInternalNote) { <small class="message-label">NOTA INTERNA · SOLO EL EQUIPO</small> }
                   @if (message.source === 'AUTOMATIC' && message.aiSuggestionId) { <small class="message-label">RESPUESTA AUTOMÁTICA DE IA</small> }
-                  @if (message.mediaId) { <a class="media-link" [href]="'/media/' + message.mediaId" target="_blank" rel="noopener">{{ mediaLabel(message.type) }} · Abrir archivo</a> }
+                  @if (message.mediaId && message.type === 'AUDIO') { <audio class="audio-player" controls preload="none" [src]="mediaFileUrl(message)" [attr.aria-label]="'Audio recibido · ' + dateLabel(message.createdAt, model.timezone)">Tu navegador no puede reproducir este audio.</audio><a class="media-link" [href]="mediaFileUrl(message)" target="_blank" rel="noopener">Descargar audio</a> }
+                  @else if (message.mediaId) { <a class="media-link" [href]="mediaFileUrl(message)" target="_blank" rel="noopener">{{ mediaLabel(message.type) }} · Abrir archivo</a> }
                   @if (message.body && !(message.mediaId && isPlaceholder(message.body))) { <p>{{ message.body }}</p> }
                   @if (!message.body && !message.mediaId) { <p>[{{ message.type }}]</p> }
                   @if (message.replyTitle || message.replyId) { <small class="reply-label">Respuesta: {{ message.replyTitle || message.replyId }}</small> }
@@ -212,6 +213,7 @@ export class AgentConversationPage implements OnDestroy {
   protected deleteUrl(model: AgentConversationDetail, message: ConversationMessage): string { return `${this.routeBase()}/${model.conversation.id}/messages/${message.id}/delete`; }
   protected restoreUrl(model: AgentConversationDetail, message: ConversationMessage): string { return `/admin/conversations/${model.conversation.id}/messages/${message.id}/restore`; }
   protected mediaUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/media`; }
+  protected mediaFileUrl(message: ConversationMessage): string { return `/media/${encodeURIComponent(message.id)}`; }
   protected templateUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/template`; }
   protected interactiveUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/interactive`; }
   protected interactiveListUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/interactive-list`; }

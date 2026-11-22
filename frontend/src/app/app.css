@@ -35,6 +35,8 @@
 @media (max-width: 760px) {
   .sidebar { position: static; width: auto; padding: 14px 16px; }
   .brand { margin: 0 4px 14px; }
+  .number-switch { margin: 0 4px 12px; }
+  .number-single { margin: 0 10px 12px; }
   .nav-label, .sidebar-bottom { display: none; }
   .sidebar nav { display: flex; flex: 0 0 auto; min-height: 0; gap: 4px; overflow-x: auto; overflow-y: hidden; }
   .nav-link { flex: 0 0 auto; padding: 9px; font-size: 11px; }

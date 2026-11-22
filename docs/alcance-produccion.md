@@ -1,6 +1,6 @@
 # Margarita — Alcance real de la aplicación
 
-**Estado:** foto del código al **2026-11-11**. Este documento es la referencia única del producto: describe lo que la app hace **hoy**, no lo que se planeó.
+**Estado:** revisión del código al **2026-11-22**. Este documento es la referencia del producto: describe lo que la app hace **hoy**, no lo que se planeó.
 
 **Fuentes usadas para escribirlo:** `prisma/schema.prisma`, `src/routes/*.ts`, `src/controllers`, `src/services`, `src/jobs`, `landing/` + `scripts/build-landing.ts`, `.env.example`, la suite de pruebas y `margaritademo` (demo Go).
 
@@ -73,7 +73,8 @@ Margarita es una aplicación web para **operar la WhatsApp Business Cloud API de
 ### Rutas de la aplicación
 
 - Públicas: `/setup`, `/auth/login`, `/auth/login/2fa`, `/health`, `/webhooks/meta/whatsapp`, `/media/:id` (exige sesión). La ruta `/demo` y `/api/demo/*` son legacy de la app (solo con `DEMO_ENABLED=true`); la demo pública real vive en `demo.margaritaapp.org` (servicio Go aparte).
-- Panel: `/admin/*`, `/agent/*`, `/account/*`.
+- Panel web autenticado (Angular): `/panel/admin/*` y `/panel/agent/*`; las vistas públicas `/auth/*` y `/setup` usan EJS.
+- Rutas Express de servicio/compatibilidad y JSON que consume Angular: `/admin/*`, `/agent/*` y `/account/*`; datos del shell Angular: `/panel/shell`.
 
 ### Demo pública (microservicio Go)
 
@@ -152,7 +153,7 @@ La restricción del agente se aplica **en la consulta a la base**, no solo en la
 | Pantalla | Qué hace |
 | --- | --- |
 | **Dashboard** | KPIs de conversaciones abiertas/sin asignar/asignadas/en progreso, banner rojo si hay sin asignar, **tarjeta de handoffs de la IA** (asignado o sin asignar) y toast en vivo, últimos mensajes y errores. |
-| **Conversaciones** | Bandeja de 3 columnas en escritorio (lista, hilo, panel de contacto/IA), 2 columnas en tablet y 1 en móvil con botón de regreso. Filtros por estado, asignación, no leídos y búsqueda. |
+| **Conversaciones** | Bandeja de administración o agente con filtros por estado, asignación, no leídos y búsqueda; el hilo abre en su propia ruta, muestra estado y controles del contacto, y en móvil conserva navegación compacta. Audio entrante reproducible en el hilo. |
 | **Contactos** | Alta, edición, búsqueda por nombre completo o teléfono completo, etiquetas, opt-in/opt-out, pausa. |
 | **Etiquetas** | CRUD y asignación a contactos. |
 | **Campañas** | Crear desde contactos o Excel/CSV, variables, cola por lotes, pausa/reanudación/cancelación, programación y reintento de fallidos. |
@@ -398,7 +399,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - **Idempotencia por `wamid`**: los reintentos de Meta no duplican mensajes.
 - **Estados reales**: `sent`, `delivered`, `read`, `failed` propagados al hilo y a campañas.
 - **Contactos y conversaciones** se crean o reabren al recibir un mensaje.
-- **Multimedia entrante**: imágenes se descargan al recibir; audio/video/documentos al abrirse. Si R2 está configurado, se copian al bucket.
+- **Multimedia entrante**: el hilo reproduce audio con controles integrados; imágenes, video y documentos se abren desde su enlace. Los archivos se descargan de Meta al abrirse (las imágenes se descargan al recibir); si R2 está configurado, se copian al bucket. La ruta de medios valida autorización por ID del mensaje.
 - **Envío de archivos** dentro de la ventana de 24 h con límites de Meta (imagen 5 MB, video/audio 16 MB, documento 100 MB).
 - **Varios números** de la misma WABA; el panel trabaja “desde” un número activo. La IA y los flujos se pueden apagar por número.
 - **Ventana de 24 h**: fuera de ella solo plantillas aprobadas.
@@ -518,8 +519,8 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | --- | --- | --- |
 | Listas interactivas | “Pendiente” en la sección 8, pero implementadas en la sección 2 | Implementadas y apagadas por defecto (`interactiveListsEnabled`) |
 | IA automática | “Piloto pendiente” | Implementada, acotada y con límites; se enciende por workspace |
-| Pruebas | 302 unitarias / 82 integración | **375 unitarias** (57 archivos) y **107 de integración** (27 archivos; 105 pasan, 2 destructivas solo en CI) |
-| Migraciones | 23 | **43** |
+| Pruebas | 302 unitarias / 82 integración | Suite actual indicada en §18; integración PostgreSQL en 27 archivos |
+| Migraciones | 23 | **48** versionadas |
 | Rate limit | “300 por IP” y “300 por usuario” en el mismo documento | 300/15 min **por usuario** + tope de borde por IP |
 | Landing | Generada desde `src/views` | Fuente propia en `landing/*.ejs`, build `landing:build` |
 | Precios | Repetidos en varios documentos | Fuente en `landing/` + `PRICING`; el panel no los muestra |
@@ -585,12 +586,13 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 | Aspecto | Estado |
 | --- | --- |
 | Tipos | `npx tsc --noEmit` limpio |
-| Unitarias | **375** en 57 archivos |
+| Unitarias de servidor | **378** en 59 archivos (`npm test`) |
+| Interfaz Angular | **5** pruebas en 3 archivos (`npm --prefix frontend test -- --watch=false`) |
 | Integración | **107** en 27 archivos (105 pasan, 2 destructivas solo en CI) |
-| Migraciones | **43** versionadas en `prisma/migrations` |
+| Migraciones | **48** versionadas en `prisma/migrations` |
 | CI | GitHub Actions: esquema, tipos, pruebas y build |
 | Linter/formateador | No hay |
-| Pruebas de interfaz | No hay automatizadas |
+| Build Angular y servidor | `npm run build` |
 
 ---
 
