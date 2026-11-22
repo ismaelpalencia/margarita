@@ -54,7 +54,13 @@
     <div class="sidebar-bottom"><span class="online-dot"></span><span>Conexión segura</span><form action="/auth/logout" method="post" class="logout-form"><button type="submit">Salir</button></form></div>
   </aside>
   <main class="main-area">
-    <header class="topbar"><div class="breadcrumbs">Panel <span>/</span> {{ pageName }}</div><a class="account-link" [href]="isAgent ? '/panel/agent/account/security' : '/panel/admin/account/security'"><span class="avatar">M</span><span>Mi cuenta</span></a></header>
+    <header class="topbar"><div class="breadcrumbs">Panel <span>/</span> {{ pageName }}</div><div class="topbar-actions">
+      @if (showInstall()) { <button class="pwa-action" type="button" (click)="installApp()">Instalar app</button> }
+      @if (pushSupported) { <button class="pwa-action" type="button" (click)="enablePush()">{{ pushSubscribed() ? 'Avisos activos' : 'Activar avisos' }}</button> }
+      @if (pushSubscribed()) { <button class="pwa-action secondary" type="button" (click)="testPush()">Probar aviso</button> }
+      <a class="account-link" [href]="isAgent ? '/panel/agent/account/security' : '/panel/admin/account/security'"><span class="avatar">M</span><span>Mi cuenta</span></a>
+    </div></header>
+    @if (pwaMessage()) { <p class="pwa-message" role="status">{{ pwaMessage() }}</p> }
     <section class="page-content"><router-outlet /></section>
   </main>
 </div>

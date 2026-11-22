@@ -24,6 +24,10 @@
 .breadcrumbs { color: #899792; font-size: 12px; }
 .breadcrumbs span { padding: 0 8px; color: #c0c9c5; }
 .account-link { display: flex; align-items: center; gap: 9px; color: #4f605a; font-size: 12px; text-decoration: none; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.pwa-action { padding: 8px 10px; border: 1px solid #dce7e0; border-radius: 8px; color: #285845; background: #f4f8f5; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.pwa-action.secondary { color: #51655b; background: #fff; }
+.pwa-message { position: fixed; z-index: 5; top: 72px; right: 24px; max-width: min(420px, calc(100vw - 32px)); padding: 10px 14px; border: 1px solid #cfe4d5; border-radius: 9px; color: #246347; background: #eff8f1; box-shadow: 0 5px 18px #173b3518; font-size: 12px; }
 .avatar { display: grid; width: 31px; height: 31px; place-items: center; border-radius: 50%; color: #24614d; background: #def1e7; font-weight: 700; }
 .page-content { max-width: 1380px; margin: 0 auto; padding: 34px 38px 54px; }
 @media (max-width: 760px) {
@@ -35,5 +39,9 @@
   .nav-icon { display: none; }
   .main-area { margin-left: 0; }
   .topbar { height: 56px; padding: 0 18px; }
+  .topbar-actions { gap: 5px; }
+  .topbar-actions .account-link>span:last-child { display: none; }
+  .pwa-action { padding: 7px 8px; font-size: 10px; }
+  .pwa-message { top: 60px; right: 12px; }
   .page-content { padding: 24px 16px; }
 }
