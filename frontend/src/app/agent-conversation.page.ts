@@ -24,10 +24,19 @@ interface SharedContactCard {
   fields: Array<{ label: string; value: string }>;
 }
 
+interface QuickReply {
+  id: string;
+  title: string;
+  type: 'TEXT' | 'BUTTONS' | 'LIST';
+  body: string;
+  interactiveData: { footer?: string; buttons?: string[]; buttonLabel?: string; sectionTitle?: string; rows?: Array<{ title: string; description?: string }> } | null;
+}
+
 interface AgentConversationDetail {
   timezone: string;
   hasOpenWindow: boolean;
   offHoursNow: boolean;
+  interactiveListsEnabled: boolean;
   conversation: {
     id: string;
     status: string;
@@ -50,7 +59,7 @@ interface AgentConversationDetail {
     messages: ConversationMessage[];
   };
   conversations: Array<{ id: string; unreadCount: number; contactName: string; lastMessage: string }>;
-  quickReplies: Array<{ id: string; title: string; body: string }>;
+  quickReplies: QuickReply[];
 }
 
 interface AdvancedConversationData {
@@ -125,8 +134,9 @@ interface AdvancedConversationData {
               <p class="composer-warning">Esta conversación está cerrada.</p>
             } @else if (model.hasOpenWindow) {
               @if (model.quickReplies.length > 0) {
-                <div class="quick-replies"><span>Respuestas rápidas</span>@for (reply of model.quickReplies; track reply.id) { <button type="button" (click)="useQuickReply(reply.body)">{{ reply.title }}</button> }</div>
+                <div class="quick-replies"><span>Respuestas rápidas</span>@for (reply of model.quickReplies; track reply.id) { @if (reply.type !== 'LIST' || model.interactiveListsEnabled) { <button type="button" (click)="useQuickReply(reply)">{{ reply.title }}@if (reply.type !== 'TEXT') { <small>{{ reply.type === 'BUTTONS' ? ' · botones' : ' · lista' }}</small> }</button> } }</div>
               }
+              @if (selectedQuickReply(); as selected) { @if (selected.type === 'BUTTONS') { <form [action]="interactiveUrl(model)" method="post" class="quick-reply-send"><strong>{{ selected.title }}</strong><p>{{ selected.body }}</p><div class="quick-reply-preview">@for (button of selected.interactiveData?.buttons || []; track $index) { <span>{{ button }}</span> }</div><input type="hidden" name="body" [value]="selected.body"><input type="hidden" name="footer" [value]="selected.interactiveData?.footer || ''">@for (button of selected.interactiveData?.buttons || []; track $index) { <input type="hidden" [name]="'button' + ($index + 1)" [value]="button"> }<button type="submit">Enviar botones</button><button type="button" class="quick-reply-cancel" (click)="selectedQuickReply.set(null)">Cancelar</button></form> } @else if (selected.type === 'LIST') { <form [action]="interactiveListUrl(model)" method="post" class="quick-reply-send"><strong>{{ selected.title }}</strong><p>{{ selected.body }}</p><div class="quick-reply-preview"><span>{{ selected.interactiveData?.buttonLabel }}</span><small>{{ selected.interactiveData?.rows?.length || 0 }} opciones</small></div><input type="hidden" name="body" [value]="selected.body"><input type="hidden" name="footer" [value]="selected.interactiveData?.footer || ''"><input type="hidden" name="buttonLabel" [value]="selected.interactiveData?.buttonLabel || ''"><input type="hidden" name="sectionTitle" [value]="selected.interactiveData?.sectionTitle || ''">@for (row of selected.interactiveData?.rows || []; track $index) { <input type="hidden" name="rowTitle" [value]="row.title"><input type="hidden" name="rowDescription" [value]="row.description || ''"> }<button type="submit">Enviar lista</button><button type="button" class="quick-reply-cancel" (click)="selectedQuickReply.set(null)">Cancelar</button></form> } }
               <form [action]="messageUrl(model)" method="post" class="send-form">
                 <textarea name="body" required maxlength="4000" rows="3" [value]="draft()" (input)="setDraft($event)" placeholder="Escribe un mensaje" aria-label="Mensaje para el contacto"></textarea>
                 <button type="submit">Enviar mensaje</button>
@@ -217,6 +227,7 @@ export class AgentConversationPage implements OnDestroy {
   protected readonly data = signal<AgentConversationDetail | null>(null);
   protected readonly error = signal('');
   protected readonly operationNotice = signal('');
+  protected readonly selectedQuickReply = signal<QuickReply | null>(null);
   protected readonly loading = signal(true);
   protected readonly draft = signal('');
   protected readonly advanced = signal<AdvancedConversationData | null>(null);
@@ -301,7 +312,12 @@ export class AgentConversationPage implements OnDestroy {
     return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
   }
 
-  protected useQuickReply(body: string): void { this.draft.set(body); }
+  protected useQuickReply(reply: QuickReply): void {
+    if (reply.type === 'TEXT') { this.draft.set(reply.body); this.selectedQuickReply.set(null); return; }
+    if (reply.type === 'LIST' && this.data() && !this.data()?.interactiveListsEnabled) { this.operationNotice.set('Las listas interactivas están desactivadas para este espacio.'); return; }
+    this.operationNotice.set('');
+    this.selectedQuickReply.set(reply);
+  }
   protected setDraft(event: Event): void {
     this.draft.set((event.target as HTMLTextAreaElement).value);
     this.signalTyping();

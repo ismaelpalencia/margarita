@@ -125,8 +125,9 @@ que alguien la quite.
 - **Nota interna**: no sale a WhatsApp, sirve para el equipo.
 - **Archivos**: imagen hasta 5 MB, video y audio hasta 16 MB, documentos hasta
   100 MB.
-- **Respuestas rápidas**: insertan un texto guardado con `{nombre}` y
-  `{telefono}` ya resueltos.
+- **Respuestas rápidas**: el equipo puede guardar texto, mensajes con botones
+  o listas de opciones. Las interactivas muestran una vista previa y se envían
+  desde el hilo; las listas requieren que el administrador las habilite.
 - **Enter envía** el mensaje y **Shift + Enter** hace un salto de línea.
 - **Botones dentro de las 24 horas**: desde la columna lateral se manda un
   mensaje con hasta **3 botones** de 20 caracteres. Sirve para pedir un sí/no o

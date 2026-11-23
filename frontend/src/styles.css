@@ -133,6 +133,14 @@ html[data-theme="dark"] * { scrollbar-color: #53645a #18211c; }
 .contact-block-card button { width: 100%; min-height: 32px; padding: 6px 9px; border: 1px solid #e3e9e5; border-radius: 7px; color: #53675c; background: #f7f9f7; font: inherit; font-size: 9px; font-weight: 650; cursor: pointer; }
 .contact-block-card .block-contact-button { margin-bottom: 6px; border-color: #f0d8d4; color: #a2463b; background: #fff5f3; }
 .contact-block-card button:hover { filter: brightness(.97); }
+.quick-reply-send { margin: 0 0 8px; padding: 8px; border: 1px solid #d9e8de; border-radius: 8px; background: #f5faf6; }
+.quick-reply-send p { margin: 5px 0; white-space: pre-wrap; }
+.quick-reply-preview { display: flex; gap: 5px; margin: 7px 0; }
+.quick-reply-preview span { padding: 4px 7px; border: 1px solid #d8e6dc; border-radius: 6px; background: #fff; }
+.quick-reply-send button { margin: 4px 5px 0 0; padding: 6px 9px; border: 0; border-radius: 7px; color: #fff; background: #2f725b; cursor: pointer; }
+.quick-reply-send .quick-reply-cancel { border: 1px solid #dfe7e1; color: #5d6d63; background: #fff; }
+html[data-theme="dark"] .quick-reply-send { border-color: var(--surface-border); background: var(--surface-raised); }
+html[data-theme="dark"] .quick-reply-preview span { border-color: var(--surface-border); color: var(--text-primary); background: var(--surface-card); }
 html[data-theme="dark"] .contact-block-card p { color: var(--text-secondary); }
 html[data-theme="dark"] .contact-block-card .blocked-contact-status { border-color: #70423c; color: #ffc1b8; background: #432c29; }
 html[data-theme="dark"] .contact-block-card button { border-color: var(--surface-border); color: var(--text-primary); background: var(--surface-raised); }

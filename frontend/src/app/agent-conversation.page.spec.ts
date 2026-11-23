@@ -10,6 +10,7 @@ describe('AgentConversationPage', () => {
       timezone: 'America/Mexico_City',
       hasOpenWindow: false,
       offHoursNow: false,
+      interactiveListsEnabled: false,
       conversation: {
         id: 'conversation-1',
         status: 'OPEN',

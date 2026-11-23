@@ -141,7 +141,7 @@ const ENCRYPTED_FIELDS: Record<string, string[]> = {
     CampaignRecipient: ["phone", "variables"],
     Log: ["message", "payload"],
     WebhookEvent: ["payload"],
-    QuickReply: ["body"],
+    QuickReply: ["body", "interactiveData"],
     ContactOutcome: ["note", "amount"],
     Complaint: ["description", "resolution"],
     User: ["email", "twoFactorSecret"],
@@ -321,6 +321,7 @@ const WRITE_RULES: Record<string, WriteRule> = {
 
     QuickReply(data) {
         encryptTextFields(data, ["body"]);
+        encryptJsonFields(data, ["interactiveData"]);
     },
 
     /**

@@ -96,7 +96,7 @@ lo necesita.
 | **Botones** (hasta 3, 20 caracteres) | Solo con ventana abierta |
 | **Listas** (hasta 10 opciones; título 24, descripción 72) | Solo con ventana abierta y con el flag de listas encendido |
 | Nota interna | Nunca sale a WhatsApp |
-| Respuestas rápidas | Insertan `{nombre}` y `{telefono}` |
+| Respuestas rápidas | Insertan texto o envían botones/listas configurados por el equipo |
 | Ocultar mensaje | Reversible; el admin los ve en «Ver eliminados» y los restaura |
 | Borrar hilo | Exige escribir `BORRAR`; borra los mensajes del hilo |
 | Resultado de gestión | Desde el panel lateral, sin salir del hilo |

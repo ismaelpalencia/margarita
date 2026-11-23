@@ -371,3 +371,14 @@ test("deja pasar los filtros que no comparan el contenido", () => {
         })
     );
 });
+
+test("cifra la configuración interactiva de respuestas rápidas", () => {
+    process.env.ENCRYPTION_KEY = TEST_KEY;
+    const interactiveData = { footer: "Margarita", buttons: ["Sí", "No"] };
+    const args = encryptWriteArgs("QuickReply", "create", {
+        data: { workspaceId: "ws", title: "Confirmar", type: "BUTTONS", body: "¿Confirmas?", interactiveData }
+    });
+    const encrypted = (args.data as { interactiveData: string }).interactiveData;
+    assert.ok(isEncryptedJson(encrypted));
+    assert.deepEqual(decryptQueryResult(encrypted), interactiveData);
+});

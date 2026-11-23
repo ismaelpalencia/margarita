@@ -18,7 +18,7 @@ export class AdminQuickRepliesController {
         );
 
         if (AdminQuickRepliesController.wantsJson(req)) {
-            return res.json({ quickReplies: quickReplies.map(({ id, title, body, isActive, updatedAt }) => ({ id, title, body, isActive, updatedAt })) });
+            return res.json({ quickReplies: quickReplies.map(({ id, title, type, body, interactiveData, isActive, updatedAt }) => ({ id, title, type, body, interactiveData, isActive, updatedAt })) });
         }
         return res.redirect("/panel/admin/quick-replies");
     }
@@ -57,7 +57,7 @@ export class AdminQuickRepliesController {
             );
 
             if (AdminQuickRepliesController.wantsJson(req)) {
-                return res.json({ quickReply: { id: quickReply.id, title: quickReply.title, body: quickReply.body, isActive: quickReply.isActive } });
+                return res.json({ quickReply: { id: quickReply.id, title: quickReply.title, type: quickReply.type, body: quickReply.body, interactiveData: quickReply.interactiveData, isActive: quickReply.isActive } });
             }
 
             return res.redirect(`/panel/admin/quick-replies?edit=${encodeURIComponent(id)}`);

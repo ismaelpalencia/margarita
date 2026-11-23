@@ -65,6 +65,7 @@ export class AdminConversationsController {
         return res.json({
             timezone,
             offHoursNow: Boolean(res.locals.offHoursNow),
+            interactiveListsEnabled: Boolean(res.locals.interactiveListsEnabled),
             hasOpenWindow: Boolean(lastIncomingAt && Date.now() - new Date(lastIncomingAt).getTime() <= 24 * 60 * 60 * 1000),
             conversation: {
                 id: conversation.id,
@@ -105,7 +106,7 @@ export class AdminConversationsController {
                     errorText: describeMetaError(message.metaResponse)
                 }))
             },
-            quickReplies: quickReplies.map(({ id, title, body }) => ({ id, title, body }))
+            quickReplies: quickReplies.map(({ id, title, type, body, interactiveData }) => ({ id, title, type, body, interactiveData }))
         });
     }
 
@@ -323,7 +324,7 @@ export class AdminConversationsController {
         if (req.accepts("json") && !req.accepts("html")) return res.json({
             agents: agents.map(({ id, name, status }) => ({ id, name, status })),
             templates: templates.map(({ id, name, language, components }) => ({ id, name, language, components })),
-            quickReplies: quickReplies.map(({ id, title, body }) => ({ id, title, body })),
+            quickReplies: quickReplies.map(({ id, title, type, body, interactiveData }) => ({ id, title, type, body, interactiveData })),
             aiSuggestion: aiOn && aiSettings.enabled && aiSettings.mode === AiMode.SUGGEST && aiSuggestion ? { id: aiSuggestion.id, body: aiSuggestion.body, confidence: aiSuggestion.confidence, intent: aiSuggestion.intent, handoff: aiSuggestion.handoff, reason: aiSuggestion.reason, createdAt: aiSuggestion.createdAt } : null,
             aiSettings: { enabled: aiSettings.enabled, mode: aiSettings.mode, confidenceMin: aiSettings.confidenceMin },
             aiConversation,

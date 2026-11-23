@@ -1144,10 +1144,14 @@ model QuickReply {
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   title String
+  /// TEXT, BUTTONS o LIST. El formato interactivo se valida contra los límites de WhatsApp.
+  type String @default("TEXT")
   /**
    * Texto de la respuesta, cifrado en la base como el resto del contenido.
    */
   body  String
+  /// Configuración de botones/lista; se cifra como JSON igual que el cuerpo.
+  interactiveData Json?
 
   isActive Boolean @default(true)
 

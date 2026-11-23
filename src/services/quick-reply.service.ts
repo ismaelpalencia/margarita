@@ -1,4 +1,4 @@
-import { LogLevel, LogModule } from "@prisma/client";
+import { LogLevel, LogModule, Prisma } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
 import {
@@ -6,6 +6,23 @@ import {
     UpdateQuickReplyInput
 } from "../validations/quick-reply.validation";
 import { LogService } from "./log.service";
+
+function quickReplyContent(input: CreateQuickReplyInput | UpdateQuickReplyInput) {
+    if (input.type === "TEXT") return { type: input.type, body: input.body, interactiveData: Prisma.DbNull };
+    if (input.type === "BUTTONS") {
+        return { type: input.type, body: input.body, interactiveData: { footer: input.footer, buttons: input.buttons } as Prisma.InputJsonValue };
+    }
+    return {
+        type: input.type,
+        body: input.body,
+        interactiveData: {
+            footer: input.footer,
+            buttonLabel: input.buttonLabel,
+            sectionTitle: input.sectionTitle,
+            rows: input.rows
+        } as Prisma.InputJsonValue
+    };
+}
 
 /**
  * Respuestas rápidas: textos guardados que el equipo inserta en el hilo
@@ -78,7 +95,7 @@ export class QuickReplyService {
                     id: existing.id
                 },
                 data: {
-                    body: input.body,
+                    ...quickReplyContent(input),
                     isActive: true
                 }
             });
@@ -88,7 +105,7 @@ export class QuickReplyService {
             data: {
                 workspaceId,
                 title: input.title,
-                body: input.body,
+                ...quickReplyContent(input),
                 createdById: userId,
                 isActive: true
             }
@@ -135,7 +152,7 @@ export class QuickReplyService {
             },
             data: {
                 title: input.title,
-                body: input.body
+                ...quickReplyContent(input)
             }
         });
     }

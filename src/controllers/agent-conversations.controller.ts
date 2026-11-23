@@ -77,6 +77,7 @@ export class AgentConversationsController {
         return res.json({
             user: { name: req.user!.name },
             timezone,
+            interactiveListsEnabled: Boolean(res.locals.interactiveListsEnabled),
             hasOpenWindow: Boolean(
                 lastIncomingAt && now - new Date(lastIncomingAt).getTime() <= 24 * 60 * 60 * 1000
             ),
@@ -140,10 +141,12 @@ export class AgentConversationsController {
                     ? item.messages[0].body || `[${item.messages[0].type}]`
                     : "—"
             })),
-            quickReplies: quickReplies.map(({ id, title, body }) => ({
+            quickReplies: quickReplies.map(({ id, title, type, body, interactiveData }) => ({
                 id,
                 title,
-                body
+                type,
+                body,
+                interactiveData
             })),
             offHoursNow: Boolean(res.locals.offHoursNow)
         });
@@ -336,7 +339,7 @@ export class AgentConversationsController {
 
         if (req.accepts("json") && !req.accepts("html")) return res.json({
             templates: templates.map(({ id, name, language, components }) => ({ id, name, language, components })),
-            quickReplies: quickReplies.map(({ id, title, body }) => ({ id, title, body })),
+            quickReplies: quickReplies.map(({ id, title, type, body, interactiveData }) => ({ id, title, type, body, interactiveData })),
             aiSuggestion: aiOn && aiSettings.enabled && aiSettings.mode === AiMode.SUGGEST && aiSuggestion ? { id: aiSuggestion.id, body: aiSuggestion.body, confidence: aiSuggestion.confidence, intent: aiSuggestion.intent, handoff: aiSuggestion.handoff, reason: aiSuggestion.reason, createdAt: aiSuggestion.createdAt } : null,
             aiSettings: { enabled: aiSettings.enabled, mode: aiSettings.mode, confidenceMin: aiSettings.confidenceMin },
             aiConversation,

@@ -1,0 +1,3 @@
+ALTER TABLE "QuickReply"
+ADD COLUMN "type" TEXT NOT NULL DEFAULT 'TEXT',
+ADD COLUMN "interactiveData" JSONB;
