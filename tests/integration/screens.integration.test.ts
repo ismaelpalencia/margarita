@@ -16,7 +16,7 @@ import {
 /**
  * Todas las pantallas responden.
  *
- * Esta suite existe por un error real en producción: una plantilla EJS
+ * Esta suite existe por un error real en producción: una pantalla del panel
  * preguntaba por una variable que no todas las rutas le pasaban, así que un
  * inicio de sesión fallido o el cambio de contraseña terminaban en un error 500
  * en lugar de mostrar el aviso. Recorre las pantallas de verdad, con una sesión

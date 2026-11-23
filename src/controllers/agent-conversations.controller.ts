@@ -83,6 +83,7 @@ export class AgentConversationsController {
             conversation: {
                 id: conversation.id,
                 status: conversation.status,
+                whatsappBlockedAt: conversation.whatsappBlockedAt,
                 operationalStatus: conversation.operationalStatus,
                 source: conversation.source,
                 aiHandoffAt: conversation.aiHandoffAt,

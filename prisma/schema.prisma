@@ -914,6 +914,7 @@ model Conversation {
   lastMessageAt         DateTime?
   lastIncomingMessageAt DateTime?
   closedAt              DateTime?
+  whatsappBlockedAt     DateTime?
 
   /**
    * Mensajes entrantes sin leer. Se incrementa con cada mensaje del cliente

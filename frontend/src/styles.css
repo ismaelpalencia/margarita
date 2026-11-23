@@ -129,9 +129,11 @@ html[data-theme="dark"] .page-content :is(button,a,input,select,textarea,summary
 html[data-theme="dark"] ::selection { color: #f5fff8; background: #286044; }
 html[data-theme="dark"] * { scrollbar-color: #53645a #18211c; }
 .contact-block-card p { margin: -4px 0 11px; color: #7b8982; font-size: 9px; line-height: 1.5; }
+.contact-block-card .blocked-contact-status { margin: 0 0 11px; padding: 9px 10px; border: 1px solid #f0d8d4; border-radius: 8px; color: #963d33; background: #fff2ef; font-size: 10px; font-weight: 700; }
 .contact-block-card button { width: 100%; min-height: 32px; padding: 6px 9px; border: 1px solid #e3e9e5; border-radius: 7px; color: #53675c; background: #f7f9f7; font: inherit; font-size: 9px; font-weight: 650; cursor: pointer; }
 .contact-block-card .block-contact-button { margin-bottom: 6px; border-color: #f0d8d4; color: #a2463b; background: #fff5f3; }
 .contact-block-card button:hover { filter: brightness(.97); }
 html[data-theme="dark"] .contact-block-card p { color: var(--text-secondary); }
+html[data-theme="dark"] .contact-block-card .blocked-contact-status { border-color: #70423c; color: #ffc1b8; background: #432c29; }
 html[data-theme="dark"] .contact-block-card button { border-color: var(--surface-border); color: var(--text-primary); background: var(--surface-raised); }
 html[data-theme="dark"] .contact-block-card .block-contact-button { border-color: #70423c; color: #ffc1b8; background: #432c29; }

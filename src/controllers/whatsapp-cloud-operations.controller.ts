@@ -6,6 +6,7 @@ import { WhatsAppCloudOperationsService } from "../services/whatsapp-cloud-opera
 import { getRequiredParam } from "../utils/request";
 import { deleteStoredMedia } from "../services/media-storage.service";
 import { describeMetaError } from "../utils/meta-error";
+import { blindIndex } from "../utils/crypto";
 
 function operationErrorMessage(error: unknown): string {
     if (axios.isAxiosError(error) && error.response?.data) {
@@ -28,7 +29,11 @@ export class WhatsAppCloudOperationsController {
             const raw = req.body?.users;
             const users = method === "GET" ? [] : Array.isArray(raw) ? raw : typeof raw === "string" ? raw.split(/[\s,]+/) : [];
             if (method !== "GET" && (!users.length || users.length > 100 || users.some((user) => typeof user !== "string" || !/^\+?\d{7,15}$/.test(user)))) return res.status(400).json({ error: "invalid_users" });
-            return res.json(await WhatsAppCloudOperationsService.blockUsers(req.user!.workspaceId, getRequiredParam(req, "numberId"), method, users.map((user) => String(user).replace(/^\+/, ""))));
+            const numberId = getRequiredParam(req, "numberId");
+            const normalizedUsers = users.map((user) => String(user).replace(/^\+/, ""));
+            const result = await WhatsAppCloudOperationsService.blockUsers(req.user!.workspaceId, numberId, method, normalizedUsers);
+            if (method !== "GET") await WhatsAppCloudOperationsController.syncLocalBlockState(req.user!.workspaceId, numberId, normalizedUsers, method === "POST");
+            return res.json(result);
         } catch (error) { return res.status(502).json({ error: operationErrorMessage(error) }); }
     }
 
@@ -66,8 +71,24 @@ export class WhatsAppCloudOperationsController {
                 req.body.blocked ? "POST" : "DELETE",
                 [phone]
             );
+            await prisma.conversation.update({
+                where: { id: conversation.id },
+                data: { whatsappBlockedAt: req.body.blocked ? new Date() : null }
+            });
             return res.json({ ok: true, blocked: req.body.blocked, result });
         } catch (error) { return res.status(502).json({ error: operationErrorMessage(error) }); }
+    }
+
+    private static async syncLocalBlockState(workspaceId: string, numberId: string, phones: string[], blocked: boolean) {
+        const contacts = await prisma.contact.findMany({
+            where: { workspaceId, phoneHash: { in: phones.map(blindIndex) } },
+            select: { id: true }
+        });
+        if (!contacts.length) return;
+        await prisma.conversation.updateMany({
+            where: { workspaceId, whatsappNumberId: numberId, contactId: { in: contacts.map(({ id }) => id) } },
+            data: { whatsappBlockedAt: blocked ? new Date() : null }
+        });
     }
 
     static async health(req: Request, res: Response) {
