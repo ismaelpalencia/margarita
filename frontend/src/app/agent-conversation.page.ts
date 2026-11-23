@@ -175,6 +175,7 @@ interface AdvancedConversationData {
 
         <aside class="detail-aside">
           <section class="detail-card"><h2>Datos del contacto</h2><dl><div><dt>Nombre</dt><dd>{{ contactName(model) }}</dd></div><div><dt>Teléfono</dt><dd>{{ model.conversation.contact.phone }}</dd></div><div><dt>Estado</dt><dd>{{ model.conversation.status === 'OPEN' ? 'Abierta' : 'Cerrada' }}</dd></div><div><dt>Origen</dt><dd>{{ model.conversation.source }}</dd></div><div><dt>Agente</dt><dd>{{ model.conversation.assignedUser?.name || 'Sin asignar' }}</dd></div></dl></section>
+          <section class="detail-card contact-block-card"><h2>Bloqueo en WhatsApp</h2><p>Impide que este número envíe mensajes a tu cuenta de WhatsApp Business. Es distinto de la baja interna.</p><button type="button" class="block-contact-button" (click)="setContactBlocked(model, true)">Bloquear contacto</button><button type="button" class="unblock-contact-button" (click)="setContactBlocked(model, false)">Desbloquear contacto</button></section>
           @if (isAdmin && advanced(); as tools) { <section class="detail-card"><h2>Asignación</h2><form [action]="assignUrl(model)" method="post" class="advanced-form"><select name="agentId"><option value="">Sin asignar</option>@for (agent of tools.agents || []; track agent.id) { <option [value]="agent.id" [selected]="model.conversation.assignedUser?.name === agent.name">{{ agent.name }} · {{ agent.status }}</option> }</select><button type="submit">Guardar asignación</button></form></section> }
           <details class="detail-actions">
             <summary>Más acciones</summary>
@@ -315,6 +316,21 @@ export class AgentConversationPage implements OnDestroy {
       this.operationNotice.set(emoji ? `Reacción ${emoji} enviada.` : 'Reacción retirada.');
     } catch (reason) {
       this.operationNotice.set(reason instanceof Error ? reason.message : 'No se pudo enviar la reacción.');
+    }
+  }
+  protected async setContactBlocked(model: AgentConversationDetail, blocked: boolean): Promise<void> {
+    const action = blocked ? 'bloquear' : 'desbloquear';
+    if (blocked && !window.confirm(`¿Bloquear a ${this.contactName(model)} en WhatsApp? Ya no podrá enviar mensajes a este número.`)) return;
+    try {
+      const response = await fetch(`${this.routeBase()}/${encodeURIComponent(model.conversation.id)}/block`, {
+        method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blocked }),
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || `No se pudo ${action} al contacto.`);
+      this.operationNotice.set(blocked ? 'Contacto bloqueado en WhatsApp.' : 'Contacto desbloqueado en WhatsApp.');
+    } catch (reason) {
+      this.operationNotice.set(reason instanceof Error ? reason.message : `No se pudo ${action} al contacto.`);
     }
   }
   protected async removeRemoteMedia(message: ConversationMessage): Promise<void> {
@@ -549,7 +565,12 @@ export class AgentConversationPage implements OnDestroy {
       this.lastTypingAt = Date.now();
       void fetch(`${this.routeBase()}/${encodeURIComponent(this.id)}/typing`, {
         method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: '{}',
-      }).catch(() => undefined);
+      }).then(async (response) => {
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({})) as { error?: string };
+          this.operationNotice.set(`No se pudo mostrar «escribiendo…»${result.error ? ` (${result.error})` : ''}.`);
+        }
+      }).catch(() => this.operationNotice.set('No se pudo conectar para mostrar «escribiendo…».'));
     }, 350);
   }
 }

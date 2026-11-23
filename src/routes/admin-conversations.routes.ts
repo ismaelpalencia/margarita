@@ -31,6 +31,7 @@ router.post(
 );
 router.post("/:id/messages/free-text", AdminConversationsController.sendFreeTextMessage);
 router.post("/:id/typing", WhatsAppCloudOperationsController.typing);
+router.post("/:id/block", WhatsAppCloudOperationsController.setConversationBlocked);
 router.post("/:id/reactions", WhatsAppCloudOperationsController.react);
 /** Botones dentro de la ventana de 24 horas. */
 router.post("/:id/messages/interactive", AdminConversationsController.sendInteractiveMessage);

@@ -45,6 +45,22 @@ export class WhatsAppCloudOperationsController {
         } catch (error) { return res.status(400).json({ error: error instanceof Error ? error.message : "request_failed" }); }
     }
 
+    static async setConversationBlocked(req: Request, res: Response) {
+        try {
+            const conversation = await authorizedConversation(req);
+            if (typeof req.body?.blocked !== "boolean") return res.status(400).json({ error: "invalid_request" });
+            const phone = conversation.contact.phone.replace(/^\+/, "");
+            if (!/^\d{7,15}$/.test(phone)) return res.status(400).json({ error: "invalid_phone" });
+            const result = await WhatsAppCloudOperationsService.blockUsers(
+                req.user!.workspaceId,
+                conversation.whatsappNumberId,
+                req.body.blocked ? "POST" : "DELETE",
+                [phone]
+            );
+            return res.json({ ok: true, blocked: req.body.blocked, result });
+        } catch (error) { return res.status(400).json({ error: error instanceof Error ? error.message : "request_failed" }); }
+    }
+
     static async health(req: Request, res: Response) {
         try { return res.json(await WhatsAppCloudOperationsService.health(req.user!.workspaceId, getRequiredParam(req, "numberId"))); }
         catch (error) { return res.status(502).json({ error: error instanceof Error ? error.message : "meta_error" }); }

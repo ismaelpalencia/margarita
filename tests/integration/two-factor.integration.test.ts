@@ -343,6 +343,7 @@ async function postForm(
         redirect: "manual",
         headers: {
             "content-type": "application/x-www-form-urlencoded",
+            accept: "text/html",
             ...(cookie ? { cookie } : {})
         },
         body: new URLSearchParams(fields).toString()
@@ -384,16 +385,12 @@ test("por HTTP: activar, fallar con un código malo y confirmar con el bueno", a
 
     /** 1. La pantalla arranca ofreciendo activarla. */
     const initial = await fetch(`${baseUrl()}/account/security`, {
-        headers: { cookie }
+        headers: { cookie, accept: "application/json" }
     });
-    const initialHtml = await initial.text();
+    const initialData = await initial.json() as { state: { enabled: boolean; pending: boolean } };
 
-    assert.equal(initial.status, 200, "la pantalla debe responder 200");
-    assert.match(
-        initialHtml,
-        /Activar la verificación en dos pasos/,
-        "debe ofrecer activarla"
-    );
+    assert.equal(initial.status, 200, "la API de seguridad debe responder");
+    assert.equal(initialData.state.enabled, false, "debe ofrecer activar 2FA");
 
     /** 2. Al activarla se muestra la clave para la app. */
     const started = await postForm("/account/security/two-factor/start", {}, cookie);
@@ -401,25 +398,12 @@ test("por HTTP: activar, fallar con un código malo y confirmar con el bueno", a
     assert.equal(started.status, 302, "generar la clave redirige a la pantalla");
 
     const pending = await fetch(`${baseUrl()}/account/security`, {
-        headers: { cookie }
+        headers: { cookie, accept: "application/json" }
     });
-    const pendingHtml = await pending.text();
-
-    assert.match(
-        pendingHtml,
-        /captura la clave a mano|Clave de configuración/,
-        "debe mostrar la clave para capturarla a mano"
-    );
-    assert.match(
-        pendingHtml,
-        /<svg[^>]*aria-label="Código QR/,
-        "debe mostrar el código QR para escanearlo con la app"
-    );
-    assert.match(
-        pendingHtml,
-        /Confirmar y activar/,
-        "debe pedir el código de confirmación"
-    );
+    const pendingData = await pending.json() as { state: { pending: boolean }; formattedSecret: string | null; qr: string | null };
+    assert.equal(pendingData.state.pending, true, "debe indicar que se generó una clave pendiente");
+    assert.ok(pendingData.formattedSecret, "debe entregar la clave para capturarla en la app");
+    assert.match(pendingData.qr || "", /<svg/, "debe entregar el QR para escanearlo");
 
     /** 3. Un código incorrecto vuelve con el motivo, sin activar nada. */
     const failed = await postForm(
@@ -458,16 +442,11 @@ test("por HTTP: activar, fallar con un código malo y confirmar con el bueno", a
     );
 
     const enabled = await fetch(`${baseUrl()}/account/security`, {
-        headers: { cookie }
+        headers: { cookie, accept: "application/json" }
     });
-    const enabledHtml = await enabled.text();
-
-    assert.match(enabledHtml, /Activada/, "la pantalla debe mostrar el estado");
-    assert.match(
-        enabledHtml,
-        /Desactivar/,
-        "debe ofrecer desactivarla pidiendo un código"
-    );
+    const enabledData = await enabled.json() as { state: { enabled: boolean; pending: boolean } };
+    assert.equal(enabledData.state.enabled, true, "la API debe mostrar 2FA activada");
+    assert.equal(enabledData.state.pending, false, "no conserva el secreto pendiente después de confirmar");
 
     /** 5. Con la cuenta ya protegida, la contraseña sola no da sesión. */
     const second = await postForm("/auth/login", { email, password });

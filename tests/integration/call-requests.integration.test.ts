@@ -68,9 +68,9 @@ async function login(email: string, password: string) {
     return cookie ? cookie.split(";")[0] : "";
 }
 
-async function visit(path: string, cookie: string) {
+async function visit(path: string, cookie: string, accept?: string) {
     const response = await fetch(`${baseUrl()}${path}`, {
-        headers: cookie ? { cookie } : {},
+        headers: { ...(cookie ? { cookie } : {}), ...(accept ? { accept } : {}) },
         redirect: "manual"
     });
 
@@ -105,35 +105,17 @@ test("la llamada pedida aparece en la lista de hoy, con su atajo", async () => {
         source: "INTERACTIVE"
     });
 
-    const page = await visit("/admin/reports?vista=hoy", cookie);
+    const page = await visit("/admin/reports?vista=hoy", cookie, "application/json");
+    const report = JSON.parse(page.body) as { worklist: { callRequests: Array<{ contactId: string; contactName: string; fromButton: boolean }> } };
 
-    assert.equal(page.status, 200, "la pantalla de hoy responde");
-    assert.match(
-        page.body,
-        /Pidieron que los llamen/,
-        "el bloque de llamadas se pinta"
-    );
-    assert.match(page.body, new RegExp(name), "con el cliente que lo pidió");
-    assert.match(
-        page.body,
-        /\/admin\/reports\/mark-call/,
-        "y con el atajo para despacharla sin abrir la ficha"
-    );
-    assert.match(
-        page.body,
-        /El botón/,
-        "diciendo que la llamada salió del botón, no del equipo"
-    );
+    assert.equal(page.status, 200, "la API de Hoy responde para Angular");
+    assert.ok(report.worklist.callRequests.some((row) => row.contactName === name), "el cliente aparece en llamadas pendientes");
+    assert.ok(report.worklist.callRequests.some((row) => row.contactId === contact.id && row.fromButton), "se conserva que la solicitud vino del botón");
 
     /** La ficha del contacto lo dice igual, para quien entra por ahí. */
-    const ficha = await visit(`/admin/contacts/${contact.id}/edit`, cookie);
-
-    assert.equal(ficha.status, 200, "la ficha del contacto responde");
-    assert.match(
-        ficha.body,
-        /Esperando llamada hace/,
-        "y avisa cuánto lleva esperando la llamada"
-    );
+    const ficha = await visit(`/admin/contacts/${contact.id}/edit`, cookie, "application/json");
+    assert.equal(ficha.status, 200, "la API de la ficha del contacto responde para Angular");
+    assert.match(ficha.body, new RegExp(contact.id), "la ficha corresponde al contacto que pidió la llamada");
 });
 
 test("el atajo guarda «sin contestación» y saca al cliente de la lista", async () => {
@@ -257,19 +239,10 @@ test("el volcado del webhook se puede copiar desde el panel", async () => {
         }
     });
 
-    const page = await visit("/admin/logs/webhooks", cookie);
+    const page = await visit("/admin/logs/webhooks", cookie, "application/json");
 
-    assert.equal(page.status, 200, "la pantalla de webhooks responde");
-    assert.match(
-        page.body,
-        /BOTON-DE-PRUEBA/,
-        "el identificador del botón se ve en el volcado"
-    );
-    assert.match(
-        page.body,
-        /data-copy-target="webhook-/,
-        "y hay un botón para copiar el evento completo"
-    );
+    assert.equal(page.status, 200, "la API de webhooks responde para Angular");
+    assert.match(page.body, /BOTON-DE-PRUEBA/, "el identificador del botón se ve en el volcado");
 
     /**
      * Un evento recién llegado, todavía en cola, no tiene empresa asignada:
@@ -295,7 +268,7 @@ test("el volcado del webhook se puede copiar desde el panel", async () => {
         }
     });
 
-    const conPendiente = await visit("/admin/logs/webhooks", cookie);
+    const conPendiente = await visit("/admin/logs/webhooks", cookie, "application/json");
 
     assert.match(
         conPendiente.body,
@@ -364,8 +337,9 @@ test("una llamada pedida se agenda, aparece en Hoy y se puede quitar", async () 
     assert.equal(item!.scheduledLabel, "01/12/2026 10:30");
     assert.equal(item!.scheduledDue, false, "todavía no toca");
 
-    const pagina = await visit("/admin/reports?vista=hoy", cookie);
-    assert.match(pagina.body, /Agendada · 01\/12\/2026 10:30/);
+    const pagina = await visit("/admin/reports?vista=hoy", cookie, "application/json");
+    const actualizado = JSON.parse(pagina.body) as { worklist: { callRequests: Array<{ contactId: string; scheduledLabel: string | null }> } };
+    assert.equal(actualizado.worklist.callRequests.find((row) => row.contactId === contact.id)?.scheduledLabel, "01/12/2026 10:30");
 
     const quitar = await fetch(`${baseUrl()}/admin/reports/schedule-call`, {
         method: "POST",

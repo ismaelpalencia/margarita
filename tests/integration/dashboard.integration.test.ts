@@ -104,8 +104,8 @@ test("el dashboard no muestra mensajes ocultos", async () => {
 
     assert.ok(cookie, "el admin debe poder entrar");
 
-    const response = await fetch(`${baseUrl()}/admin/dashboard`, {
-        headers: { cookie: cookie!.split(";")[0] },
+    const response = await fetch(`${baseUrl()}/admin/dashboard/data`, {
+        headers: { cookie: cookie!.split(";")[0], accept: "application/json" },
         redirect: "manual"
     });
     const body = await response.text();

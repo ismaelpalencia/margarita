@@ -29,6 +29,7 @@ router.post(
 );
 router.post("/:id/messages/free-text", AgentConversationsController.sendFreeTextMessage);
 router.post("/:id/typing", WhatsAppCloudOperationsController.typing);
+router.post("/:id/block", WhatsAppCloudOperationsController.setConversationBlocked);
 router.post("/:id/reactions", WhatsAppCloudOperationsController.react);
 router.post("/:id/messages/interactive", AgentConversationsController.sendInteractiveMessage);
 router.post("/:id/messages/interactive-list", AgentConversationsController.sendInteractiveList);

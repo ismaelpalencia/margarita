@@ -83,7 +83,7 @@ test("quince agentes desde la misma IP no se estorban entre sí", async () => {
     for (let round = 0; round < REQUESTS_PER_USER; round++) {
         const responses = await Promise.all(
             cookies.map((cookie) =>
-                fetch(`${baseUrl()}/agent/dashboard`, {
+                fetch(`${baseUrl()}/agent/dashboard/legacy`, {
                     headers: { cookie },
                     redirect: "manual"
                 })

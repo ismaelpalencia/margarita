@@ -51,13 +51,16 @@ async function login(email: string, password: string) {
 test("Admin → WhatsApp muestra el tramo del mes por número", async () => {
     const cookie = await login(fixture.adminEmail, fixture.adminPassword);
     const response = await fetch(`${baseUrl()}/admin/whatsapp`, {
-        headers: { cookie },
+        headers: { cookie, accept: "application/json" },
         redirect: "manual"
     });
     const body = await response.text();
+    const data = JSON.parse(body) as { usage: Array<{ numberId: string; service: { limit: number }; utility: { used: number }; marketing: { used: number } }> };
 
     assert.equal(response.status, 200);
-    assert.match(body, /Tramo del mes/, "la sección existe");
-    assert.match(body, /de\s*<strong>?1000|1000 mensajes/, "muestra el tope del tramo");
-    assert.match(body, /Plantillas de utilidad/, "separa las plantillas del servicio");
+    const usage = data.usage.find((row) => row.numberId === fixture.numberId);
+    assert.ok(usage, "la API incluye el número configurado");
+    assert.equal(usage.service.limit, 1000, "incluye el tope del tramo de servicio");
+    assert.equal(usage.utility.used, 0, "separa el uso de plantillas de utilidad");
+    assert.equal(usage.marketing.used, 0, "separa el uso de plantillas de marketing");
 });

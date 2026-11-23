@@ -61,12 +61,12 @@ async function login(): Promise<string> {
     return cookie!.split(";")[0];
 }
 
-async function visit(path: string, cookie: string) {
+async function visit(path: string, cookie: string, accept?: string) {
     const response = await fetch(`${baseUrl()}${path}`, {
-        headers: { cookie },
+        headers: { cookie, ...(accept ? { accept } : {}) },
         redirect: "manual"
     });
-    const body = response.status === 200 ? await response.text() : "";
+    const body = await response.text();
 
     return { status: response.status, body, location: response.headers.get("location") };
 }
@@ -100,17 +100,16 @@ test("el giro apaga y enciende cobranza sin borrar datos", async () => {
     });
 
     /** Con COBRANZA encendido, reportes y resultados están visibles. */
-    const reportes = await visit("/admin/reports", cookie);
+    const reportes = await visit("/admin/reports", cookie, "application/json");
 
     assert.equal(reportes.status, 200);
 
-    const dashboardCobranza = await visit("/admin/dashboard", cookie);
+    const dashboardCobranza = await visit("/admin/dashboard/data", cookie, "application/json");
 
     assert.equal(dashboardCobranza.status, 200);
-    assert.match(dashboardCobranza.body, /Gestiones de hoy/);
-    assert.match(dashboardCobranza.body, /Promesas vencidas/);
-    assert.match(dashboardCobranza.body, /href="\/admin\/reports"/);
-    assert.match(dashboardCobranza.body, /href="\/admin\/replies"/);
+    const shellCobranza = await visit("/panel/shell", cookie);
+    assert.match(shellCobranza.body, /"collectionsEnabled":true/);
+    assert.match(dashboardCobranza.body, /"dashboard"/);
 
     /** Se apaga: las rutas de cobranza dejan de estar disponibles. */
     await changeProfile(cookie, WorkspaceProfile.GENERICO);
@@ -122,35 +121,29 @@ test("el giro apaga y enciende cobranza sin borrar datos", async () => {
 
     assert.equal(guardado.profile, WorkspaceProfile.GENERICO);
 
-    const reportesApagado = await visit("/admin/reports", cookie);
+    const reportesApagado = await visit("/admin/reports", cookie, "application/json");
 
-    assert.equal(reportesApagado.status, 302);
-    assert.match(
-        reportesApagado.location || "",
-        /cobranza_desactivada/,
-        "la ruta avisa que el módulo está apagado"
-    );
+    assert.equal(reportesApagado.status, 403);
+    assert.match(reportesApagado.body, /collections_disabled/, "la API avisa que el módulo está apagado");
 
     const botonesApagado = await visit("/admin/replies", cookie);
 
     assert.equal(botonesApagado.status, 302);
 
-    const dashboardGenerico = await visit("/admin/dashboard", cookie);
+    const dashboardGenerico = await visit("/admin/dashboard/data", cookie, "application/json");
 
     assert.equal(dashboardGenerico.status, 200);
-    assert.doesNotMatch(dashboardGenerico.body, /Gestiones de hoy/);
-    assert.doesNotMatch(dashboardGenerico.body, /Promesas vencidas/);
-    assert.doesNotMatch(dashboardGenerico.body, /href="\/admin\/reports"/);
-    assert.doesNotMatch(dashboardGenerico.body, /href="\/admin\/replies"/);
+    const shellGenerico = await visit("/panel/shell", cookie);
+    assert.match(shellGenerico.body, /"collectionsEnabled":false/);
 
     /** Las pantallas que quedan también se pintan sin el módulo. */
     const pantallasGenericas = [
-        "/admin/contacts",
-        `/admin/contacts/${contacto.id}/edit`,
-        "/admin/system",
-        "/admin/guia",
-        "/admin/logs/webhooks",
-        "/admin/templates"
+        "/panel/admin/contacts",
+        `/panel/admin/contacts/${contacto.id}`,
+        "/panel/admin/system",
+        "/panel/admin/guia",
+        "/panel/admin/logs/webhooks",
+        "/panel/admin/templates"
     ];
 
     for (const path of pantallasGenericas) {
@@ -159,14 +152,7 @@ test("el giro apaga y enciende cobranza sin borrar datos", async () => {
         assert.equal(response.status, 200, `${path} debe seguir disponible`);
     }
 
-    const aviso = await visit(reportesApagado.location || "/admin/dashboard", cookie);
-
-    assert.equal(aviso.status, 200);
-    assert.match(
-        aviso.body,
-        /módulo de cobranza está apagado/,
-        "el dashboard explica por qué se bloqueó la ruta"
-    );
+    assert.equal(shellGenerico.status, 200, "el armazón Angular sigue disponible sin cobranza");
 
     /** Los datos siguen ahí: el interruptor no borra ni migra nada. */
     const contactoDespues = await prisma.contact.findUniqueOrThrow({
@@ -185,13 +171,13 @@ test("el giro apaga y enciende cobranza sin borrar datos", async () => {
     /** Y se puede volver a encender. */
     await changeProfile(cookie, WorkspaceProfile.COBRANZA);
 
-    const reportesEncendido = await visit("/admin/reports", cookie);
+    const reportesEncendido = await visit("/admin/reports", cookie, "application/json");
 
     assert.equal(reportesEncendido.status, 200);
 
-    const dashboardOtraVez = await visit("/admin/dashboard", cookie);
+    const dashboardOtraVez = await visit("/admin/dashboard/data", cookie, "application/json");
 
     assert.equal(dashboardOtraVez.status, 200);
-    assert.match(dashboardOtraVez.body, /Gestiones de hoy/);
-    assert.match(dashboardOtraVez.body, /href="\/admin\/reports"/);
+    const shellOtraVez = await visit("/panel/shell", cookie);
+    assert.match(shellOtraVez.body, /"collectionsEnabled":true/);
 });

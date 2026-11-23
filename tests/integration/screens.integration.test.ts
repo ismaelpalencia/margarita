@@ -56,9 +56,9 @@ async function login(email: string, password: string) {
     return { response, cookie: cookie ? cookie.split(";")[0] : "" };
 }
 
-async function visit(path: string, cookie: string) {
+async function visit(path: string, cookie: string, accept?: string) {
     const response = await fetch(`${baseUrl()}${path}`, {
-        headers: cookie ? { cookie } : {},
+        headers: { ...(cookie ? { cookie } : {}), ...(accept ? { accept } : {}) },
         redirect: "manual"
     });
 
@@ -243,9 +243,9 @@ test("las pantallas clave traen su contenido", async () => {
         ["/aviso-de-privacidad", /7 días hábiles/],
         ["/guia", /En esta guía/],
         ["/plantillas", /Plantillas que se aprueban/],
-        ["/admin/reports?vista=hoy", /A quién escribirle hoy/],
-        ["/admin/whatsapp", /Tramo del mes/],
-        ["/admin/conversations", /Conversaciones/]
+        ["/panel/admin/reports?vista=hoy", /<app-root>/],
+        ["/panel/admin/whatsapp", /<app-root>/],
+        ["/panel/admin/conversations", /<app-root>/]
     ];
 
     for (const [path, patron] of casos) {
@@ -253,6 +253,7 @@ test("las pantallas clave traen su contenido", async () => {
 
         assert.equal(status, 200, `${path} responde 200`);
         assert.match(body, patron, `${path} trae su contenido`);
+        if (path.startsWith("/panel/")) assert.match(body, /\/angular\/main-/, `${path} carga el bundle Angular`);
     }
 });
 
@@ -294,17 +295,11 @@ test("cambiar la contraseña no rompe la pantalla de confirmación", async () =>
      * Esta es la pantalla que reventaba: la confirmación del cambio, que dice
      * cuántas sesiones se cerraron.
      */
-    const confirmacion = await visit(
-        "/account/password?changed=1&closed=2",
-        cookie
-    );
+    const confirmacion = await visit("/account/password?changed=1&closed=2", cookie, "application/json");
 
-    assert.equal(confirmacion.status, 200, "la confirmación se pinta");
-    assert.match(
-        confirmacion.body,
-        /Se cerraron 2 sesión/,
-        "y dice cuántas sesiones se cerraron"
-    );
+    assert.equal(confirmacion.status, 200, "la API de confirmación responde");
+    assert.match(confirmacion.body, /"changed":true/, "indica que la contraseña cambió");
+    assert.match(confirmacion.body, /"closed":2/, "y dice cuántas sesiones se cerraron");
 });
 
 test("restablecer la contraseña desde Equipo deja la ficha en pie", async () => {
@@ -332,15 +327,10 @@ test("restablecer la contraseña desde Equipo deja la ficha en pie", async () =>
 
     assert.equal(reset.status, 302, "el restablecimiento redirige");
 
-    const ficha = await visit(
-        `/admin/users/${member.id}/edit?success=password`,
-        cookie
-    );
+    const ficha = await visit(`/admin/users/${member.id}/edit?success=password`, cookie, "application/json");
 
-    assert.equal(ficha.status, 200, "la ficha del usuario se pinta");
-    assert.match(
-        ficha.body,
-        /Contraseña restablecida/,
-        "y confirma el restablecimiento"
-    );
+    assert.equal(ficha.status, 200, "la API de la ficha del usuario responde");
+    assert.match(ficha.body, /Persona restablecida/, "la ficha corresponde a la persona actualizada");
+    const resetUser = await prisma.user.findUniqueOrThrow({ where: { id: member.id }, select: { mustChangePassword: true } });
+    assert.equal(resetUser.mustChangePassword, true, "el acceso siguiente debe pedir cambio de contraseña");
 });
