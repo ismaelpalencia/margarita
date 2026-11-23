@@ -52,15 +52,17 @@
       <a class="nav-link" routerLink="/panel/admin/ai" routerLinkActive="active"><span class="nav-icon">✧</span>Automatización</a>
       }
     </nav>
-    <div class="sidebar-bottom"><span class="online-dot"></span><span>Conexión segura</span><form action="/auth/logout" method="post" class="logout-form"><button type="submit">Salir</button></form></div>
-  </aside>
-  <main class="main-area">
-    <header class="topbar"><div class="breadcrumbs">Panel <span>/</span> {{ pageName }}</div><div class="topbar-actions">
-      <button class="theme-toggle" type="button" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Activar modo claro' : 'Activar modo nocturno'" [title]="darkMode() ? 'Modo claro' : 'Modo nocturno'"><span aria-hidden="true">{{ darkMode() ? '☀' : '☾' }}</span><span class="theme-toggle-label">{{ darkMode() ? 'Claro' : 'Nocturno' }}</span></button>
+    <div class="sidebar-pwa">
       @if (showInstall()) { <button class="pwa-action" type="button" (click)="installApp()">Instalar app</button> }
       @if (pushSupported) { <button class="pwa-action" type="button" (click)="enablePush()">{{ pushSubscribed() ? 'Avisos activos' : 'Activar avisos' }}</button> }
       @if (pushSubscribed()) { <button class="pwa-action secondary" type="button" (click)="testPush()">Probar aviso</button> }
-      <a class="account-link" [href]="isAgent ? '/panel/agent/account/security' : '/panel/admin/account/security'"><span class="avatar">M</span><span>Mi cuenta</span></a>
+    </div>
+    <div class="sidebar-bottom"><span class="online-dot"></span><span>Conexión segura</span><form action="/auth/logout" method="post" class="logout-form"><button type="submit">Salir</button></form></div>
+  </aside>
+  <main class="main-area">
+    <header class="topbar"><div class="breadcrumbs">Panel <span>/</span> {{ pageName() }}</div><div class="topbar-actions">
+      <button class="theme-toggle" type="button" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Activar modo claro' : 'Activar modo nocturno'" [title]="darkMode() ? 'Modo claro' : 'Modo nocturno'"><span aria-hidden="true">{{ darkMode() ? '☀' : '☾' }}</span><span class="theme-toggle-label">{{ darkMode() ? 'Claro' : 'Nocturno' }}</span></button>
+      <a class="account-link" [href]="isAgent ? '/panel/agent/account/security' : '/panel/admin/account/security'"><span class="avatar">{{ userInitial() }}</span><span>Mi cuenta</span></a>
       <form action="/auth/logout" method="post" class="topbar-logout"><button type="submit">Salir</button></form>
     </div></header>
     @if (pwaMessage()) { <p class="pwa-message" role="status">{{ pwaMessage() }}</p> }

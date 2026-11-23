@@ -1,5 +1,6 @@
-import { Component, computed, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 interface ShellNumber {
   id: string;
@@ -9,6 +10,7 @@ interface ShellNumber {
 
 interface ShellData {
   role: string;
+  userName: string;
   collectionsEnabled: boolean;
   activeNumberId: string | null;
   numbers: ShellNumber[];
@@ -36,10 +38,14 @@ interface InstallPromptEvent extends Event {
 export class App {
   protected readonly isAgent = window.location.pathname.startsWith('/panel/agent');
   protected readonly isPublic = window.location.pathname === '/panel/login';
-  protected readonly pageName = this.resolvePageName(window.location.pathname);
+  private readonly router = inject(Router);
+  protected readonly pageName = signal(this.resolvePageName(window.location.pathname));
   protected readonly shell = signal<ShellData | null>(null);
   protected readonly unreadTotal = computed(() => this.shell()?.unreadTotal ?? 0);
   protected readonly unassignedCount = computed(() => this.shell()?.unassignedCount ?? 0);
+  protected readonly userInitial = computed(() =>
+    (this.shell()?.userName || 'M').trim().charAt(0).toUpperCase()
+  );
   protected readonly pushSupported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'Notification' in window && 'PushManager' in window;
   protected readonly pushSubscribed = signal(false);
   protected readonly pwaMessage = signal('');
@@ -59,6 +65,9 @@ export class App {
 
   constructor() {
     this.applyTheme(this.darkMode());
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => this.pageName.set(this.resolvePageName(window.location.pathname)));
     if (typeof window !== 'undefined') {
       window.addEventListener('beforeinstallprompt', (event: Event) => {
         event.preventDefault();

@@ -17,6 +17,8 @@
 .number-switch { margin: 0 4px 16px; }
 .number-switch select { width: 100%; padding: 8px 10px; border: 1px solid #dbe4de; border-radius: 7px; color: #43554a; background: #f8faf8; font: inherit; font-size: 11px; }
 .number-single { margin: 0 8px 14px; color: #6f7d75; font-size: 10px; }
+.sidebar-pwa { display: flex; flex-direction: column; gap: 4px; padding: 7px 4px 4px; border-top: 1px solid #e8edea; }
+.sidebar-pwa .pwa-action { width: 100%; justify-content: flex-start; text-align: left; }
 .sidebar-bottom { display: flex; align-items: center; gap: 8px; margin-top: auto; padding: 13px 8px 4px; border-top: 1px solid #e8edea; color: #78857e; font-size: 10px; }
 .online-dot { width: 7px; height: 7px; border-radius: 50%; background: #38a269; box-shadow: 0 0 0 3px #38a26918; }
 .logout { margin-left: auto; color: #68776f; text-decoration: none; }
@@ -48,6 +50,9 @@
   .main-area { margin-left: 0; }
   .topbar { position: static; min-height: 52px; padding: 0 12px; }
   .topbar-actions { gap: 5px; }.topbar-actions .account-link>span:last-child, .theme-toggle-label { display: none; }
+  .sidebar-pwa { flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 7px 4px 2px; border-top: 0; }
+  .sidebar-pwa .pwa-action { width: auto; padding: 6px 8px; font-size: 9px; }
+  .sidebar-pwa:empty { display: none; }
   .theme-toggle { width: 33px; justify-content: center; padding: 0; }.theme-toggle>span:first-child { font-size: 17px; }
   .topbar-logout { display: block; }.pwa-action { padding: 6px 7px; font-size: 9px; }
   .pwa-message { top: 58px; right: 10px; }.live-toast { right: 10px; bottom: 10px; }.page-content { min-height: calc(100vh - 52px); padding: 20px 13px 34px; }

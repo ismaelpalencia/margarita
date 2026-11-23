@@ -24,7 +24,7 @@ self.addEventListener("push", (event) => {
         tag: data.tag || "marga-notification",
         renotify: true,
         data: {
-            url: data.url || "/",
+            url: data.url || "/panel",
             conversationId: data.conversationId || ""
         }
     };

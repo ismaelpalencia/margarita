@@ -19,6 +19,7 @@ export class PanelShellController {
 
         return res.json({
             role: req.user!.role,
+            userName: req.user!.name,
             collectionsEnabled: Boolean(res.locals.collectionsEnabled),
             activeNumberId: active?.id || null,
             numbers: numbers

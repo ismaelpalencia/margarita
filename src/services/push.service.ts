@@ -204,8 +204,8 @@ export class PushService {
 
             const url =
                 user.role === UserRole.ADMIN
-                    ? `/admin/conversations/${params.conversationId}`
-                    : `/agent/conversations/${params.conversationId}`;
+                    ? `/panel/admin/conversations/${params.conversationId}`
+                    : `/panel/agent/conversations/${params.conversationId}`;
 
             sent += await this.send(userSubscriptions, {
                 title: params.contactName || "Nuevo mensaje",
