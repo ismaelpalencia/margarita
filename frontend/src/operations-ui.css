@@ -151,3 +151,10 @@ html[data-theme="dark"] .page-content app-agent-conversation-page .handoff-pill 
   .page-content app-agent-conversation-page .message-bubble p { font-size: 12px; }
   .page-content app-agent-conversation-page .composer { padding: 9px 10px; }
 }
+html[data-theme="dark"] .bulk-toolbar { border-color: #3b4d40; color: #d3dfd6; background: #19231e; }
+html[data-theme="dark"] .bulk-toolbar .bulk-secondary { border-color: #405347; color: #d3dfd6; background: #26332c; }
+html[data-theme="dark"] .bulk-template-form { border-color: #3b4d40; background: #1d2a23; }
+html[data-theme="dark"] .bulk-form-heading strong, html[data-theme="dark"] .bulk-field { color: #dbe7de; }
+html[data-theme="dark"] .bulk-form-heading small, html[data-theme="dark"] .bulk-template-form .bulk-warning { color: #aebdb3; }
+html[data-theme="dark"] .bulk-field :is(input,select) { border-color: #405347; color: #e8f0ea; background: #22322a; }
+html[data-theme="dark"] .bulk-notice { border-color: #3e6a4b; color: #c5ebcf; background: #214032; }
