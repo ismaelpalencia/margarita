@@ -28,6 +28,50 @@ html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-
 html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) :is(.badge.unassigned, .badge.opted-out) { border-color: #70423c; color: #ffc1b8; background: #432c29; }
 html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .claim-button { border-color: #2a895e; background: #17784f; }
 
+/* Dashboard: neutralizar los fondos y cifras claros del tema de componente. */
+html[data-theme="dark"] .page-content app-dashboard-page { color: #e8f0ea; }
+html[data-theme="dark"] .page-content app-dashboard-page :is(.metric-card, .panel-card, .number-chip, .error-card) {
+  border-color: #37473d !important;
+  color: #e8f0ea !important;
+  background: #19231e !important;
+  box-shadow: 0 3px 12px #0003;
+}
+html[data-theme="dark"] .page-content app-dashboard-page .next-card {
+  background: linear-gradient(140deg, #202d26, #19231e) !important;
+}
+html[data-theme="dark"] .page-content app-dashboard-page :is(h1, h2, .metric-card > strong, .agent-grid strong, .number-chip strong) {
+  color: #edf4ef !important;
+}
+html[data-theme="dark"] .page-content app-dashboard-page :is(.eyebrow, .metric-heading, .subtitle, .metric-card > small, .panel-heading p, .next-card p, .updated-note, .number-chip small, .loading) {
+  color: #aab9af !important;
+}
+html[data-theme="dark"] .page-content app-dashboard-page :is(.panel-heading a, .next-card a, .error-card a) {
+  color: #9cddb1 !important;
+}
+html[data-theme="dark"] .page-content app-dashboard-page .number-chip { border-color: #37473d !important; }
+html[data-theme="dark"] .page-content app-dashboard-page .phone-icon,
+html[data-theme="dark"] .page-content app-dashboard-page .next-icon {
+  color: #b8e8c6 !important;
+  background: #293a30 !important;
+}
+html[data-theme="dark"] .page-content app-dashboard-page .metric-icon {
+  border: 1px solid #405247;
+  color: #dce9df !important;
+  background: #29372f !important;
+}
+html[data-theme="dark"] .page-content app-dashboard-page .agent-grid { border-color: #34423a; }
+html[data-theme="dark"] .page-content app-dashboard-page .alert-banner {
+  border-color: #6a552f;
+  color: #f4dfb2 !important;
+  background: #332b1e !important;
+}
+html[data-theme="dark"] .page-content app-dashboard-page .alert-banner small { color: #d0bd96 !important; }
+html[data-theme="dark"] .page-content app-dashboard-page .alert-symbol { color: #f4dfb2; background: #514024; }
+html[data-theme="dark"] .page-content app-dashboard-page .alert-action { color: #f4dfb2 !important; }
+html[data-theme="dark"] .page-content app-dashboard-page .error-card { border-color: #663c38 !important; }
+html[data-theme="dark"] .page-content app-dashboard-page .error-card p { color: #c4b0ad !important; }
+html[data-theme="dark"] .page-content app-dashboard-page .error-mark { color: #ffd9d3; background: #50302b; }
+
 /* Ficha de conversación y área de respuesta con más aire. */
 .page-content app-agent-conversation-page .detail-intro { margin-bottom: 21px; }
 .page-content app-agent-conversation-page .back-link { margin-bottom: 15px; color: #39745a; font-size: 12px; }
