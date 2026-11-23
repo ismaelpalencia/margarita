@@ -1,0 +1,90 @@
+/* Bandejas compartidas de agentes y administradores. */
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .inbox-intro { margin-bottom: 26px; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .inbox-intro h1 { font-size: clamp(28px, 3vw, 36px); line-height: 1.15; letter-spacing: -.035em; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .inbox-intro p:last-child { color: #718079; font-size: 14px; line-height: 1.55; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .inbox-card { border-color: #e3eae5; border-radius: 16px; box-shadow: 0 3px 12px #193d2a0a; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .inbox-card-heading { padding: 18px 21px; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .inbox-card-heading h2 { color: #304b3e; font-size: 15px; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .inbox-row { gap: 14px; padding: 16px 21px; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .conversation-avatar { width: 40px; height: 40px; border: 1px solid #d9eadf; background: #eaf5ed; font-size: 14px; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .conversation-copy { gap: 5px; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .conversation-title strong { color: #344e41; font-size: 14px; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .conversation-title strong.unread { color: #1d3b2d; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .conversation-title time { font-size: 11px; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .preview { font-size: 12px; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .badge { padding: 4px 8px; border: 1px solid #e6ebe7; border-radius: 999px; font-size: 10px; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .badge.open { border-color: #cfe5d5; color: #28684d; background: #edf7ef; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .badge.handoff { border-color: #f0dfb9; color: #805d20; background: #fff7e6; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) :is(.badge.unassigned, .badge.opted-out) { border-color: #efcfca; color: #963f36; background: #fff2ef; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) :is(.claim-button, .open-button) { min-height: 34px; padding: 0 12px; border-radius: 8px; font-size: 11px; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .inbox-empty :is(strong, p) { font-size: 13px; }
+
+html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .conversation-avatar { border-color: #3c5945; color: #bce8c9; background: #263b2e; }
+html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) :is(.inbox-intro h1, .inbox-card-heading h2, .conversation-title strong, .inbox-empty strong) { color: #e8f0ea; }
+html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) :is(.inbox-intro p, .inbox-card-heading p, .conversation-title time, .preview, .assigned-label, .inbox-empty p) { color: #aebdb3; }
+html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .badge { border-color: #405347; color: #d3dfd6; background: #293a30; }
+html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .badge.open { border-color: #3e6a4b; color: #c5ebcf; background: #214032; }
+html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .badge.handoff { border-color: #67552d; color: #f7e2b3; background: #3a3020; }
+html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) :is(.badge.unassigned, .badge.opted-out) { border-color: #70423c; color: #ffc1b8; background: #432c29; }
+html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .claim-button { border-color: #2a895e; background: #17784f; }
+
+/* Ficha de conversación y área de respuesta con más aire. */
+.page-content app-agent-conversation-page .detail-intro { margin-bottom: 21px; }
+.page-content app-agent-conversation-page .back-link { margin-bottom: 15px; color: #39745a; font-size: 12px; }
+.page-content app-agent-conversation-page .detail-heading { gap: 14px; }
+.page-content app-agent-conversation-page .detail-avatar { width: 46px; height: 46px; font-size: 15px; }
+.page-content app-agent-conversation-page .contact-heading h1 { color: #173d30; font-size: 24px; line-height: 1.2; letter-spacing: -.025em; }
+.page-content app-agent-conversation-page .contact-heading p { margin-top: 5px; color: #718079; font-size: 12px; }
+.page-content app-agent-conversation-page .detail-header-badges { gap: 7px; }
+.page-content app-agent-conversation-page .detail-pill { padding: 6px 10px; border: 1px solid #e2e9e4; border-radius: 999px; font-size: 10px; }
+.page-content app-agent-conversation-page .open-pill { border-color: #cfe5d5; color: #28684d; background: #edf7ef; }
+.page-content app-agent-conversation-page .handoff-pill { border-color: #f0dfb9; color: #805d20; background: #fff7e6; }
+.page-content app-agent-conversation-page .conversation-layout { grid-template-columns: minmax(0, 1fr) 285px; gap: 17px; }
+.page-content app-agent-conversation-page :is(.chat-card, .detail-card) { border-color: #e2eae4; border-radius: 16px; box-shadow: 0 3px 12px #193d2a0b; }
+.page-content app-agent-conversation-page .chat-card { height: min(82vh, 900px); min-height: 560px; }
+.page-content app-agent-conversation-page .chat-heading { padding: 17px 20px; }
+.page-content app-agent-conversation-page .chat-heading strong { color: #304b3e; font-size: 14px; }
+.page-content app-agent-conversation-page .chat-heading small { color: #77877e; font-size: 10px; }
+.page-content app-agent-conversation-page .message-thread { gap: 11px; padding: 21px; background: #f4f8f5; }
+.page-content app-agent-conversation-page .message-bubble { max-width: min(78%, 650px); padding: 12px 14px; border-radius: 15px 15px 15px 5px; }
+.page-content app-agent-conversation-page .message-bubble.outgoing-bubble { border-radius: 15px 15px 5px 15px; background: #34745f; }
+.page-content app-agent-conversation-page .message-bubble p { font-size: 13px; line-height: 1.6; }
+.page-content app-agent-conversation-page .message-label { margin-bottom: 6px; font-size: 9px; }
+.page-content app-agent-conversation-page :is(.message-bubble footer, .reply-label) { font-size: 10px; }
+.page-content app-agent-conversation-page .composer { padding: 14px 16px; }
+.page-content app-agent-conversation-page .quick-replies > span,
+.page-content app-agent-conversation-page .quick-replies button { font-size: 10px; }
+.page-content app-agent-conversation-page .quick-replies button { padding: 7px 10px; border-radius: 8px; }
+.page-content app-agent-conversation-page .send-form textarea { min-height: 60px; padding: 11px 12px; font-size: 12px; }
+.page-content app-agent-conversation-page :is(.send-form button, .upload-form button) { min-height: 38px; padding: 0 15px; font-size: 11px; }
+.page-content app-agent-conversation-page .detail-aside { gap: 12px; }
+.page-content app-agent-conversation-page .detail-card { padding: 17px; }
+.page-content app-agent-conversation-page .detail-card h2 { margin-bottom: 14px; color: #304b3e; font-size: 13px; }
+.page-content app-agent-conversation-page .detail-card dl { gap: 12px; }
+.page-content app-agent-conversation-page .detail-card dt { color: #78877f; font-size: 10px; }
+.page-content app-agent-conversation-page .detail-card dd { color: #40564c; font-size: 11px; line-height: 1.45; }
+.page-content app-agent-conversation-page .tag-list span { padding: 5px 9px; font-size: 10px; }
+.page-content app-agent-conversation-page .close-button { min-height: 39px; font-size: 11px; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .open-pill { border-color: #3e6a4b; color: #c5ebcf; background: #214032; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .handoff-pill { border-color: #67552d; color: #f7e2b3; background: #3a3020; }
+
+@media (max-width: 850px) {
+  .page-content app-agent-conversation-page .conversation-layout { grid-template-columns: 1fr; gap: 14px; }
+  .page-content app-agent-conversation-page .detail-aside { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page-content app-agent-conversation-page .chat-card { height: 80vh; min-height: 500px; }
+}
+
+@media (max-width: 540px) {
+  .page-content app-agent-conversation-page .detail-intro { margin-bottom: 15px; }
+  .page-content app-agent-conversation-page .contact-heading h1 { font-size: 21px; }
+  .page-content app-agent-conversation-page .detail-header-badges { gap: 5px; }
+  .page-content app-agent-conversation-page .detail-pill { padding: 5px 8px; font-size: 9px; }
+  .page-content app-agent-conversation-page .conversation-layout { gap: 10px; }
+  .page-content app-agent-conversation-page .detail-aside { grid-template-columns: 1fr; }
+  .page-content app-agent-conversation-page .chat-card { height: 76vh; min-height: 440px; }
+  .page-content app-agent-conversation-page .chat-heading { padding: 13px 14px; }
+  .page-content app-agent-conversation-page .message-thread { gap: 9px; padding: 12px; }
+  .page-content app-agent-conversation-page .message-bubble { max-width: 90%; padding: 10px 12px; }
+  .page-content app-agent-conversation-page .message-bubble p { font-size: 12px; }
+  .page-content app-agent-conversation-page .composer { padding: 9px 10px; }
+}
