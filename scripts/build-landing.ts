@@ -37,31 +37,31 @@ const PAGES: Page[] = [
     {
         template: "index.ejs",
         file: "index.html",
-        title: "Margarita — Automatiza WhatsApp con IA",
+        title: "Margarita — Bandeja compartida para WhatsApp Business",
         description:
-            "Atiende, califica y deriva conversaciones de WhatsApp con IA acotada, control humano y panel completo. API oficial de Meta, datos cifrados y $1,299 MXN al mes con 2,000 respuestas de IA.",
+            "Organiza y atiende conversaciones de WhatsApp Business con tu equipo. Asignación, respuestas rápidas, plantillas, campañas y automatización opcional.",
         active: "home"
     },
     {
         template: "ia.ejs",
         file: "ia.html",
-        title: "IA para WhatsApp con control humano — Margarita",
+        title: "Automatización e IA para WhatsApp — Margarita",
         description:
-            "La IA responde solo lo que está en tu base de conocimiento, entrega a una persona cuando duda y deja todo registrado. Panel de IA por conversación, confianza y costo.",
+            "Conoce las opciones de automatización de Margarita: flujos guiados e IA configurable para apoyar la atención, con el equipo a cargo de las conversaciones.",
         active: "ia"
     },
     {
         template: "precios.ejs",
         file: "precios.html",
-        title: "Precios de WhatsApp con IA — Margarita",
+        title: "Planes para atender WhatsApp en equipo — Margarita",
         description:
-            "Margarita IA: $1,299 MXN al mes + IVA, 2,000 respuestas de IA incluidas, sin instalación y con onboarding. Un solo plan para operar WhatsApp con IA y control humano.",
+            "Consulta el plan Margarita para operar WhatsApp Business en equipo. Revisa sus funciones, el consumo de IA incluido y los cargos de Meta.",
         active: "precios"
     },
     {
         template: "demo.ejs",
         file: "demo.html",
-        title: "Demo de WhatsApp con IA — Margarita",
+        title: "Prueba la demo de Margarita — WhatsApp con IA",
         description:
             "Prueba la IA con una base de conocimiento real. Simulador de WhatsApp con panel de modo, intención, confianza, handoff y costo.",
         active: "demo"
@@ -69,9 +69,9 @@ const PAGES: Page[] = [
     {
         template: "onboarding.ejs",
         file: "onboarding.html",
-        title: "Alta en 7 días — Margarita",
+        title: "Puesta en marcha de WhatsApp — Margarita",
         description:
-            "Qué necesitas traer, qué configuramos y en qué orden. Tu operación de WhatsApp lista en 7 días.",
+            "Requisitos y pasos para conectar WhatsApp Business, preparar el equipo y empezar a operar Margarita.",
         active: "onboarding"
     },
     {
@@ -85,9 +85,9 @@ const PAGES: Page[] = [
     {
         template: "plantillas.ejs",
         file: "plantillas.html",
-        title: "Guía de plantillas — Margarita",
+        title: "Guía para trabajar con plantillas de WhatsApp — Margarita",
         description:
-            "Cómo crear plantillas de WhatsApp que Meta apruebe y que cuesten poco. Categorías, reglas, variables y motivos de rechazo.",
+            "Conoce categorías, variables y reglas generales de las plantillas de WhatsApp. Meta controla su revisión, aprobación y cargos.",
         active: "plantillas"
     },
     {
@@ -118,19 +118,19 @@ const PRICING = {
         name: "Margarita IA",
         monthly: 1299,
         replies: 2000,
-        description: "Todo incluido: plataforma, IA y onboarding.",
+        description: "Bandeja de equipo, herramientas de WhatsApp y automatizaciones opcionales.",
         features: [
-            "Plataforma completa: bandeja, agentes, campañas y plantillas",
-            "IA en sugerencias y respuesta automática acotada",
+            "Bandeja compartida, usuarios y asignación de conversaciones",
+            "Contactos, etiquetas, notas y registro de bajas",
+            "Respuestas rápidas de texto, botones y listas",
+            "Plantillas sincronizadas y campañas en cola",
+            "Automatización con flujos guiados e IA opcional",
             "2,000 respuestas de IA incluidas al mes",
-            "Base de conocimiento, handoff y pausa por hilo",
-            "Horarios y mensaje fuera de horario",
-            "Botones y listas interactivas",
-            "Flujos por vertical y paquete inicial",
-            "Leads, exportación CSV y webhook firmado",
-            "Demo pública y reportes de servicio",
-            "Onboarding: sesión de arranque de 2 h + guía",
-            "Cifrado, respaldos, 2FA y bitácora"
+            "Ventana de atención y reglas de envío de Meta",
+            "Bloqueo de contactos y salud del número",
+            "Actualizaciones en vivo y aviso de mensajes sin leer",
+            "Reportes, bitácora, sesiones y herramientas de respaldo",
+            "Seguridad de acceso y cifrado de datos sensibles"
         ]
     },
     /** Solo referencia del operador; no se renderiza en el landing. */

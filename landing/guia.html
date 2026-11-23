@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="/assets/css/site.css" />
 
     <script type="application/ld+json">
-        {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://margaritaapp.org/#organization","name":"Margarita","url":"https://margaritaapp.org/","logo":"https://margaritaapp.org/assets/img/margarita-icon-512.png","description":"Plataforma para operar WhatsApp con IA acotada, control humano y panel completo."},{"@type":"WebSite","@id":"https://margaritaapp.org/#website","url":"https://margaritaapp.org/","name":"Margarita","inLanguage":"es-MX","publisher":{"@id":"https://margaritaapp.org/#organization"}},{"@type":"SoftwareApplication","name":"Margarita IA","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"El manual del equipo que atiende por WhatsApp: bandeja, plantillas, campañas, IA, horarios, leads y respaldos.","url":"https://margaritaapp.org/","publisher":{"@id":"https://margaritaapp.org/#organization"},"offers":{"@type":"Offer","price":"1299","priceCurrency":"MXN","valueAddedTaxIncluded":false,"url":"https://margaritaapp.org/precios"}}]}
+        {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://margaritaapp.org/#organization","name":"Margarita","url":"https://margaritaapp.org/","logo":"https://margaritaapp.org/assets/img/margarita-icon-512.png","description":"Bandeja compartida para que los equipos organicen y atiendan conversaciones de WhatsApp Business, con automatizaciones opcionales."},{"@type":"WebSite","@id":"https://margaritaapp.org/#website","url":"https://margaritaapp.org/","name":"Margarita","inLanguage":"es-MX","publisher":{"@id":"https://margaritaapp.org/#organization"}},{"@type":"SoftwareApplication","name":"Margarita","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"El manual del equipo que atiende por WhatsApp: bandeja, plantillas, campañas, IA, horarios, leads y respaldos.","url":"https://margaritaapp.org/","publisher":{"@id":"https://margaritaapp.org/#organization"},"offers":{"@type":"Offer","price":"1299","priceCurrency":"MXN","valueAddedTaxIncluded":false,"url":"https://margaritaapp.org/precios"}}]}
     </script>
 
     
@@ -60,12 +60,12 @@
             <img src="/assets/img/margarita-icon-128.png" alt="Margarita" />
             <span>
                 Margarita
-                <small>Automatización de WhatsApp con IA</small>
+                <small>WhatsApp para equipos</small>
             </span>
         </a>
 
         <nav class="nav" aria-label="Navegación principal">
-            <a href="/ia" >IA</a>
+            <a href="/ia" >Automatización</a>
             <a href="/precios" >Precios</a>
             <a href="/demo" >Demo</a>
             <a href="/onboarding" >Alta</a>
@@ -157,7 +157,7 @@
 <p><strong>Pausa.</strong> Si la persona pide que no se le escriba mientras se revisa un caso, pon la cuenta en <strong>pausa</strong> desde su ficha: no recibe mensajes ni campañas hasta que alguien la quite.</p>
 <hr />
 <h2 id="5-la-bandeja-atender-conversaciones">5. La bandeja: atender conversaciones</h2>
-<ul><li>Cada agente ve <strong>solo las conversaciones asignadas a él</strong>.</li><li>El estado (<strong>Disponible, Ocupado, Break, Fuera</strong>) lo pone la persona; no se queda disponible solo al entrar. La asignación automática va al disponible con menos carga.</li><li><strong>Ventana de 24 horas</strong>: si el cliente escribió en las últimas 24 horas puedes mandar texto libre y archivos. Pasado ese plazo, WhatsApp solo permite <strong>plantillas aprobadas</strong>; la app te lo avisa en el compositor.</li><li><strong>Nota interna</strong>: no sale a WhatsApp, sirve para el equipo.</li><li><strong>Archivos</strong>: imagen hasta 5 MB, video y audio hasta 16 MB, documentos hasta 100 MB.</li><li><strong>Respuestas rápidas</strong>: insertan un texto guardado con <code>{nombre}</code> y <code>{telefono}</code> ya resueltos.</li><li><strong>Enter envía</strong> el mensaje y <strong>Shift + Enter</strong> hace un salto de línea.</li><li><strong>Botones dentro de las 24 horas</strong>: desde la columna lateral se manda un mensaje con hasta <strong>3 botones</strong> de 20 caracteres. Sirve para pedir un sí/no o dirigir a una opción sin gastar plantilla. Cuando el cliente toca, la respuesta entra al hilo con su identificador y su texto.</li><li><strong>Listas dentro de las 24 horas</strong> (si el workspace las tiene encendidas): hasta <strong>10 opciones</strong>, con título de 24 caracteres y descripción de 72. La respuesta entra por el mismo circuito que un botón. Si el límite se pasa, la app no llama a Meta y muestra el motivo.</li><li><strong>Ocultar o borrar</strong>: ocultar un mensaje es reversible (el administrador lo ve y lo restaura); borrar el hilo completo exige escribir <code>BORRAR</code>.</li><li>El contador de no leídos es <strong>por conversación</strong>, no por persona.</li></ul>
+<ul><li>Cada agente ve <strong>solo las conversaciones asignadas a él</strong>.</li><li>El estado (<strong>Disponible, Ocupado, Break, Fuera</strong>) lo pone la persona; no se queda disponible solo al entrar. La asignación automática va al disponible con menos carga.</li><li><strong>Ventana de 24 horas</strong>: si el cliente escribió en las últimas 24 horas puedes mandar texto libre y archivos. Pasado ese plazo, WhatsApp solo permite <strong>plantillas aprobadas</strong>; la app te lo avisa en el compositor.</li><li><strong>Nota interna</strong>: no sale a WhatsApp, sirve para el equipo.</li><li><strong>Archivos</strong>: imagen hasta 5 MB, video y audio hasta 16 MB, documentos hasta 100 MB.</li><li><strong>Respuestas rápidas</strong>: el equipo puede guardar texto, mensajes con botones o listas de opciones. Las interactivas muestran una vista previa y se envían desde el hilo; las listas requieren que el administrador las habilite.</li><li><strong>Enter envía</strong> el mensaje y <strong>Shift + Enter</strong> hace un salto de línea.</li><li><strong>Botones dentro de las 24 horas</strong>: desde la columna lateral se manda un mensaje con hasta <strong>3 botones</strong> de 20 caracteres. Sirve para pedir un sí/no o dirigir a una opción sin gastar plantilla. Cuando el cliente toca, la respuesta entra al hilo con su identificador y su texto.</li><li><strong>Listas dentro de las 24 horas</strong> (si el workspace las tiene encendidas): hasta <strong>10 opciones</strong>, con título de 24 caracteres y descripción de 72. La respuesta entra por el mismo circuito que un botón. Si el límite se pasa, la app no llama a Meta y muestra el motivo.</li><li><strong>Ocultar o borrar</strong>: ocultar un mensaje es reversible (el administrador lo ve y lo restaura); borrar el hilo completo exige escribir <code>BORRAR</code>.</li><li>El contador de no leídos es <strong>por conversación</strong>, no por persona.</li></ul>
 <p>Cada mensaje muestra su estado real de WhatsApp: enviado, entregado, leído o fallido, con el motivo traducido cuando falla.</p>
 <hr />
 <h2 id="6-plantillas-la-parte-que-abarata-el-envio">6. Plantillas: la parte que abarata el envío</h2>
@@ -228,15 +228,15 @@
                     <img src="/assets/img/margarita-icon-128.png" alt="Margarita" />
                     <span>Margarita</span>
                 </a>
-                <p>Automatiza WhatsApp con IA: atiende, califica y deriva. Cuenta dedicada, datos cifrados y control humano.</p>
+                <p>Una bandeja compartida para organizar las conversaciones de WhatsApp y atenderlas en equipo. Automatizaciones disponibles cuando tu operación las necesita.</p>
             </div>
 
             <div class="footer-col">
                 <h4>Producto</h4>
-                <a href="/ia">IA con control humano</a>
+                <a href="/ia">Automatización e IA</a>
                 <a href="/precios">Precios</a>
                 <a href="/demo">Demo</a>
-                <a href="/onboarding">Alta en 7 días</a>
+                <a href="/onboarding">Puesta en marcha</a>
             </div>
 
             <div class="footer-col">
