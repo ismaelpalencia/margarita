@@ -7,7 +7,7 @@ interface TagsResponse { tags: Tag[] }
   selector: 'app-admin-tags-page', standalone: true,
   template: `
     @if (loading()) { <div class="tags-loading">Cargando etiquetas…</div> }
-    @else if (error() && !tags().length) { <section class="tags-error" role="alert"><h1>No pudimos cargar las etiquetas</h1><p>{{ error() }}</p><a href="/auth/login">Iniciar sesión</a></section> }
+    @else if (error() && !tags().length) { <section class="tags-error" role="alert"><h1>No pudimos cargar las etiquetas</h1><p>{{ error() }}</p><a href="/panel/login">Iniciar sesión</a></section> }
     @else {
       <header class="tags-heading"><div><p class="tags-eyebrow">ORGANIZACIÓN</p><h1>Etiquetas</h1><p>Clasifica contactos y encuentra grupos de trabajo con facilidad.</p></div><button class="tags-primary" (click)="startCreate()">＋ Nueva etiqueta</button></header>
       @if (error()) { <div class="tags-error-banner" role="alert">{{ error() }}</div> }

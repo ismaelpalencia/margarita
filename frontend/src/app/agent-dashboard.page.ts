@@ -36,7 +36,7 @@ interface AgentDashboardResponse {
     @if (loading()) {
       <div class="agent-loading"><span class="spinner"></span>Cargando el panel…</div>
     } @else if (error()) {
-      <section class="agent-error" role="alert"><b>!</b><div><h1>No pudimos cargar tu panel</h1><p>{{ error() }}</p><a href="/auth/login">Iniciar sesión</a></div></section>
+      <section class="agent-error" role="alert"><b>!</b><div><h1>No pudimos cargar tu panel</h1><p>{{ error() }}</p><a href="/panel/login">Iniciar sesión</a></div></section>
     } @else if (data(); as model) {
       <div class="agent-intro"><p class="agent-eyebrow">PANEL DE AGENTE</p><h1>Hola, {{ firstName(model.user.name) }}</h1><p>Aquí puedes ver tu carga actual y cambiar tu estado operativo.</p></div>
 

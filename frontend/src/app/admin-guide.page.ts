@@ -6,7 +6,7 @@ interface GuideData { collectionsEnabled: boolean; supportEmail: string; support
   selector: 'app-admin-guide-page', standalone: true,
   template: `
     @if (loading()) { <div class="guide-loading">Cargando guía…</div> }
-    @else if (error()) { <section class="guide-error"><h1>No pudimos cargar la guía</h1><p>{{ error() }}</p><a href="/auth/login">Iniciar sesión</a></section> }
+    @else if (error()) { <section class="guide-error"><h1>No pudimos cargar la guía</h1><p>{{ error() }}</p><a href="/panel/login">Iniciar sesión</a></section> }
     @else if (data(); as model) {
       <header class="guide-heading"><p class="guide-eyebrow">GUÍA RÁPIDA</p><h1>Qué hace Margarita y por dónde empezar</h1><p>La idea en una frase: <strong>{{ model.collectionsEnabled ? 'cada conversación termina en un resultado' : 'cada conversación se atiende y se cierra en el panel' }}</strong>. El resto está para que el equipo pueda sostener ese flujo.</p></header>
       <section class="guide-grid"><article><h2>Bandeja de conversaciones</h2><p>Atiende WhatsApp desde el panel: texto y archivos dentro de las 24 horas, plantillas aprobadas cuando la ventana está cerrada, notas internas y respuestas rápidas.</p><a href="/panel/admin/conversations">Abrir conversaciones →</a></article>

@@ -2,10 +2,13 @@
   <router-outlet />
 } @else {
 <div class="shell">
-  <aside class="sidebar">
-    <a class="brand" [routerLink]="isAgent ? '/panel/agent/dashboard' : '/panel/admin/dashboard'" aria-label="Margarita, inicio">
-      <img class="brand-logo" src="/brand/img/margarita-icon-64.png" alt=""><span>Margarita<small>Operación WhatsApp</small></span>
-    </a>
+  <aside class="sidebar" [class.menu-open]="mobileMenuOpen()">
+    <div class="sidebar-head">
+      <a class="brand" [routerLink]="isAgent ? '/panel/agent/dashboard' : '/panel/admin/dashboard'" aria-label="Margarita, inicio">
+        <img class="brand-logo" src="/brand/img/margarita-icon-64.png" alt=""><span>Margarita<small>Operación WhatsApp</small></span>
+      </a>
+      <button class="mobile-menu-toggle" type="button" (click)="toggleMobileMenu()" [attr.aria-expanded]="mobileMenuOpen()" aria-controls="panel-navigation">{{ mobileMenuOpen() ? 'Cerrar' : 'Menú' }}</button>
+    </div>
     @if (shell(); as data) {
       @if (data.numbers.length > 1) {
         <form class="number-switch" [action]="isAgent ? '/agent/number/switch' : '/admin/number/switch'" method="post" (change)="switchNumber($event)">
@@ -21,7 +24,7 @@
       }
     }
     <p class="nav-label">{{ isAgent ? 'MI TRABAJO' : 'OPERACIÓN' }}</p>
-    <nav aria-label="Navegación principal">
+    <nav id="panel-navigation" aria-label="Navegación principal">
       @if (isAgent) {
         <a class="nav-link" routerLink="/panel/agent/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><span class="nav-icon">⌂</span>Resumen</a>
         <a class="nav-link" routerLink="/panel/agent/conversations" routerLinkActive="active"><span class="nav-icon">◷</span>Conversaciones@if (unreadTotal() > 0) { <span class="nav-badge">{{ unreadTotal() }}</span> }</a>

@@ -28,7 +28,7 @@ interface AdminInboxResponse {
     @if (loading()) {
       <div class="inbox-loading"><span class="spinner"></span>Cargando conversaciones…</div>
     } @else if (error()) {
-      <section class="inbox-error" role="alert"><b>!</b><div><h1>No pudimos cargar la bandeja</h1><p>{{ error() }}</p><a href="/auth/login">Iniciar sesión</a></div></section>
+      <section class="inbox-error" role="alert"><b>!</b><div><h1>No pudimos cargar la bandeja</h1><p>{{ error() }}</p><a href="/panel/login">Iniciar sesión</a></div></section>
     } @else {
       <header class="inbox-intro"><div><p class="inbox-eyebrow">PANEL OPERATIVO</p><h1>Conversaciones</h1><p>Supervisa la atención y encuentra cada conversación de tu equipo.</p></div><a class="refresh-button" href="/panel/admin/conversations" aria-label="Actualizar bandeja">↻</a></header>
       <form class="filters" (submit)="$event.preventDefault(); loadConversations()">

@@ -7,7 +7,7 @@ interface HoursResponse { form: HoursForm; weekdayLabels: Record<number, string>
   selector: 'app-admin-hours-page', standalone: true,
   template: `
     @if (loading()) { <div class="hours-loading">Cargando horario…</div> }
-    @else if (error() && !loaded()) { <section class="hours-error"><h1>No pudimos cargar la configuración</h1><p>{{ error() }}</p><a href="/auth/login">Iniciar sesión</a></section> }
+    @else if (error() && !loaded()) { <section class="hours-error"><h1>No pudimos cargar la configuración</h1><p>{{ error() }}</p><a href="/panel/login">Iniciar sesión</a></section> }
     @else {
       <header class="hours-heading"><p class="hours-eyebrow">CONFIGURACIÓN</p><h1>Horarios de atención</h1><p>Define cuándo atiende tu negocio y cómo responder a los mensajes que llegan fuera de horario. Si está apagado, la herramienta se comporta como siempre.</p></header>
       @if (error()) { <div class="hours-error-banner" role="alert">{{ error() }}</div> } @if (success()) { <div class="hours-success">Horario guardado. El panel y las conversaciones mostrarán el aviso de fuera de horario.</div> }

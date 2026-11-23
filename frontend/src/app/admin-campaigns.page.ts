@@ -7,7 +7,7 @@ interface CampaignsResponse { campaigns: Campaign[]; success: boolean; error: bo
   selector: 'app-admin-campaigns-page', standalone: true,
   template: `
     @if (loading()) { <div class="campaign-loading">Cargando campañas…</div> }
-    @else if (error()) { <section class="campaign-error" role="alert"><h1>No pudimos cargar las campañas</h1><p>{{ error() }}</p><a href="/auth/login">Iniciar sesión</a></section> }
+    @else if (error()) { <section class="campaign-error" role="alert"><h1>No pudimos cargar las campañas</h1><p>{{ error() }}</p><a href="/panel/login">Iniciar sesión</a></section> }
     @else {
       <header class="campaign-heading"><div><p class="campaign-eyebrow">WHATSAPP</p><h1>Campañas</h1><p>Crea campañas con plantillas aprobadas por Meta y revisa su estado.</p></div><a class="campaign-create" href="/panel/admin/campaigns/create">＋ Nueva campaña</a></header>
       @if (created()) { <div class="campaign-notice">La campaña se creó correctamente.</div> }

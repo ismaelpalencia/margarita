@@ -22,7 +22,7 @@ interface ContactsResponse {
   standalone: true,
   template: `
     @if (loading()) { <div class="contacts-loading">Cargando contactos…</div> }
-    @else if (error()) { <section class="contacts-error" role="alert"><h1>No pudimos cargar los contactos</h1><p>{{ error() }}</p><a href="/auth/login">Iniciar sesión</a></section> }
+    @else if (error()) { <section class="contacts-error" role="alert"><h1>No pudimos cargar los contactos</h1><p>{{ error() }}</p><a href="/panel/login">Iniciar sesión</a></section> }
     @else {
       <header class="contacts-heading"><div><p class="contacts-eyebrow">DIRECTORIO</p><h1>Contactos</h1><p>Administra la información y el estado de contacto de tu cartera.</p></div><a class="contacts-create" href="/panel/admin/contacts/new">＋ Nuevo contacto</a></header>
       <form class="contacts-filters" (submit)="$event.preventDefault(); load()">

@@ -38,6 +38,7 @@ interface InstallPromptEvent extends Event {
 export class App {
   protected readonly isAgent = window.location.pathname.startsWith('/panel/agent');
   protected readonly isPublic = window.location.pathname === '/panel/login';
+  protected readonly mobileMenuOpen = signal(false);
   private readonly router = inject(Router);
   protected readonly pageName = signal(this.resolvePageName(window.location.pathname));
   protected readonly shell = signal<ShellData | null>(null);
@@ -53,7 +54,8 @@ export class App {
   protected readonly darkMode = signal(this.readDarkMode());
   private readonly installPrompt = signal<InstallPromptEvent | null>(null);
   private readonly installed = signal(false);
-  private readonly isMobile = typeof navigator !== 'undefined' && /iphone|ipad|ipod|android/i.test(navigator.userAgent);
+  private readonly isIos = typeof navigator !== 'undefined' && (/iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+  private readonly isMobile = this.isIos || (typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent));
   private readonly isStandalone = typeof window !== 'undefined' && (window.matchMedia?.('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true);
   private socket: ReturnType<NonNullable<Window['io']>> | null = null;
   private latestBadges: { dashboardUnread: number; unassigned: number } | null = null;
@@ -67,7 +69,10 @@ export class App {
     this.applyTheme(this.darkMode());
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe(() => this.pageName.set(this.resolvePageName(window.location.pathname)));
+      .subscribe(() => {
+        this.pageName.set(this.resolvePageName(this.router.url.split(/[?#]/)[0]));
+        this.mobileMenuOpen.set(false);
+      });
     if (typeof window !== 'undefined') {
       window.addEventListener('beforeinstallprompt', (event: Event) => {
         event.preventDefault();
@@ -112,8 +117,8 @@ export class App {
   protected async installApp(): Promise<void> {
     const prompt = this.installPrompt();
     if (!prompt) {
-      window.alert(/iphone|ipad|ipod/i.test(navigator.userAgent)
-        ? 'Para instalar en iPhone: abre esta página en Safari, toca Compartir y elige Agregar a pantalla de inicio.'
+      this.pwaMessage.set(this.isIos
+        ? 'En iPhone o iPad: abre Margarita en Safari, toca Compartir y elige “Agregar a pantalla de inicio”.'
         : 'Para instalar: abre el menú de Chrome y elige Instalar app o Agregar a pantalla de inicio.');
       return;
     }
@@ -121,6 +126,10 @@ export class App {
     const choice = await prompt.userChoice;
     this.installPrompt.set(null);
     if (choice.outcome === 'accepted') this.pwaMessage.set('Se inició la instalación de Margarita.');
+  }
+
+  protected toggleMobileMenu(): void {
+    this.mobileMenuOpen.update((open) => !open);
   }
 
   protected async enablePush(): Promise<void> {

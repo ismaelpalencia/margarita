@@ -25,7 +25,7 @@ interface DashboardResponse {
     } @else if (error()) {
       <section class="error-card" role="alert">
         <span class="error-mark">!</span>
-        <div><h1>No pudimos cargar el panel</h1><p>{{ error() }}</p><a href="/auth/login">Volver a iniciar sesión</a></div>
+        <div><h1>No pudimos cargar el panel</h1><p>{{ error() }}</p><a href="/panel/login">Volver a iniciar sesión</a></div>
       </section>
     } @else if (data(); as model) {
       <div class="intro">

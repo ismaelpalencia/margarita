@@ -7,7 +7,7 @@ interface SessionsResponse { sessions: SessionView[]; idleHours: number; maxActi
   selector: 'app-sessions-page', standalone: true,
   template: `
     @if (loading()) { <div class="sessions-loading">Cargando sesiones…</div> }
-    @else if (error() && !data()) { <section class="sessions-error"><h1>No pudimos cargar las sesiones</h1><p>{{ error() }}</p><a href="/auth/login">Iniciar sesión</a></section> }
+    @else if (error() && !data()) { <section class="sessions-error"><h1>No pudimos cargar las sesiones</h1><p>{{ error() }}</p><a href="/panel/login">Iniciar sesión</a></section> }
     @else if (data(); as model) {
       <header class="sessions-heading"><div><p class="sessions-eyebrow">SEGURIDAD</p><h1>{{ isAdmin ? 'Sesiones activas' : 'Mis sesiones' }}</h1><p>{{ isAdmin ? 'Revisa desde qué dispositivos ha entrado el equipo y cierra sesiones que no reconozcas.' : 'Revisa los dispositivos con sesión abierta y cierra los que no reconozcas.' }} Las sesiones se cierran tras {{ model.idleHours }} horas sin actividad y cada usuario puede mantener hasta {{ model.maxActive }} activas.</p></div></header>
       @if (error()) { <div class="sessions-error-banner" role="alert">{{ error() }}</div> } @if (success()) { <div class="sessions-success">{{ success() }}</div> }

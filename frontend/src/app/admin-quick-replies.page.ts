@@ -7,7 +7,7 @@ interface QuickRepliesResponse { quickReplies: QuickReply[] }
   selector: 'app-admin-quick-replies-page', standalone: true,
   template: `
     @if (loading()) { <div class="quick-loading">Cargando respuestas…</div> }
-    @else if (error() && !replies().length) { <section class="quick-error"><h1>No pudimos cargar las respuestas</h1><p>{{ error() }}</p><a href="/auth/login">Iniciar sesión</a></section> }
+    @else if (error() && !replies().length) { <section class="quick-error"><h1>No pudimos cargar las respuestas</h1><p>{{ error() }}</p><a href="/panel/login">Iniciar sesión</a></section> }
     @else {
       <header class="quick-heading"><div><p class="quick-eyebrow">HERRAMIENTAS DEL EQUIPO</p><h1>Respuestas rápidas</h1><p>Guarda mensajes frecuentes para insertarlos en una conversación con un clic.</p></div><button class="quick-primary" (click)="startCreate()">＋ Nueva respuesta</button></header>
       @if (error()) { <div class="quick-alert" role="alert">{{ error() }}</div> } @if (success()) { <div class="quick-success">{{ success() }}</div> }

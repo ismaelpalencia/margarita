@@ -28,7 +28,7 @@ interface InboxResponse {
     @if (loading()) {
       <div class="inbox-loading"><span class="spinner"></span>Cargando conversaciones…</div>
     } @else if (error()) {
-      <section class="inbox-error" role="alert"><b>!</b><div><h1>No pudimos cargar la bandeja</h1><p>{{ error() }}</p><a href="/auth/login">Iniciar sesión</a></div></section>
+      <section class="inbox-error" role="alert"><b>!</b><div><h1>No pudimos cargar la bandeja</h1><p>{{ error() }}</p><a href="/panel/login">Iniciar sesión</a></div></section>
     } @else {
       <header class="inbox-intro"><div><p class="inbox-eyebrow">ATENCIÓN AL CLIENTE</p><h1>Mis conversaciones</h1><p>Revisa tus conversaciones asignadas y toma las que aún no tienen dueño.</p></div><a class="refresh-button" href="/panel/agent/conversations" aria-label="Actualizar bandeja">↻</a></header>
 
