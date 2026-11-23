@@ -85,3 +85,8 @@ html[data-theme="dark"] .page-content app-agent-conversation-page .close-button 
 html[data-theme="dark"] .page-content app-agent-conversation-page .composer-actions > summary { color: #dce8df; }
 html[data-theme="dark"] .page-content app-agent-conversation-page .jump-latest { border-color: #3b6b50; color: #e7f7ec; background: #214032; }
 @media (max-width: 540px) { app-agent-conversation-page .jump-latest { right: 12px; bottom: 106px; padding: 8px 10px; } }
+.message-reactions { display: flex; gap: 3px; margin-top: 5px; }
+.message-reactions button { min-width: 22px; padding: 2px 4px; border: 0; border-radius: 10px; color: #50635a; background: #f1f5f2; font-size: 12px; cursor: pointer; }
+.message-reactions button:hover { background: #e0ebe4; }
+.media-delete { display: block; margin-top: 4px; padding: 2px 0; border: 0; color: #9a4a3e; background: transparent; font-size: 10px; text-decoration: underline; cursor: pointer; }
+.wa-health-warning { background: #fff1dc !important; color: #805012 !important; }

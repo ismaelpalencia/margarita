@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 
 interface ConversationMessage {
   id: string;
+  wamid?: string | null;
   direction: string;
   type: string;
   status: string;
@@ -83,6 +84,7 @@ interface AdvancedConversationData {
     } @else if (data(); as model) {
       <header class="detail-intro"><a [href]="listUrl()" class="back-link">← Bandeja</a><div class="detail-heading"><span class="detail-avatar">{{ initials(contactName(model)) }}</span><div class="contact-heading"><h1>{{ contactName(model) }}</h1><p>{{ model.conversation.contact.phone }}</p></div><div class="detail-header-badges">@if (model.conversation.whatsappNumber) { <span class="detail-pill">{{ model.conversation.whatsappNumber.displayName || model.conversation.whatsappNumber.phoneNumber }}</span> }<span class="detail-pill" [class.open-pill]="model.conversation.status === 'OPEN'">{{ model.conversation.status === 'OPEN' ? 'Abierta' : 'Cerrada' }}</span>@if (model.conversation.aiHandoffAt) { <span class="detail-pill handoff-pill">IA pidió atención</span> }</div></div>
       </header>
+      @if (operationNotice()) { <p class="composer-note" role="status">{{ operationNotice() }}</p> }
 
       <div class="conversation-layout">
         <section class="chat-card">
@@ -112,10 +114,12 @@ interface AdvancedConversationData {
                   }
                   @if (message.mediaId && message.type === 'AUDIO') { <audio class="audio-player" controls preload="none" [src]="mediaFileUrl(message)" [attr.aria-label]="'Audio recibido · ' + dateLabel(message.createdAt, model.timezone)">Tu navegador no puede reproducir este audio.</audio><a class="media-link" [href]="mediaFileUrl(message)" target="_blank" rel="noopener">Descargar audio</a> }
                   @else if (message.mediaId) { <a class="media-link" [href]="mediaFileUrl(message)" target="_blank" rel="noopener">{{ mediaLabel(message.type) }} · Abrir archivo</a> }
+                  @if (isAdmin && message.mediaId && !message.deletedAt) { <button class="media-delete" type="button" (click)="removeRemoteMedia(message)">Eliminar archivo remoto y copia local</button> }
                   @if (message.type !== 'CONTACT' && message.body && !(message.mediaId && isPlaceholder(message.body))) { <p>{{ message.body }}</p> }
                   @if (message.type !== 'CONTACT' && !message.body && !message.mediaId) { <p>[{{ message.type }}]</p> }
                   @if (message.replyTitle || message.replyId) { <small class="reply-label">Respuesta: {{ message.replyTitle || message.replyId }}</small> }
                   <footer><span>{{ dateLabel(message.createdAt, model.timezone) }}</span>@if (message.direction === 'OUT' && !message.isInternalNote) { <span [title]="message.status">{{ tick(message.status) }}</span> }@if (message.deletedAt && isAdmin) { <form [action]="restoreUrl(model, message)" method="post"><button type="submit" aria-label="Restaurar mensaje" title="Restaurar mensaje">↶</button></form> }@else if (!message.deletedAt) { <form [action]="deleteUrl(model, message)" method="post"><button type="submit" aria-label="Eliminar mensaje" title="Eliminar mensaje">×</button></form> }</footer>
+                  @if (message.direction === 'IN' && !message.isInternalNote && !message.deletedAt && message.wamid) { <div class="message-reactions" aria-label="Reaccionar al mensaje">@for (emoji of reactionChoices; track emoji) { <button type="button" [attr.aria-label]="emoji ? 'Reaccionar ' + emoji : 'Quitar reacción'" [title]="emoji ? 'Reaccionar ' + emoji : 'Quitar reacción'" (click)="react(model, message, emoji)">{{ emoji || '×' }}</button> }</div> }
                   @if (message.errorText) { <small class="message-error">{{ message.errorText }}</small> }
                 </article>
               </div>
@@ -220,6 +224,7 @@ interface AdvancedConversationData {
 export class AgentConversationPage implements OnDestroy {
   protected readonly data = signal<AgentConversationDetail | null>(null);
   protected readonly error = signal('');
+  protected readonly operationNotice = signal('');
   protected readonly loading = signal(true);
   protected readonly draft = signal('');
   protected readonly advanced = signal<AdvancedConversationData | null>(null);
@@ -231,6 +236,7 @@ export class AgentConversationPage implements OnDestroy {
   protected readonly sendingVoice = signal(false);
   protected readonly showJumpToLatest = signal(false);
   protected readonly listRows = Array.from({ length: 10 }, (_, index) => index);
+  protected readonly reactionChoices = ['👍', '❤️', '😂', '😮', '😢', '🙏', ''];
   @ViewChild('thread') private thread?: ElementRef<HTMLDivElement>;
   private readonly id: string;
   protected readonly isAdmin = window.location.pathname.startsWith('/panel/admin/conversations/');
@@ -243,6 +249,8 @@ export class AgentConversationPage implements OnDestroy {
   private recordingTimer: number | null = null;
   private recordingStartedAt = 0;
   private discardOnStop = false;
+  private typingTimer: number | null = null;
+  private lastTypingAt = 0;
   private hasInitialScroll = false;
   private shouldStickToBottom = true;
   private readonly refreshTimer = window.setInterval(() => {
@@ -267,6 +275,7 @@ export class AgentConversationPage implements OnDestroy {
 
   ngOnDestroy(): void {
     window.clearInterval(this.refreshTimer);
+    if (this.typingTimer !== null) window.clearTimeout(this.typingTimer);
     if (this.recordingTimer !== null) window.clearInterval(this.recordingTimer);
     this.mediaStream?.getTracks().forEach((track) => track.stop());
     if (this.voicePreviewUrl()) URL.revokeObjectURL(this.voicePreviewUrl());
@@ -301,7 +310,35 @@ export class AgentConversationPage implements OnDestroy {
   }
 
   protected useQuickReply(body: string): void { this.draft.set(body); }
-  protected setDraft(event: Event): void { this.draft.set((event.target as HTMLTextAreaElement).value); }
+  protected setDraft(event: Event): void {
+    this.draft.set((event.target as HTMLTextAreaElement).value);
+    this.signalTyping();
+  }
+  protected async react(model: AgentConversationDetail, message: ConversationMessage, emoji: string): Promise<void> {
+    if (!message.wamid) return;
+    try {
+      const response = await fetch(`${this.routeBase()}/${encodeURIComponent(model.conversation.id)}/reactions`, {
+        method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId: message.wamid, emoji }),
+      });
+      if (!response.ok) throw new Error('No se pudo enviar la reacción.');
+      this.operationNotice.set(emoji ? `Reacción ${emoji} enviada.` : 'Reacción retirada.');
+    } catch (reason) {
+      this.operationNotice.set(reason instanceof Error ? reason.message : 'No se pudo enviar la reacción.');
+    }
+  }
+  protected async removeRemoteMedia(message: ConversationMessage): Promise<void> {
+    if (!message.mediaId || !window.confirm('Se eliminará el archivo de Meta y su copia guardada en Margarita. Esta acción no se puede deshacer. ¿Continuar?')) return;
+    try {
+      const response = await fetch(`/admin/whatsapp/media/${encodeURIComponent(message.mediaId)}`, { method: 'DELETE', credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || 'No se pudo eliminar el archivo.');
+      this.operationNotice.set('Archivo eliminado de Meta y de la copia local.');
+      await this.load(false);
+    } catch (reason) {
+      this.operationNotice.set(reason instanceof Error ? reason.message : 'No se pudo eliminar el archivo.');
+    }
+  }
   protected onThreadScroll(event: Event): void {
     const element = event.target as HTMLDivElement;
     const atBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 80;
@@ -516,4 +553,14 @@ export class AgentConversationPage implements OnDestroy {
   }
 
   private routeBase(): string { return this.isAdmin ? '/admin/conversations' : '/agent/conversations'; }
+  private signalTyping(): void {
+    if (!this.draft().trim() || this.typingTimer !== null || Date.now() - this.lastTypingAt < 8000) return;
+    this.typingTimer = window.setTimeout(() => {
+      this.typingTimer = null;
+      this.lastTypingAt = Date.now();
+      void fetch(`${this.routeBase()}/${encodeURIComponent(this.id)}/typing`, {
+        method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: '{}',
+      }).catch(() => undefined);
+    }, 350);
+  }
 }
