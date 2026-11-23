@@ -7,6 +7,7 @@ import { LeadConversationController } from "../controllers/lead-conversation.con
 import { AiSuggestionController } from "../controllers/ai-suggestion.controller";
 import { mediaUploadSingle } from "../middlewares/upload.middleware";
 import { WhatsAppCloudOperationsController } from "../controllers/whatsapp-cloud-operations.controller";
+import { ConversationBulkTemplateController } from "../controllers/conversation-bulk-template.controller";
 
 const router = Router();
 
@@ -14,6 +15,8 @@ router.get("/", (req, res) =>
     res.redirect(`/panel/admin/conversations${req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : ""}`)
 );
 router.get("/data", AdminConversationsController.listData);
+router.get("/bulk/template-options", ConversationBulkTemplateController.options);
+router.post("/bulk/template-send", ConversationBulkTemplateController.send);
 router.get("/legacy", AdminConversationsController.index);
 router.get("/:id/data", AdminConversationsController.detailData);
 router.get("/:id/legacy", AdminConversationsController.show);

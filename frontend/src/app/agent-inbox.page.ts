@@ -21,6 +21,8 @@ interface InboxResponse {
   filters: { search: string; status: string; onlyUnread: boolean };
 }
 
+interface BulkTemplateOption { id: string; name: string; language: string; shape: { body: number; header: number; url: number } }
+
 @Component({
   selector: 'app-agent-inbox-page',
   standalone: true,
@@ -40,6 +42,31 @@ interface InboxResponse {
         <button type="submit">Filtrar</button>
       </form>
 
+      <section class="bulk-toolbar" aria-label="Acciones en bloque">
+        <label><input type="checkbox" [checked]="allVisibleSelected()" (change)="toggleAllVisible($event)"> Seleccionar visibles (máximo 25)</label>
+        <span>{{ selectedIds().size }} seleccionadas</span>
+        <button type="button" [disabled]="selectedIds().size === 0 || bulkSaving()" (click)="openBulkTemplate()">Enviar plantilla</button>
+        @if (selectedIds().size > 0) { <button type="button" class="bulk-secondary" (click)="clearSelection()">Limpiar</button> }
+      </section>
+      @if (bulkNotice()) { <p class="bulk-notice" role="status">{{ bulkNotice() }}</p> }
+      @if (bulkOpen()) {
+        <form class="bulk-template-form" (submit)="sendBulkTemplate($event)">
+          <div class="bulk-form-heading"><div><strong>Enviar plantilla aprobada</strong><small>Se enviará individualmente a {{ selectedIds().size }} conversaciones.</small></div><button type="button" class="bulk-close" (click)="bulkOpen.set(false)" aria-label="Cerrar">×</button></div>
+          @if (bulkLoading()) { <p>Cargando plantillas aprobadas…</p> }
+          @else if (bulkTemplates().length === 0) { <p>No hay plantillas aprobadas para este espacio.</p> }
+          @else {
+            <label class="bulk-field">Plantilla<select [value]="bulkTemplateId()" (change)="selectBulkTemplate($event)" required><option value="">Selecciona una plantilla</option>@for (template of bulkTemplates(); track template.id) { <option [value]="template.id">{{ template.name }} · {{ template.language }}</option> }</select></label>
+            @if (selectedTemplate(); as template) {
+              @for (index of bodyVariableIndexes(); track index) { <label class="bulk-field">Variable {{ index + 1 }} del cuerpo<input [name]="'variable' + (index + 1)" required placeholder="Valor para todas las conversaciones"></label> }
+              @if (template.shape.header) { <label class="bulk-field">Variable del encabezado<input name="headerVariable" required placeholder="Valor para todas las conversaciones"></label> }
+              @if (template.shape.url) { <label class="bulk-field">Variable del botón de enlace<input name="buttonVariable" required placeholder="Valor para todas las conversaciones"></label> }
+              <p class="bulk-warning">Los valores se usarán en todas las conversaciones seleccionadas. Los contactos dados de baja o que no puedas atender se omitirán.</p>
+              <button type="submit" [disabled]="bulkSaving()">{{ bulkSaving() ? 'Enviando…' : 'Enviar a ' + selectedIds().size + ' conversaciones' }}</button>
+            }
+          }
+        </form>
+      }
+
       <section class="inbox-card">
         <header class="inbox-card-heading"><h2>Bandeja <span>{{ conversations().length }}</span></h2><p>Ordenadas por actividad reciente</p></header>
         @if (conversations().length === 0) {
@@ -47,6 +74,7 @@ interface InboxResponse {
         } @else {
           @for (conversation of conversations(); track conversation.id) {
             <article class="inbox-row">
+              <label class="conversation-select"><input type="checkbox" [checked]="selectedIds().has(conversation.id)" [disabled]="!selectedIds().has(conversation.id) && selectedIds().size >= 25" (change)="toggleConversation(conversation.id, $event)" [attr.aria-label]="'Seleccionar ' + contactName(conversation)"></label>
               <a class="conversation-link" [href]="'/panel/agent/conversations/' + conversation.id">
                 <span class="conversation-avatar">{{ initials(contactName(conversation)) }}</span>
                 <span class="conversation-copy"><span class="conversation-title"><strong [class.unread]="conversation.unreadCount > 0">{{ contactName(conversation) }}</strong><time>{{ conversation.lastMessage?.timeLabel || '' }}</time></span><small class="preview">{{ conversation.lastMessage?.body || (conversation.lastMessage ? '[' + conversation.lastMessage.type + ']' : 'Sin mensajes todavía') }}</small><span class="badges"><span class="badge" [class.open]="conversation.status === 'OPEN'">{{ statusLabel(conversation.operationalStatus) }}</span>@if (conversation.aiHandoffAt) { <span class="badge handoff">IA necesita atención</span> }@if (!conversation.assignedUser) { <span class="badge unassigned">Sin asignar</span> }@if (conversation.contact.optOutAt) { <span class="badge opted-out">BAJA</span> }</span></span>
@@ -68,6 +96,13 @@ export class AgentInboxPage implements OnDestroy {
   protected readonly status = signal('');
   protected readonly assigned = signal('');
   protected readonly onlyUnread = signal(false);
+  protected readonly selectedIds = signal<Set<string>>(new Set());
+  protected readonly bulkTemplates = signal<BulkTemplateOption[]>([]);
+  protected readonly bulkTemplateId = signal('');
+  protected readonly bulkOpen = signal(false);
+  protected readonly bulkLoading = signal(false);
+  protected readonly bulkSaving = signal(false);
+  protected readonly bulkNotice = signal('');
   private readonly socket = window.io?.({ withCredentials: true });
   private connectedBefore = false;
   private readonly refreshTimer = window.setInterval(() => {
@@ -115,6 +150,53 @@ export class AgentInboxPage implements OnDestroy {
     this.onlyUnread.set((event.target as HTMLInputElement).checked);
   }
 
+  protected toggleConversation(id: string, event: Event): void {
+    const next = new Set(this.selectedIds());
+    (event.target as HTMLInputElement).checked ? next.add(id) : next.delete(id);
+    this.selectedIds.set(next);
+  }
+
+  protected allVisibleSelected(): boolean { return this.conversations().length > 0 && this.conversations().slice(0, 25).every(({ id }) => this.selectedIds().has(id)); }
+  protected toggleAllVisible(event: Event): void { this.selectedIds.set((event.target as HTMLInputElement).checked ? new Set(this.conversations().slice(0, 25).map(({ id }) => id)) : new Set()); }
+  protected clearSelection(): void { this.selectedIds.set(new Set()); this.bulkOpen.set(false); this.bulkNotice.set(''); }
+  protected selectedTemplate(): BulkTemplateOption | null { return this.bulkTemplates().find(({ id }) => id === this.bulkTemplateId()) || null; }
+  protected bodyVariableIndexes(): number[] { return Array.from({ length: Math.min(this.selectedTemplate()?.shape.body || 0, 3) }, (_, index) => index); }
+  protected selectBulkTemplate(event: Event): void { this.bulkTemplateId.set((event.target as HTMLSelectElement).value); }
+
+  protected async openBulkTemplate(): Promise<void> {
+    this.bulkOpen.set(true); this.bulkNotice.set('');
+    if (this.bulkTemplates().length) return;
+    this.bulkLoading.set(true);
+    try {
+      const response = await fetch('/agent/conversations/bulk/template-options', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      const data = await response.json() as { templates?: BulkTemplateOption[]; error?: string };
+      if (!response.ok) throw new Error(data.error || 'No se pudieron cargar las plantillas.');
+      this.bulkTemplates.set(data.templates || []);
+    } catch (error) { this.bulkNotice.set(error instanceof Error ? error.message : 'No se pudieron cargar las plantillas.'); }
+    finally { this.bulkLoading.set(false); }
+  }
+
+  protected async sendBulkTemplate(event: Event): Promise<void> {
+    event.preventDefault();
+    const template = this.selectedTemplate(); const ids = [...this.selectedIds()]; const form = event.target as HTMLFormElement;
+    if (!template || !ids.length || this.bulkSaving()) return;
+    if (!window.confirm(`¿Enviar «${template.name}» a ${ids.length} conversaciones?`)) return;
+    const values = new FormData(form); const value = (name: string): string => String(values.get(name) ?? ''); this.bulkSaving.set(true); this.bulkNotice.set('');
+    try {
+      const response = await fetch('/agent/conversations/bulk/template-send', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ conversationIds: ids, templateId: template.id, variable1: value('variable1'), variable2: value('variable2'), variable3: value('variable3'), headerVariable: value('headerVariable'), buttonVariable: value('buttonVariable') }) });
+      const result = await response.json() as { sent?: number; failed?: number; error?: string; results?: Array<{ conversationId: string; sent: boolean; error?: string }> };
+      if (!response.ok) throw new Error(result.error || 'No se pudo procesar el envío.');
+      const failureDetails = (result.results || []).filter(({ sent }) => !sent).slice(0, 3).map(({ conversationId, error }) => {
+        const conversation = this.conversations().find(({ id }) => id === conversationId);
+        return `${conversation ? this.contactName(conversation) : 'Contacto'}: ${error || 'no enviado'}`;
+      });
+      this.bulkNotice.set(`Envío terminado: ${result.sent || 0} enviados, ${result.failed || 0} no enviados.${failureDetails.length ? ` ${failureDetails.join(' · ')}` : ''}`);
+      this.selectedIds.set(new Set()); this.bulkOpen.set(false); this.bulkTemplateId.set(''); form.reset();
+      await this.loadConversations(false);
+    } catch (error) { this.bulkNotice.set(error instanceof Error ? error.message : 'No se pudo procesar el envío.'); }
+    finally { this.bulkSaving.set(false); }
+  }
+
   protected contactName(conversation: InboxConversation): string {
     const contact = conversation.contact;
     return contact.customName || contact.profileName || contact.phone;
@@ -148,6 +230,8 @@ export class AgentInboxPage implements OnDestroy {
       }
       const result = await response.json() as InboxResponse;
       this.conversations.set(result.conversations);
+      const visibleIds = new Set(result.conversations.map(({ id }) => id));
+      this.selectedIds.set(new Set([...this.selectedIds()].filter((id) => visibleIds.has(id))));
       const next = new URLSearchParams();
       if (this.search()) next.set('search', this.search());
       if (this.status()) next.set('status', this.status());

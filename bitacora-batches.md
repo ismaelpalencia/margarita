@@ -1139,3 +1139,14 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 379 pruebas unitarias.
 
 ---
+
+## Envío masivo de plantillas desde la bandeja
+
+- Admin y agente pueden seleccionar hasta 25 conversaciones visibles.
+- Solo se ofrecen plantillas aprobadas del workspace.
+- Variables compartidas para cuerpo, encabezado y botón de URL.
+- Confirmación antes de enviar; los errores se reportan por conversación.
+- El backend vuelve a validar plantilla, permisos, ventana y baja de cada contacto.
+- 387 pruebas unitarias y 14 pruebas Angular.
+
+---

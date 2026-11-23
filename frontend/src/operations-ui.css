@@ -28,6 +28,25 @@ html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-
 html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) :is(.badge.unassigned, .badge.opted-out) { border-color: #70423c; color: #ffc1b8; background: #432c29; }
 html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .claim-button { border-color: #2a895e; background: #17784f; }
 
+/* Selección y envío en bloque desde las dos bandejas Angular. */
+.bulk-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 12px; padding: 11px 13px; border: 1px solid #e2eae4; border-radius: 11px; color: #50645a; background: #fff; font-size: 11px; }
+.bulk-toolbar label { display: inline-flex; align-items: center; gap: 7px; margin-right: auto; }
+.bulk-toolbar input,.conversation-select input { width: 15px; height: 15px; accent-color: #28764f; }
+.bulk-toolbar button,.bulk-template-form>button { min-height: 34px; padding: 0 12px; border: 1px solid #24594c; border-radius: 8px; color: #fff; background: #24594c; font: inherit; font-size: 11px; font-weight: 650; cursor: pointer; }
+.bulk-toolbar button:disabled,.bulk-template-form button:disabled { opacity: .55; cursor: not-allowed; }
+.bulk-toolbar .bulk-secondary { border-color: #dfe7e2; color: #50645a; background: #f7f9f7; }
+.conversation-select { display: flex; flex: 0 0 auto; align-items: center; cursor: pointer; }
+.bulk-template-form { display: grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr)); align-items: end; gap: 11px; margin: 0 0 14px; padding: 16px; border: 1px solid #dce8df; border-radius: 12px; background: #f8fbf8; }
+.bulk-form-heading { display: flex; grid-column: 1/-1; align-items: start; justify-content: space-between; gap: 12px; }
+.bulk-form-heading :is(strong,small) { display: block; }.bulk-form-heading strong { color: #304b3e; font-size: 13px; }.bulk-form-heading small { margin-top: 4px; color: #718079; font-size: 11px; }
+.bulk-close { border: 0; color: #62746a; background: transparent; font-size: 20px; }
+.bulk-field { display: grid; gap: 5px; color: #53655d; font-size: 11px; font-weight: 650; }
+.bulk-field :is(input,select) { width: 100%; min-height: 36px; padding: 7px 9px; border: 1px solid #d5e0d8; border-radius: 7px; color: #40564c; background: #fff; font: inherit; }
+.bulk-template-form .bulk-warning { grid-column: 1/-1; margin: 0; color: #718079; font-size: 11px; line-height: 1.5; }
+.bulk-template-form>button { justify-self: start; }
+.bulk-notice { margin: 0 0 12px; padding: 10px 12px; border: 1px solid #dce8df; border-radius: 9px; color: #385b47; background: #eff7f0; font-size: 12px; }
+@media(max-width:600px) { .bulk-toolbar { align-items: stretch; }.bulk-toolbar label { flex-basis: 100%; }.bulk-template-form { grid-template-columns: 1fr; }.bulk-form-heading,.bulk-template-form .bulk-warning { grid-column: auto; }.conversation-select { margin-left: -8px; } }
+
 /* Dashboard: neutralizar los fondos y cifras claros del tema de componente. */
 html[data-theme="dark"] .page-content app-dashboard-page { color: #e8f0ea; }
 html[data-theme="dark"] .page-content app-dashboard-page :is(.metric-card, .panel-card, .number-chip, .error-card) {
