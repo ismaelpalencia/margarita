@@ -46,6 +46,7 @@ import {
     formatWaitingTime
 } from "../utils/date";
 import { describeMetaError } from "../utils/meta-error";
+import { WhatsAppCloudOperationsService } from "../services/whatsapp-cloud-operations.service";
 
 export class AdminConversationsController {
     static async detailData(req: Request, res: Response) {
@@ -61,6 +62,10 @@ export class AdminConversationsController {
             return res.status(404).json({ error: "conversation_not_found" });
         }
 
+        if (conversation.unreadCount > 0) {
+            const latestInbound = [...conversation.messages].reverse().find((message) => message.direction === "IN" && message.wamid);
+            if (latestInbound?.wamid) WhatsAppCloudOperationsService.readMessage(req.user!.workspaceId, conversation.whatsappNumberId, latestInbound.wamid).catch(() => undefined);
+        }
         await ConversationService.markAsRead(req.user!.workspaceId, conversation.id);
         const [quickReplies, timezone] = await Promise.all([
             QuickReplyService.listActive(req.user!.workspaceId),
@@ -96,6 +101,7 @@ export class AdminConversationsController {
                 },
                 messages: conversation.messages.map((message) => ({
                     id: message.id,
+                    wamid: message.wamid,
                     direction: message.direction,
                     type: message.type,
                     status: message.status,

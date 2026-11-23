@@ -55,6 +55,26 @@
         withCredentials: true
     });
 
+    // Meta mantiene el indicador de escritura hasta 25 segundos. Enviamos
+    // como máximo una señal cada 8 segundos mientras el agente escribe.
+    var typingTimer = null;
+    var lastTypingAt = 0;
+    var composer = document.getElementById("composer-body");
+    if (composer && basePath && conversationId) {
+        composer.addEventListener("input", function () {
+            if (!String(composer.value || "").trim()) return;
+            window.clearTimeout(typingTimer);
+            typingTimer = window.setTimeout(function () {
+                if (Date.now() - lastTypingAt < 8000) return;
+                lastTypingAt = Date.now();
+                fetch(basePath + "/" + encodeURIComponent(conversationId) + "/typing", {
+                    method: "POST", credentials: "same-origin",
+                    headers: { "Content-Type": "application/json" }, body: "{}"
+                }).catch(function () {});
+            }, 600);
+        });
+    }
+
     function formatDate(value) {
         var date = new Date(value);
 
@@ -396,6 +416,26 @@
             meta.appendChild(status);
         }
         bubble.appendChild(meta);
+        if (!isOut && !isNote && message.wamid) {
+            var reactions = document.createElement("div");
+            reactions.className = "mt-2 flex gap-1";
+            ["👍", "❤️", "😂", "😮", "😢", "🙏", ""].forEach(function (emoji) {
+                var button = document.createElement("button");
+                button.type = "button";
+                button.className = "rounded-full px-2 py-1 text-xs hover:bg-slate-100";
+                button.title = emoji ? "Reaccionar " + emoji : "Quitar reacción";
+                button.textContent = emoji || "×";
+                button.addEventListener("click", function () {
+                    fetch(basePath + "/" + encodeURIComponent(conversationId) + "/reactions", {
+                        method: "POST", credentials: "same-origin",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ messageId: message.wamid, emoji: emoji })
+                    }).catch(function () {});
+                });
+                reactions.appendChild(button);
+            });
+            bubble.appendChild(reactions);
+        }
         wrapper.appendChild(bubble);
 
         return wrapper;

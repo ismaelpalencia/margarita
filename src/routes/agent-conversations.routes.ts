@@ -8,6 +8,7 @@ import { AiSuggestionController } from "../controllers/ai-suggestion.controller"
 import { OutcomeController } from "../controllers/outcome.controller";
 import { requireCollectionsModule } from "../middlewares/workspace-profile.middleware";
 import { mediaUploadSingle } from "../middlewares/upload.middleware";
+import { WhatsAppCloudOperationsController } from "../controllers/whatsapp-cloud-operations.controller";
 
 const router = Router();
 
@@ -29,6 +30,8 @@ router.post(
     AgentConversationsController.sendMediaMessage
 );
 router.post("/:id/messages/free-text", AgentConversationsController.sendFreeTextMessage);
+router.post("/:id/typing", WhatsAppCloudOperationsController.typing);
+router.post("/:id/reactions", WhatsAppCloudOperationsController.react);
 router.post("/:id/messages/interactive", AgentConversationsController.sendInteractiveMessage);
 router.post("/:id/messages/interactive-list", AgentConversationsController.sendInteractiveList);
 router.post("/:id/feedback", AgentConversationsController.recordFeedback);
