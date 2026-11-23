@@ -6,6 +6,13 @@ import { WhatsAppNumberService } from "./whatsapp-number.service";
 const PROFILE_FIELDS = ["about", "address", "description", "email", "profile_picture_url", "websites", "vertical"] as const;
 export type WhatsAppProfile = Partial<Record<(typeof PROFILE_FIELDS)[number], string | string[]>>;
 
+export function buildBlockUsersPayload(users: string[]) {
+    return {
+        messaging_product: "whatsapp",
+        block_users: users.map((user) => ({ user }))
+    };
+}
+
 async function graph<T>(numberId: string, workspaceId: string, method: "GET" | "POST" | "DELETE", path: string, data?: unknown): Promise<T> {
     const number = await WhatsAppNumberService.getById(workspaceId, numberId);
     if (!number) throw new Error("Número de WhatsApp no encontrado.");
@@ -29,7 +36,7 @@ export class WhatsAppCloudOperationsService {
             method,
             url: `${appConfig.graphBaseUrl}/${c.apiVersion}/${c.phoneNumberId}/block_users`,
             headers: { Authorization: `Bearer ${c.accessToken}` },
-            ...(method === "GET" ? {} : { data: { messaging_product: "whatsapp", block_users: users.map((user_id) => ({ user_id })) } }),
+            ...(method === "GET" ? {} : { data: buildBlockUsersPayload(users) }),
             timeout: 15000
         });
         return response.data;

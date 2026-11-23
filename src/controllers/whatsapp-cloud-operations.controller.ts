@@ -1,9 +1,18 @@
 import { Request, Response } from "express";
+import axios from "axios";
 import { prisma } from "../config/prisma";
 import { ConversationService } from "../services/conversation.service";
 import { WhatsAppCloudOperationsService } from "../services/whatsapp-cloud-operations.service";
 import { getRequiredParam } from "../utils/request";
 import { deleteStoredMedia } from "../services/media-storage.service";
+import { describeMetaError } from "../utils/meta-error";
+
+function operationErrorMessage(error: unknown): string {
+    if (axios.isAxiosError(error) && error.response?.data) {
+        return describeMetaError({ data: error.response.data, status: error.response.status }) || error.message;
+    }
+    return error instanceof Error ? error.message : "request_failed";
+}
 
 async function authorizedConversation(req: Request) {
     const id = getRequiredParam(req, "id");
@@ -20,7 +29,7 @@ export class WhatsAppCloudOperationsController {
             const users = method === "GET" ? [] : Array.isArray(raw) ? raw : typeof raw === "string" ? raw.split(/[\s,]+/) : [];
             if (method !== "GET" && (!users.length || users.length > 100 || users.some((user) => typeof user !== "string" || !/^\+?\d{7,15}$/.test(user)))) return res.status(400).json({ error: "invalid_users" });
             return res.json(await WhatsAppCloudOperationsService.blockUsers(req.user!.workspaceId, getRequiredParam(req, "numberId"), method, users.map((user) => String(user).replace(/^\+/, ""))));
-        } catch (error) { return res.status(502).json({ error: error instanceof Error ? error.message : "meta_error" }); }
+        } catch (error) { return res.status(502).json({ error: operationErrorMessage(error) }); }
     }
 
     static async react(req: Request, res: Response) {
@@ -58,7 +67,7 @@ export class WhatsAppCloudOperationsController {
                 [phone]
             );
             return res.json({ ok: true, blocked: req.body.blocked, result });
-        } catch (error) { return res.status(400).json({ error: error instanceof Error ? error.message : "request_failed" }); }
+        } catch (error) { return res.status(502).json({ error: operationErrorMessage(error) }); }
     }
 
     static async health(req: Request, res: Response) {
