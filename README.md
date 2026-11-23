@@ -7,6 +7,7 @@ La aplicación no es un CRM, no crea plantillas de Meta y no es un chatbot de pr
 ## Producto hoy
 
 - Bandejas para administradores y agentes, asignación, estados de lectura, mensajes en vivo, reacciones, indicador de escritura y bloqueo de contactos en WhatsApp.
+- Aviso de mensajes sin leer en el título del navegador y preferencias individuales para elegir sonidos de notificación.
 - Respuestas rápidas de texto, botones (hasta 3) y listas (hasta 10 opciones), con configuración compartida y contenido cifrado.
 - Contactos, etiquetas, notas internas, bajas, plantillas, respuestas rápidas, campañas y archivos multimedia.
 - Conexión de uno o varios números de WhatsApp, salud del número y ajustes del perfil empresarial.

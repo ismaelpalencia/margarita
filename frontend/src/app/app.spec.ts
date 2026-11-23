@@ -4,7 +4,7 @@ import { App } from './app';
 import { routes } from './app.routes';
 
 describe('App', () => {
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => { vi.restoreAllMocks(); document.title = 'Margarita · Panel'; });
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -56,6 +56,19 @@ describe('App', () => {
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).querySelector('.breadcrumbs')?.textContent).toContain('Leads');
     expect((fixture.nativeElement as HTMLElement).querySelector('app-admin-leads-page h1')?.textContent).toContain('Leads');
+    fixture.destroy();
+  });
+
+  it('shows the initial unread total in the browser tab title', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const body = String(input) === '/panel/shell'
+        ? { role: 'ADMIN', userName: 'Eduardo', collectionsEnabled: true, activeNumberId: null, numbers: [], unreadTotal: 3, unassignedCount: 0 }
+        : { notifySoundEnabled: false, notifySoundType: 'classic', notifyBrowserEnabled: false };
+      return { ok: true, json: async () => body } as Response;
+    });
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    expect(document.title).toBe('(3) Margarita');
     fixture.destroy();
   });
 

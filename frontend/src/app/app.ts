@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { formatNotificationTitle, NotificationSoundType, playNotificationSound } from './notification-preferences';
 
 interface ShellNumber {
   id: string;
@@ -60,6 +61,7 @@ export class App {
   private socket: ReturnType<NonNullable<Window['io']>> | null = null;
   private latestBadges: { dashboardUnread: number; unassigned: number } | null = null;
   private soundNotifications = false;
+  private notificationSoundType: NotificationSoundType = 'classic';
   private browserNotifications = false;
   private toastTimer: number | null = null;
   protected readonly showInstall = computed(() => !this.installed() && (Boolean(this.installPrompt()) || (this.isMobile && !this.isStandalone)));
@@ -86,6 +88,7 @@ export class App {
       if ('serviceWorker' in navigator) void this.registerServiceWorker();
     }
     if (!this.isPublic) {
+      this.updateDocumentTitle(0);
       this.socket = window.io?.({ withCredentials: true }) || null;
       void this.loadShell();
       void this.loadNotificationPreferences();
@@ -205,6 +208,7 @@ export class App {
         unreadTotal: this.latestBadges.dashboardUnread,
         unassignedCount: this.latestBadges.unassigned
       } : data);
+      this.updateDocumentTitle(this.latestBadges?.dashboardUnread ?? data.unreadTotal ?? 0);
     } catch {
       /** Si el armazón falla, la página sigue sin contadores. */
     }
@@ -217,8 +221,9 @@ export class App {
         headers: { Accept: 'application/json' }
       });
       if (!response.ok) return;
-      const result = await response.json() as { notifySoundEnabled?: boolean; notifyBrowserEnabled?: boolean };
+      const result = await response.json() as { notifySoundEnabled?: boolean; notifySoundType?: NotificationSoundType; notifyBrowserEnabled?: boolean };
       this.soundNotifications = Boolean(result.notifySoundEnabled);
+      this.notificationSoundType = result.notifySoundType || 'classic';
       this.browserNotifications = Boolean(result.notifyBrowserEnabled);
     } catch {
       // Las notificaciones son opcionales; no afectan al panel si falla esta consulta.
@@ -232,6 +237,7 @@ export class App {
       dashboardUnread: Number(badges.dashboardUnread) || 0,
       unassigned: Number(badges.unassigned) || 0
     };
+    this.updateDocumentTitle(this.latestBadges.dashboardUnread);
     const current = this.shell();
     if (!current) return;
     this.shell.set({
@@ -260,7 +266,7 @@ export class App {
     if (this.toastTimer !== null) window.clearTimeout(this.toastTimer);
     this.toastTimer = window.setTimeout(() => this.liveToast.set(null), 7000);
 
-    if (this.soundNotifications) this.playNotificationSound();
+    if (this.soundNotifications) playNotificationSound(this.notificationSoundType);
     if (this.browserNotifications && document.hidden && 'Notification' in window && Notification.permission === 'granted') {
       try {
         const notification = new Notification(`Nuevo mensaje · ${name}`, { body, tag: `margarita-${event.conversationId}` });
@@ -275,24 +281,7 @@ export class App {
     }
   }
 
-  private playNotificationSound(): void {
-    try {
-      const context = new AudioContext();
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.frequency.value = 660;
-      gain.gain.value = 0.07;
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-      oscillator.start();
-      window.setTimeout(() => {
-        oscillator.stop();
-        void context.close();
-      }, 180);
-    } catch {
-      // El sonido es opcional y no debe bloquear el panel.
-    }
-  }
+  private updateDocumentTitle(unread: number): void { document.title = formatNotificationTitle(unread); }
 
   protected switchNumber(event: Event): void {
     const select = event.target as HTMLSelectElement;

@@ -33,6 +33,7 @@ El acceso se valida en el servidor. La aplicación mantiene sesiones revocables,
 
 - Recepción de mensajes por webhook firmado, deduplicación por identificador de Meta y actualización de estados de entrega.
 - Asignación, reclamación, cierre y reapertura; historial y notificaciones en tiempo real.
+- Total de mensajes sin leer reflejado en el título de la pestaña y sonidos opcionales configurables por usuario.
 - Respuestas manuales, notas internas, plantillas cuando corresponda, respuestas rápidas, botones/listas compatibles y medios.
 - Las respuestas rápidas pueden guardar texto, hasta 3 botones o listas de hasta 10 opciones. Se validan con los mismos límites de WhatsApp; las listas requieren estar habilitadas en la configuración del espacio.
 - Ventana de 24 horas aplicada en el servidor para texto libre.

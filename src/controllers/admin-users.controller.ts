@@ -407,13 +407,14 @@ export class AccountController {
     static async showNotifications(req: Request, res: Response) {
         const user = await prisma.user.findUniqueOrThrow({
             where: { id: req.user!.id },
-            select: { notifySoundEnabled: true, notifyBrowserEnabled: true }
+            select: { notifySoundEnabled: true, notifySoundType: true, notifyBrowserEnabled: true }
         });
 
         if (wantsJson(req)) {
             return res.json({
                 user: { name: req.user!.name, email: req.user!.email },
                 notifySoundEnabled: user.notifySoundEnabled,
+                notifySoundType: user.notifySoundType,
                 notifyBrowserEnabled: user.notifyBrowserEnabled
             });
         }
@@ -422,10 +423,16 @@ export class AccountController {
     }
 
     static async saveNotifications(req: Request, res: Response) {
+        const soundType = req.body?.notifySoundType ?? "classic";
+        if (!["classic", "gentle", "bell", "double"].includes(soundType)) {
+            if (wantsJson(req)) return res.status(400).json({ error: "Elige un sonido de notificación válido." });
+            return res.redirect("/account/notifications?error=sound");
+        }
         await prisma.user.update({
             where: { id: req.user!.id },
             data: {
                 notifySoundEnabled: req.body?.notifySoundEnabled === "true" || req.body?.notifySoundEnabled === true,
+                notifySoundType: soundType,
                 notifyBrowserEnabled: req.body?.notifyBrowserEnabled === "true" || req.body?.notifyBrowserEnabled === true
             }
         });

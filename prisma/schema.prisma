@@ -560,6 +560,7 @@ model User {
    * Preferencias de notificación (apagadas por defecto).
    */
   notifySoundEnabled   Boolean @default(false)
+  notifySoundType      String  @default("classic")
   notifyBrowserEnabled Boolean @default(false)
 
   isActive Boolean @default(true)
