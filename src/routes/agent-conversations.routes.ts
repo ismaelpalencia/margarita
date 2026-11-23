@@ -5,8 +5,6 @@ import { AiConversationController } from "../controllers/ai-conversation.control
 import { GuidedFlowConversationController } from "../controllers/guided-flow-conversation.controller";
 import { LeadConversationController } from "../controllers/lead-conversation.controller";
 import { AiSuggestionController } from "../controllers/ai-suggestion.controller";
-import { OutcomeController } from "../controllers/outcome.controller";
-import { requireCollectionsModule } from "../middlewares/workspace-profile.middleware";
 import { mediaUploadSingle } from "../middlewares/upload.middleware";
 import { WhatsAppCloudOperationsController } from "../controllers/whatsapp-cloud-operations.controller";
 
@@ -39,14 +37,6 @@ router.post("/:id/claim", AgentConversationsController.claim);
 router.post(
     "/:id/lead",
     LeadConversationController.mark("/agent/conversations")
-);
-router.post(
-    "/:id/outcome",
-    requireCollectionsModule,
-    OutcomeController.markFromConversation({
-        basePath: "/agent/conversations",
-        forAgent: true
-    })
 );
 router.post("/:id/close", AgentConversationsController.close);
 router.post(

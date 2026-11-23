@@ -90,3 +90,41 @@ html[data-theme="dark"] .page-content app-agent-conversation-page .jump-latest {
 .message-reactions button:hover { background: #e0ebe4; }
 .media-delete { display: block; margin-top: 4px; padding: 2px 0; border: 0; color: #9a4a3e; background: transparent; font-size: 10px; text-decoration: underline; cursor: pointer; }
 .wa-health-warning { background: #fff1dc !important; color: #805012 !important; }
+
+/* Ajustes de contraste para las pantallas Angular en tema oscuro. */
+html[data-theme="dark"] {
+  --surface-page: #101713;
+  --surface-card: #19231e;
+  --surface-raised: #202d26;
+  --surface-border: #37473d;
+  --text-primary: #e8f0ea;
+  --text-secondary: #c3d0c7;
+  --text-muted: #9ba99f;
+  --brand-green: #77d49a;
+}
+
+html[data-theme="dark"] .page-content :is(.wa-number,.wa-usage,.wa-credential,.wa-health,.wa-current-profile,.wa-block-list,.wa-webhook,.quick-replies,.deleted-toggle,.interactive-tools) {
+  border-color: var(--surface-border) !important;
+  color: var(--text-secondary) !important;
+  background-color: var(--surface-raised) !important;
+}
+html[data-theme="dark"] .page-content :is(.wa-number h3,.wa-credential b,.wa-card h2,.wa-webhook h2) { color: var(--text-primary) !important; }
+html[data-theme="dark"] .page-content :is(.wa-number p,.wa-credential span,.wa-usage small,.wa-muted,.wa-card-heading p) { color: var(--text-secondary) !important; }
+html[data-theme="dark"] .page-content :is(.wa-badges span,.detail-pill,.tag-list span) { border-color: #405347; color: #d8e7dc; background-color: #293a30; }
+html[data-theme="dark"] .page-content .wa-badges .wa-suggested { color: #f4dfa9; background-color: #493b23; }
+html[data-theme="dark"] .page-content .wa-health-warning { border-color: #70562b !important; color: #f3dca8 !important; background-color: #3b301f !important; }
+html[data-theme="dark"] .page-content :is(.wa-warning,.wa-empty,.composer-warning) { border-color: #70562b !important; color: #f3dca8 !important; background-color: #3b301f !important; }
+html[data-theme="dark"] .page-content :is(.detail-loading,.thread-empty,.no-tags,.internal-copy,.back-link) { color: var(--text-muted) !important; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .message-thread { background-color: #121a16 !important; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .message-bubble:not(.outgoing-bubble):not(.internal-note) { border-color: #35443a; color: #e0e9e2; background-color: #202b25; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .message-bubble footer { color: #a8b6ac; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .reply-label { color: #c2d6c8; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .message-reactions button { border: 1px solid #405247; color: #e0ebe3; background-color: #29372f; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .message-reactions button:hover { background-color: #35483b; }
+html[data-theme="dark"] .page-content app-agent-conversation-page :is(.detail-action-list button,.note-form button,.close-button,.composer-actions button,.voice-recorder button) { border-color: #405247; color: #e0ebe3; background-color: #29372f; }
+html[data-theme="dark"] .page-content app-agent-conversation-page :is(.send-form button,.upload-form button,.voice-recorder .voice-start,.voice-recorder .voice-send) { border-color: transparent; color: #fff; background-color: #168456; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .voice-recorder .voice-discard { color: #ffb9b0; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .media-delete { color: #ffaaa1; }
+html[data-theme="dark"] .page-content :is(button,a,input,select,textarea,summary):focus-visible { outline: 2px solid #75d49a; outline-offset: 2px; }
+html[data-theme="dark"] ::selection { color: #f5fff8; background: #286044; }
+html[data-theme="dark"] * { scrollbar-color: #53645a #18211c; }

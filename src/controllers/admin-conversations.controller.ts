@@ -8,24 +8,14 @@ import { MessageService } from "../services/message.service";
 import { TemplateService } from "../services/template.service";
 import { UserService } from "../services/user.service";
 import { QuickReplyService } from "../services/quick-reply.service";
-import { ContactOutcomeService } from "../services/contact-outcome.service";
 import { SendPolicyService } from "../services/send-policy.service";
 import { AiSettingsService } from "../services/ai/settings.service";
 import { AiSuggestionService } from "../services/ai/suggestion.service";
 import { GuidedFlowService } from "../services/guided-flow.service";
-import { monthKeyIn, startOfMonthIn, startOfTodayIn } from "../utils/date";
+import { monthKeyIn, startOfMonthIn } from "../utils/date";
 import { sharedContactDetailsFromPayload } from "../utils/shared-contact";
 import { NumberUsageService } from "../services/number-usage.service";
 import { templateVariableShape } from "../utils/template";
-import {
-    OUTCOME_BADGE_CLASSES,
-    OUTCOME_LABELS,
-    OUTCOME_SHORT_LABELS,
-    OUTCOME_TYPES,
-    daysOverdue,
-    formatAmount,
-    isOpenPromise
-} from "../utils/outcome";
 import { getRequiredParam } from "../utils/request";
 import { sendFreeTextMessageSchema } from "../validations/free-text-message.validation";
 import { sendLocalMessageSchema } from "../validations/message.validation";
@@ -42,8 +32,7 @@ import {
 import {
     formatDateTimeMX,
     formatDayLabelMX,
-    formatTimeMX,
-    formatWaitingTime
+    formatTimeMX
 } from "../utils/date";
 import { describeMetaError } from "../utils/meta-error";
 import { WhatsAppCloudOperationsService } from "../services/whatsapp-cloud-operations.service";
@@ -93,10 +82,6 @@ export class AdminConversationsController {
                     profileName: conversation.contact.profileName,
                     phone: conversation.contact.phone,
                     optOutAt: conversation.contact.optOutAt,
-                    outcomeType: conversation.contact.outcomeType,
-                    outcomeAmount: conversation.contact.outcomeAmount,
-                    outcomeDueAt: conversation.contact.outcomeDueAt,
-                    outcomePaidAt: conversation.contact.outcomePaidAt,
                     tags: conversation.contact.tags.map(({ tag }) => ({ id: tag.id, name: tag.name, color: tag.color }))
                 },
                 messages: conversation.messages.map((message) => ({
@@ -327,11 +312,6 @@ export class AdminConversationsController {
         const timezone = await SendPolicyService.timezoneFor(
             req.user!.workspaceId
         );
-        const attempts = await ContactOutcomeService.attemptsFor(
-            req.user!.workspaceId,
-            [conversation.contactId]
-        );
-
         /** Lista para la columna izquierda de la bandeja de 3 paneles. */
         const conversations = await ConversationService.listForAdmin(
             req.user!.workspaceId,
@@ -349,14 +329,8 @@ export class AdminConversationsController {
             guidedFlowRun,
             existingLead,
             aiDraftBody,
-            outcomeAttempts: attempts.get(conversation.contactId) ?? { attempts: 0, hasInbound: false, lastInboundAt: null },
-            outcomeLabels: OUTCOME_LABELS,
-            outcomeTypes: OUTCOME_TYPES,
-            shortLabels: OUTCOME_SHORT_LABELS,
-            daysLate: daysOverdue(conversation.contact.outcomeDueAt, startOfTodayIn(timezone)),
             showDeleted: includeDeleted,
             interactiveListsEnabled: Boolean(res.locals.interactiveListsEnabled),
-            collectionsEnabled: Boolean(res.locals.collectionsEnabled),
             error: req.query.error || null,
             success: req.query.success || null,
             mediaError: typeof req.query.detail === "string" ? req.query.detail : null
@@ -382,27 +356,11 @@ export class AdminConversationsController {
             guidedFlowRun,
             existingLead,
             aiDraftBody,
-            outcomeAttempts: attempts.get(conversation.contactId) ?? {
-                attempts: 0,
-                hasInbound: false,
-                lastInboundAt: null
-            },
-            outcomeLabels: OUTCOME_LABELS,
-            outcomeBadgeClasses: OUTCOME_BADGE_CLASSES,
-            outcomeTypes: OUTCOME_TYPES,
-            shortLabels: OUTCOME_SHORT_LABELS,
-            isOpenPromise,
-            formatAmount,
-            daysLate: daysOverdue(
-                conversation.contact.outcomeDueAt,
-                startOfTodayIn(timezone)
-            ),
             showDeleted: includeDeleted,
             timezone,
             formatDateTimeMX,
             formatDayLabelMX,
             formatTimeMX,
-            formatWaitingTime,
             /** Para que el compositor muestre los campos que la plantilla pide. */
             templateVariableShape,
             error: req.query.error || null,

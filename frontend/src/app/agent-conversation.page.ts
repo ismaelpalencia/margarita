@@ -44,10 +44,6 @@ interface AgentConversationDetail {
       profileName: string | null;
       phone: string;
       optOutAt: string | null;
-      outcomeType?: string | null;
-      outcomeAmount?: number | string | null;
-      outcomeDueAt?: string | null;
-      outcomePaidAt?: string | null;
       tags: Array<{ id: string; name: string; color: string | null }>;
     };
     messages: ConversationMessage[];
@@ -66,11 +62,6 @@ interface AdvancedConversationData {
   interactiveListsEnabled: boolean;
   error: string | null;
   success: string | null;
-  outcomeAttempts: { attempts: number; hasInbound: boolean };
-  outcomeLabels: Record<string, string>;
-  shortLabels: Record<string, string>;
-  outcomeTypes: string[];
-  daysLate: number;
 }
 
 @Component({
@@ -208,7 +199,6 @@ interface AdvancedConversationData {
                 <button type="submit">{{ tools.existingLead ? 'Guardar cambios' : 'Guardar lead' }}</button>
               </form>
             </section>
-            <section class="detail-card"><h2>Resultado de gestión</h2>@if (model.conversation.contact.outcomeType) { <p><strong>{{ tools.outcomeLabels[model.conversation.contact.outcomeType] || model.conversation.contact.outcomeType }}</strong>@if (tools.daysLate > 0) { · {{ tools.daysLate }} días de atraso }</p>@if (model.conversation.contact.outcomeAmount) { <p>Monto: {{ model.conversation.contact.outcomeAmount }}</p> }@if (model.conversation.contact.outcomeDueAt) { <p>Compromiso: {{ dateLabel(model.conversation.contact.outcomeDueAt, model.timezone) }}</p> } } @else { <p>Sin resultado registrado.</p> }<p>{{ tools.outcomeAttempts.attempts }} intentos · {{ tools.outcomeAttempts.hasInbound ? 'Ya respondió' : 'Nunca ha respondido' }}</p><form [action]="outcomeUrl(model)" method="post" class="advanced-form"><input name="amount" inputmode="decimal" placeholder="Monto"><input name="dueDate" type="date"><input name="paidDate" type="date"><input name="note" maxlength="500" placeholder="Nota de gestión">@for (type of tools.outcomeTypes; track type) { <button name="type" [value]="type" type="submit">{{ tools.shortLabels[type] }}</button> }</form></section>
             @if (tools.guidedFlowRun) { <section class="detail-card"><h2>Flujo guiado · {{ tools.guidedFlowRun.flowName }}</h2><p>{{ tools.guidedFlowRun.status === 'ACTIVE' ? 'En curso' : 'Completado' }}</p>@if (tools.guidedFlowRun.pending; as pending) { <p>{{ pending.text }}</p>@for (option of pending.options; track option) { <small>{{ option }} · </small> }<form [action]="guidedFlowApproveUrl(model)" method="post"><button type="submit">Aprobar y enviar</button></form> }@if (tools.guidedFlowRun.status === 'ACTIVE') { <form [action]="guidedFlowEndUrl(model)" method="post"><button type="submit">Terminar flujo</button></form> }</section> }
             @if (tools.aiSettings.enabled) { <section class="detail-card"><h2>Asistencia de IA</h2>@if (model.conversation.aiPausedAt) { <form [action]="aiResumeUrl(model)" method="post"><button type="submit">Reanudar IA</button></form> } @else { <form [action]="aiPauseUrl(model)" method="post"><button type="submit">Pausar IA</button></form> }</section> }
             @if (isAdmin) { <section class="detail-card purge-card"><h2>Zona de riesgo</h2><p>Borra definitivamente todos los mensajes de esta conversación. Escribe BORRAR para confirmar.</p><form [action]="purgeUrl(model)" method="post" class="advanced-form" (submit)="confirmPurge($event)"><input name="confirm" required autocomplete="off" placeholder="BORRAR"><button type="submit">Borrar todo el chat</button></form></section> }
@@ -485,7 +475,6 @@ export class AgentConversationPage implements OnDestroy {
   protected interactiveListUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/interactive-list`; }
   protected assignUrl(model: AgentConversationDetail): string { return `/admin/conversations/${model.conversation.id}/assign`; }
   protected leadUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/lead`; }
-  protected outcomeUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/outcome`; }
   protected guidedFlowEndUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/guided-flow/end`; }
   protected guidedFlowApproveUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/guided-flow/approve`; }
   protected aiPauseUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/ai-pause`; }
