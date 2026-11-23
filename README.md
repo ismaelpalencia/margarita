@@ -484,6 +484,8 @@ El trabajo de integración sí necesita la base: se declara con `services:` y su
 | POST | `/admin/whatsapp/credentials` | Actualiza número, IDs y tokens (se guardan cifrados) |
 | POST | `/admin/whatsapp/encrypt-secrets` | Cifra las credenciales que siguen en texto plano |
 | GET | `/admin/templates` | Plantillas sincronizadas |
+| POST | `/admin/templates` | Crea una plantilla de texto en Meta (MARKETING/UTILITY) |
+| POST | `/admin/templates/:id/delete` | Elimina una plantilla local y en Meta |
 | POST | `/admin/templates/sync` | Sincroniza plantillas desde Meta |
 | GET | `/admin/conversations` | Todas las conversaciones |
 | POST | `/admin/conversations/from-contact/:contactId` | Abre o reabre una conversación |

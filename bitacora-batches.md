@@ -1129,3 +1129,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 375 pruebas unitarias.
 
 ---
+
+## Crear y eliminar plantillas desde Angular
+
+- Endpoint POST /admin/templates para crear plantillas MARKETING/UTILITY.
+- Endpoint POST /admin/templates/:id/delete para eliminarlas en Meta y local.
+- Formulario Angular con encabezado, cuerpo y pie.
+- Las plantillas nuevas quedan PENDING hasta aprobación de Meta.
+- 379 pruebas unitarias.
+
+---

@@ -10,6 +10,42 @@ type TemplateComponent = {
     }>;
 };
 
+export type NewTemplateInput = {
+    name: string;
+    language: string;
+    category: string;
+    header?: string;
+    body: string;
+    footer?: string;
+};
+
+/** Componentes mínimos que acepta Meta para crear una plantilla de texto. */
+export function buildTemplateComponents(input: NewTemplateInput): Array<Record<string, unknown>> {
+    const components: Array<Record<string, unknown>> = [];
+
+    if (input.header?.trim()) {
+        components.push({
+            type: "HEADER",
+            format: "TEXT",
+            text: input.header.trim()
+        });
+    }
+
+    components.push({
+        type: "BODY",
+        text: input.body.trim()
+    });
+
+    if (input.footer?.trim()) {
+        components.push({
+            type: "FOOTER",
+            text: input.footer.trim()
+        });
+    }
+
+    return components;
+}
+
 export function getTemplateBodyText(components: unknown): string {
     if (!Array.isArray(components)) return "";
 

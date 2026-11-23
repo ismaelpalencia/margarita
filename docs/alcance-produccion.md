@@ -417,6 +417,7 @@ Si falla una condición, entrega a una persona con el motivo. La pausa por hilo 
 - **Salud de la cuenta**: avisos de Meta sobre plantillas y calidad de números.
 - **Escalamiento de handoff**: un job (`startHandoffEscalationJob`, `src/jobs/handoff-escalation.job.ts`, cada 60 s) revisa las conversaciones sin asignar y, si superan `handoffEscalationMinutes`, marca `handoffEscalatedAt` y re-avisa a los administradores.
 - **Eventos procesados**: `messages`, `message_template_status_update`, `phone_number_quality_update`. Otros se ignoran.
+- Las plantillas nuevas se crean desde el panel con cuerpo, encabezado y pie de texto. Meta las deja en `PENDING` hasta su aprobación; no se editan, se eliminan y se vuelven a crear.
 
 ---
 

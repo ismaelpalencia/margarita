@@ -5,6 +5,10 @@ import { prisma } from "../config/prisma";
 import { decryptSecret } from "../utils/crypto";
 import { appConfig } from "../config/app.config";
 import { LogService } from "./log.service";
+import {
+    buildTemplateComponents,
+    NewTemplateInput
+} from "../utils/template";
 
 type MetaTemplate = {
     id?: string;
@@ -53,6 +57,117 @@ export class TemplateService {
      */
     static async syncTemplates(workspaceId: string) {
         return this.syncTemplatesFromMeta(workspaceId);
+    }
+
+    static async createTemplate(workspaceId: string, input: NewTemplateInput) {
+        const account = await prisma.whatsAppAccount.findUnique({
+            where: { workspaceId }
+        });
+
+        if (!account) {
+            throw new Error("No hay cuenta de WhatsApp configurada.");
+        }
+
+        const components = buildTemplateComponents(input);
+
+        try {
+            const response = await axios.post(
+                `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.businessAccountId}/message_templates`,
+                {
+                    name: input.name,
+                    language: input.language,
+                    category: input.category,
+                    components
+                },
+                {
+                    params: { access_token: decryptSecret(account.accessToken) },
+                    timeout: 15000
+                }
+            );
+
+            const template = await prisma.template.upsert({
+                where: {
+                    workspaceId_name_language: {
+                        workspaceId,
+                        name: input.name,
+                        language: input.language
+                    }
+                },
+                update: {
+                    metaTemplateId: response.data?.id || null,
+                    category: response.data?.category || input.category,
+                    status: response.data?.status || "PENDING",
+                    components: toPrismaJson(response.data?.components || components),
+                    lastSyncedAt: new Date()
+                },
+                create: {
+                    workspaceId,
+                    metaTemplateId: response.data?.id || null,
+                    name: input.name,
+                    language: input.language,
+                    category: response.data?.category || input.category,
+                    status: response.data?.status || "PENDING",
+                    components: toPrismaJson(response.data?.components || components),
+                    lastSyncedAt: new Date()
+                }
+            });
+
+            await LogService.create({
+                workspaceId,
+                level: LogLevel.INFO,
+                module: LogModule.META,
+                action: "TEMPLATE_CREATED",
+                message: "Se creó una plantilla en Meta.",
+                payload: { templateId: template.id, name: template.name }
+            }).catch(() => undefined);
+
+            return template;
+        } catch (error) {
+            const message = axios.isAxiosError(error)
+                ? error.response?.data?.error?.message || error.message
+                : error instanceof Error
+                  ? error.message
+                  : "No se pudo crear la plantilla.";
+
+            throw new Error(message);
+        }
+    }
+
+    static async deleteTemplate(workspaceId: string, templateId: string) {
+        const account = await prisma.whatsAppAccount.findUnique({
+            where: { workspaceId }
+        });
+        const template = await prisma.template.findFirst({
+            where: { id: templateId, workspaceId }
+        });
+
+        if (!template) {
+            throw new Error("Plantilla no encontrada.");
+        }
+
+        if (account) {
+            await axios.delete(
+                `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.businessAccountId}/message_templates`,
+                {
+                    params: {
+                        access_token: decryptSecret(account.accessToken),
+                        name: template.name
+                    },
+                    timeout: 15000
+                }
+            );
+        }
+
+        await prisma.template.delete({ where: { id: template.id } });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.WARN,
+            module: LogModule.META,
+            action: "TEMPLATE_DELETED",
+            message: "Se eliminó una plantilla.",
+            payload: { templateId: template.id, name: template.name }
+        }).catch(() => undefined);
     }
 
     static async syncTemplatesFromMeta(workspaceId: string) {

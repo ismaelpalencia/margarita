@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 
 import { TemplateService } from "../services/template.service";
 import { templateVariableShape } from "../utils/template";
+import { getRequiredParam } from "../utils/request";
 
 export class AdminTemplatesController {
     private static wantsJson(req: Request): boolean {
@@ -25,6 +26,90 @@ export class AdminTemplatesController {
         }
 
         return res.redirect("/panel/admin/templates");
+    }
+
+    static async create(req: Request, res: Response) {
+        const name = String(req.body?.name || "").trim().toLowerCase();
+        const language = String(req.body?.language || "").trim();
+        const category = String(req.body?.category || "UTILITY").trim().toUpperCase();
+        const header = String(req.body?.header || "").trim();
+        const body = String(req.body?.body || "").trim();
+        const footer = String(req.body?.footer || "").trim();
+
+        if (!/^[a-z0-9_]{1,512}$/.test(name)) {
+            const error = "El nombre debe usar minúsculas, números y guiones bajos.";
+            return AdminTemplatesController.createResponse(req, res, 400, error);
+        }
+        if (!/^[a-z]{2}(?:_[A-Z]{2})?$/.test(language)) {
+            const error = "El idioma debe tener formato es_MX o en_US.";
+            return AdminTemplatesController.createResponse(req, res, 400, error);
+        }
+        if (!["MARKETING", "UTILITY"].includes(category)) {
+            const error = "La categoría debe ser MARKETING o UTILITY. Las plantillas de autenticación se crean desde Meta.";
+            return AdminTemplatesController.createResponse(req, res, 400, error);
+        }
+        if (!body || body.length > 1024 || header.length > 60 || footer.length > 60) {
+            const error = "Revisa el cuerpo (1–1024) y el encabezado/pie (máximo 60).";
+            return AdminTemplatesController.createResponse(req, res, 400, error);
+        }
+
+        try {
+            const template = await TemplateService.createTemplate(
+                req.user!.workspaceId,
+                { name, language, category, header, body, footer }
+            );
+
+            if (AdminTemplatesController.wantsJson(req)) {
+                return res.json({
+                    ok: true,
+                    template: {
+                        id: template.id,
+                        name: template.name,
+                        language: template.language,
+                        status: template.status
+                    }
+                });
+            }
+
+            return res.redirect("/panel/admin/templates?success=created");
+        } catch (error) {
+            return AdminTemplatesController.createResponse(
+                req,
+                res,
+                400,
+                error instanceof Error ? error.message : "No se pudo crear la plantilla."
+            );
+        }
+    }
+
+    private static createResponse(
+        req: Request,
+        res: Response,
+        status: number,
+        error: string
+    ) {
+        if (AdminTemplatesController.wantsJson(req)) {
+            return res.status(status).json({ error });
+        }
+        return res.redirect("/panel/admin/templates?error=create");
+    }
+
+    static async remove(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+
+        try {
+            await TemplateService.deleteTemplate(req.user!.workspaceId, id);
+            if (AdminTemplatesController.wantsJson(req)) {
+                return res.json({ ok: true });
+            }
+            return res.redirect("/panel/admin/templates?success=deleted");
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "No se pudo eliminar la plantilla.";
+            if (AdminTemplatesController.wantsJson(req)) {
+                return res.status(400).json({ error: message });
+            }
+            return res.redirect("/panel/admin/templates?error=delete");
+        }
     }
 
     static async sync(req: Request, res: Response) {

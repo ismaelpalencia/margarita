@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
     buildTemplateBodyParameters,
+    buildTemplateComponents,
     buildTemplateMessagePayload,
     countTemplateVariables,
     getTemplateBodyText,
@@ -22,6 +23,23 @@ const components = [
     },
     { type: "FOOTER", text: "Margarita" }
 ];
+
+test("construye componentes de una plantilla nueva", () => {
+    const result = buildTemplateComponents({
+        name: "aviso_pago",
+        language: "es_MX",
+        category: "UTILITY",
+        header: "Margarita",
+        body: "Hola {{1}}, tu pago está listo.",
+        footer: "No responder"
+    });
+
+    assert.deepEqual(result, [
+        { type: "HEADER", format: "TEXT", text: "Margarita" },
+        { type: "BODY", text: "Hola {{1}}, tu pago está listo." },
+        { type: "FOOTER", text: "No responder" }
+    ]);
+});
 
 test("extrae el texto del componente BODY", () => {
     assert.equal(
