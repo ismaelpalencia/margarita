@@ -114,7 +114,11 @@ export class App {
   }
 
   private applyTheme(enabled: boolean): void {
-    document.documentElement.dataset['theme'] = enabled ? 'dark' : 'light';
+    const root = document.documentElement;
+    // El tema oscuro usa el filtro global de inversión; conserva el tema base
+    // claro para que la inversión transforme también las pantallas legacy.
+    root.dataset['theme'] = 'light';
+    root.classList.toggle('margarita-dark-mode', enabled);
   }
 
   protected async installApp(): Promise<void> {

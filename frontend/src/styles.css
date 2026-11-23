@@ -3,6 +3,8 @@
 * { box-sizing: border-box; }
 html, body { min-height: 100%; margin: 0; }
 html { color-scheme: light; --surface-page: #f6f8f7; --surface-card: #fff; --surface-raised: #f8faf8; --surface-border: #e3e9e5; --text-primary: #263b33; --text-secondary: #65746c; --text-muted: #89958e; --brand-green: #17865a; }
+html.margarita-dark-mode { filter: invert(1) hue-rotate(180deg) !important; }
+html.margarita-dark-mode :is(img, video, iframe, canvas, [style*="background-image"]) { filter: invert(1) hue-rotate(180deg) !important; }
 body { color: #263b33; background: #f7f9f7; font-family: 'Times New Roman', Times, serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
 button, input, select, textarea { font: inherit; }
 a { color: inherit; }
