@@ -1,86 +1,133 @@
-# Margarita
+<p align="center">
+  <img src="src/public/brand/img/margarita-wordmark-512.png" alt="Margarita" width="300">
+</p>
 
-Margarita es una aplicación web para operar WhatsApp Business Cloud API: recibir y responder mensajes, atender conversaciones con un equipo, enviar campañas con plantillas aprobadas y administrar la operación desde un panel Angular.
+<h1 align="center">Margarita</h1>
 
-La aplicación no es un CRM, no crea plantillas de Meta y no es un chatbot de propósito general. La IA opcional trabaja con conocimiento configurado, controles de confianza y límites operativos.
+<p align="center">
+  Operación de WhatsApp Business para equipos que necesitan atender, organizar y dar seguimiento desde un solo lugar.
+</p>
 
-## Producto hoy
+<p align="center">
+  <strong>Bandeja compartida · Automatización opcional · WhatsApp Business Cloud API</strong>
+</p>
 
-- Bandejas para administradores y agentes, asignación, estados de lectura, mensajes en vivo, reacciones, indicador de escritura y bloqueo de contactos en WhatsApp.
-- Aviso de mensajes sin leer en el título del navegador y preferencias individuales para elegir sonidos de notificación.
-- Respuestas rápidas de texto, botones (hasta 3) y listas (hasta 10 opciones), con configuración compartida y contenido cifrado.
-- Contactos, etiquetas, notas internas, bajas, plantillas, respuestas rápidas, campañas y archivos multimedia.
-- Conexión de uno o varios números de WhatsApp, salud del número y ajustes del perfil empresarial.
-- Automatización opcional con IA y flujos, con límites y handoff a una persona.
-- Reportes, bitácora, respaldos, sesiones y configuración del espacio de trabajo.
+---
 
-El estado “bloqueado” mostrado en una conversación refleja las acciones de bloqueo realizadas desde Margarita. Cambios hechos directamente en Meta pueden no reflejarse hasta sincronizar la lista de bloqueados desde Admin → WhatsApp.
+## Qué es
 
-## Interfaz y vistas
+Margarita es una aplicación web de atención por WhatsApp. Reúne en una bandeja las conversaciones que llegan al número de WhatsApp Business de una empresa y permite que varias personas del equipo las atiendan con contexto, reglas y seguimiento.
 
-El panel autenticado de operación se sirve como aplicación Angular desde `/panel`. Angular usa rutas JSON de Express; Express mantiene autenticación, permisos y acceso a base de datos y Meta.
+El equipo puede responder manualmente, usar respuestas rápidas y plantillas aprobadas por Meta, distribuir conversaciones y, si lo configura, apoyarse en automatizaciones con IA o flujos guiados.
 
-EJS todavía está en uso en esta aplicación. Renderiza páginas de inicio/configuración y algunas pantallas públicas y de acceso, además de rutas explícitas de compatibilidad (`/legacy`) para vistas anteriores del panel. Por tanto, Angular es el panel habitual, pero el repositorio aún no es “solo Angular”. Las plantillas archivadas en `src/views/legacy-unused/` no se renderizan.
+> **En una frase:** Margarita convierte el WhatsApp de una empresa en un canal de atención compartido, medible y operable por un equipo.
 
-La página comercial y la demo pública no son el panel: el landing se mantiene en `landing/` y la demo interactiva puede desplegarse como servicio Go independiente.
+## Cómo se usa
 
-## Tecnología y estructura
+1. **Conectar el canal.** Se configura una cuenta de WhatsApp Business Cloud API y uno o más números empresariales.
+2. **Preparar el equipo.** Un administrador invita agentes, define horarios y ajusta respuestas rápidas, plantillas, etiquetas y automatizaciones.
+3. **Atender.** Los mensajes entrantes aparecen en la bandeja; el equipo asigna y responde desde Angular, con actualizaciones en vivo.
+4. **Dar seguimiento.** Margarita conserva el historial y los estados que comunica Meta, registra actividad y permite revisar reportes y operación.
 
-- Node.js (versión indicada en `.nvmrc`), TypeScript estricto, Express y Prisma.
-- Angular en `frontend/`; sus archivos compilados se sirven desde `src/public/angular/`.
-- PostgreSQL como base de datos, Socket.IO para actualizaciones en vivo y Meta Graph API para WhatsApp.
-- Controladores HTTP en `src/controllers/`, reglas y persistencia en `src/services/`, rutas en `src/routes/`, esquema y migraciones en `prisma/`.
-- Pruebas unitarias junto al código y pruebas de integración en `tests/integration/`.
+### Ejemplo de jornada
 
-## Requisitos
+Una persona escribe al WhatsApp de la empresa. Margarita recibe el aviso de Meta, encuentra o crea el contacto y muestra la conversación a los agentes. Un agente la toma, consulta el historial y responde. Si el mensaje requiere una plantilla aprobada, la envía desde el mismo flujo. Cuando termina, el hilo puede cerrarse; si requiere seguimiento humano, queda asignado al equipo.
 
-- Node.js de la versión indicada en `.nvmrc` y npm.
-- PostgreSQL disponible para la aplicación.
-- Credenciales de una app de Meta con WhatsApp Business Cloud API para usar la integración real.
+## Funciones principales
+
+| Área | Qué permite hacer |
+| --- | --- |
+| **Conversaciones** | Bandeja para administración y agentes, asignación, toma de conversaciones, notas internas, estados y actualizaciones en vivo. |
+| **Atención por WhatsApp** | Texto, archivos multimedia, plantillas de Meta, respuestas rápidas de texto, botones y listas, reacciones, leído y escribiendo. |
+| **Contactos** | Fichas, etiquetas, notas, consentimiento declarado y bajas. Se puede bloquear o desbloquear un contacto en WhatsApp desde la conversación. |
+| **Campañas** | Preparar envíos a grupos de contactos con plantillas aprobadas, variables y control de cola, pausa y reintentos. |
+| **Automatización** | Flujos guiados y funciones opcionales de IA para sugerir o enviar respuestas dentro de los controles configurados, con entrega al equipo cuando corresponde. |
+| **Administración** | Equipo, números, perfil y salud reportada por Meta, reportes, bitácora, sesiones, respaldos y configuración. |
+
+Las operaciones de leído y escribiendo se envían desde Margarita cuando el agente abre o atiende una conversación; **no indican que el cliente esté escribiendo en WhatsApp**. La disponibilidad de funciones puede depender de las capacidades de Meta y la configuración del número.
+
+## Para quién es
+
+- Equipos de servicio al cliente que comparten un número de WhatsApp.
+- Negocios que reciben solicitudes, preguntas, reservaciones, pedidos o consultas de seguimiento.
+- Operaciones que necesitan distribuir conversaciones entre agentes y conservar un historial común.
+- Empresas que quieren usar plantillas aprobadas para avisos y campañas, con control operativo del equipo.
+
+Margarita es una herramienta de operación de mensajería, no un CRM integral. No crea ni aprueba plantillas de Meta y no verifica por sí sola que cada contacto haya dado consentimiento. WhatsApp y sus cargos se administran bajo las reglas y la cuenta de Meta del negocio.
+
+## Cómo funciona técnicamente
+
+```mermaid
+flowchart LR
+    C[Cliente en WhatsApp] <--> M[WhatsApp Cloud API de Meta]
+    M -->|Webhook firmado| E[Express y servicios de Margarita]
+    E <--> D[(PostgreSQL)]
+    E <--> S[Socket.IO]
+    S --> A[Panel Angular: administración y agentes]
+    A -->|Solicitudes autenticadas| E
+    E -->|Mensajes y estados| M
+```
+
+- **Frontend:** panel Angular en `frontend/`, servido por Express bajo `/panel`.
+- **Servidor:** Node.js, TypeScript y Express. Mantiene sesiones, permisos, validación, reglas del producto y llamadas a Meta.
+- **Datos:** PostgreSQL con Prisma y migraciones versionadas.
+- **Tiempo real:** Socket.IO actualiza conversaciones y contadores del panel.
+- **Canal:** webhooks de Meta ingresan mensajes y estados; Margarita valida la firma y procesa eventos de forma idempotente.
+- **Archivos:** medios y respaldos usan el almacenamiento configurado para el entorno; producción requiere almacenamiento persistente.
+
+Angular es el panel autenticado habitual; el repositorio conserva vistas EJS activas para el asistente de configuración, ciertas páginas públicas y de acceso, y compatibilidad explícita con vistas anteriores. La página comercial en `landing/` y la demo de ventas son componentes independientes del panel operativo.
+
+## Venta y puesta en marcha
+
+La propuesta comercial puede centrarse en el resultado operativo: **un solo canal compartido, conversaciones asignables, respuestas consistentes y visibilidad para quien coordina el equipo**. IA y campañas son capacidades opcionales; la operación manual sigue siendo el núcleo.
+
+Para ponerlo en marcha, el negocio necesita:
+
+1. Una cuenta y un número compatibles con WhatsApp Business Cloud API, configurados en Meta.
+2. Un entorno de Margarita con dominio HTTPS, base PostgreSQL, secretos y almacenamiento persistente.
+3. Un administrador que complete `/setup`, conecte las credenciales y configure el webhook.
+4. Plantillas aprobadas por Meta para los casos de uso que las requieran; reglas de consentimiento y bajas definidas por el negocio.
+5. Agentes invitados y un proceso de atención acordado: asignación, horarios, escalamiento y uso de automatizaciones.
+
+Los cargos de WhatsApp/Meta, infraestructura y proveedores de IA son externos a Margarita y dependen de las cuentas y configuración del cliente. No se deben presentar como incluidos en una licencia sin validarlo comercialmente.
 
 ## Desarrollo local
+
+Se requiere Node.js según `.nvmrc` y PostgreSQL. Para iniciar:
 
 ```sh
 npm ci
 cp .env.example .env
-```
-
-Configura en `.env` como mínimo la conexión de PostgreSQL, secretos de sesión y cifrado. Para una instalación vacía, inicia la app y completa `/setup`.
-
-```sh
 npm run dev
 ```
 
-Para compilar servidor, estilos y frontend Angular:
+Configura primero `DATABASE_URL`, los secretos de aplicación y cifrado. En una instalación vacía, completa el asistente en `/setup`. Para compilar toda la aplicación:
 
 ```sh
 npm run build
 ```
 
-## Comandos
-
 | Comando | Uso |
 | --- | --- |
-| `npm run dev` | Servidor TypeScript con recarga |
-| `npm run frontend:build` | Compilar Angular |
-| `npm run css:build` | Compilar estilos de vistas EJS |
-| `npm test` | Pruebas unitarias del servidor |
-| `npm run test:integration` | Pruebas de integración; requiere base de datos desechable y configuración |
+| `npm run dev` | Servidor local con recarga |
+| `npm run frontend:build` | Compilación del panel Angular |
+| `npm test` | Pruebas unitarias |
+| `npm run test:integration` | Pruebas con base de datos desechable |
 | `npx tsc --noEmit` | Verificación de tipos del servidor |
-| `npm run build` | Cliente Prisma, CSS, Angular, TypeScript y copia de recursos |
-| `npm run landing:build` | Generar el landing estático |
+| `npm run build` | Prisma, frontend, estilos, servidor y recursos |
+| `npm run landing:build` | Generación del sitio estático de producto |
 
-## Operación y seguridad
+## Seguridad y operación
 
-- Copia `.env.example` para conocer las variables disponibles. No guardes credenciales, datos reales ni respaldos en Git.
-- La aplicación cifra campos sensibles en reposo. Mantén `ENCRYPTION_KEY` estable y respaldada; cambiarla sin un plan de rotación puede dejar datos cifrados inaccesibles.
-- Verifica el webhook de Meta, configura HTTPS y ejecuta migraciones antes de publicar cambios que alteren el esquema.
-- En Railway, los archivos y respaldos deben quedar en un volumen persistente. Revisa `/health` y los logs del despliegue.
-- Para producción, sigue [el alcance y guía operativa](docs/alcance-produccion.md).
+- Toma `.env.example` como referencia; nunca subas credenciales, datos reales o respaldos al repositorio.
+- Margarita cifra campos sensibles en reposo. `ENCRYPTION_KEY` debe conservarse y respaldarse de forma segura.
+- Verifica el webhook, usa HTTPS y revisa las migraciones antes de publicar cambios de esquema.
+- En Railway, configura volúmenes persistentes para los archivos y respaldos que deban sobrevivir a un despliegue.
+- Las pruebas de integración deben usar una base y secretos de prueba, nunca producción.
 
 ## Documentación
 
-- [Alcance de producción](docs/alcance-produccion.md)
-- [Documentación del frontend Angular](frontend/README.md)
-- [Variables de entorno](.env.example)
-- [Esquema y migraciones](prisma/schema.prisma)
+- [Alcance de producto y producción](docs/alcance-produccion.md): capacidades, arquitectura, uso, límites y operación.
+- [Panel Angular](frontend/README.md)
+- [Configuración de entorno](.env.example)
+- [Modelo de datos](prisma/schema.prisma)
