@@ -17,6 +17,7 @@ import { sharedContactDetailsFromPayload } from "../utils/shared-contact";
 import { NumberUsageService } from "../services/number-usage.service";
 import { templateVariableShape } from "../utils/template";
 import { getRequiredParam } from "../utils/request";
+import { TagService } from "../services/tag.service";
 import { sendFreeTextMessageSchema } from "../validations/free-text-message.validation";
 import { sendLocalMessageSchema } from "../validations/message.validation";
 import { sendTemplateMessageSchema } from "../validations/template-message.validation";
@@ -80,6 +81,7 @@ export class AdminConversationsController {
                 assignedUser: conversation.assignedUser ? { name: conversation.assignedUser.name } : null,
                 whatsappNumber: conversation.whatsappNumber ? { displayName: conversation.whatsappNumber.displayName, phoneNumber: conversation.whatsappNumber.phoneNumber } : null,
                 contact: {
+                    id: conversation.contact.id,
                     customName: conversation.contact.customName,
                     profileName: conversation.contact.profileName,
                     phone: conversation.contact.phone,
@@ -115,21 +117,26 @@ export class AdminConversationsController {
         const search = typeof req.query.search === "string" ? req.query.search : "";
         const assigned = typeof req.query.assigned === "string" ? req.query.assigned : "";
         const onlyUnread = req.query.unread === "1";
-        const conversations = await ConversationService.listForAdmin(
-            req.user!.workspaceId,
-            req.activeNumber?.id,
-            {
-                status: status || undefined,
-                search: search || undefined,
-                assignedTo:
-                    assigned === "unassigned"
-                        ? null
-                        : assigned === "mine"
-                          ? req.user!.id
-                          : undefined,
-                onlyUnread
-            }
-        );
+        const tagId = typeof req.query.tagId === "string" ? req.query.tagId : "";
+        const [conversations, tags] = await Promise.all([
+            ConversationService.listForAdmin(
+                req.user!.workspaceId,
+                req.activeNumber?.id,
+                {
+                    status: status || undefined,
+                    search: search || undefined,
+                    assignedTo:
+                        assigned === "unassigned"
+                            ? null
+                            : assigned === "mine"
+                              ? req.user!.id
+                              : undefined,
+                    onlyUnread,
+                    tagId: tagId || undefined
+                }
+            ),
+            TagService.listTags(req.user!.workspaceId)
+        ]);
 
         return res.json({
             conversations: conversations.map((conversation) => {
@@ -147,7 +154,12 @@ export class AdminConversationsController {
                         customName: conversation.contact.customName,
                         profileName: conversation.contact.profileName,
                         phone: conversation.contact.phone,
-                        optOutAt: conversation.contact.optOutAt
+                        optOutAt: conversation.contact.optOutAt,
+                        tags: conversation.contact.tags.map(({ tag }) => ({
+                            id: tag.id,
+                            name: tag.name,
+                            color: tag.color
+                        }))
                     },
                     lastMessage: lastMessage
                         ? {
@@ -158,7 +170,8 @@ export class AdminConversationsController {
                         : null
                 };
             }),
-            filters: { search, status, assigned, onlyUnread }
+            tags: tags.map(({ id, name, color }) => ({ id, name, color })),
+            filters: { search, status, assigned, onlyUnread, tagId }
         });
     }
 

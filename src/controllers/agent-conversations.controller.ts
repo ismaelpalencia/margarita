@@ -13,6 +13,7 @@ import { AiSuggestionService } from "../services/ai/suggestion.service";
 import { GuidedFlowService } from "../services/guided-flow.service";
 import { sharedContactDetailsFromPayload } from "../utils/shared-contact";
 import { getRequiredParam } from "../utils/request";
+import { TagService } from "../services/tag.service";
 import { sendFreeTextMessageSchema } from "../validations/free-text-message.validation";
 import {
     listRowsFromInput,
@@ -101,6 +102,7 @@ export class AgentConversationsController {
                       }
                     : null,
                 contact: {
+                    id: conversation.contact.id,
                     customName: conversation.contact.customName,
                     profileName: conversation.contact.profileName,
                     phone: conversation.contact.phone,
@@ -157,19 +159,24 @@ export class AgentConversationsController {
         const status = typeof req.query.status === "string" ? req.query.status : "";
         const onlyUnread = req.query.unread === "1";
         const assigned = typeof req.query.assigned === "string" ? req.query.assigned : "";
-        const conversations = req.activeNumber
-            ? await ConversationService.listForAgent(
-                  req.user!.workspaceId,
-                  req.user!.id,
-                  req.activeNumber.id,
-                  {
-                      search: search || undefined,
-                      status: status || undefined,
-                      assignedTo: assigned === "unassigned" ? null : undefined,
-                      onlyUnread
-                  }
-              )
-            : [];
+        const tagId = typeof req.query.tagId === "string" ? req.query.tagId : "";
+        const [conversations, tags] = await Promise.all([
+            req.activeNumber
+                ? ConversationService.listForAgent(
+                      req.user!.workspaceId,
+                      req.user!.id,
+                      req.activeNumber.id,
+                      {
+                          search: search || undefined,
+                          status: status || undefined,
+                          assignedTo: assigned === "unassigned" ? null : undefined,
+                          onlyUnread,
+                          tagId: tagId || undefined
+                      }
+                  )
+                : Promise.resolve([]),
+            TagService.listTags(req.user!.workspaceId)
+        ]);
 
         return res.json({
             conversations: conversations.map((conversation) => {
@@ -187,7 +194,12 @@ export class AgentConversationsController {
                         customName: conversation.contact.customName,
                         profileName: conversation.contact.profileName,
                         phone: conversation.contact.phone,
-                        optOutAt: conversation.contact.optOutAt
+                        optOutAt: conversation.contact.optOutAt,
+                        tags: conversation.contact.tags.map(({ tag }) => ({
+                            id: tag.id,
+                            name: tag.name,
+                            color: tag.color
+                        }))
                     },
                     lastMessage: lastMessage
                         ? {
@@ -198,7 +210,8 @@ export class AgentConversationsController {
                         : null
                 };
             }),
-            filters: { search, status, onlyUnread }
+            tags: tags.map(({ id, name, color }) => ({ id, name, color })),
+            filters: { search, status, onlyUnread, tagId }
         });
     }
 

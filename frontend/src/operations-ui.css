@@ -158,3 +158,7 @@ html[data-theme="dark"] .bulk-form-heading strong, html[data-theme="dark"] .bulk
 html[data-theme="dark"] .bulk-form-heading small, html[data-theme="dark"] .bulk-template-form .bulk-warning { color: #aebdb3; }
 html[data-theme="dark"] .bulk-field :is(input,select) { border-color: #405347; color: #e8f0ea; background: #22322a; }
 html[data-theme="dark"] .bulk-notice { border-color: #3e6a4b; color: #c5ebcf; background: #214032; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .badge.contact-tag { border-width: 1px; border-style: solid; background: transparent; font-weight: 700; }
+html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .badge.contact-tag { background: #1d2a23; }
+.page-content app-agent-conversation-page .tag-edit-link { display: inline-block; margin-top: 9px; color: #176c4a; font-size: 10px; font-weight: 650; text-decoration: none; }
+.page-content app-agent-conversation-page .tag-edit-link:hover { text-decoration: underline; }

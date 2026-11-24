@@ -50,6 +50,7 @@ interface AgentConversationDetail {
     assignedUser: { name: string } | null;
     whatsappNumber: { displayName: string | null; phoneNumber: string } | null;
     contact: {
+      id: string;
       customName: string | null;
       profileName: string | null;
       phone: string;
@@ -192,7 +193,7 @@ interface AdvancedConversationData {
             <summary>Más acciones</summary>
             <div class="detail-action-list">
           <section class="detail-card"><h2>Nota interna</h2><p class="internal-copy">Solo la ve el equipo; no se envía al cliente.</p><form [action]="localMessageUrl(model)" method="post" class="note-form"><textarea name="body" required maxlength="4000" rows="3" placeholder="Agrega una nota para el equipo"></textarea><button type="submit">Guardar nota</button></form></section>
-          <section class="detail-card"><h2>Etiquetas</h2>@if (model.conversation.contact.tags.length === 0) { <p class="no-tags">Sin etiquetas</p> }<div class="tag-list">@for (tag of model.conversation.contact.tags; track tag.id) { <span [style.backgroundColor]="tag.color || '#34836a'">{{ tag.name }}</span> }</div></section>
+          <section class="detail-card"><h2>Etiquetas</h2>@if (model.conversation.contact.tags.length === 0) { <p class="no-tags">Sin etiquetas</p> }<div class="tag-list">@for (tag of model.conversation.contact.tags; track tag.id) { <span [style.backgroundColor]="tag.color || '#34836a'">{{ tag.name }}</span> }</div>@if (isAdmin) { <a class="tag-edit-link" [href]="'/panel/admin/contacts/' + model.conversation.contact.id">Editar etiquetas</a> }</section>
           @if (model.conversation.aiHandoffAt || model.conversation.aiPausedAt) { <section class="detail-card ai-note"><h2>Atención de IA</h2>@if (model.conversation.aiHandoffAt) { <p>La IA pidió atención humana.</p>@if (model.conversation.aiHandoffReason) { <small>{{ model.conversation.aiHandoffReason }}</small> } }@if (model.conversation.aiPausedAt) { <p>La IA está pausada en esta conversación.</p> }</section> }
           @if (model.conversation.status === 'OPEN') { <form [action]="closeUrl(model)" method="post"><button class="close-button" type="submit">Cerrar conversación</button></form> }
           @if (isAdmin && model.conversation.status !== 'OPEN') { <form [action]="reopenUrl(model)" method="post"><button class="close-button reopen-button" type="submit">Reabrir conversación</button></form> }

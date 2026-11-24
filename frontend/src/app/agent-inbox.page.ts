@@ -1,5 +1,7 @@
 import { Component, OnDestroy, signal } from '@angular/core';
 
+interface InboxTag { id: string; name: string; color: string | null }
+
 interface InboxConversation {
   id: string;
   status: string;
@@ -12,13 +14,15 @@ interface InboxConversation {
     profileName: string | null;
     phone: string;
     optOutAt: string | null;
+    tags: InboxTag[];
   };
   lastMessage: { body: string | null; type: string; timeLabel: string } | null;
 }
 
 interface InboxResponse {
   conversations: InboxConversation[];
-  filters: { search: string; status: string; onlyUnread: boolean };
+  tags: InboxTag[];
+  filters: { search: string; status: string; onlyUnread: boolean; tagId: string };
 }
 
 interface BulkTemplateOption { id: string; name: string; language: string; shape: { body: number; header: number; url: number } }
@@ -38,6 +42,7 @@ interface BulkTemplateOption { id: string; name: string; language: string; shape
         <label class="search-field"><span aria-hidden="true">⌕</span><input type="search" placeholder="Buscar por nombre o teléfono" [value]="search()" (input)="setSearch($event)" aria-label="Buscar conversaciones"></label>
         <select [value]="status()" (change)="setStatus($event)" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option value="OPEN">Abiertas</option><option value="CLOSED">Cerradas</option></select>
         <select [value]="assigned()" (change)="setAssigned($event)" aria-label="Filtrar por asignación"><option value="">Todas</option><option value="unassigned">Sin asignar</option></select>
+        <select [value]="tagId()" (change)="setTagId($event)" aria-label="Filtrar por etiqueta"><option value="">Todas las etiquetas</option>@for (tag of tags(); track tag.id) { <option [value]="tag.id">{{ tag.name }}</option> }</select>
         <label class="unread-filter"><input type="checkbox" [checked]="onlyUnread()" (change)="toggleUnread($event)">Solo sin leer</label>
         <button type="submit">Filtrar</button>
       </form>
@@ -77,7 +82,7 @@ interface BulkTemplateOption { id: string; name: string; language: string; shape
               <label class="conversation-select"><input type="checkbox" [checked]="selectedIds().has(conversation.id)" [disabled]="!selectedIds().has(conversation.id) && selectedIds().size >= 25" (change)="toggleConversation(conversation.id, $event)" [attr.aria-label]="'Seleccionar ' + contactName(conversation)"></label>
               <a class="conversation-link" [href]="'/panel/agent/conversations/' + conversation.id">
                 <span class="conversation-avatar">{{ initials(contactName(conversation)) }}</span>
-                <span class="conversation-copy"><span class="conversation-title"><strong [class.unread]="conversation.unreadCount > 0">{{ contactName(conversation) }}</strong><time>{{ conversation.lastMessage?.timeLabel || '' }}</time></span><small class="preview">{{ conversation.lastMessage?.body || (conversation.lastMessage ? '[' + conversation.lastMessage.type + ']' : 'Sin mensajes todavía') }}</small><span class="badges"><span class="badge" [class.open]="conversation.status === 'OPEN'">{{ statusLabel(conversation.operationalStatus) }}</span>@if (conversation.aiHandoffAt) { <span class="badge handoff">IA necesita atención</span> }@if (!conversation.assignedUser) { <span class="badge unassigned">Sin asignar</span> }@if (conversation.contact.optOutAt) { <span class="badge opted-out">BAJA</span> }</span></span>
+                <span class="conversation-copy"><span class="conversation-title"><strong [class.unread]="conversation.unreadCount > 0">{{ contactName(conversation) }}</strong><time>{{ conversation.lastMessage?.timeLabel || '' }}</time></span><small class="preview">{{ conversation.lastMessage?.body || (conversation.lastMessage ? '[' + conversation.lastMessage.type + ']' : 'Sin mensajes todavía') }}</small><span class="badges">@for (tag of conversation.contact.tags; track tag.id) { <span class="badge contact-tag" [style.border-color]="tag.color || '#b9d7c4'" [style.color]="tag.color || '#28684d'">{{ tag.name }}</span> }<span class="badge" [class.open]="conversation.status === 'OPEN'">{{ statusLabel(conversation.operationalStatus) }}</span>@if (conversation.aiHandoffAt) { <span class="badge handoff">IA necesita atención</span> }@if (!conversation.assignedUser) { <span class="badge unassigned">Sin asignar</span> }@if (conversation.contact.optOutAt) { <span class="badge opted-out">BAJA</span> }</span></span>
               </a>
               <span class="row-actions">@if (conversation.unreadCount > 0) { <span class="unread-count">{{ conversation.unreadCount }}</span> }@if (!conversation.assignedUser) { <form [action]="'/agent/conversations/' + conversation.id + '/claim'" method="post"><button type="submit" class="claim-button">Reclamar</button></form> }<a class="open-button" [href]="'/panel/agent/conversations/' + conversation.id">Abrir</a></span>
             </article>
@@ -96,6 +101,8 @@ export class AgentInboxPage implements OnDestroy {
   protected readonly status = signal('');
   protected readonly assigned = signal('');
   protected readonly onlyUnread = signal(false);
+  protected readonly tagId = signal('');
+  protected readonly tags = signal<InboxTag[]>([]);
   protected readonly selectedIds = signal<Set<string>>(new Set());
   protected readonly bulkTemplates = signal<BulkTemplateOption[]>([]);
   protected readonly bulkTemplateId = signal('');
@@ -115,6 +122,7 @@ export class AgentInboxPage implements OnDestroy {
     this.status.set(params.get('status') || '');
     this.assigned.set(params.get('assigned') || '');
     this.onlyUnread.set(params.get('unread') === '1');
+    this.tagId.set(params.get('tagId') || '');
     this.socket?.on('connect', () => {
       if (this.connectedBefore) void this.loadConversations(false);
       this.connectedBefore = true;
@@ -148,6 +156,10 @@ export class AgentInboxPage implements OnDestroy {
 
   protected toggleUnread(event: Event): void {
     this.onlyUnread.set((event.target as HTMLInputElement).checked);
+  }
+
+  protected setTagId(event: Event): void {
+    this.tagId.set((event.target as HTMLSelectElement).value);
   }
 
   protected toggleConversation(id: string, event: Event): void {
@@ -218,6 +230,7 @@ export class AgentInboxPage implements OnDestroy {
     if (this.status()) params.set('status', this.status());
     if (this.assigned()) params.set('assigned', this.assigned());
     if (this.onlyUnread()) params.set('unread', '1');
+    if (this.tagId()) params.set('tagId', this.tagId());
 
     try {
       const response = await fetch(`/agent/conversations/data?${params.toString()}`, {
@@ -230,6 +243,7 @@ export class AgentInboxPage implements OnDestroy {
       }
       const result = await response.json() as InboxResponse;
       this.conversations.set(result.conversations);
+      this.tags.set(result.tags || []);
       const visibleIds = new Set(result.conversations.map(({ id }) => id));
       this.selectedIds.set(new Set([...this.selectedIds()].filter((id) => visibleIds.has(id))));
       const next = new URLSearchParams();
@@ -237,6 +251,7 @@ export class AgentInboxPage implements OnDestroy {
       if (this.status()) next.set('status', this.status());
       if (this.assigned()) next.set('assigned', this.assigned());
       if (this.onlyUnread()) next.set('unread', '1');
+      if (this.tagId()) next.set('tagId', this.tagId());
       window.history.replaceState({}, '', `${window.location.pathname}${next.size ? `?${next}` : ''}`);
     } catch (reason: unknown) {
       this.error.set(reason instanceof Error ? reason.message : 'Ocurrió un error inesperado.');

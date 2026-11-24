@@ -33,6 +33,7 @@ export type InboxFilters = {
      */
     assignedTo?: string | null;
     onlyUnread?: boolean;
+    tagId?: string;
 };
 
 export class ConversationService {
@@ -106,6 +107,20 @@ export class ConversationService {
     }): Prisma.ConversationWhereInput {
         const filters = params.filters || {};
         const search = filters.search?.trim() || "";
+        const contactFilter: Prisma.ContactWhereInput = {};
+
+        if (search) contactFilter.OR = contactSearchOr(search);
+        if (filters.tagId) {
+            contactFilter.tags = {
+                some: {
+                    tagId: filters.tagId,
+                    tag: {
+                        isActive: true,
+                        workspaceId: params.workspaceId
+                    }
+                }
+            };
+        }
 
         const assignedTo =
             filters.assignedTo === null
@@ -128,7 +143,7 @@ export class ConversationService {
                 : assignedTo
                   ? { assignedUserId: assignedTo }
                   : {}),
-            ...(search ? { contact: { OR: contactSearchOr(search) } } : {})
+            ...(Object.keys(contactFilter).length ? { contact: contactFilter } : {})
         };
     }
 
@@ -144,7 +159,14 @@ export class ConversationService {
                 filters
             }),
             include: {
-                contact: true,
+                contact: {
+                    include: {
+                        tags: {
+                            include: { tag: true },
+                            where: { tag: { isActive: true } }
+                        }
+                    }
+                },
                 assignedUser: true,
                 whatsappNumber: {
                     select: {
@@ -184,7 +206,14 @@ export class ConversationService {
                 restrictToUserId: agentId
             }),
             include: {
-                contact: true,
+                contact: {
+                    include: {
+                        tags: {
+                            include: { tag: true },
+                            where: { tag: { isActive: true } }
+                        }
+                    }
+                },
                 assignedUser: true,
                 whatsappNumber: {
                     select: {

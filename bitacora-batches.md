@@ -1150,3 +1150,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 387 pruebas unitarias y 14 pruebas Angular.
 
 ---
+
+## Etiquetas visibles y filtrables en la bandeja
+
+- La bandeja de admin y agente muestra las etiquetas activas de cada contacto.
+- Se agregó filtro por etiqueta en `/admin/conversations/data` y `/agent/conversations/data`.
+- El filtro por etiqueta respeta workspace, número activo y asignación del agente.
+- Las etiquetas se asignan desde Contactos; en la bandeja se muestran y filtran.
+- 387 pruebas unitarias y 14 pruebas Angular.
+
+---
