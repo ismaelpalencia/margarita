@@ -1229,3 +1229,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 393 pruebas unitarias y 14 pruebas Angular.
 
 ---
+
+## Vista de medios enviados y recibidos
+
+- Los videos se reproducen dentro del hilo, tanto enviados como recibidos.
+- Los documentos se muestran como tarjeta con nombre y acción para abrirlos.
+- Las imágenes, stickers y audios conservan su visor/reproductor.
+- 393 pruebas unitarias y 14 pruebas Angular.
+
+---

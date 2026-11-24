@@ -256,3 +256,12 @@ html[data-theme="dark"] .preview-close { border-color: #405347; color: #d3dfd6; 
 .preview-message.outgoing small { color: #d5eee1; }
 .preview-message.internal { align-self: flex-start; }
 html[data-theme="dark"] .preview-message.outgoing { border-color: #3e8169; background: #2f705a; }
+.page-content app-agent-conversation-page .video-player { display: block; width: min(420px, 76vw); max-width: 100%; max-height: 300px; margin: 2px 0 6px; border-radius: 9px; background: #0c1711; }
+.page-content app-agent-conversation-page .document-card { display: flex; align-items: center; gap: 9px; max-width: min(360px, 76vw); margin: 2px 0 6px; padding: 9px 10px; border: 1px solid #d9e6dd; border-radius: 9px; color: #2f5e4a; background: #f5faf6; text-decoration: none; }
+.page-content app-agent-conversation-page .document-card:hover { background: #eaf5ed; }
+.page-content app-agent-conversation-page .document-icon { display: grid; width: 30px; height: 34px; flex: 0 0 auto; place-items: center; border-radius: 5px; color: #fff; background: #34745f; font-size: 18px; }
+.page-content app-agent-conversation-page .document-card strong { display: block; overflow: hidden; max-width: 270px; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.page-content app-agent-conversation-page .document-card small { display: block; margin-top: 2px; color: #7d9186; font-size: 9px; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .document-card { border-color: #405347; color: #c5ebcf; background: #22322a; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .document-card:hover { background: #293a30; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .document-card small { color: #aebdb3; }
