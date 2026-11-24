@@ -1199,3 +1199,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 390 pruebas unitarias y 14 pruebas Angular.
 
 ---
+
+## Acciones masivas y tamaño de letra
+
+- La selección de conversaciones permite asignar a un agente, marcar leídas, cerrar y agregar una nota interna.
+- Endpoint POST /admin|agent/conversations/bulk/actions; asignación solo para administradores.
+- Se reutilizan las validaciones de asignación, cierre y nota existentes.
+- Cuenta → Apariencia permite Normal, Grande y Muy grande; se guarda en el dispositivo.
+- 393 pruebas unitarias y 14 pruebas Angular.
+
+---

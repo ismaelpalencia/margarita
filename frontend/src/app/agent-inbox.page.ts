@@ -56,6 +56,15 @@ interface BulkTemplateOption { id: string; name: string; language: string; shape
         <button type="button" [disabled]="selectedIds().size === 0 || bulkSaving()" (click)="openBulkTemplate()">Enviar plantilla</button>
         @if (selectedIds().size > 0) { <button type="button" class="bulk-secondary" (click)="clearSelection()">Limpiar</button> }
       </section>
+      @if (selectedIds().size > 0) {
+        <details class="bulk-more">
+          <summary>Más acciones para {{ selectedIds().size }} conversaciones</summary>
+          <div class="bulk-more-panel">
+            <div class="bulk-action-row"><button type="button" [disabled]="bulkActionSaving()" (click)="runBulkAction('read')">Marcar como leídas</button><button type="button" class="bulk-danger" [disabled]="bulkActionSaving()" (click)="runBulkAction('close')">Cerrar conversaciones</button></div>
+            <div class="bulk-action-row bulk-note-row"><input [value]="bulkNote()" (input)="bulkNote.set($any($event.target).value)" maxlength="4000" placeholder="Nota interna para todas las seleccionadas"><button type="button" [disabled]="bulkActionSaving() || !bulkNote().trim()" (click)="runBulkAction('note')">Agregar nota</button></div>
+          </div>
+        </details>
+      }
       @if (bulkNotice()) { <p class="bulk-notice" role="status">{{ bulkNotice() }}</p> }
       @if (bulkOpen()) {
         <form class="bulk-template-form" (submit)="sendBulkTemplate($event)">
@@ -106,6 +115,8 @@ export class AgentInboxPage implements OnDestroy {
   protected readonly onlyUnread = signal(false);
   protected readonly tagId = signal('');
   protected readonly tags = signal<InboxTag[]>([]);
+  protected readonly bulkNote = signal('');
+  protected readonly bulkActionSaving = signal(false);
   protected readonly selectedIds = signal<Set<string>>(new Set());
   protected readonly bulkTemplates = signal<BulkTemplateOption[]>([]);
   protected readonly bulkTemplateId = signal('');
@@ -172,6 +183,35 @@ export class AgentInboxPage implements OnDestroy {
 
   protected setBulkTagMode(event: Event): void { this.bulkTagMode.set((event.target as HTMLSelectElement).value as 'add' | 'replace' | 'remove'); }
   protected setBulkTagId(event: Event): void { this.bulkTagId.set((event.target as HTMLSelectElement).value); }
+  protected async runBulkAction(action: 'read' | 'note' | 'close'): Promise<void> {
+    const ids = [...this.selectedIds()];
+    if (!ids.length) return;
+    if (action === 'close' && !window.confirm(`¿Cerrar ${ids.length} conversaciones? Después podrás reabrirlas.`)) return;
+    if (action === 'note' && !this.bulkNote().trim()) return;
+    this.bulkActionSaving.set(true);
+    this.bulkNotice.set('');
+    try {
+      const response = await fetch('/agent/conversations/bulk/actions', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationIds: ids,
+          action,
+          body: action === 'note' ? this.bulkNote().trim() : undefined
+        })
+      });
+      const result = await response.json() as { updated?: number; failed?: number; error?: string };
+      if (!response.ok) throw new Error(result.error || 'No se pudo completar la acción.');
+      this.bulkNotice.set(`Acción terminada: ${result.updated || 0} actualizadas, ${result.failed || 0} con error.`);
+      if (action === 'note') this.bulkNote.set('');
+      await this.loadConversations(false);
+    } catch (error) {
+      this.bulkNotice.set(error instanceof Error ? error.message : 'No se pudo completar la acción.');
+    } finally {
+      this.bulkActionSaving.set(false);
+    }
+  }
   protected async applyBulkTag(): Promise<void> {
     const tagId = this.bulkTagId();
     const ids = [...this.selectedIds()];

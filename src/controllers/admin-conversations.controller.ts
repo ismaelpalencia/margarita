@@ -118,7 +118,7 @@ export class AdminConversationsController {
         const assigned = typeof req.query.assigned === "string" ? req.query.assigned : "";
         const onlyUnread = req.query.unread === "1";
         const tagId = typeof req.query.tagId === "string" ? req.query.tagId : "";
-        const [conversations, tags] = await Promise.all([
+        const [conversations, tags, agents] = await Promise.all([
             ConversationService.listForAdmin(
                 req.user!.workspaceId,
                 req.activeNumber?.id,
@@ -135,7 +135,8 @@ export class AdminConversationsController {
                     tagId: tagId || undefined
                 }
             ),
-            TagService.listTags(req.user!.workspaceId)
+            TagService.listTags(req.user!.workspaceId),
+            UserService.listActiveAgents(req.user!.workspaceId)
         ]);
 
         return res.json({
@@ -171,6 +172,7 @@ export class AdminConversationsController {
                 };
             }),
             tags: tags.map(({ id, name, color }) => ({ id, name, color })),
+            agents: agents.map(({ id, name, status }) => ({ id, name, status })),
             filters: { search, status, assigned, onlyUnread, tagId }
         });
     }

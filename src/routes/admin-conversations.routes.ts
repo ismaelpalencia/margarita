@@ -10,6 +10,7 @@ import { WhatsAppCloudOperationsController } from "../controllers/whatsapp-cloud
 import { ConversationBulkTemplateController } from "../controllers/conversation-bulk-template.controller";
 import { ConversationTagController } from "../controllers/conversation-tag.controller";
 import { ConversationBulkTagController } from "../controllers/conversation-bulk-tag.controller";
+import { ConversationBulkActionController } from "../controllers/conversation-bulk-action.controller";
 
 const router = Router();
 
@@ -20,6 +21,7 @@ router.get("/data", AdminConversationsController.listData);
 router.get("/bulk/template-options", ConversationBulkTemplateController.options);
 router.post("/bulk/template-send", ConversationBulkTemplateController.send);
 router.post("/bulk/tags", ConversationBulkTagController.update);
+router.post("/bulk/actions", ConversationBulkActionController.run);
 router.post("/:id/tags", ConversationTagController.update);
 router.get("/legacy", AdminConversationsController.index);
 router.get("/:id/data", AdminConversationsController.detailData);

@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { applyUiFontSize, readUiFontSize } from './ui-preferences';
 import { formatNotificationTitle, NotificationSoundType, playNotificationSound } from './notification-preferences';
 
 interface ShellNumber {
@@ -69,6 +70,7 @@ export class App {
 
   constructor() {
     this.applyTheme(this.darkMode());
+    applyUiFontSize(readUiFontSize());
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
