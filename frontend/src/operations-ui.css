@@ -162,3 +162,15 @@ html[data-theme="dark"] .bulk-notice { border-color: #3e6a4b; color: #c5ebcf; ba
 html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .badge.contact-tag { background: #1d2a23; }
 .page-content app-agent-conversation-page .tag-edit-link { display: inline-block; margin-top: 9px; color: #176c4a; font-size: 10px; font-weight: 650; text-decoration: none; }
 .page-content app-agent-conversation-page .tag-edit-link:hover { text-decoration: underline; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .tag-quick { position: relative; flex: 0 0 auto; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .tag-quick>summary { list-style: none; padding: 5px 7px; border: 1px solid #dfe7e2; border-radius: 6px; color: #50645a; background: #f7f9f7; font-size: 10px; font-weight: 650; cursor: pointer; white-space: nowrap; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .tag-quick>summary::-webkit-details-marker { display: none; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .tag-quick-menu { position: absolute; z-index: 12; top: 31px; right: 0; display: grid; gap: 7px; min-width: 190px; padding: 10px; border: 1px solid #dce8df; border-radius: 9px; background: #fff; box-shadow: 0 12px 28px #173b3526; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .tag-quick-menu label { display: flex; align-items: center; gap: 7px; color: #50645a; font-size: 11px; white-space: nowrap; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .tag-quick-menu button { justify-self: start; padding: 6px 9px; border: 0; border-radius: 6px; color: #fff; background: #19634d; font: inherit; font-size: 10px; font-weight: 700; cursor: pointer; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .tag-quick-menu button:disabled { opacity: .6; cursor: wait; }
+.page-content :is(app-agent-inbox-page, app-admin-inbox-page) .tag-quick-menu small { color: #718079; font-size: 10px; }
+html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .tag-quick>summary { border-color: #405347; color: #d3dfd6; background: #26332c; }
+html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .tag-quick-menu { border-color: #405347; background: #1d2a23; }
+html[data-theme="dark"] .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .tag-quick-menu label { color: #d3dfd6; }
+@media(max-width:600px) { .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .tag-quick-menu { right: auto; left: 0; } }

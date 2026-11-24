@@ -1160,3 +1160,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 387 pruebas unitarias y 14 pruebas Angular.
 
 ---
+
+## Asignar etiquetas desde la bandeja
+
+- Cada fila de admin/agente tiene un menú «Etiquetar» con las etiquetas activas.
+- El guardado se hace por conversación con POST /admin|agent/conversations/:id/tags.
+- El backend valida que la conversación pertenezca al workspace y, para agentes, esté asignada.
+- Las etiquetas se actualizan en la fila sin recargar toda la bandeja.
+- 387 pruebas unitarias y 14 pruebas Angular.
+
+---

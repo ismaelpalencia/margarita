@@ -81,7 +81,7 @@ interface BulkTemplateOption { id: string; name: string; language: string; shape
                 <span class="conversation-avatar">{{ initials(contactName(conversation)) }}</span>
                 <span class="conversation-copy"><span class="conversation-title"><strong [class.unread]="conversation.unreadCount > 0">{{ contactName(conversation) }}</strong><time>{{ conversation.lastMessage?.timeLabel || '' }}</time></span><small class="preview">{{ conversation.lastMessage?.body || (conversation.lastMessage ? '[' + conversation.lastMessage.type + ']' : 'Sin mensajes todavía') }}</small><span class="badges">@for (tag of conversation.contact.tags; track tag.id) { <span class="badge contact-tag" [style.border-color]="tag.color || '#b9d7c4'" [style.color]="tag.color || '#28684d'">{{ tag.name }}</span> }<span class="badge" [class.open]="conversation.status === 'OPEN'">{{ statusLabel(conversation.operationalStatus) }}</span>@if (conversation.aiHandoffAt) { <span class="badge handoff">IA necesita atención</span> }@if (!conversation.assignedUser) { <span class="badge unassigned">Sin asignar</span> }@if (conversation.contact.optOutAt) { <span class="badge opted-out">BAJA</span> }</span></span>
               </a>
-              <span class="row-actions">@if (conversation.unreadCount > 0) { <span class="unread-count">{{ conversation.unreadCount }}</span> }<span class="assigned-label">{{ conversation.assignedUser?.name || 'Sin asignar' }}</span><a class="open-button" [href]="'/panel/admin/conversations/' + conversation.id">Abrir</a></span>
+              <span class="row-actions">@if (conversation.unreadCount > 0) { <span class="unread-count">{{ conversation.unreadCount }}</span> }<span class="assigned-label">{{ conversation.assignedUser?.name || 'Sin asignar' }}</span><details class="tag-quick" (toggle)="openTagEditor(conversation, $event)"><summary>Etiquetar</summary><div class="tag-quick-menu">@if (!tags().length) { <small>No hay etiquetas configuradas.</small> }@for (tag of tags(); track tag.id) { <label><input type="checkbox" [checked]="draftTagIds(conversation).has(tag.id)" (change)="toggleDraftTag(conversation, tag.id, $event)"> {{ tag.name }}</label> }<button type="button" [disabled]="tagSavingId() === conversation.id" (click)="saveTags(conversation)">{{ tagSavingId() === conversation.id ? 'Guardando…' : 'Guardar' }}</button></div></details><a class="open-button" [href]="'/panel/admin/conversations/' + conversation.id">Abrir</a></span>
             </article>
           }
         }
@@ -107,6 +107,8 @@ export class AdminInboxPage implements OnDestroy {
   protected readonly bulkLoading = signal(false);
   protected readonly bulkSaving = signal(false);
   protected readonly bulkNotice = signal('');
+  protected readonly tagDrafts = signal<Record<string, Set<string>>>({});
+  protected readonly tagSavingId = signal('');
   private readonly socket = window.io?.({ withCredentials: true });
   private connectedBefore = false;
   private readonly refreshTimer = window.setInterval(() => {
@@ -140,6 +142,42 @@ export class AdminInboxPage implements OnDestroy {
   protected setAssigned(event: Event): void { this.assigned.set((event.target as HTMLSelectElement).value); }
   protected toggleUnread(event: Event): void { this.onlyUnread.set((event.target as HTMLInputElement).checked); }
   protected setTagId(event: Event): void { this.tagId.set((event.target as HTMLSelectElement).value); }
+  protected draftTagIds(conversation: AdminInboxConversation): Set<string> {
+    return this.tagDrafts()[conversation.id] || new Set(conversation.contact.tags.map((tag) => tag.id));
+  }
+  protected openTagEditor(conversation: AdminInboxConversation, event: Event): void {
+    if (!(event.target as HTMLDetailsElement).open || this.tagDrafts()[conversation.id]) return;
+    this.tagDrafts.set({ ...this.tagDrafts(), [conversation.id]: new Set(conversation.contact.tags.map((tag) => tag.id)) });
+  }
+  protected toggleDraftTag(conversation: AdminInboxConversation, tagId: string, event: Event): void {
+    const next = new Set(this.draftTagIds(conversation));
+    if ((event.target as HTMLInputElement).checked) next.add(tagId); else next.delete(tagId);
+    this.tagDrafts.set({ ...this.tagDrafts(), [conversation.id]: next });
+  }
+  protected async saveTags(conversation: AdminInboxConversation): Promise<void> {
+    const tagIds = [...this.draftTagIds(conversation)];
+    this.tagSavingId.set(conversation.id);
+    this.bulkNotice.set('');
+    try {
+      const response = await fetch(`/admin/conversations/${encodeURIComponent(conversation.id)}/tags`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tagIds })
+      });
+      const result = await response.json() as { tags?: InboxTag[]; error?: string };
+      if (!response.ok || !result.tags) throw new Error(result.error || 'No se pudieron guardar las etiquetas.');
+      this.conversations.set(this.conversations().map((item) => item.id === conversation.id ? { ...item, contact: { ...item.contact, tags: result.tags! } } : item));
+      const nextDrafts = { ...this.tagDrafts() };
+      delete nextDrafts[conversation.id];
+      this.tagDrafts.set(nextDrafts);
+      this.bulkNotice.set('Etiquetas actualizadas.');
+    } catch (error) {
+      this.bulkNotice.set(error instanceof Error ? error.message : 'No se pudieron guardar las etiquetas.');
+    } finally {
+      this.tagSavingId.set('');
+    }
+  }
   protected toggleConversation(id: string, event: Event): void {
     const next = new Set(this.selectedIds());
     (event.target as HTMLInputElement).checked ? next.add(id) : next.delete(id);

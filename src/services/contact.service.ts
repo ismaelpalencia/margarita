@@ -238,6 +238,31 @@ export class ContactService {
         });
     }
 
+    static async setTags(
+        workspaceId: string,
+        contactId: string,
+        tagIds: string[]
+    ) {
+        await this.getContactById(workspaceId, contactId);
+        const validTagIds = await this.getValidTagIds(workspaceId, tagIds);
+
+        return prisma.contact.update({
+            where: { id: contactId },
+            data: {
+                tags: {
+                    deleteMany: {},
+                    create: validTagIds.map((tagId) => ({ tagId }))
+                }
+            },
+            include: {
+                tags: {
+                    include: { tag: true },
+                    where: { tag: { isActive: true } }
+                }
+            }
+        });
+    }
+
     static async deactivateContact(workspaceId: string, contactId: string) {
         await this.getContactById(workspaceId, contactId);
 

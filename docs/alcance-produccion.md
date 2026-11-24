@@ -45,7 +45,7 @@ Los ejemplos describen patrones de uso, no integraciones con sistemas de reserva
 2. Meta envía el evento al webhook configurado en Margarita.
 3. Margarita verifica el evento, evita duplicar el mismo mensaje y actualiza contacto e hilo.
 4. La conversación aparece en la bandeja; el equipo recibe actualización en vivo y puede reclamarla o asignarla.
-5. El agente revisa el historial y responde con texto, medios, plantilla o respuesta rápida. Acciones compatibles pueden marcar lectura o mostrar que el agente está escribiendo. Desde la bandeja puede enviar una plantilla aprobada a varias conversaciones seleccionadas, con un máximo de 25 y variables compartidas. Las etiquetas activas del contacto se muestran en cada fila y pueden usarse para filtrar la bandeja antes de seleccionar.
+5. El agente revisa el historial y responde con texto, medios, plantilla o respuesta rápida. Acciones compatibles pueden marcar lectura o mostrar que el agente está escribiendo. Desde la bandeja puede enviar una plantilla aprobada a varias conversaciones seleccionadas, con un máximo de 25 y variables compartidas. Las etiquetas activas del contacto se muestran en cada fila, pueden asignarse desde el menú «Etiquetar» de la bandeja y pueden usarse para filtrar antes de seleccionar.
 6. Meta devuelve estados de envío y entrega, que Margarita incorpora al historial.
 7. El equipo cierra o continúa el hilo y consulta actividad y reportes cuando necesita supervisar la atención.
 
