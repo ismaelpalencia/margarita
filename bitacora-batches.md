@@ -1170,3 +1170,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 387 pruebas unitarias y 14 pruebas Angular.
 
 ---
+
+## Visor de imágenes dentro del panel
+
+- Las imágenes y stickers se abren en un visor modal dentro de la app instalada.
+- El visor tiene botón ×, cierra con Escape y bloquea el scroll del fondo.
+- Ya no se abre una pestaña/ventana externa sin salida para las fotos.
+- 387 pruebas unitarias y 14 pruebas Angular.
+
+---

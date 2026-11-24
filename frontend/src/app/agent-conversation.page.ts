@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, ViewChild, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 interface ConversationMessage {
@@ -115,6 +115,7 @@ interface AdvancedConversationData {
                     </section>
                   }
                   @if (message.mediaId && message.type === 'AUDIO') { <audio class="audio-player" controls preload="none" [src]="mediaFileUrl(message)" [attr.aria-label]="'Audio recibido · ' + dateLabel(message.createdAt, model.timezone)">Tu navegador no puede reproducir este audio.</audio><a class="media-link" [href]="mediaFileUrl(message)" target="_blank" rel="noopener">Descargar audio</a> }
+                  @else if (message.mediaId && (message.type === 'IMAGE' || message.type === 'STICKER')) { <button type="button" class="media-preview-button" (click)="openMediaPreview(message)" [attr.aria-label]="'Abrir ' + mediaLabel(message.type)"><img [src]="mediaFileUrl(message)" [alt]="mediaLabel(message.type)" loading="lazy"></button> }
                   @else if (message.mediaId) { <a class="media-link" [href]="mediaFileUrl(message)" target="_blank" rel="noopener">{{ mediaLabel(message.type) }} · Abrir archivo</a> }
                   @if (isAdmin && message.mediaId && !message.deletedAt) { <button class="media-delete" type="button" (click)="removeRemoteMedia(message)">Eliminar archivo remoto y copia local</button> }
                   @if (message.type !== 'CONTACT' && message.body && !(message.mediaId && isPlaceholder(message.body))) { <p>{{ message.body }}</p> }
@@ -220,6 +221,12 @@ interface AdvancedConversationData {
           </details>
         </aside>
       </div>
+      @if (mediaPreview(); as preview) {
+        <div class="media-lightbox" role="dialog" aria-modal="true" [attr.aria-label]="'Vista previa de ' + preview.label" (click)="closeMediaPreview()">
+          <button type="button" class="media-lightbox-close" (click)="$event.stopPropagation(); closeMediaPreview()" aria-label="Cerrar imagen">×</button>
+          <img [src]="preview.url" [alt]="preview.label" (click)="$event.stopPropagation()">
+        </div>
+      }
     }
   `,
   styleUrl: './agent-conversation.page.css',
@@ -239,6 +246,7 @@ export class AgentConversationPage implements OnDestroy {
   protected readonly voiceError = signal('');
   protected readonly sendingVoice = signal(false);
   protected readonly showJumpToLatest = signal(false);
+  protected readonly mediaPreview = signal<{ url: string; label: string } | null>(null);
   protected readonly listRows = Array.from({ length: 10 }, (_, index) => index);
   protected readonly reactionChoices = ['👍', '❤️', '😂', '😮', '😢', '🙏', ''];
   @ViewChild('thread') private thread?: ElementRef<HTMLDivElement>;
@@ -278,6 +286,7 @@ export class AgentConversationPage implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.closeMediaPreview();
     window.clearInterval(this.refreshTimer);
     if (this.typingTimer !== null) window.clearTimeout(this.typingTimer);
     if (this.recordingTimer !== null) window.clearInterval(this.recordingTimer);
@@ -505,6 +514,16 @@ export class AgentConversationPage implements OnDestroy {
   protected restoreUrl(model: AgentConversationDetail, message: ConversationMessage): string { return `/admin/conversations/${model.conversation.id}/messages/${message.id}/restore`; }
   protected mediaUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/media`; }
   protected mediaFileUrl(message: ConversationMessage): string { return `/media/${encodeURIComponent(message.id)}`; }
+  protected openMediaPreview(message: ConversationMessage): void {
+    this.mediaPreview.set({ url: this.mediaFileUrl(message), label: this.mediaLabel(message.type) });
+    document.body.classList.add('media-preview-open');
+  }
+  protected closeMediaPreview(): void {
+    this.mediaPreview.set(null);
+    document.body.classList.remove('media-preview-open');
+  }
+  @HostListener('document:keydown.escape')
+  protected onEscape(): void { this.closeMediaPreview(); }
   protected templateUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/template`; }
   protected interactiveUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/interactive`; }
   protected interactiveListUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/interactive-list`; }
