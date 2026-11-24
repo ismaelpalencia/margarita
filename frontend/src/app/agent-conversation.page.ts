@@ -222,9 +222,14 @@ interface AdvancedConversationData {
         </aside>
       </div>
       @if (mediaPreview(); as preview) {
-        <div class="media-lightbox" role="dialog" aria-modal="true" [attr.aria-label]="'Vista previa de ' + preview.label" (click)="closeMediaPreview()">
+        <div class="media-lightbox" role="dialog" aria-modal="true" [attr.aria-label]="'Vista previa de ' + preview.label" (click)="onLightboxClick()" (wheel)="onMediaWheel($event)">
           <button type="button" class="media-lightbox-close" (click)="$event.stopPropagation(); closeMediaPreview()" aria-label="Cerrar imagen">×</button>
-          <img [src]="preview.url" [alt]="preview.label" (click)="$event.stopPropagation()">
+          <img [src]="preview.url" [alt]="preview.label" [style.transform]="'translate(' + mediaX() + 'px, ' + mediaY() + 'px) scale(' + mediaZoom() + ')'" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation(); onMediaDoubleClick()" (pointerdown)="onMediaPointerDown($event)" (pointermove)="onMediaPointerMove($event)" (pointerup)="onMediaPointerUp($event)" (pointercancel)="onMediaPointerUp($event)">
+          <div class="media-lightbox-toolbar" (click)="$event.stopPropagation()">
+            <button type="button" (click)="zoomOut()" [disabled]="mediaZoom() <= 1" aria-label="Alejar imagen">−</button>
+            <button type="button" class="media-zoom-value" (click)="resetZoom()" aria-label="Restablecer zoom">{{ zoomPercent() }}%</button>
+            <button type="button" (click)="zoomIn()" [disabled]="mediaZoom() >= 4" aria-label="Acercar imagen">+</button>
+          </div>
         </div>
       }
     }
@@ -247,6 +252,15 @@ export class AgentConversationPage implements OnDestroy {
   protected readonly sendingVoice = signal(false);
   protected readonly showJumpToLatest = signal(false);
   protected readonly mediaPreview = signal<{ url: string; label: string } | null>(null);
+  protected readonly mediaZoom = signal(1);
+  protected readonly mediaX = signal(0);
+  protected readonly mediaY = signal(0);
+  protected readonly mediaDragging = signal(false);
+  private readonly mediaPointers = new Map<number, { x: number; y: number }>();
+  private mediaStart = { x: 0, y: 0, offsetX: 0, offsetY: 0 };
+  private pinchStartDistance = 0;
+  private pinchStartZoom = 1;
+  private mediaMoved = false;
   protected readonly listRows = Array.from({ length: 10 }, (_, index) => index);
   protected readonly reactionChoices = ['👍', '❤️', '😂', '😮', '😢', '🙏', ''];
   @ViewChild('thread') private thread?: ElementRef<HTMLDivElement>;
@@ -515,12 +529,76 @@ export class AgentConversationPage implements OnDestroy {
   protected mediaUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/media`; }
   protected mediaFileUrl(message: ConversationMessage): string { return `/media/${encodeURIComponent(message.id)}`; }
   protected openMediaPreview(message: ConversationMessage): void {
+    this.resetZoom();
     this.mediaPreview.set({ url: this.mediaFileUrl(message), label: this.mediaLabel(message.type) });
     document.body.classList.add('media-preview-open');
   }
   protected closeMediaPreview(): void {
     this.mediaPreview.set(null);
+    this.resetZoom();
+    this.mediaPointers.clear();
+    this.mediaDragging.set(false);
     document.body.classList.remove('media-preview-open');
+  }
+  protected zoomPercent(): number { return Math.round(this.mediaZoom() * 100); }
+  protected zoomIn(): void { this.setMediaZoom(this.mediaZoom() * 1.25); }
+  protected zoomOut(): void { this.setMediaZoom(this.mediaZoom() / 1.25); }
+  protected resetZoom(): void { this.mediaZoom.set(1); this.mediaX.set(0); this.mediaY.set(0); this.mediaMoved = false; }
+  private setMediaZoom(value: number): void {
+    const zoom = Math.min(4, Math.max(1, value));
+    this.mediaZoom.set(zoom);
+    if (zoom === 1) { this.mediaX.set(0); this.mediaY.set(0); }
+  }
+  protected onLightboxClick(): void {
+    if (this.mediaMoved) { this.mediaMoved = false; return; }
+    this.closeMediaPreview();
+  }
+  protected onMediaWheel(event: WheelEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.deltaY < 0) this.zoomIn(); else this.zoomOut();
+  }
+  protected onMediaDoubleClick(): void {
+    if (this.mediaZoom() > 1) this.resetZoom(); else { this.mediaZoom.set(2); this.mediaX.set(0); this.mediaY.set(0); }
+  }
+  protected onMediaPointerDown(event: PointerEvent): void {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
+    this.mediaPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    this.mediaMoved = false;
+    if (this.mediaPointers.size === 1) {
+      this.mediaStart = { x: event.clientX, y: event.clientY, offsetX: this.mediaX(), offsetY: this.mediaY() };
+      this.mediaDragging.set(this.mediaZoom() > 1);
+    } else if (this.mediaPointers.size === 2) {
+      this.pinchStartDistance = this.pointerDistance();
+      this.pinchStartZoom = this.mediaZoom();
+      this.mediaDragging.set(true);
+    }
+  }
+  protected onMediaPointerMove(event: PointerEvent): void {
+    if (!this.mediaPointers.has(event.pointerId)) return;
+    this.mediaPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (this.mediaPointers.size === 2) {
+      const distance = this.pointerDistance();
+      if (this.pinchStartDistance > 0) this.setMediaZoom(this.pinchStartZoom * (distance / this.pinchStartDistance));
+      this.mediaMoved = true;
+      return;
+    }
+    if (this.mediaZoom() <= 1) return;
+    const dx = event.clientX - this.mediaStart.x;
+    const dy = event.clientY - this.mediaStart.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) this.mediaMoved = true;
+    this.mediaX.set(this.mediaStart.offsetX + dx);
+    this.mediaY.set(this.mediaStart.offsetY + dy);
+  }
+  protected onMediaPointerUp(event: PointerEvent): void {
+    this.mediaPointers.delete(event.pointerId);
+    if (this.mediaPointers.size === 0) this.mediaDragging.set(false);
+  }
+  private pointerDistance(): number {
+    const points = [...this.mediaPointers.values()];
+    if (points.length < 2) return 0;
+    return Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
   }
   @HostListener('document:keydown.escape')
   protected onEscape(): void { this.closeMediaPreview(); }

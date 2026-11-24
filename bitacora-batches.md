@@ -1179,3 +1179,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 387 pruebas unitarias y 14 pruebas Angular.
 
 ---
+
+## Zoom en el visor de imágenes
+
+- Botones − / porcentaje / + en el visor.
+- Zoom con rueda del mouse, doble clic y pellizco en móvil.
+- Arrastre para mover la imagen cuando está ampliada.
+- Restablecer con el porcentaje central o doble clic.
+- 387 pruebas unitarias y 14 pruebas Angular.
+
+---
