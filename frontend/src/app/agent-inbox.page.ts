@@ -27,6 +27,9 @@ interface InboxResponse {
 
 interface BulkTemplateOption { id: string; name: string; language: string; shape: { body: number; header: number; url: number } }
 
+interface PreviewMessage { id: string; direction: string; type: string; body: string | null; createdAt: string; isInternalNote?: boolean; deletedAt?: string | null }
+interface PreviewData { timezone: string; hasOpenWindow: boolean; conversation: { id: string; status: string; assignedUser: { name: string } | null; contact: { customName: string | null; profileName: string | null; phone: string; optOutAt: string | null; tags: InboxTag[] }; messages: PreviewMessage[] } }
+
 @Component({
   selector: 'app-agent-inbox-page',
   standalone: true,
@@ -92,11 +95,25 @@ interface BulkTemplateOption { id: string; name: string; language: string; shape
                 <span class="conversation-avatar">{{ initials(contactName(conversation)) }}</span>
                 <span class="conversation-copy"><span class="conversation-title"><strong [class.unread]="conversation.unreadCount > 0">{{ contactName(conversation) }}</strong><time>{{ conversation.lastMessage?.timeLabel || '' }}</time></span><small class="preview">{{ conversation.lastMessage?.body || (conversation.lastMessage ? '[' + conversation.lastMessage.type + ']' : 'Sin mensajes todavía') }}</small><span class="badges">@for (tag of conversation.contact.tags; track tag.id) { <span class="badge contact-tag" [style.border-color]="tag.color || '#b9d7c4'" [style.color]="tag.color || '#28684d'">{{ tag.name }}</span> }<span class="badge" [class.open]="conversation.status === 'OPEN'">{{ statusLabel(conversation.operationalStatus) }}</span>@if (conversation.aiHandoffAt) { <span class="badge handoff">IA necesita atención</span> }@if (!conversation.assignedUser) { <span class="badge unassigned">Sin asignar</span> }@if (conversation.contact.optOutAt) { <span class="badge opted-out">BAJA</span> }</span></span>
               </a>
-              <span class="row-actions">@if (conversation.unreadCount > 0) { <span class="unread-count">{{ conversation.unreadCount }}</span> }@if (!conversation.assignedUser) { <form [action]="'/agent/conversations/' + conversation.id + '/claim'" method="post"><button type="submit" class="claim-button">Reclamar</button></form> }<details class="tag-quick" (toggle)="openTagEditor(conversation, $event)"><summary>Etiquetar</summary><div class="tag-quick-menu">@if (!tags().length) { <small>No hay etiquetas configuradas.</small> }@for (tag of tags(); track tag.id) { <label><input type="checkbox" [checked]="draftTagIds(conversation).has(tag.id)" (change)="toggleDraftTag(conversation, tag.id, $event)"> {{ tag.name }}</label> }<button type="button" [disabled]="tagSavingId() === conversation.id" (click)="saveTags(conversation)">{{ tagSavingId() === conversation.id ? 'Guardando…' : 'Guardar' }}</button></div></details><a class="open-button" [href]="'/panel/agent/conversations/' + conversation.id">Abrir</a></span>
+              <span class="row-actions">@if (conversation.unreadCount > 0) { <span class="unread-count">{{ conversation.unreadCount }}</span> }@if (!conversation.assignedUser) { <form [action]="'/agent/conversations/' + conversation.id + '/claim'" method="post"><button type="submit" class="claim-button">Reclamar</button></form> }<button type="button" class="preview-button" (click)="openPreview(conversation)">Vista previa</button><details class="tag-quick" (toggle)="openTagEditor(conversation, $event)"><summary>Etiquetar</summary><div class="tag-quick-menu">@if (!tags().length) { <small>No hay etiquetas configuradas.</small> }@for (tag of tags(); track tag.id) { <label><input type="checkbox" [checked]="draftTagIds(conversation).has(tag.id)" (change)="toggleDraftTag(conversation, tag.id, $event)"> {{ tag.name }}</label> }<button type="button" [disabled]="tagSavingId() === conversation.id" (click)="saveTags(conversation)">{{ tagSavingId() === conversation.id ? 'Guardando…' : 'Guardar' }}</button></div></details><a class="open-button" [href]="'/panel/agent/conversations/' + conversation.id">Abrir</a></span>
             </article>
           }
         }
       </section>
+      @if (previewConversation(); as preview) {
+        <div class="conversation-preview-backdrop" (click)="closePreview()">
+          <aside class="conversation-preview" role="dialog" aria-modal="true" aria-label="Vista previa de la conversación" (click)="$event.stopPropagation()">
+            <header class="preview-heading"><div><small>VISTA PREVIA</small><h2>{{ contactName(preview) }}</h2><p>{{ preview.contact.phone }}</p></div><button type="button" class="preview-close" (click)="closePreview()" aria-label="Cerrar vista previa">×</button></header>
+            @if (previewLoading()) { <p class="preview-loading">Cargando conversación…</p> }
+            @else if (previewError()) { <p class="preview-error" role="alert">{{ previewError() }}</p> }
+            @else if (previewData(); as detail) {
+              <div class="preview-tags">@for (tag of detail.conversation.contact.tags; track tag.id) { <span [style.border-color]="tag.color || '#b9d7c4'" [style.color]="tag.color || '#28684d'">{{ tag.name }}</span> }<details class="tag-quick" (toggle)="openPreviewTagEditor(preview, $event)"><summary>Etiquetar</summary><div class="tag-quick-menu">@if (!tags().length) { <small>No hay etiquetas configuradas.</small> }@for (tag of tags(); track tag.id) { <label><input type="checkbox" [checked]="draftTagIds(preview).has(tag.id)" (change)="toggleDraftTag(preview, tag.id, $event)"> {{ tag.name }}</label> }<button type="button" [disabled]="tagSavingId() === preview.id" (click)="saveTags(preview)">{{ tagSavingId() === preview.id ? 'Guardando…' : 'Guardar' }}</button></div></details></div>
+              <div class="preview-thread">@for (message of previewMessages(); track message.id) { <article class="preview-message" [class.incoming]="message.direction === 'IN'" [class.internal]="message.isInternalNote"><small>{{ message.isInternalNote ? 'NOTA INTERNA' : (message.direction === 'IN' ? 'Cliente' : 'Equipo') }} · {{ dateLabel(message.createdAt, detail.timezone) }}</small><p>{{ message.body || '[' + message.type + ']' }}</p></article> }</div>
+              <footer class="preview-footer"><button type="button" (click)="togglePreviewSelection(preview)">{{ selectedIds().has(preview.id) ? 'Quitar selección' : 'Seleccionar conversación' }}</button><a [href]="'/panel/agent/conversations/' + preview.id">Abrir conversación completa</a></footer>
+            }
+          </aside>
+        </div>
+      }
     }
   `,
   styleUrl: './agent-inbox.page.css',
@@ -114,6 +131,10 @@ export class AgentInboxPage implements OnDestroy {
   protected readonly bulkNote = signal('');
   protected readonly bulkActionSaving = signal(false);
   protected readonly bulkMenuOpen = signal(false);
+  protected readonly previewConversation = signal<InboxConversation | null>(null);
+  protected readonly previewData = signal<PreviewData | null>(null);
+  protected readonly previewLoading = signal(false);
+  protected readonly previewError = signal('');
   protected readonly selectedIds = signal<Set<string>>(new Set());
   protected readonly bulkTemplates = signal<BulkTemplateOption[]>([]);
   protected readonly bulkTemplateId = signal('');
@@ -176,6 +197,36 @@ export class AgentInboxPage implements OnDestroy {
 
   protected setTagId(event: Event): void {
     this.tagId.set((event.target as HTMLSelectElement).value);
+  }
+
+  protected dateLabel(value: string, timezone: string): string {
+    return new Intl.DateTimeFormat('es-MX', { dateStyle: 'short', timeStyle: 'short', timeZone: timezone }).format(new Date(value));
+  }
+  protected previewMessages(): PreviewMessage[] { return (this.previewData()?.conversation.messages || []).slice(-10); }
+  protected async openPreview(conversation: InboxConversation): Promise<void> {
+    this.previewConversation.set(conversation);
+    this.previewData.set(null);
+    this.previewError.set('');
+    this.previewLoading.set(true);
+    try {
+      const response = await fetch(`/agent/conversations/${encodeURIComponent(conversation.id)}/data`, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error('No se pudo cargar la conversación.');
+      this.previewData.set(await response.json() as PreviewData);
+    } catch (error) {
+      this.previewError.set(error instanceof Error ? error.message : 'No se pudo cargar la conversación.');
+    } finally {
+      this.previewLoading.set(false);
+    }
+  }
+  protected closePreview(): void { this.previewConversation.set(null); this.previewData.set(null); this.previewError.set(''); }
+  protected openPreviewTagEditor(conversation: InboxConversation, event: Event): void { this.openTagEditor(conversation, event); }
+  protected togglePreviewSelection(conversation: InboxConversation): void {
+    const wasEmpty = this.selectedIds().size === 0;
+    const next = new Set(this.selectedIds());
+    if (next.has(conversation.id)) next.delete(conversation.id); else next.add(conversation.id);
+    this.selectedIds.set(next);
+    if (next.size > 0 && wasEmpty) this.bulkMenuOpen.set(true);
+    if (next.size === 0) this.bulkMenuOpen.set(false);
   }
 
   protected setBulkTagMode(event: Event): void { this.bulkTagMode.set((event.target as HTMLSelectElement).value as 'add' | 'replace' | 'remove'); }
@@ -265,6 +316,10 @@ export class AgentInboxPage implements OnDestroy {
       const result = await response.json() as { tags?: InboxTag[]; error?: string };
       if (!response.ok || !result.tags) throw new Error(result.error || 'No se pudieron guardar las etiquetas.');
       this.conversations.set(this.conversations().map((item) => item.id === conversation.id ? { ...item, contact: { ...item.contact, tags: result.tags! } } : item));
+      const preview = this.previewData();
+      if (preview?.conversation.id === conversation.id) {
+        this.previewData.set({ ...preview, conversation: { ...preview.conversation, contact: { ...preview.conversation.contact, tags: result.tags! } } });
+      }
       const nextDrafts = { ...this.tagDrafts() };
       delete nextDrafts[conversation.id];
       this.tagDrafts.set(nextDrafts);

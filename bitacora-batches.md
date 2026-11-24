@@ -1209,3 +1209,14 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 393 pruebas unitarias y 14 pruebas Angular.
 
 ---
+
+## Vista previa de conversación sin salir de la bandeja
+
+- Cada fila tiene «Vista previa»; abre un panel lateral con los últimos mensajes.
+- La selección de conversaciones se conserva al abrir y cerrar la vista previa.
+- Desde la vista previa se puede seleccionar la conversación, etiquetarla o abrir el hilo completo.
+- El menú de acciones masivas ahora es un desplegable único para etiquetas, plantilla, asignación, lectura, cierre y nota.
+- Se restauraron en README y alcance los detalles operativos y límites que se habían perdido.
+- 393 pruebas unitarias y 14 pruebas Angular.
+
+---
