@@ -9,6 +9,7 @@ import { mediaUploadSingle } from "../middlewares/upload.middleware";
 import { WhatsAppCloudOperationsController } from "../controllers/whatsapp-cloud-operations.controller";
 import { ConversationBulkTemplateController } from "../controllers/conversation-bulk-template.controller";
 import { ConversationTagController } from "../controllers/conversation-tag.controller";
+import { ConversationBulkTagController } from "../controllers/conversation-bulk-tag.controller";
 
 const router = Router();
 
@@ -18,6 +19,7 @@ router.get("/", (req, res) =>
 router.get("/data", AdminConversationsController.listData);
 router.get("/bulk/template-options", ConversationBulkTemplateController.options);
 router.post("/bulk/template-send", ConversationBulkTemplateController.send);
+router.post("/bulk/tags", ConversationBulkTagController.update);
 router.post("/:id/tags", ConversationTagController.update);
 router.get("/legacy", AdminConversationsController.index);
 router.get("/:id/data", AdminConversationsController.detailData);

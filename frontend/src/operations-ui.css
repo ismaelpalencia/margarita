@@ -187,3 +187,6 @@ body.media-preview-open { overflow: hidden; }
 .media-lightbox-toolbar button:disabled { opacity: .35; cursor: not-allowed; }
 .media-lightbox-toolbar .media-zoom-value { min-width: 62px; color: #d7e8dc; font-size: 12px; font-weight: 700; }
 @media(max-width:600px) { .media-lightbox { padding: 46px 8px 82px; }.media-lightbox img { max-height: calc(100dvh - 130px); }.media-lightbox-toolbar { bottom: max(12px, env(safe-area-inset-bottom)); } }
+.bulk-toolbar .bulk-tag-mode, .bulk-toolbar .bulk-tag-select { min-height: 34px; max-width: 190px; padding: 0 8px; border: 1px solid #d5e0d8; border-radius: 7px; color: #40564c; background: #fff; font: inherit; font-size: 10px; }
+html[data-theme="dark"] .bulk-toolbar .bulk-tag-mode, html[data-theme="dark"] .bulk-toolbar .bulk-tag-select { border-color: #405347; color: #e8f0ea; background: #22322a; }
+@media(max-width:600px) { .bulk-toolbar .bulk-tag-mode, .bulk-toolbar .bulk-tag-select { flex: 1 1 45%; max-width: none; } }

@@ -48,6 +48,9 @@ interface BulkTemplateOption { id: string; name: string; language: string; shape
       <section class="bulk-toolbar" aria-label="Acciones en bloque">
         <label><input type="checkbox" [checked]="allVisibleSelected()" (change)="toggleAllVisible($event)"> Seleccionar visibles (máximo 25)</label>
         <span>{{ selectedIds().size }} seleccionadas</span>
+        <select class="bulk-tag-mode" [value]="bulkTagMode()" (change)="setBulkTagMode($event)" aria-label="Acción de etiqueta"><option value="add">Agregar etiqueta</option><option value="replace">Reemplazar etiquetas</option><option value="remove">Quitar etiqueta</option></select>
+        <select class="bulk-tag-select" [value]="bulkTagId()" (change)="setBulkTagId($event)" aria-label="Etiqueta para la selección"><option value="">Elige una etiqueta</option>@for (tag of tags(); track tag.id) { <option [value]="tag.id">{{ tag.name }}</option> }</select>
+        <button type="button" [disabled]="selectedIds().size === 0 || !bulkTagId() || bulkTagSaving()" (click)="applyBulkTag()">{{ bulkTagSaving() ? 'Aplicando…' : 'Aplicar etiqueta' }}</button>
         <button type="button" [disabled]="selectedIds().size === 0 || bulkSaving()" (click)="openBulkTemplate()">Enviar plantilla</button>
         @if (selectedIds().size > 0) { <button type="button" class="bulk-secondary" (click)="clearSelection()">Limpiar</button> }
       </section>
@@ -109,6 +112,9 @@ export class AdminInboxPage implements OnDestroy {
   protected readonly bulkNotice = signal('');
   protected readonly tagDrafts = signal<Record<string, Set<string>>>({});
   protected readonly tagSavingId = signal('');
+  protected readonly bulkTagMode = signal<'add' | 'replace' | 'remove'>('add');
+  protected readonly bulkTagId = signal('');
+  protected readonly bulkTagSaving = signal(false);
   private readonly socket = window.io?.({ withCredentials: true });
   private connectedBefore = false;
   private readonly refreshTimer = window.setInterval(() => {
@@ -142,6 +148,34 @@ export class AdminInboxPage implements OnDestroy {
   protected setAssigned(event: Event): void { this.assigned.set((event.target as HTMLSelectElement).value); }
   protected toggleUnread(event: Event): void { this.onlyUnread.set((event.target as HTMLInputElement).checked); }
   protected setTagId(event: Event): void { this.tagId.set((event.target as HTMLSelectElement).value); }
+  protected setBulkTagMode(event: Event): void { this.bulkTagMode.set((event.target as HTMLSelectElement).value as 'add' | 'replace' | 'remove'); }
+  protected setBulkTagId(event: Event): void { this.bulkTagId.set((event.target as HTMLSelectElement).value); }
+  protected async applyBulkTag(): Promise<void> {
+    const tagId = this.bulkTagId();
+    const ids = [...this.selectedIds()];
+    if (!tagId || !ids.length) return;
+    const tag = this.tags().find((item) => item.id === tagId);
+    const action = this.bulkTagMode() === 'replace' ? 'Reemplazar todas las etiquetas' : this.bulkTagMode() === 'remove' ? 'Quitar la etiqueta' : 'Agregar la etiqueta';
+    if (!window.confirm(`¿${action} «${tag?.name || 'seleccionada'}» en ${ids.length} conversaciones?`)) return;
+    this.bulkTagSaving.set(true);
+    this.bulkNotice.set('');
+    try {
+      const response = await fetch('/admin/conversations/bulk/tags', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationIds: ids, tagIds: [tagId], mode: this.bulkTagMode() })
+      });
+      const result = await response.json() as { updated?: number; failed?: number; error?: string };
+      if (!response.ok) throw new Error(result.error || 'No se pudieron actualizar las etiquetas.');
+      this.bulkNotice.set(`Etiquetas: ${result.updated || 0} actualizadas, ${result.failed || 0} con error.`);
+      await this.loadConversations(false);
+    } catch (error) {
+      this.bulkNotice.set(error instanceof Error ? error.message : 'No se pudieron actualizar las etiquetas.');
+    } finally {
+      this.bulkTagSaving.set(false);
+    }
+  }
   protected draftTagIds(conversation: AdminInboxConversation): Set<string> {
     return this.tagDrafts()[conversation.id] || new Set(conversation.contact.tags.map((tag) => tag.id));
   }

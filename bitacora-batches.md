@@ -1189,3 +1189,13 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 387 pruebas unitarias y 14 pruebas Angular.
 
 ---
+
+## Etiquetas en bloque desde la bandeja
+
+- La barra de selección permite agregar, reemplazar o quitar una etiqueta en hasta 25 conversaciones.
+- Endpoint POST /admin|agent/conversations/bulk/tags.
+- El backend valida workspace, número permitido, asignación del agente y etiqueta activa.
+- La bandeja se refresca con las etiquetas actualizadas.
+- 390 pruebas unitarias y 14 pruebas Angular.
+
+---
