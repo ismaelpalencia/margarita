@@ -250,3 +250,9 @@ html[data-theme="dark"] .preview-message p { color: #dbe7de; }
 html[data-theme="dark"] .preview-message.internal { border-color: #67552d; background: #3a3020; }
 html[data-theme="dark"] .preview-close { border-color: #405347; color: #d3dfd6; background: #26332c; }
 @media(max-width:600px) { .conversation-preview { width: 100%; }.preview-heading { padding: 16px; }.preview-thread { padding: 14px 16px; }.preview-footer { padding: 12px 16px max(12px, env(safe-area-inset-bottom)); }.preview-button { min-height: 28px; font-size: 9px; } }
+.preview-message.incoming { align-self: flex-start; }
+.preview-message.outgoing { align-self: flex-end; border-color: #34745f; border-radius: 11px 11px 3px 11px; background: #38816a; }
+.preview-message.outgoing p { color: #f1fbf5; }
+.preview-message.outgoing small { color: #d5eee1; }
+.preview-message.internal { align-self: flex-start; }
+html[data-theme="dark"] .preview-message.outgoing { border-color: #3e8169; background: #2f705a; }

@@ -1220,3 +1220,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 393 pruebas unitarias y 14 pruebas Angular.
 
 ---
+
+## Diferenciación visual en la vista previa
+
+- Los mensajes del cliente se alinean a la izquierda con fondo claro.
+- Los mensajes del equipo se alinean a la derecha con fondo verde.
+- Las notas internas conservan su estilo amarillo y no se confunden con mensajes enviados.
+- 393 pruebas unitarias y 14 pruebas Angular.
+
+---
