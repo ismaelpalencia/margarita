@@ -200,3 +200,61 @@ La suite de integración requiere PostgreSQL de pruebas y secretos desechables; 
 - Datos y cambios: `prisma/schema.prisma`, `prisma/migrations/`.
 - Aplicación Angular: `frontend/src/app/`, documentación en `frontend/README.md`.
 - Vistas activas y archivadas: `src/views/`, `src/views/legacy-unused/`.
+
+---
+
+## 12. Anexo: roles, límites y configuración que no deben perderse
+
+### Roles
+
+| Rol | Alcance |
+| --- | --- |
+| `ADMIN` | Configuración del espacio, números, contactos, equipo, campañas, reportes y conversaciones. |
+| `AGENT` | Conversaciones asignadas y sin asignar según las reglas de la bandeja; sin configuración administrativa. |
+
+El servidor valida permisos en cada ruta. Los agentes tienen números permitidos cuando se configuran; esto no sustituye una matriz completa de permisos por cada acción.
+
+### Conversaciones y WhatsApp
+
+- Recepción por webhook firmado, deduplicación por identificador de Meta y estados de entrega.
+- Asignación, reclamación, cierre, reapertura e historial en tiempo real.
+- Respuestas rápidas de texto, hasta 3 botones o listas de hasta 10 opciones, sujetas a los límites de WhatsApp y a la configuración del espacio.
+- La ventana de 24 horas se aplica en el servidor; fuera de ella se requiere una plantilla aprobada aplicable.
+- Reacciones y acciones de leído/escribiendo cuando existe un mensaje compatible.
+- El bloqueo de WhatsApp se hace desde Margarita o desde la lista administrativa del número. El estado local puede quedar desactualizado si el cambio se hizo directamente en Meta; el bloqueo es específico del número empresarial.
+- El opt-out interno es independiente del bloqueo y debe excluir al contacto de campañas.
+
+### Límites conocidos
+
+- El estado de lectura es por conversación, no por miembro del equipo.
+- La búsqueda de campos cifrados con índice ciego es exacta; no equivale a búsqueda parcial de todo el contenido.
+- La asignación y la visibilidad siguen las reglas del servidor; no hay una matriz configurable para cada número y cada acción.
+- Los adjuntos alojados por Meta pueden dejar de estar disponibles pasado su periodo de retención; la descarga local depende de que el archivo aún se pueda recuperar.
+- Las grabaciones enviadas como audio convencional no son necesariamente burbujas de nota de voz PTT.
+- El opt-in registra información declarada por el equipo; la aplicación no verifica por sí misma la base legal del consentimiento.
+- Un teléfono, token, calidad, nombre o estado comercial dependen de Meta y pueden cambiar sin cambios en el código.
+- EJS continúa como dependencia y motor activo para las rutas indicadas en la sección 5; no debe afirmarse que fue eliminado.
+
+### Configuración mínima de producción
+
+Revisar en `.env.example` y en el entorno, como mínimo:
+
+- `DATABASE_URL`, `APP_URL`, `NODE_ENV`, `PORT` y `TIMEZONE`.
+- `JWT_SECRET`, `ENCRYPTION_KEY`, nombre y duración de cookie.
+- Credenciales y configuración del webhook de Meta (`META_*`, `META_API_VERSION`).
+- `MEDIA_STORAGE_DIR`, `BACKUP_DIR`, retención de copias y volumen persistente.
+- Límites de sesión, intentos de login, rate limiting y token opcional de healthcheck.
+- Variables de proveedor y límites de IA solo si se habilita esa función.
+- Configuración R2 solo si están presentes las cuatro credenciales/campos requeridos.
+
+No copiar valores secretos a tickets, commits, capturas o documentación.
+
+### Publicación
+
+1. Crear una rama y revisar el diff; incluir migraciones para cambios de base de datos.
+2. Ejecutar build, verificación de tipos y las suites relevantes con una base de pruebas desechable.
+3. Desplegar en un entorno de prueba y comprobar login, webhook, envío/recepción, volumen y logs.
+4. Integrar a la rama de producción según el flujo del repositorio y confirmar el commit/despliegue en Railway.
+5. Revisar `/health`, el panel, el estado de Meta y las tareas de fondo tras el despliegue.
+
+La configuración concreta de Railway puede cambiar; confirmar dominio, volumen, variables y despliegue al momento de cada publicación.

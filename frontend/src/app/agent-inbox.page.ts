@@ -50,20 +50,16 @@ interface BulkTemplateOption { id: string; name: string; language: string; shape
       <section class="bulk-toolbar" aria-label="Acciones en bloque">
         <label><input type="checkbox" [checked]="allVisibleSelected()" (change)="toggleAllVisible($event)"> Seleccionar visibles (máximo 25)</label>
         <span>{{ selectedIds().size }} seleccionadas</span>
-        <select class="bulk-tag-mode" [value]="bulkTagMode()" (change)="setBulkTagMode($event)" aria-label="Acción de etiqueta"><option value="add">Agregar etiqueta</option><option value="replace">Reemplazar etiquetas</option><option value="remove">Quitar etiqueta</option></select>
-        <select class="bulk-tag-select" [value]="bulkTagId()" (change)="setBulkTagId($event)" aria-label="Etiqueta para la selección"><option value="">Elige una etiqueta</option>@for (tag of tags(); track tag.id) { <option [value]="tag.id">{{ tag.name }}</option> }</select>
-        <button type="button" [disabled]="selectedIds().size === 0 || !bulkTagId() || bulkTagSaving()" (click)="applyBulkTag()">{{ bulkTagSaving() ? 'Aplicando…' : 'Aplicar etiqueta' }}</button>
-        <button type="button" [disabled]="selectedIds().size === 0 || bulkSaving()" (click)="openBulkTemplate()">Enviar plantilla</button>
+        <button type="button" class="bulk-menu-toggle" [disabled]="selectedIds().size === 0" [attr.aria-expanded]="bulkMenuOpen()" (click)="toggleBulkMenu()">Acciones <span aria-hidden="true">▾</span></button>
         @if (selectedIds().size > 0) { <button type="button" class="bulk-secondary" (click)="clearSelection()">Limpiar</button> }
       </section>
-      @if (selectedIds().size > 0) {
-        <details class="bulk-more">
-          <summary>Más acciones para {{ selectedIds().size }} conversaciones</summary>
-          <div class="bulk-more-panel">
-            <div class="bulk-action-row"><button type="button" [disabled]="bulkActionSaving()" (click)="runBulkAction('read')">Marcar como leídas</button><button type="button" class="bulk-danger" [disabled]="bulkActionSaving()" (click)="runBulkAction('close')">Cerrar conversaciones</button></div>
-            <div class="bulk-action-row bulk-note-row"><input [value]="bulkNote()" (input)="bulkNote.set($any($event.target).value)" maxlength="4000" placeholder="Nota interna para todas las seleccionadas"><button type="button" [disabled]="bulkActionSaving() || !bulkNote().trim()" (click)="runBulkAction('note')">Agregar nota</button></div>
-          </div>
-        </details>
+      @if (bulkMenuOpen() && selectedIds().size > 0) {
+        <div class="bulk-menu-panel" role="menu">
+          <section class="bulk-menu-section"><h3>Etiquetas</h3><div class="bulk-action-row"><select class="bulk-tag-mode" [value]="bulkTagMode()" (change)="setBulkTagMode($event)" aria-label="Acción de etiqueta"><option value="add">Agregar etiqueta</option><option value="replace">Reemplazar etiquetas</option><option value="remove">Quitar etiqueta</option></select><select class="bulk-tag-select" [value]="bulkTagId()" (change)="setBulkTagId($event)" aria-label="Etiqueta para la selección"><option value="">Elige una etiqueta</option>@for (tag of tags(); track tag.id) { <option [value]="tag.id">{{ tag.name }}</option> }</select><button type="button" [disabled]="!bulkTagId() || bulkTagSaving()" (click)="applyBulkTag()">{{ bulkTagSaving() ? 'Aplicando…' : 'Aplicar etiqueta' }}</button></div></section>
+          <section class="bulk-menu-section"><h3>Plantilla</h3><div class="bulk-action-row"><button type="button" [disabled]="bulkSaving()" (click)="openBulkTemplate()">Enviar plantilla aprobada</button></div></section>
+          <section class="bulk-menu-section"><h3>Estado</h3><div class="bulk-action-row"><button type="button" [disabled]="bulkActionSaving()" (click)="runBulkAction('read')">Marcar como leídas</button><button type="button" class="bulk-danger" [disabled]="bulkActionSaving()" (click)="runBulkAction('close')">Cerrar conversaciones</button></div></section>
+          <section class="bulk-menu-section"><h3>Nota interna</h3><div class="bulk-action-row bulk-note-row"><input [value]="bulkNote()" (input)="bulkNote.set($any($event.target).value)" maxlength="4000" placeholder="Nota para todas las seleccionadas"><button type="button" [disabled]="bulkActionSaving() || !bulkNote().trim()" (click)="runBulkAction('note')">Agregar nota</button></div></section>
+        </div>
       }
       @if (bulkNotice()) { <p class="bulk-notice" role="status">{{ bulkNotice() }}</p> }
       @if (bulkOpen()) {
@@ -117,6 +113,7 @@ export class AgentInboxPage implements OnDestroy {
   protected readonly tags = signal<InboxTag[]>([]);
   protected readonly bulkNote = signal('');
   protected readonly bulkActionSaving = signal(false);
+  protected readonly bulkMenuOpen = signal(false);
   protected readonly selectedIds = signal<Set<string>>(new Set());
   protected readonly bulkTemplates = signal<BulkTemplateOption[]>([]);
   protected readonly bulkTemplateId = signal('');
@@ -280,20 +277,28 @@ export class AgentInboxPage implements OnDestroy {
   }
 
   protected toggleConversation(id: string, event: Event): void {
+    const wasEmpty = this.selectedIds().size === 0;
     const next = new Set(this.selectedIds());
     (event.target as HTMLInputElement).checked ? next.add(id) : next.delete(id);
     this.selectedIds.set(next);
+    if (next.size > 0 && wasEmpty) this.bulkMenuOpen.set(true);
+    if (next.size === 0) this.bulkMenuOpen.set(false);
   }
 
   protected allVisibleSelected(): boolean { return this.conversations().length > 0 && this.conversations().slice(0, 25).every(({ id }) => this.selectedIds().has(id)); }
-  protected toggleAllVisible(event: Event): void { this.selectedIds.set((event.target as HTMLInputElement).checked ? new Set(this.conversations().slice(0, 25).map(({ id }) => id)) : new Set()); }
-  protected clearSelection(): void { this.selectedIds.set(new Set()); this.bulkOpen.set(false); this.bulkNotice.set(''); }
+  protected toggleAllVisible(event: Event): void {
+    const selected = (event.target as HTMLInputElement).checked;
+    this.selectedIds.set(selected ? new Set(this.conversations().slice(0, 25).map(({ id }) => id)) : new Set());
+    this.bulkMenuOpen.set(selected);
+  }
+  protected clearSelection(): void { this.selectedIds.set(new Set()); this.bulkOpen.set(false); this.bulkNotice.set(''); this.bulkMenuOpen.set(false); }
+  protected toggleBulkMenu(): void { this.bulkMenuOpen.update((open) => !open); }
   protected selectedTemplate(): BulkTemplateOption | null { return this.bulkTemplates().find(({ id }) => id === this.bulkTemplateId()) || null; }
   protected bodyVariableIndexes(): number[] { return Array.from({ length: Math.min(this.selectedTemplate()?.shape.body || 0, 3) }, (_, index) => index); }
   protected selectBulkTemplate(event: Event): void { this.bulkTemplateId.set((event.target as HTMLSelectElement).value); }
 
   protected async openBulkTemplate(): Promise<void> {
-    this.bulkOpen.set(true); this.bulkNotice.set('');
+    this.bulkOpen.set(true); this.bulkNotice.set(''); this.bulkMenuOpen.set(false);
     if (this.bulkTemplates().length) return;
     this.bulkLoading.set(true);
     try {

@@ -46,6 +46,15 @@ Una persona escribe al WhatsApp de la empresa. Margarita recibe el aviso de Meta
 
 Las operaciones de leído y escribiendo se envían desde Margarita cuando el agente abre o atiende una conversación; **no indican que el cliente esté escribiendo en WhatsApp**. La disponibilidad de funciones puede depender de las capacidades de Meta y la configuración del número.
 
+### Detalles que conviene no perder
+
+- El total de mensajes sin leer aparece en el título de la pestaña; cada usuario puede elegir el sonido de sus notificaciones.
+- Las respuestas rápidas admiten texto, hasta 3 botones o listas de hasta 10 opciones; las listas dependen de la configuración de WhatsApp del espacio.
+- Se pueden conectar uno o varios números; la sección WhatsApp muestra la salud y el perfil reportados por Meta.
+- El estado de bloqueo mostrado en una conversación refleja las acciones hechas desde Margarita. Un cambio hecho directamente en Meta puede no verse hasta sincronizar o volver a gestionar el contacto; el bloqueo es específico del número empresarial.
+- La baja interna es independiente del bloqueo de WhatsApp y debe excluir al contacto de campañas.
+- Angular es el panel operativo principal, pero EJS sigue activo para el asistente de configuración, páginas públicas/de acceso y rutas de compatibilidad. Las vistas de `src/views/legacy-unused/` no se renderizan.
+
 ## Para quién es
 
 - Equipos de servicio al cliente que comparten un número de WhatsApp.
@@ -111,6 +120,7 @@ npm run build
 | --- | --- |
 | `npm run dev` | Servidor local con recarga |
 | `npm run frontend:build` | Compilación del panel Angular |
+| `npm run css:build` | Compilación de estilos de las vistas EJS |
 | `npm test` | Pruebas unitarias |
 | `npm run test:integration` | Pruebas con base de datos desechable |
 | `npx tsc --noEmit` | Verificación de tipos del servidor |
