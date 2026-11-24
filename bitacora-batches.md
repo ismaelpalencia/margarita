@@ -1238,3 +1238,12 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 393 pruebas unitarias y 14 pruebas Angular.
 
 ---
+
+## Galería de archivos y fecha del último mensaje
+
+- Cada conversación incluye una galería «Archivos» con imágenes, videos, audios y documentos.
+- Al abrir una imagen se puede navegar a la anterior o siguiente con flechas.
+- La bandeja muestra fecha y hora del último mensaje, no solo la hora.
+- 393 pruebas unitarias y 14 pruebas Angular.
+
+---

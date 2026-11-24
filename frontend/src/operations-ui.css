@@ -265,3 +265,23 @@ html[data-theme="dark"] .preview-message.outgoing { border-color: #3e8169; backg
 html[data-theme="dark"] .page-content app-agent-conversation-page .document-card { border-color: #405347; color: #c5ebcf; background: #22322a; }
 html[data-theme="dark"] .page-content app-agent-conversation-page .document-card:hover { background: #293a30; }
 html[data-theme="dark"] .page-content app-agent-conversation-page .document-card small { color: #aebdb3; }
+.page-content app-agent-conversation-page .media-library { padding: 0; }
+.page-content app-agent-conversation-page .media-library>summary { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; list-style: none; color: #40564c; font-size: 10px; font-weight: 700; cursor: pointer; }
+.page-content app-agent-conversation-page .media-library>summary::-webkit-details-marker { display: none; }
+.page-content app-agent-conversation-page .media-library>summary small { display: grid; min-width: 20px; height: 20px; place-items: center; border-radius: 10px; color: #43806a; background: #eaf5ed; font-size: 9px; }
+.page-content app-agent-conversation-page .media-library-grid { display: grid; max-height: 260px; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; overflow: auto; padding: 0 12px 12px; }
+.page-content app-agent-conversation-page .media-library-item { min-width: 0; border: 1px solid #e2eae4; border-radius: 7px; background: #f5faf6; overflow: hidden; cursor: pointer; }
+.page-content app-agent-conversation-page .media-library-image { padding: 0; }
+.page-content app-agent-conversation-page .media-library-image img { display: block; width: 100%; height: 64px; object-fit: cover; }
+.page-content app-agent-conversation-page .media-library-file { display: grid; gap: 2px; padding: 7px; color: #34745f; text-decoration: none; font-size: 9px; font-weight: 700; }
+.page-content app-agent-conversation-page .media-library-file small { overflow: hidden; color: #7d9186; font-size: 8px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.media-lightbox .media-nav { position: fixed; z-index: 1001; top: 50%; display: grid; width: 44px; height: 52px; place-items: center; border: 1px solid #ffffff3d; border-radius: 10px; color: #fff; background: #1d2922b8; font: inherit; font-size: 34px; line-height: 1; cursor: pointer; transform: translateY(-50%); }
+.media-lightbox .media-prev { left: max(10px, env(safe-area-inset-left)); }
+.media-lightbox .media-next { right: max(10px, env(safe-area-inset-right)); }
+.media-lightbox .media-nav:hover { background: #1d2922e8; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .media-library>summary { color: #d3dfd6; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .media-library>summary small { color: #c5ebcf; background: #214032; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .media-library-item { border-color: #3b5042; background: #22322a; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .media-library-file { color: #c5ebcf; }
+html[data-theme="dark"] .page-content app-agent-conversation-page .media-library-file small { color: #aebdb3; }
+@media(max-width:600px) { .media-lightbox .media-nav { width: 38px; height: 46px; font-size: 28px; }.page-content app-agent-conversation-page .media-library-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

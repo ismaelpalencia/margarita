@@ -166,7 +166,8 @@ export class AdminConversationsController {
                         ? {
                               body: lastMessage.body,
                               type: lastMessage.type,
-                              timeLabel: res.locals.formatTimeMX(lastMessage.createdAt)
+                              timeLabel: res.locals.formatTimeMX(lastMessage.createdAt),
+                              dateLabel: res.locals.formatDateMX(lastMessage.createdAt)
                           }
                         : null
                 };

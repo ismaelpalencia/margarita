@@ -190,6 +190,7 @@ interface AdvancedConversationData {
 
         <aside class="detail-aside">
           <section class="detail-card"><h2>Datos del contacto</h2><dl><div><dt>Nombre</dt><dd>{{ contactName(model) }}</dd></div><div><dt>Teléfono</dt><dd>{{ model.conversation.contact.phone }}</dd></div><div><dt>Estado</dt><dd>{{ model.conversation.status === 'OPEN' ? 'Abierta' : 'Cerrada' }}</dd></div><div><dt>Origen</dt><dd>{{ model.conversation.source }}</dd></div><div><dt>Agente</dt><dd>{{ model.conversation.assignedUser?.name || 'Sin asignar' }}</dd></div></dl></section>
+          <details class="detail-card media-library"><summary><span>Archivos</span><small>{{ mediaMessages().length }}</small></summary><div class="media-library-grid">@if (mediaMessages().length === 0) { <p class="no-tags">Sin archivos en esta conversación.</p> }@for (item of mediaMessages(); track item.id) { @if (item.type === 'IMAGE' || item.type === 'STICKER') { <button type="button" class="media-library-item media-library-image" (click)="openMediaPreview(item)" [attr.aria-label]="'Abrir ' + mediaLabel(item.type)"><img [src]="mediaFileUrl(item)" [alt]="mediaLabel(item.type)" loading="lazy"></button> } @else { <a class="media-library-item media-library-file" [href]="mediaFileUrl(item)" target="_blank" rel="noopener"><span>{{ mediaLabel(item.type) }}</span><small>{{ item.body || 'Abrir archivo' }}</small></a> } }</div></details>
           <section class="detail-card contact-block-card"><h2>Bloqueo en WhatsApp</h2>@if (model.conversation.whatsappBlockedAt) { <p class="blocked-contact-status" role="status">Contacto bloqueado en WhatsApp. El equipo no recibirá sus mensajes.</p><button type="button" class="unblock-contact-button" (click)="setContactBlocked(model, false)">Desbloquear contacto</button> } @else { <p>Impide que este número envíe mensajes a tu cuenta de WhatsApp Business. Es distinto de la baja interna.</p><button type="button" class="block-contact-button" (click)="setContactBlocked(model, true)">Bloquear contacto</button> }</section>
           @if (isAdmin && advanced(); as tools) { <section class="detail-card"><h2>Asignación</h2><form [action]="assignUrl(model)" method="post" class="advanced-form"><select name="agentId"><option value="">Sin asignar</option>@for (agent of tools.agents || []; track agent.id) { <option [value]="agent.id" [selected]="model.conversation.assignedUser?.name === agent.name">{{ agent.name }} · {{ agent.status }}</option> }</select><button type="submit">Guardar asignación</button></form></section> }
           <details class="detail-actions">
@@ -225,6 +226,7 @@ interface AdvancedConversationData {
       </div>
       @if (mediaPreview(); as preview) {
         <div class="media-lightbox" role="dialog" aria-modal="true" [attr.aria-label]="'Vista previa de ' + preview.label" (click)="onLightboxClick()" (wheel)="onMediaWheel($event)">
+          @if (previewImages().length > 1) { <button type="button" class="media-nav media-prev" (click)="$event.stopPropagation(); previousMedia()" aria-label="Imagen anterior">‹</button><button type="button" class="media-nav media-next" (click)="$event.stopPropagation(); nextMedia()" aria-label="Imagen siguiente">›</button> }
           <button type="button" class="media-lightbox-close" (click)="$event.stopPropagation(); closeMediaPreview()" aria-label="Cerrar imagen">×</button>
           <img [src]="preview.url" [alt]="preview.label" [style.transform]="'translate(' + mediaX() + 'px, ' + mediaY() + 'px) scale(' + mediaZoom() + ')'" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation(); onMediaDoubleClick()" (pointerdown)="onMediaPointerDown($event)" (pointermove)="onMediaPointerMove($event)" (pointerup)="onMediaPointerUp($event)" (pointercancel)="onMediaPointerUp($event)">
           <div class="media-lightbox-toolbar" (click)="$event.stopPropagation()">
@@ -254,6 +256,7 @@ export class AgentConversationPage implements OnDestroy {
   protected readonly sendingVoice = signal(false);
   protected readonly showJumpToLatest = signal(false);
   protected readonly mediaPreview = signal<{ url: string; label: string } | null>(null);
+  protected readonly mediaPreviewIndex = signal(0);
   protected readonly mediaZoom = signal(1);
   protected readonly mediaX = signal(0);
   protected readonly mediaY = signal(0);
@@ -530,13 +533,35 @@ export class AgentConversationPage implements OnDestroy {
   protected restoreUrl(model: AgentConversationDetail, message: ConversationMessage): string { return `/admin/conversations/${model.conversation.id}/messages/${message.id}/restore`; }
   protected mediaUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/messages/media`; }
   protected mediaFileUrl(message: ConversationMessage): string { return `/media/${encodeURIComponent(message.id)}`; }
+  protected mediaMessages(): ConversationMessage[] {
+    return (this.data()?.conversation.messages || []).filter((message) => Boolean(message.mediaId) && !message.deletedAt);
+  }
+  protected previewImages(): ConversationMessage[] {
+    return this.mediaMessages().filter((message) => message.type === 'IMAGE' || message.type === 'STICKER');
+  }
   protected openMediaPreview(message: ConversationMessage): void {
+    const images = this.previewImages();
+    const index = images.findIndex(({ id }) => id === message.id);
     this.resetZoom();
+    this.mediaPreviewIndex.set(index >= 0 ? index : 0);
     this.mediaPreview.set({ url: this.mediaFileUrl(message), label: this.mediaLabel(message.type) });
     document.body.classList.add('media-preview-open');
   }
+  protected previousMedia(): void {
+    const images = this.previewImages();
+    if (images.length < 2) return;
+    const next = (this.mediaPreviewIndex() - 1 + images.length) % images.length;
+    this.openMediaPreview(images[next]);
+  }
+  protected nextMedia(): void {
+    const images = this.previewImages();
+    if (images.length < 2) return;
+    const next = (this.mediaPreviewIndex() + 1) % images.length;
+    this.openMediaPreview(images[next]);
+  }
   protected closeMediaPreview(): void {
     this.mediaPreview.set(null);
+    this.mediaPreviewIndex.set(0);
     this.resetZoom();
     this.mediaPointers.clear();
     this.mediaDragging.set(false);
