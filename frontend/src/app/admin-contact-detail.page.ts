@@ -1,5 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ConfirmDialogService } from './ui/confirm-dialog.service';
 
 interface ContactDetail {
   id: string; customName: string | null; profileName: string | null; phone: string; notes: string | null;
@@ -43,6 +44,7 @@ interface DetailResponse {
   styleUrl: './admin-contact-detail.page.css'
 })
 export class AdminContactDetailPage {
+  private readonly confirmDialog=inject(ConfirmDialogService);
   protected readonly data = signal<DetailResponse | null>(null);
   protected readonly loading = signal(true); protected readonly error = signal(''); protected readonly saving = signal(false);
   protected readonly name = signal(''); protected readonly notes = signal(''); protected readonly selectedTags = signal(new Set<string>());
@@ -56,9 +58,9 @@ export class AdminContactDetailPage {
     catch (reason: unknown) { this.error.set(reason instanceof Error ? reason.message : 'Ocurrió un error inesperado.'); } finally { this.loading.set(false); }
   }
   protected async save(): Promise<void> { await this.run(async () => { const response = await fetch(`/admin/contacts/${encodeURIComponent(this.id)}`, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ customName: this.name(), notes: this.notes(), tagIds: [...this.selectedTags()] }) }); const body = await response.json() as { error?: string }; if (!response.ok) throw new Error(body.error || 'No se pudo guardar.'); }); }
-  protected async action(path: string, values: Record<string, string>, confirmText?: string): Promise<void> { if (confirmText && !window.confirm(confirmText)) return; await this.run(async () => { const body = new URLSearchParams({ ...values, redirectTo: `/panel/admin/contacts/${this.id}` }); const response = await fetch(`/admin/contacts/${encodeURIComponent(this.id)}/${path}`, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' }, body }); const result = await response.json().catch(() => ({})) as { error?: string }; if (!response.ok) throw new Error(result.error || 'No se pudo completar la acción.'); }); }
+  protected async action(path: string, values: Record<string, string>, confirmText?: string): Promise<void> { if (confirmText && !await this.confirmDialog.confirm({title:'Confirmar acción',message:confirmText,danger:confirmText.toLowerCase().includes('baja')})) return; await this.run(async () => { const body = new URLSearchParams({ ...values, redirectTo: `/panel/admin/contacts/${this.id}` }); const response = await fetch(`/admin/contacts/${encodeURIComponent(this.id)}/${path}`, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' }, body }); const result = await response.json().catch(() => ({})) as { error?: string }; if (!response.ok) throw new Error(result.error || 'No se pudo completar la acción.'); }); }
   protected async markOutcome(event: Event): Promise<void> { event.preventDefault(); const form = event.target as HTMLFormElement; const formData = new FormData(form); const body = new URLSearchParams(); for (const [key, value] of formData.entries()) body.set(key, String(value)); await this.run(async () => { const response = await fetch(`/admin/contacts/${encodeURIComponent(this.id)}/outcome`, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' }, body }); const result = await response.json().catch(() => ({})) as { error?: string }; if (!response.ok) throw new Error(result.error || 'No se pudo guardar el resultado.'); form.reset(); }); }
-  protected confirmDeletePermanent(event: Event): void { if (!window.confirm('Se eliminará el contacto, sus conversaciones y archivos. ¿Continuar?')) event.preventDefault(); }
-  protected async deactivate(): Promise<void> { if (!window.confirm('¿Archivar este contacto?')) return; await this.run(async () => { const response = await fetch(`/admin/contacts/${encodeURIComponent(this.id)}/deactivate`, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' } }); if (!response.ok) throw new Error('No se pudo archivar el contacto.'); await this.router.navigateByUrl('/panel/admin/contacts'); }); }
+  protected async confirmDeletePermanent(event: Event): Promise<void> { event.preventDefault();if(!await this.confirmDialog.confirm({title:'Eliminar contacto definitivamente',message:'Se eliminará el contacto, sus conversaciones y archivos. Esta acción no se puede deshacer.',danger:true}))return;const form=event.currentTarget as HTMLFormElement|null;if(form)HTMLFormElement.prototype.submit.call(form); }
+  protected async deactivate(): Promise<void> { if (!await this.confirmDialog.confirm({title:'Archivar contacto',message:'¿Archivar este contacto?'})) return; await this.run(async () => { const response = await fetch(`/admin/contacts/${encodeURIComponent(this.id)}/deactivate`, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' } }); if (!response.ok) throw new Error('No se pudo archivar el contacto.'); await this.router.navigateByUrl('/panel/admin/contacts'); }); }
   private async run(action: () => Promise<void>): Promise<void> { this.saving.set(true); this.error.set(''); try { await action(); await this.load(); } catch (reason: unknown) { this.error.set(reason instanceof Error ? reason.message : 'Ocurrió un error inesperado.'); } finally { this.saving.set(false); } }
 }

@@ -197,6 +197,7 @@ export class AdminInboxPage implements OnDestroy {
   }
   protected previewMessages(): PreviewMessage[] { return (this.previewData()?.conversation.messages || []).slice(-10); }
   protected async toggleArchive(conversation: AdminInboxConversation): Promise<void> {
+    if (!conversation.archivedAt && !await this.confirmDialog.confirm({title:'Archivar conversación',message:'La conversación saldrá de la bandeja activa. Podrás restaurarla después.'})) return;
     try {
       const action = conversation.archivedAt ? 'unarchive' : 'archive';
       const response = await fetch(`/admin/conversations/${encodeURIComponent(conversation.id)}/${action}`, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' } });
