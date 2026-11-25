@@ -3,6 +3,10 @@ export const NOTIFICATION_SOUNDS = [
   { id: 'gentle', label: 'Suave' },
   { id: 'bell', label: 'Campanilla' },
   { id: 'double', label: 'Doble' },
+  { id: 'chime', label: 'Campanilla doble' },
+  { id: 'drop', label: 'Gota suave' },
+  { id: 'marimba', label: 'Marimba cálida' },
+  { id: 'pulse', label: 'Pulso corto' },
 ] as const;
 
 export type NotificationSoundType = (typeof NOTIFICATION_SOUNDS)[number]['id'];
@@ -18,16 +22,33 @@ const SOUND_NOTES: Record<NotificationSoundType, Array<{ frequency: number; star
     { frequency: 784, start: 0, duration: 0.1, waveform: 'sine' },
     { frequency: 784, start: 0.17, duration: 0.1, waveform: 'sine' },
   ],
+  chime: [
+    { frequency: 740, start: 0, duration: 0.13, waveform: 'sine' },
+    { frequency: 988, start: 0.12, duration: 0.2, waveform: 'sine' },
+  ],
+  drop: [
+    { frequency: 740, start: 0, duration: 0.08, waveform: 'sine' },
+    { frequency: 523, start: 0.07, duration: 0.18, waveform: 'sine' },
+  ],
+  marimba: [{ frequency: 587, start: 0, duration: 0.22, waveform: 'triangle' }],
+  pulse: [
+    { frequency: 494, start: 0, duration: 0.08, waveform: 'sine' },
+    { frequency: 494, start: 0.12, duration: 0.08, waveform: 'sine' },
+  ],
 };
 
 export function isNotificationSoundType(value: unknown): value is NotificationSoundType {
   return NOTIFICATION_SOUNDS.some((sound) => sound.id === value);
 }
 
-export function playNotificationSound(type: NotificationSoundType): void {
+export function normalizeNotificationSoundType(value: unknown): NotificationSoundType {
+  return isNotificationSoundType(value) ? value : 'classic';
+}
+
+export function playNotificationSound(type: NotificationSoundType | string): void {
   try {
     const context = new AudioContext();
-    const notes = SOUND_NOTES[type];
+    const notes = SOUND_NOTES[normalizeNotificationSoundType(type)];
     for (const note of notes) {
       const oscillator = context.createOscillator();
       const gain = context.createGain();

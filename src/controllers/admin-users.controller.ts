@@ -14,6 +14,7 @@ import {
 } from "../validations/user.validation";
 import { formatSecretForHumans } from "../utils/totp";
 import { qrSvg } from "../utils/qr";
+import { isNotificationSoundType } from "../utils/notification-sound";
 
 const EMPTY_FORM = {
     name: "",
@@ -424,7 +425,7 @@ export class AccountController {
 
     static async saveNotifications(req: Request, res: Response) {
         const soundType = req.body?.notifySoundType ?? "classic";
-        if (!["classic", "gentle", "bell", "double"].includes(soundType)) {
+        if (!isNotificationSoundType(soundType)) {
             if (wantsJson(req)) return res.status(400).json({ error: "Elige un sonido de notificación válido." });
             return res.redirect("/account/notifications?error=sound");
         }

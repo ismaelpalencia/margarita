@@ -8,6 +8,7 @@ describe('panel route ordering', () => {
     expect(indexOf('panel/admin/users/new')).toBeLessThan(indexOf('panel/admin/users/:id'));
     expect(indexOf('panel/admin/campaigns/create')).toBeLessThan(indexOf('panel/admin/campaigns/:id'));
     expect(indexOf('panel/admin/ai/guided-flows/new')).toBeLessThan(indexOf('panel/admin/ai/guided-flows/:id'));
+    expect(indexOf('panel/admin/ai/knowledge')).toBeLessThan(indexOf('panel/admin/ai/knowledge/:id'));
   });
 
   it('keeps panel routes under the panel prefix and has a final fallback', () => {
@@ -15,5 +16,11 @@ describe('panel route ordering', () => {
     expect(routes.filter((route) => route.path?.startsWith('panel/')).length).toBeGreaterThan(1);
     expect(routes.find((route) => route.path === 'panel/admin/leads')).toBeTruthy();
     expect(routes.find((route) => route.path === 'panel/agent/conversations')).toBeTruthy();
+  });
+
+  it('registra las secciones de IA sin retirar sus rutas existentes', () => {
+    for (const path of ['panel/admin/ai','panel/admin/ai/knowledge','panel/admin/ai/settings','panel/admin/ai/test','panel/admin/ai/automations','panel/admin/ai/knowledge/:id','panel/admin/ai/import','panel/admin/ai/import/:id','panel/admin/ai/import/:id/edit','panel/admin/ai/package','panel/admin/ai/flows/:id','panel/admin/ai/guided-flows','panel/admin/ai/guided-flows/new','panel/admin/ai/guided-flows/:id']) {
+      expect(routes.find((route) => route.path === path), path).toBeTruthy();
+    }
   });
 });

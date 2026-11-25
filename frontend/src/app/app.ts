@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { applyUiFontSize, readUiFontSize } from './ui-preferences';
-import { formatNotificationTitle, NotificationSoundType, playNotificationSound } from './notification-preferences';
+import { formatNotificationTitle, NotificationSoundType, normalizeNotificationSoundType, playNotificationSound } from './notification-preferences';
 import { ToastHostComponent } from './ui/toast-host.component';
 import { IconComponent } from './ui/icon.component';
 import { ConfirmDialogHostComponent } from './ui/confirm-dialog-host.component';
@@ -232,7 +232,7 @@ export class App {
       if (!response.ok) return;
       const result = await response.json() as { notifySoundEnabled?: boolean; notifySoundType?: NotificationSoundType; notifyBrowserEnabled?: boolean };
       this.soundNotifications = Boolean(result.notifySoundEnabled);
-      this.notificationSoundType = result.notifySoundType || 'classic';
+      this.notificationSoundType = normalizeNotificationSoundType(result.notifySoundType);
       this.browserNotifications = Boolean(result.notifyBrowserEnabled);
     } catch {
       // Las notificaciones son opcionales; no afectan al panel si falla esta consulta.
