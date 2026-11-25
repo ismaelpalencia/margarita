@@ -1,7 +1,7 @@
 export type MetaCallAction = "pre_accept" | "accept" | "reject" | "terminate" | "connect";
 
 export class MetaCallApiError extends Error {
-  constructor(readonly httpStatus: number, readonly metaCode?: number, readonly metaSubcode?: number) {
+  constructor(readonly action: MetaCallAction, readonly httpStatus: number, readonly metaCode?: number, readonly metaSubcode?: number) {
     super(`Meta rechazó la acción de llamada (HTTP ${httpStatus}${metaCode ? `, código ${metaCode}` : ""}${metaSubcode ? `/${metaSubcode}` : ""}).`);
     this.name = "MetaCallApiError";
   }
@@ -25,8 +25,8 @@ export async function sendMetaCallAction(input: {
     body.to = input.to;
     body.session = { sdp_type: "offer", sdp: input.sdp };
     if (input.callbackData) body.biz_opaque_callback_data = input.callbackData;
-  } else if (input.action === "accept") {
-    if (!input.callId || !input.sdp) throw new Error("Faltan datos para aceptar la llamada.");
+  } else if (input.action === "pre_accept" || input.action === "accept") {
+    if (!input.callId || !input.sdp) throw new Error(`Faltan datos para ${input.action === "pre_accept" ? "preparar" : "aceptar"} la llamada.`);
     body.session = { sdp_type: "answer", sdp: input.sdp };
   }
   const response = await (input.fetcher ?? fetch)(`https://graph.facebook.com/${encodeURIComponent(input.apiVersion)}/${encodeURIComponent(input.phoneNumberId)}/calls`, {
@@ -37,7 +37,7 @@ export async function sendMetaCallAction(input: {
   });
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({})) as { error?: { code?: number; error_subcode?: number } };
-    throw new MetaCallApiError(response.status, errorBody.error?.code, errorBody.error?.error_subcode);
+    throw new MetaCallApiError(input.action, response.status, errorBody.error?.code, errorBody.error?.error_subcode);
   }
 }
 

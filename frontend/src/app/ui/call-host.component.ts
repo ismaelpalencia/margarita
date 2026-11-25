@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { CallFeatureService } from './call-feature.service';
 
 @Component({
@@ -12,7 +12,7 @@ import { CallFeatureService } from './call-feature.service';
           <h2 id="incoming-call-title">Llamada entrante</h2>
           <p>{{ incoming.phone || 'Contacto de WhatsApp' }}</p>
           <div class="call-actions"><button type="button" class="call-reject" (click)="feature.rejectIncoming()">Rechazar</button><button type="button" class="call-accept" (click)="feature.acceptIncoming()">Contestar</button></div>
-          @if (feature.status() === 'connecting') { <p class="call-note" role="status">Conectando el audio…</p> }
+          @if (feature.status() === 'connecting') { <p class="call-note" role="status">Preparando el audio; puede tardar unos segundos…</p> }
         </section>
       </div>
     }
@@ -38,4 +38,11 @@ import { CallFeatureService } from './call-feature.service';
 export class CallHostComponent {
   protected readonly feature = inject(CallFeatureService);
   protected formatTime(seconds: number): string { return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`; }
+
+  @HostListener('window:beforeunload', ['$event'])
+  protected protectActiveCall(event: BeforeUnloadEvent): void {
+    if (!this.feature.active() && !this.feature.incoming() && !this.feature.outgoingSetup()) return;
+    event.preventDefault();
+    event.returnValue = '';
+  }
 }

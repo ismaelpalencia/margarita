@@ -13,6 +13,7 @@ export class CallFeatureService {
   readonly remoteStream = signal<MediaStream | null>(null);
   readonly muted = signal(false);
   readonly elapsedSeconds = signal(0);
+  readonly outgoingSetup = signal(false);
   readonly error = signal('');
   readonly enabledForConversation = signal(false);
   readonly unavailableReason = signal('Las llamadas no están configuradas.');
@@ -37,25 +38,25 @@ export class CallFeatureService {
 
   async startCall(conversationId: string): Promise<void> {
     this.error.set('');
+    this.outgoingSetup.set(true);
     this.status.set('loading');
-    if (this.preparedConversation !== conversationId || !this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      const ready = await this.connect(conversationId);
-      if (!ready) throw new Error(this.unavailableReason());
-    }
-    if (!this.tokenData?.canCall || !this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      this.status.set('idle');
-      throw new Error(this.unavailableReason());
-    }
     try {
+      if (this.preparedConversation !== conversationId || !this.socket || this.socket.readyState !== WebSocket.OPEN) {
+        const ready = await this.connect(conversationId);
+        if (!ready) throw new Error(this.unavailableReason());
+      }
+      if (!this.tokenData?.canCall || !this.socket || this.socket.readyState !== WebSocket.OPEN) throw new Error(this.unavailableReason());
       const pc = await this.createPeerConnection();
       const offer = await pc.createOffer({ offerToReceiveAudio: true });
       await pc.setLocalDescription(offer);
       await this.waitForIceGathering(pc);
       const callId = crypto.randomUUID();
       this.active.set({ callId, conversationId, direction: 'OUTBOUND' });
+      this.outgoingSetup.set(false);
       this.send({ event: 'call:start', callId, conversationId, sdp: pc.localDescription?.sdp || offer.sdp });
       this.status.set('connecting');
     } catch (reason) {
+      this.outgoingSetup.set(false);
       this.fail(this.errorMessage(reason, 'No se pudo iniciar la llamada.'));
       throw new Error(this.error());
     }
@@ -72,7 +73,6 @@ export class CallFeatureService {
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       await this.waitForIceGathering(pc);
-      this.send({ event: 'call:accept', callId: incoming.callId });
       this.send({ event: 'call:sdp-answer', callId: incoming.callId, sdp: pc.localDescription?.sdp || answer.sdp });
       this.active.set({ callId: incoming.callId, conversationId: incoming.conversationId, direction: 'INBOUND' });
       this.incoming.set(null);
@@ -271,6 +271,7 @@ export class CallFeatureService {
 
   private cleanupCall(): void {
     this.cleanupMedia();
+    this.outgoingSetup.set(false);
     this.incoming.set(null);
     this.active.set(null);
     this.status.set('idle');

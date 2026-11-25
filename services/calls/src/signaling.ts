@@ -34,7 +34,7 @@ function send(socket: WebSocket, event: string, data: Record<string, unknown> = 
 
 function reportClientActionError(socket: WebSocket, error: unknown): void {
   if (error instanceof MetaCallApiError) {
-    console.warn("Meta rechazó una acción de llamada.", { httpStatus: error.httpStatus, code: error.metaCode, subcode: error.metaSubcode });
+    console.warn("Meta rechazó una acción de llamada.", { action: error.action, httpStatus: error.httpStatus, code: error.metaCode, subcode: error.metaSubcode });
     send(socket, "call:error", { message: error.message });
     return;
   }
@@ -171,29 +171,21 @@ async function handleClientMessage(socket: WebSocket, message: ClientMessage): P
   }
 
   const call = message.callId ? state.get(message.callId) : undefined;
+  if (!call && message.event === "call:reject") return;
   if (!call || call.agentId !== claims.userId || call.workspaceId !== claims.workspaceId || call.conversationId !== claims.conversationId || call.peer !== socket) throw new Error("La llamada ya no está disponible.");
   const context = call.context as CallContext;
 
-  if (message.event === "call:accept" && call.direction === "INBOUND") {
+  if (message.event === "call:sdp-answer" && call.direction === "INBOUND" && typeof message.sdp === "string") {
     try {
-      await performAction(context, "pre_accept", call.callId);
+      await performAction(context, "pre_accept", call.callId, message.sdp);
       state.transition(call.callId, "connecting");
-    } catch (error) {
-      state.transition(call.callId, "failed");
-      await performAction(context, "reject", call.callId).catch(() => undefined);
-      await notifyMargarita({ ...context, metaCallId: call.callId, direction: "INBOUND", status: "FAILED", error: "Meta no permitió preparar la llamada." }).catch(() => undefined);
-      state.remove(call.callId);
-      throw error;
-    }
-    send(socket, "call:connecting", { callId: call.callId });
-  } else if (message.event === "call:sdp-answer" && call.direction === "INBOUND" && typeof message.sdp === "string") {
-    try {
+      send(socket, "call:connecting", { callId: call.callId });
       await performAction(context, "accept", call.callId, message.sdp);
       state.transition(call.callId, "active");
     } catch (error) {
-      state.transition(call.callId, "failed");
+      try { state.transition(call.callId, "failed"); } catch { /* estado terminal */ }
       await performAction(context, "reject", call.callId).catch(() => undefined);
-      await notifyMargarita({ ...context, metaCallId: call.callId, direction: "INBOUND", status: "FAILED", error: "Meta no pudo aceptar la llamada." }).catch(() => undefined);
+      await notifyMargarita({ ...context, metaCallId: call.callId, direction: "INBOUND", status: "FAILED", error: "No se pudo completar la llamada entrante." }).catch(() => undefined);
       state.remove(call.callId);
       throw error;
     }
