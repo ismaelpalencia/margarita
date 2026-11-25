@@ -126,6 +126,7 @@ export class CallsController {
         const allowedStatuses = new Set(["RINGING", "CONNECTING", "ACTIVE", "COMPLETED", "MISSED", "REJECTED", "FAILED"]);
         const workspaceId = typeof body.workspaceId === "string" ? body.workspaceId : "";
         const conversationId = typeof body.conversationId === "string" ? body.conversationId : "";
+        const localCallId = typeof body.localCallId === "string" ? body.localCallId.slice(0, 180) : "";
         const agentId = typeof body.agentId === "string" ? body.agentId : null;
         if (!metaCallId || !direction || !allowedStatuses.has(status) || !workspaceId || !conversationId) return res.status(400).json({ error: "Evento de llamada inválido." });
         const acceptedAt = body.accepted === true || status === "ACTIVE" ? new Date() : null;
@@ -133,12 +134,19 @@ export class CallsController {
         const durationSeconds = Number.isInteger(body.durationSeconds) ? Math.min(86400, Math.max(0, Number(body.durationSeconds))) : null;
         const error = typeof body.error === "string" ? body.error.slice(0, 240) : null;
         try {
-            const previous = await prisma.call.findUnique({ where: { metaCallId }, select: { status: true } });
-            const call = await prisma.call.upsert({
-                where: { metaCallId },
-                create: { metaCallId, workspaceId, conversationId, agentId, direction, status, ...(acceptedAt ? { acceptedAt } : {}), ...(endedAt ? { endedAt } : {}), ...(durationSeconds !== null ? { durationSeconds } : {}), ...(error ? { error } : {}) },
-                update: { status, ...(agentId ? { agentId } : {}), ...(acceptedAt ? { acceptedAt } : {}), ...(endedAt ? { endedAt } : {}), ...(durationSeconds !== null ? { durationSeconds } : {}), ...(error ? { error } : {}) }
-            });
+            const previous = await prisma.call.findUnique({ where: { metaCallId } })
+                || (localCallId && localCallId !== metaCallId ? await prisma.call.findUnique({ where: { metaCallId: localCallId } }) : null);
+            if (previous && (previous.workspaceId !== workspaceId || previous.conversationId !== conversationId)) {
+                return res.status(409).json({ error: "El evento no corresponde a la llamada registrada." });
+            }
+            if (previous && finalStatuses.has(previous.status) && !finalStatuses.has(status)) {
+                return res.status(202).json({ accepted: true, id: previous.id });
+            }
+            const createData = { metaCallId, workspaceId, conversationId, agentId, direction, status, ...(acceptedAt ? { acceptedAt } : {}), ...(endedAt ? { endedAt } : {}), ...(durationSeconds !== null ? { durationSeconds } : {}), ...(error ? { error } : {}) };
+            const updateData = { metaCallId, status, ...(agentId ? { agentId } : {}), ...(acceptedAt && !previous?.acceptedAt ? { acceptedAt } : {}), ...(endedAt && !previous?.endedAt ? { endedAt } : {}), ...(durationSeconds !== null ? { durationSeconds } : {}), ...(error ? { error } : {}) };
+            const call = previous
+                ? await prisma.call.update({ where: { id: previous.id }, data: updateData })
+                : await prisma.call.upsert({ where: { metaCallId }, create: createData, update: updateData });
             if (finalStatuses.has(status) && (!previous || !finalStatuses.has(previous.status))) {
                 const note = callEventNote(direction, status, durationSeconds);
                 if (note) await MessageService.createCallEventNote({ workspaceId, conversationId, body: note });

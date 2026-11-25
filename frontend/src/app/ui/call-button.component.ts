@@ -7,7 +7,7 @@ type CallState='enabled'|'disabled'|'loading'|'permission-required';
   selector: 'ui-call-button',
   standalone: true,
   imports: [IconComponent],
-  template: `<button type="button" class="call-button" [disabled]="state()==='loading'" (click)="start()" [attr.aria-label]="label()" [title]="label()"><ui-icon name="phone"/><span>{{ state()==='loading' ? 'Conectando' : 'Llamar' }}</span></button>`,
+  template: `<button type="button" class="call-button" [disabled]="state()==='loading' || !!feature.active() || !!feature.incoming()" (click)="start()" [attr.aria-label]="label()" [title]="label()"><ui-icon name="phone"/><span>{{ feature.active() || feature.incoming() ? 'En llamada' : state()==='loading' ? 'Conectando' : 'Llamar' }}</span></button>`,
   styles: [`
     .call-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:8px 13px;border:1px solid var(--ui-border);border-radius:9px;color:var(--ui-text);background:var(--ui-raised);font:inherit;font-size:13px;font-weight:650;cursor:pointer;transition:transform var(--motion-fast) var(--motion-ease),background var(--motion-base) var(--motion-ease)}
     .call-button:hover{transform:translateY(-1px);background:var(--ui-surface)}.call-button:active{transform:translateY(1px)}.call-button:disabled{opacity:.65;cursor:wait}
@@ -16,10 +16,11 @@ type CallState='enabled'|'disabled'|'loading'|'permission-required';
 })
 export class CallButtonComponent implements OnInit {
   readonly conversationId=input.required<string>();
-  private readonly feature=inject(CallFeatureService);
+  protected readonly feature=inject(CallFeatureService);
   private readonly toast=inject(ToastService);
   readonly state=signal<CallState>('loading');
   label(): string {
+    if (this.feature.active() || this.feature.incoming()) return 'Termina la llamada actual antes de iniciar otra';
     if (this.state() === 'enabled') return 'Llamar al contacto';
     if (this.state() === 'loading') return 'Conectando con el servicio de llamadas';
     return this.feature.unavailableReason() || 'Llamadas no disponibles';

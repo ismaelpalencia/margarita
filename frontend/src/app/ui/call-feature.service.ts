@@ -30,6 +30,14 @@ export class CallFeatureService {
   private preparePromise: Promise<boolean> | null = null;
 
   async prepare(conversationId: string): Promise<boolean> {
+    const currentCall = this.active();
+    const pendingCall = this.incoming();
+    if (currentCall || pendingCall) {
+      const sameConversation = currentCall?.conversationId === conversationId || pendingCall?.conversationId === conversationId;
+      this.enabledForConversation.set(sameConversation);
+      this.unavailableReason.set(sameConversation ? '' : 'Termina la llamada activa antes de cambiar de conversación.');
+      return sameConversation;
+    }
     this.preparedConversation = conversationId;
     this.preparePromise = this.preparePromise || this.connect(conversationId);
     const available = await this.preparePromise;
@@ -39,6 +47,7 @@ export class CallFeatureService {
   }
 
   async startCall(conversationId: string): Promise<void> {
+    if (this.active() || this.incoming()) throw new Error('Ya hay una llamada activa o entrante.');
     this.error.set('');
     this.outgoingSetup.set(true);
     this.status.set('loading');
@@ -222,7 +231,7 @@ export class CallFeatureService {
         this.status.set('active');
         this.startTimer();
         const call = this.active();
-        if (call?.direction === 'OUTBOUND' && call.callId) this.send({ event: 'call:media-ready', callId: call.callId });
+        if (call?.callId) this.send({ event: 'call:media-ready', callId: call.callId });
       } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
         this.fail('No fue posible establecer el audio. Comprueba la red e intenta de nuevo.');
       }
@@ -269,6 +278,7 @@ export class CallFeatureService {
     this.status.set('error');
     this.incoming.set(null);
     this.active.set(null);
+    this.hangupRequested.set(false);
     this.cleanupMedia();
   }
 

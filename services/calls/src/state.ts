@@ -1,20 +1,26 @@
 export type CallPhase = "incoming" | "outgoing" | "connecting" | "active" | "terminating" | "ended" | "rejected" | "failed";
-export type CallRecord = { callId: string; metaCallId?: string; agentId: string; workspaceId: string; conversationId: string; phase: CallPhase; direction: "INBOUND" | "OUTBOUND"; createdAt: number; peer?: unknown; context?: unknown };
-export type IncomingRecipientCandidate = { userId: string; role: string; workspaceId: string; conversationId: string; ready: boolean; assignedAgentCanCall: boolean; hasActiveCall: boolean };
+export type CallRecord = { callId: string; metaCallId?: string; agentId: string; workspaceId: string; conversationId: string; phase: CallPhase; direction: "INBOUND" | "OUTBOUND"; createdAt: number; peer?: unknown; context?: unknown; terminationWasActive?: boolean; cancelRequested?: boolean };
+export type IncomingRecipientCandidate = { userId: string; role: string; workspaceId: string; conversationId: string; ready: boolean; assignedAgentCanCall: boolean; adminCanCall: boolean; hasActiveCall: boolean };
 
-export function finalCallStatus(phase: CallPhase): "COMPLETED" | "MISSED" {
-  return phase === "active" || phase === "terminating" ? "COMPLETED" : "MISSED";
+const callEventFields = ["workspaceId", "conversationId", "agentId", "metaCallId", "localCallId", "direction", "status", "accepted", "durationSeconds", "error"] as const;
+
+export function safeCallEventPayload(event: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(callEventFields.filter((key) => event[key] !== undefined).map((key) => [key, event[key]]));
+}
+
+export function finalCallStatus(phase: CallPhase, terminationWasActive = false): "COMPLETED" | "MISSED" {
+  return phase === "active" || (phase === "terminating" && terminationWasActive) ? "COMPLETED" : "MISSED";
 }
 
 export function chooseIncomingRecipient(candidates: IncomingRecipientCandidate[], target: { workspaceId: string; conversationId: string; assignedAgentId: string }): IncomingRecipientCandidate | undefined {
   const matches = candidates.filter((candidate) => candidate.ready && !candidate.hasActiveCall && candidate.workspaceId === target.workspaceId && candidate.conversationId === target.conversationId);
   return matches.find((candidate) => candidate.userId === target.assignedAgentId && candidate.role === "AGENT" && candidate.assignedAgentCanCall)
-    || matches.find((candidate) => candidate.role === "ADMIN");
+    || matches.find((candidate) => candidate.role === "ADMIN" && candidate.adminCanCall);
 }
 
 const transitions: Record<CallPhase, CallPhase[]> = {
   incoming: ["connecting", "rejected", "ended", "failed"],
-  outgoing: ["connecting", "rejected", "ended", "failed"],
+  outgoing: ["connecting", "terminating", "rejected", "ended", "failed"],
   connecting: ["active", "terminating", "rejected", "ended", "failed"],
   active: ["terminating", "ended", "failed"],
   terminating: ["ended", "failed"], ended: [], rejected: [], failed: []
@@ -39,6 +45,13 @@ export class CallStateStore {
     const removed: CallRecord[] = [];
     for (const [id, call] of this.calls) if (call.peer === peer) { this.calls.delete(id); removed.push(call); }
     return removed;
+  }
+  detachPeer(peer: unknown): CallRecord[] {
+    const detached: CallRecord[] = [];
+    for (const call of this.calls.values()) {
+      if (call.peer === peer) { call.peer = undefined; detached.push(call); }
+    }
+    return detached;
   }
   activeForAgent(agentId: string): CallRecord | undefined { return [...this.calls.values()].find((call) => call.agentId === agentId && !["ended", "rejected", "failed"].includes(call.phase)); }
 }

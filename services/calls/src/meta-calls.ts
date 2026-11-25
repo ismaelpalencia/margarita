@@ -75,7 +75,7 @@ export function parseCallWebhooks(payload: unknown): ParsedCall[] {
       for (const raw of [...(value.calls ?? []), ...(value.statuses ?? [])]) {
         if (!raw || typeof raw !== "object") continue;
         const item = raw as Record<string, unknown>;
-        if (typeof item.id !== "string") continue;
+        if (typeof item.id !== "string" || item.id.length === 0 || item.id.length > 180) continue;
         const direction = item.direction === "BUSINESS_INITIATED" ? "BUSINESS_INITIATED" : "USER_INITIATED";
         const session = item.session && typeof item.session === "object" ? item.session as Record<string, unknown> : undefined;
         const errors = Array.isArray(item.errors) ? item.errors : [];
