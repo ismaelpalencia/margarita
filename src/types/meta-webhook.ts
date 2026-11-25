@@ -10,7 +10,13 @@ export type MetaWebhookEntry = {
 
 export type MetaWebhookChange = {
     field?: string;
-    value?: MetaWebhookValue | MetaWebhookTemplateStatusValue | MetaWebhookQualityValue;
+    value?: MetaWebhookValue | MetaWebhookTemplateStatusValue | MetaWebhookQualityValue | MetaWebhookCallingValue;
+};
+
+export type MetaWebhookCallingValue = {
+    metadata?: { phone_number_id?: string; display_phone_number?: string };
+    calls?: unknown[];
+    statuses?: unknown[];
 };
 
 /** `message_template_status_update`: aviso a nivel de WABA. */

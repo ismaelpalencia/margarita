@@ -11,6 +11,7 @@ import { webhookTelemetry } from "../services/webhook-telemetry.service";
 import { MetaWebhookPayload } from "../types/meta-webhook";
 import { extractPhoneNumberId } from "../utils/meta-payload";
 import { verifyMetaSignature } from "../utils/webhook-signature";
+import { forwardCallingWebhook, withoutCallChanges } from "../services/calls-webhook-forwarder";
 
 let missingSecretWarningLogged = false;
 
@@ -135,6 +136,10 @@ export class MetaWebhookController {
         }
 
         const payload = req.body as MetaWebhookPayload;
+        void forwardCallingWebhook(payload, { serviceUrl: appConfig.calls.serviceUrl, internalSecret: appConfig.calls.internalSecret })
+            .catch(() => logger.error("No se pudo reenviar un evento de llamadas al servicio dedicado"));
+        const margaritaPayload = withoutCallChanges(payload);
+        if (!margaritaPayload.entry?.length) return res.sendStatus(200);
 
         /**
          * Con la cola activa, el webhook solo se guarda y se responde 200
@@ -146,7 +151,7 @@ export class MetaWebhookController {
                 await prisma.webhookEvent.create({
                     data: {
                         payload: JSON.parse(
-                            JSON.stringify(payload)
+                            JSON.stringify(margaritaPayload)
                         ) as Prisma.InputJsonValue,
                         phoneNumberId: extractPhoneNumberId(payload)
                     }
@@ -176,7 +181,7 @@ export class MetaWebhookController {
          * reintentos infinitos de Meta.
          */
         try {
-            await MetaWebhookHandlerService.handleIncomingPayload(payload);
+            await MetaWebhookHandlerService.handleIncomingPayload(margaritaPayload);
 
             return res.sendStatus(200);
         } catch (error) {

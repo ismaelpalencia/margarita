@@ -16,6 +16,8 @@ import agentRoutes from "./agent.routes";
 import mediaRoutes from "./media.routes";
 import pushRoutes from "./push.routes";
 import webhookRoutes from "./webhook.routes";
+import callsRoutes from "./calls.routes";
+import internalCallsRoutes from "./internal-calls.routes";
 
 
 const router = Router();
@@ -50,6 +52,8 @@ router.use("/auth", authRoutes);
 router.use("/admin", adminRoutes);
 router.use("/agent", agentRoutes);
 router.use("/webhooks", webhookRoutes);
+router.use("/internal/calls", internalCallsRoutes);
+router.use("/panel/calls", callsRoutes);
 
 /**
  * Archivos que enviaron los clientes (fotos, audio, documentos). Requiere

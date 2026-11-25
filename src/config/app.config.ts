@@ -228,6 +228,14 @@ export const appConfig = {
         process.env.GRAPH_BASE_URL?.trim().replace(/\/+$/, "") ||
         "https://graph.facebook.com",
 
+    calls: {
+        enabled: process.env.CALLS_ENABLED === "true",
+        publicOrigin: process.env.CALLS_PUBLIC_ORIGIN?.trim().replace(/\/+$/, "") || "",
+        serviceUrl: process.env.CALLS_SERVICE_URL?.trim().replace(/\/+$/, "") || process.env.CALLS_PUBLIC_ORIGIN?.trim().replace(/\/+$/, "") || "",
+        internalSecret: process.env.CALLS_INTERNAL_SECRET?.trim() || "",
+        jwtSecret: process.env.CALLS_JWT_SECRET?.trim() || ""
+    },
+
     /**
      * Llave para cifrar credenciales de Meta en base de datos (AES-256-GCM).
      * Acepta 64 caracteres hexadecimales o cualquier cadena larga.

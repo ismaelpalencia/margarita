@@ -1,4 +1,5 @@
 import { Component, ElementRef, HostListener, OnDestroy, ViewChild, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { CallButtonComponent } from './ui/call-button.component';
 import { ConfirmDialogService } from './ui/confirm-dialog.service';
@@ -78,10 +79,12 @@ interface AdvancedConversationData {
   success: string | null;
 }
 
+interface CallHistoryItem { id: string; direction: 'INBOUND' | 'OUTBOUND'; status: string; startedAt: string; durationSeconds: number | null; error: string | null; }
+
 @Component({
   selector: 'app-agent-conversation-page',
   standalone: true,
-  imports: [CallButtonComponent],
+  imports: [CallButtonComponent, DatePipe],
   template: `
     @if (loading()) {
       <div class="detail-loading"><span class="spinner"></span>Cargando conversación…</div>
@@ -90,6 +93,7 @@ interface AdvancedConversationData {
     } @else if (data(); as model) {
       <header class="detail-intro"><a [href]="listUrl()" class="back-link">← Bandeja</a><div class="detail-heading"><span class="detail-avatar">{{ initials(contactName(model)) }}</span><div class="contact-heading"><h1>{{ contactName(model) }}</h1><p>{{ model.conversation.contact.phone }}</p></div><div class="detail-header-badges">@if (model.conversation.whatsappNumber) { <span class="detail-pill">{{ model.conversation.whatsappNumber.displayName || model.conversation.whatsappNumber.phoneNumber }}</span> }<span class="detail-pill" [class.open-pill]="model.conversation.status === 'OPEN'">{{ model.conversation.status === 'OPEN' ? 'Abierta' : 'Cerrada' }}</span>@if (model.conversation.aiHandoffAt) { <span class="detail-pill handoff-pill">IA pidió atención</span> }<ui-call-button [conversationId]="model.conversation.id"/></div></div>
       </header>
+      <section class="conversation-call-history" aria-label="Historial de llamadas"><h2>Historial de llamadas</h2>@for (call of callHistory(); track call.id) { <article><span>{{ call.direction === 'INBOUND' ? 'Entrante' : 'Saliente' }} · {{ callStatus(call.status) }}</span><time>{{ call.startedAt | date:'d MMM, HH:mm':'':'es-MX' }}</time>@if (call.durationSeconds) { <small>{{ formatRecordingTime(call.durationSeconds) }}</small> }@if (call.error) { <p>{{ call.error }}</p> }</article> } @empty { <p>Todavía no hay llamadas registradas.</p> }</section>
       @if (operationNotice()) { <p class="composer-note" role="status">{{ operationNotice() }}</p> }
 
       <div class="conversation-layout">
@@ -249,6 +253,7 @@ export class AgentConversationPage implements OnDestroy {
   protected readonly data = signal<AgentConversationDetail | null>(null);
   protected readonly error = signal('');
   protected readonly operationNotice = signal('');
+  protected readonly callHistory = signal<CallHistoryItem[]>([]);
   protected readonly selectedQuickReply = signal<QuickReply | null>(null);
   protected readonly loading = signal(true);
   protected readonly draft = signal('');
@@ -409,6 +414,7 @@ export class AgentConversationPage implements OnDestroy {
     thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
   }
   protected formatRecordingTime(seconds: number): string { return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`; }
+  protected callStatus(status: string): string { return ({ RINGING: 'sonando', CONNECTING: 'conectando', ACTIVE: 'activa', COMPLETED: 'finalizada', MISSED: 'perdida', REJECTED: 'rechazada', FAILED: 'error' } as Record<string, string>)[status] || status; }
 
   protected async startVoiceRecording(): Promise<void> {
     this.voiceError.set('');
@@ -698,6 +704,10 @@ export class AgentConversationPage implements OnDestroy {
       this.hasInitialScroll = true;
       const advancedResponse = await fetch(`${this.routeBase()}/${encodeURIComponent(this.id)}/legacy${deletedQuery}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
       if (advancedResponse.ok && (advancedResponse.headers.get('content-type') || '').includes('application/json')) this.advanced.set(await advancedResponse.json() as AdvancedConversationData);
+      void fetch(`/panel/calls/conversations/${encodeURIComponent(this.id)}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+        .then((callsResponse) => callsResponse.ok ? callsResponse.json() as Promise<{ calls: CallHistoryItem[] }> : null)
+        .then((callsResult) => this.callHistory.set(callsResult?.calls || []))
+        .catch(() => this.callHistory.set([]));
       this.error.set('');
     } catch (reason: unknown) {
       this.error.set(reason instanceof Error ? reason.message : 'Ocurrió un error inesperado.');

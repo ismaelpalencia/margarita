@@ -35,6 +35,11 @@ enum UserStatus {
   OFFLINE
 }
 
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+}
+
 enum ConversationStatus {
   OPEN
   CLOSED
@@ -410,6 +415,7 @@ model Workspace {
   aiUsage          AiUsage[]
   flows            Flow[]
   leads            Lead[]
+  calls            Call[]
 
   /**
    * Flujos precargados (respuesta automática por palabra clave).
@@ -508,6 +514,27 @@ model ConversationFeedback {
   @@index([workspaceId, createdAt])
 }
 
+model Call {
+  id              String        @id @default(cuid())
+  workspaceId     String
+  workspace       Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  conversationId  String
+  conversation    Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  agentId         String?
+  agent           User?         @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  metaCallId      String        @unique
+  direction       CallDirection
+  status          String
+  startedAt       DateTime      @default(now())
+  acceptedAt      DateTime?
+  endedAt         DateTime?
+  durationSeconds Int?
+  error           String?
+
+  @@index([workspaceId, conversationId, startedAt])
+  @@index([agentId, status])
+}
+
 model WorkspaceSettings {
   id          String    @id @default(cuid())
   workspaceId String    @unique
@@ -601,6 +628,7 @@ model User {
   contactsOptIn    Contact[]        @relation("ContactOptIn")
   complaintsOpened Complaint[]      @relation("ComplaintOpenedBy")
   complaintsClosed Complaint[]      @relation("ComplaintClosedBy")
+  calls            Call[]
 
   aiSettingsUpdated       AiSettings[]     @relation("AiSettingsUpdatedBy")
   knowledgeEntriesCreated KnowledgeEntry[] @relation("KnowledgeEntryCreatedBy")
@@ -937,6 +965,7 @@ model Conversation {
   leads         Lead[]
   feedback      ConversationFeedback?
   guidedFlowRun GuidedFlowRun?
+  calls         Call[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

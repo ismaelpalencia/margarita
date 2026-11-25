@@ -4,6 +4,7 @@
 <div class="shell">
   <ui-toast-host />
   <ui-confirm-dialog-host />
+  @if (isAgent) { <ui-call-host /> }
   <aside class="sidebar">
     <div class="sidebar-head">
       <a class="brand" [routerLink]="isAgent ? '/panel/agent/dashboard' : '/panel/admin/dashboard'" aria-label="Margarita, inicio">

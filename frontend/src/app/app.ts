@@ -7,6 +7,7 @@ import { formatNotificationTitle, NotificationSoundType, normalizeNotificationSo
 import { ToastHostComponent } from './ui/toast-host.component';
 import { IconComponent } from './ui/icon.component';
 import { ConfirmDialogHostComponent } from './ui/confirm-dialog-host.component';
+import { CallHostComponent } from './ui/call-host.component';
 
 interface ShellNumber {
   id: string;
@@ -37,7 +38,7 @@ interface InstallPromptEvent extends Event {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, NgTemplateOutlet, ToastHostComponent, ConfirmDialogHostComponent, IconComponent],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, NgTemplateOutlet, ToastHostComponent, ConfirmDialogHostComponent, IconComponent, CallHostComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

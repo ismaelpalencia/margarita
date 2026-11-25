@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { AgentConversationPage } from './agent-conversation.page';
+import { CallFeatureService } from './ui/call-feature.service';
 
 describe('AgentConversationPage', () => {
   afterEach(() => vi.restoreAllMocks());
@@ -76,7 +77,10 @@ describe('AgentConversationPage', () => {
 
     await TestBed.configureTestingModule({
       imports: [AgentConversationPage],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'conversation-1' } } } }],
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'conversation-1' } } } },
+        { provide: CallFeatureService, useValue: { prepare: async () => false, unavailableReason: () => 'No disponible' } },
+      ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(AgentConversationPage);
