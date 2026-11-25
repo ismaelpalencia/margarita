@@ -24,6 +24,12 @@ test("envía pre_accept con el SDP answer requerido por Meta", async () => {
   assert.deepEqual(sent, { messaging_product: "whatsapp", action: "pre_accept", call_id: "call-1", session: { sdp_type: "answer", sdp: "answer-sdp" } });
 });
 
+test("envía terminate con el identificador Meta de la llamada", async () => {
+  let sent: Record<string, unknown> = {};
+  await sendMetaCallAction({ apiVersion: "v23.0", phoneNumberId: "pnid", accessToken: "secret-token", action: "terminate", callId: "meta-call-1", fetcher: async (_url, init) => { sent = JSON.parse(String(init?.body)); return Response.json({ success: true }); } });
+  assert.deepEqual(sent, { messaging_product: "whatsapp", action: "terminate", call_id: "meta-call-1" });
+});
+
 test("expone solo estado y códigos de error de Meta, nunca su mensaje sensible", async () => {
   await assert.rejects(
     sendMetaCallAction({ apiVersion: "v23.0", phoneNumberId: "pnid", accessToken: "secret-token", action: "connect", to: "+5215550000000", sdp: "private-sdp", fetcher: async () => Response.json({ error: { code: 190, error_subcode: 123, message: "secret-token private-sdp" } }, { status: 400 }) }),

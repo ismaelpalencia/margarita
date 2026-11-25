@@ -12,6 +12,7 @@ export class CallFeatureService {
   readonly active = signal<{ callId: string; conversationId: string; direction: 'INBOUND' | 'OUTBOUND' } | null>(null);
   readonly remoteStream = signal<MediaStream | null>(null);
   readonly muted = signal(false);
+  readonly hangupRequested = signal(false);
   readonly elapsedSeconds = signal(0);
   readonly outgoingSetup = signal(false);
   readonly error = signal('');
@@ -24,6 +25,7 @@ export class CallFeatureService {
   private localStream: MediaStream | null = null;
   private timerId: number | null = null;
   private refreshId: number | null = null;
+  private hangupTimeoutId: number | null = null;
   private preparedConversation = '';
   private preparePromise: Promise<boolean> | null = null;
 
@@ -90,9 +92,21 @@ export class CallFeatureService {
   }
 
   hangup(): void {
+    if (this.hangupRequested()) return;
     const call = this.active();
-    if (call?.callId) this.send({ event: 'call:hangup', callId: call.callId });
-    this.cleanupCall();
+    if (!call?.callId) return;
+    this.hangupRequested.set(true);
+    try {
+      this.send({ event: 'call:hangup', callId: call.callId });
+      this.hangupTimeoutId = window.setTimeout(() => {
+        if (!this.hangupRequested()) return;
+        this.hangupRequested.set(false);
+        this.error.set('No recibimos confirmación para colgar. La llamada puede seguir activa; inténtalo otra vez.');
+      }, 18_000);
+    } catch {
+      this.hangupRequested.set(false);
+      this.error.set('Se perdió la conexión con el servicio. No se confirmó el fin de la llamada.');
+    }
   }
 
   toggleMute(): void {
@@ -170,6 +184,13 @@ export class CallFeatureService {
         this.cleanupCall();
         break;
       case 'call:error':
+        if (event['clientEvent'] === 'call:hangup') {
+          if (this.hangupTimeoutId !== null) window.clearTimeout(this.hangupTimeoutId);
+          this.hangupTimeoutId = null;
+          this.hangupRequested.set(false);
+          this.error.set(this.userFacingCallError(typeof event['message'] === 'string' ? event['message'] : 'No se pudo confirmar el fin de la llamada.'));
+          break;
+        }
         this.fail(this.userFacingCallError(typeof event['message'] === 'string' ? event['message'] : 'La llamada no pudo completarse.'));
         break;
       default:
@@ -261,6 +282,8 @@ export class CallFeatureService {
     if (this.refreshId !== null) window.clearTimeout(this.refreshId);
     this.timerId = null;
     this.refreshId = null;
+    if (this.hangupTimeoutId !== null) window.clearTimeout(this.hangupTimeoutId);
+    this.hangupTimeoutId = null;
     this.peer?.close();
     this.peer = null;
     this.localStream?.getTracks().forEach((track) => track.stop());
@@ -272,6 +295,7 @@ export class CallFeatureService {
   private cleanupCall(): void {
     this.cleanupMedia();
     this.outgoingSetup.set(false);
+    this.hangupRequested.set(false);
     this.incoming.set(null);
     this.active.set(null);
     this.status.set('idle');

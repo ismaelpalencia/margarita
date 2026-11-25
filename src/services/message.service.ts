@@ -150,6 +150,33 @@ function requiresWhatsAppAudioConversion(file: SendMediaMessageParams["file"]): 
 }
 
 export class MessageService {
+    static async createCallEventNote(params: { workspaceId: string; conversationId: string; body: string }) {
+        const conversation = await prisma.conversation.findFirst({
+            where: { id: params.conversationId, workspaceId: params.workspaceId },
+            select: {
+                id: true,
+                assignedUserId: true,
+                contact: { select: { id: true, customName: true, profileName: true, phone: true } }
+            }
+        });
+        if (!conversation) return null;
+
+        const message = await prisma.message.create({
+            data: {
+                workspaceId: params.workspaceId,
+                conversationId: conversation.id,
+                direction: MessageDirection.OUT,
+                type: MessageType.TEXT,
+                status: MessageStatus.CREATED,
+                source: MessageSource.MANUAL,
+                isInternalNote: true,
+                body: params.body
+            }
+        });
+        this.emitOutgoingMessage(params.workspaceId, conversation, message);
+        return message;
+    }
+
     static async sendLocalMessage(params: SendLocalMessageParams) {
         const conversation = await this.getConversationForSending(
             params.workspaceId,

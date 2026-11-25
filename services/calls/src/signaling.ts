@@ -32,14 +32,14 @@ function send(socket: WebSocket, event: string, data: Record<string, unknown> = 
   if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ event, ...data }));
 }
 
-function reportClientActionError(socket: WebSocket, error: unknown): void {
+function reportClientActionError(socket: WebSocket, error: unknown, clientEvent: string): void {
   if (error instanceof MetaCallApiError) {
-    console.warn("Meta rechazó una acción de llamada.", { action: error.action, httpStatus: error.httpStatus, code: error.metaCode, subcode: error.metaSubcode });
-    send(socket, "call:error", { message: error.message });
+    console.warn("Meta rechazó una acción de llamada.", { clientEvent, action: error.action, httpStatus: error.httpStatus, code: error.metaCode, subcode: error.metaSubcode });
+    send(socket, "call:error", { clientEvent, message: error.message });
     return;
   }
-  console.warn("Falló una acción de señalización.", { errorName: error instanceof Error ? error.name : "UnknownError" });
-  send(socket, "call:error", { message: "No se pudo completar la acción de llamada." });
+  console.warn("Falló una acción de señalización.", { clientEvent, errorName: error instanceof Error ? error.name : "UnknownError" });
+  send(socket, "call:error", { clientEvent, message: "No se pudo completar la acción de llamada." });
 }
 
 function safeOrigin(origin: string | undefined): boolean {
@@ -172,6 +172,7 @@ async function handleClientMessage(socket: WebSocket, message: ClientMessage): P
 
   const call = message.callId ? state.get(message.callId) : undefined;
   if (!call && message.event === "call:reject") return;
+  if (!call && message.event === "call:hangup") { send(socket, "call:ended", { callId: message.callId }); return; }
   if (!call || call.agentId !== claims.userId || call.workspaceId !== claims.workspaceId || call.conversationId !== claims.conversationId || call.peer !== socket) throw new Error("La llamada ya no está disponible.");
   const context = call.context as CallContext;
 
@@ -251,7 +252,7 @@ export function attachCallSignaling(server: Server): void {
         try {
           const input = JSON.parse(raw.toString()) as ClientMessage;
           const previous = socketTasks.get(socket) || Promise.resolve();
-          const task = previous.then(() => handleClientMessage(socket, input)).catch((error: unknown) => reportClientActionError(socket, error));
+          const task = previous.then(() => handleClientMessage(socket, input)).catch((error: unknown) => reportClientActionError(socket, error, input.event || "unknown"));
           socketTasks.set(socket, task);
         } catch { send(socket, "call:error", { message: "Mensaje de llamada inválido." }); }
       });

@@ -6,6 +6,7 @@ import { appConfig } from "../config/app.config";
 import { prisma } from "../config/prisma";
 import { decryptSecret } from "../utils/crypto";
 import { contactPhoneFields, normalizePhone } from "../utils/phone";
+import { MessageService } from "../services/message.service";
 
 const activeStatuses = ["RINGING", "CONNECTING", "ACTIVE"];
 const finalStatuses = new Set(["COMPLETED", "MISSED", "REJECTED", "FAILED"]);
@@ -132,11 +133,16 @@ export class CallsController {
         const durationSeconds = Number.isInteger(body.durationSeconds) ? Math.min(86400, Math.max(0, Number(body.durationSeconds))) : null;
         const error = typeof body.error === "string" ? body.error.slice(0, 240) : null;
         try {
+            const previous = await prisma.call.findUnique({ where: { metaCallId }, select: { status: true } });
             const call = await prisma.call.upsert({
                 where: { metaCallId },
                 create: { metaCallId, workspaceId, conversationId, agentId, direction, status, ...(acceptedAt ? { acceptedAt } : {}), ...(endedAt ? { endedAt } : {}), ...(durationSeconds !== null ? { durationSeconds } : {}), ...(error ? { error } : {}) },
                 update: { status, ...(agentId ? { agentId } : {}), ...(acceptedAt ? { acceptedAt } : {}), ...(endedAt ? { endedAt } : {}), ...(durationSeconds !== null ? { durationSeconds } : {}), ...(error ? { error } : {}) }
             });
+            if (finalStatuses.has(status) && (!previous || !finalStatuses.has(previous.status))) {
+                const note = callEventNote(direction, status, durationSeconds);
+                if (note) await MessageService.createCallEventNote({ workspaceId, conversationId, body: note });
+            }
             return res.status(202).json({ accepted: true, id: call.id });
         } catch {
             return res.status(409).json({ error: "No se pudo registrar el evento de llamada." });
@@ -196,4 +202,15 @@ export class CallsController {
             callId
         };
     }
+}
+
+function callEventNote(direction: CallDirection, status: string, durationSeconds: number | null): string | null {
+    if (status === "MISSED") return direction === CallDirection.INBOUND ? "Llamada entrante perdida. No se pudo contestar." : "Llamada saliente perdida.";
+    if (status === "REJECTED") return direction === CallDirection.INBOUND ? "Llamada entrante rechazada." : "Llamada saliente rechazada.";
+    if (status === "FAILED") return direction === CallDirection.INBOUND ? "No se pudo completar la llamada entrante." : "No se pudo completar la llamada saliente.";
+    if (status === "COMPLETED") {
+        const duration = durationSeconds === null ? "" : ` · duración ${Math.floor(durationSeconds / 60)}:${String(durationSeconds % 60).padStart(2, "0")}`;
+        return `${direction === CallDirection.INBOUND ? "Llamada entrante" : "Llamada saliente"} finalizada${duration}.`;
+    }
+    return null;
 }

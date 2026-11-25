@@ -23,7 +23,7 @@ import { CallFeatureService } from './call-feature.service';
           <h2 id="active-call-title">{{ feature.status() === 'active' ? 'Llamada activa' : 'Conectando…' }}</h2>
           <p>{{ feature.status() === 'active' ? formatTime(feature.elapsedSeconds()) : (call.direction === 'INBOUND' ? 'Llamada entrante' : 'Llamando al contacto') }}</p>
           @if (feature.error()) { <p class="call-error" role="alert">{{ feature.error() }}</p> }
-          <div class="call-actions"><button type="button" class="call-mute" (click)="feature.toggleMute()">{{ feature.muted() ? 'Activar micrófono' : 'Silenciar' }}</button><button type="button" class="call-reject" (click)="feature.hangup()">Colgar</button></div>
+          <div class="call-actions"><button type="button" class="call-mute" [disabled]="feature.hangupRequested()" (click)="feature.toggleMute()">{{ feature.muted() ? 'Activar micrófono' : 'Silenciar' }}</button><button type="button" class="call-reject" [disabled]="feature.hangupRequested()" (click)="feature.hangup()">{{ feature.hangupRequested() ? 'Colgando…' : 'Colgar' }}</button></div>
           <audio autoplay [srcObject]="feature.remoteStream()"></audio>
         </section>
       </div>
