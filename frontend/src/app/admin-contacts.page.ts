@@ -42,7 +42,12 @@ interface ContactsResponse {
           <article class="contact-row"><div class="contact-identity"><span class="contact-avatar">{{ initials(contact.customName || contact.phone) }}</span><span><strong>{{ contact.customName || contact.phone }}</strong><small>{{ contact.phone }}</small></span></div>
             <div class="contact-meta"><span>{{ outcomeLabel(contact.outcomeType) }}</span>@if (contact.daysLate > 0) { <span class="contact-late">{{ contact.daysLate }} días vencido</span> }@if (contact.optOutAt) { <span class="contact-optout">BAJA</span> }</div>
             <div class="contact-tags">@for (item of contact.tags; track item.tag.id) { <span [style.border-color]="item.tag.color">{{ item.tag.name }}</span> }<small>{{ contact.attempts.attempts }} intentos</small></div>
-            <a class="contact-edit" [href]="'/panel/admin/contacts/' + contact.id">Ver ficha</a></article>
+            <div class="contact-actions">
+              @if (!contact.optOutAt) {
+                <form [action]="'/admin/conversations/from-contact/' + contact.id" method="post"><button type="submit" class="contact-start" title="Abrir conversación y enviar una plantilla aprobada">Iniciar conversación</button></form>
+              }
+              <a class="contact-edit" [href]="'/panel/admin/contacts/' + contact.id">Ver ficha</a>
+            </div></article>
         }
       </section>
     }

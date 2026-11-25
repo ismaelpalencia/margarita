@@ -694,7 +694,7 @@ export class AdminConversationsController {
 
             return res.redirect(`/admin/conversations/${conversation.id}`);
         } catch {
-            return res.redirect("/admin/contacts?error=conversation");
+            return res.redirect(`/panel/admin/contacts/${contactId}?error=conversation`);
         }
     }
 

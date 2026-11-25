@@ -22,7 +22,8 @@ interface DetailResponse {
     @if (loading()) { <div class="detail-loading">Cargando ficha…</div> }
     @else if (error()) { <section class="detail-error" role="alert"><h1>No pudimos abrir el contacto</h1><p>{{ error() }}</p><a href="/panel/admin/contacts">Volver a contactos</a></section> }
     @else if (data(); as result) {
-      <header class="detail-heading"><a href="/panel/admin/contacts">← Contactos</a><div><p class="detail-eyebrow">FICHA DE CONTACTO</p><h1>{{ result.contact.customName || result.contact.profileName || result.contact.phone }}</h1><p>{{ result.contact.phone }}</p></div><button class="deactivate-button" (click)="deactivate()">Archivar</button></header>
+      <header class="detail-heading"><a href="/panel/admin/contacts">← Contactos</a><div><p class="detail-eyebrow">FICHA DE CONTACTO</p><h1>{{ result.contact.customName || result.contact.profileName || result.contact.phone }}</h1><p>{{ result.contact.phone }}</p></div><div class="detail-actions" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap">@if (!result.contact.optOutAt) { <form [action]="'/admin/conversations/from-contact/' + result.contact.id" method="post"><button type="submit" class="primary-button">Iniciar conversación</button></form> }<button class="deactivate-button" (click)="deactivate()">Archivar</button></div></header>
+      @if (actionError()) { <p class="detail-danger" role="alert">{{ actionError() }}</p> }
       <div class="detail-grid">
         <main class="detail-main">
           <section class="detail-card"><h2>Información</h2><label>Nombre personalizado<input [value]="name()" (input)="name.set(($any($event.target)).value)"></label><label>Notas<textarea rows="4" [value]="notes()" (input)="notes.set(($any($event.target)).value)"></textarea></label><fieldset><legend>Etiquetas</legend><div class="detail-tags">@for (tag of result.tags; track tag.id) { <label><input type="checkbox" [checked]="selectedTags().has(tag.id)" (change)="toggleTag(tag.id, $event)"><span [style.border-color]="tag.color">{{ tag.name }}</span></label> } @empty { <small>No hay etiquetas configuradas.</small> }</div></fieldset><button class="primary-button" (click)="save()" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar cambios' }}</button></section>
@@ -47,6 +48,7 @@ export class AdminContactDetailPage {
   private readonly confirmDialog=inject(ConfirmDialogService);
   protected readonly data = signal<DetailResponse | null>(null);
   protected readonly loading = signal(true); protected readonly error = signal(''); protected readonly saving = signal(false);
+  protected readonly actionError = signal(new URLSearchParams(window.location.search).get('error') === 'conversation' ? 'No se pudo abrir la conversación. Verifica que haya un número de WhatsApp activo en el panel.' : '');
   protected readonly name = signal(''); protected readonly notes = signal(''); protected readonly selectedTags = signal(new Set<string>());
   private readonly id: string;
   constructor(route: ActivatedRoute, private readonly router: Router) { this.id = route.snapshot.paramMap.get('id') || ''; void this.load(); }
