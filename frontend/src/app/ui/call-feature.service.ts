@@ -164,17 +164,23 @@ export class CallFeatureService {
         this.status.set('connecting');
         break;
       case 'call:rejected':
-        this.fail(typeof event['message'] === 'string' ? event['message'] : 'El contacto rechazó la llamada.');
+        this.fail(this.userFacingCallError(typeof event['message'] === 'string' ? event['message'] : 'El contacto rechazó la llamada.'));
         break;
       case 'call:ended':
         this.cleanupCall();
         break;
       case 'call:error':
-        this.fail(typeof event['message'] === 'string' ? event['message'] : 'La llamada no pudo completarse.');
+        this.fail(this.userFacingCallError(typeof event['message'] === 'string' ? event['message'] : 'La llamada no pudo completarse.'));
         break;
       default:
         break;
     }
+  }
+
+  private userFacingCallError(message: string): string {
+    if (/138000/.test(message)) return 'Las llamadas aún no están habilitadas en este número de WhatsApp. Revisa su configuración en Meta.';
+    if (/Meta rechazó la acción de llamada/i.test(message)) return 'No se pudo iniciar la llamada. Revisa la configuración de llamadas de WhatsApp e inténtalo de nuevo.';
+    return message;
   }
 
   private async createPeerConnection(): Promise<RTCPeerConnection> {

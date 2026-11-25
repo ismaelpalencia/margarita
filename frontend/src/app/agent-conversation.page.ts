@@ -93,7 +93,7 @@ interface CallHistoryItem { id: string; direction: 'INBOUND' | 'OUTBOUND'; statu
     } @else if (data(); as model) {
       <header class="detail-intro"><a [href]="listUrl()" class="back-link">← Bandeja</a><div class="detail-heading"><span class="detail-avatar">{{ initials(contactName(model)) }}</span><div class="contact-heading"><h1>{{ contactName(model) }}</h1><p>{{ model.conversation.contact.phone }}</p></div><div class="detail-header-badges">@if (model.conversation.whatsappNumber) { <span class="detail-pill">{{ model.conversation.whatsappNumber.displayName || model.conversation.whatsappNumber.phoneNumber }}</span> }<span class="detail-pill" [class.open-pill]="model.conversation.status === 'OPEN'">{{ model.conversation.status === 'OPEN' ? 'Abierta' : 'Cerrada' }}</span>@if (model.conversation.aiHandoffAt) { <span class="detail-pill handoff-pill">IA pidió atención</span> }<ui-call-button [conversationId]="model.conversation.id"/></div></div>
       </header>
-      <section class="conversation-call-history" aria-label="Historial de llamadas"><h2>Historial de llamadas</h2>@for (call of callHistory(); track call.id) { <article><span>{{ call.direction === 'INBOUND' ? 'Entrante' : 'Saliente' }} · {{ callStatus(call.status) }}</span><time>{{ call.startedAt | date:'d MMM, HH:mm':'':'es-MX' }}</time>@if (call.durationSeconds) { <small>{{ formatRecordingTime(call.durationSeconds) }}</small> }@if (call.error) { <p>{{ call.error }}</p> }</article> } @empty { <p>Todavía no hay llamadas registradas.</p> }</section>
+      <section class="conversation-call-history" aria-label="Historial de llamadas"><h2>Historial de llamadas</h2>@for (call of callHistory(); track call.id) { <article><span>{{ call.direction === 'INBOUND' ? 'Entrante' : 'Saliente' }} · {{ callStatus(call.status) }}</span><time>{{ call.startedAt | date:'d MMM, HH:mm':'':'es-MX' }}</time>@if (call.durationSeconds) { <small>{{ formatRecordingTime(call.durationSeconds) }}</small> }</article> } @empty { <p>Todavía no hay llamadas registradas.</p> }</section>
       @if (operationNotice()) { <p class="composer-note" role="status">{{ operationNotice() }}</p> }
 
       <div class="conversation-layout">
@@ -414,7 +414,7 @@ export class AgentConversationPage implements OnDestroy {
     thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
   }
   protected formatRecordingTime(seconds: number): string { return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`; }
-  protected callStatus(status: string): string { return ({ RINGING: 'sonando', CONNECTING: 'conectando', ACTIVE: 'activa', COMPLETED: 'finalizada', MISSED: 'perdida', REJECTED: 'rechazada', FAILED: 'error' } as Record<string, string>)[status] || status; }
+  protected callStatus(status: string): string { return ({ RINGING: 'sonando', CONNECTING: 'conectando', ACTIVE: 'activa', COMPLETED: 'finalizada', MISSED: 'perdida', REJECTED: 'rechazada', FAILED: 'no completada' } as Record<string, string>)[status] || status; }
 
   protected async startVoiceRecording(): Promise<void> {
     this.voiceError.set('');
