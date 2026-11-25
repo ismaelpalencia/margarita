@@ -93,7 +93,7 @@ interface CallHistoryItem { id: string; direction: 'INBOUND' | 'OUTBOUND'; statu
     } @else if (data(); as model) {
       <header class="detail-intro"><a [href]="listUrl()" class="back-link">← Bandeja</a><div class="detail-heading"><span class="detail-avatar">{{ initials(contactName(model)) }}</span><div class="contact-heading"><h1>{{ contactName(model) }}</h1><p>{{ model.conversation.contact.phone }}</p></div><div class="detail-header-badges">@if (model.conversation.whatsappNumber) { <span class="detail-pill">{{ model.conversation.whatsappNumber.displayName || model.conversation.whatsappNumber.phoneNumber }}</span> }<span class="detail-pill" [class.open-pill]="model.conversation.status === 'OPEN'">{{ model.conversation.status === 'OPEN' ? 'Abierta' : 'Cerrada' }}</span>@if (model.conversation.aiHandoffAt) { <span class="detail-pill handoff-pill">IA pidió atención</span> }<ui-call-button [conversationId]="model.conversation.id"/></div></div>
       </header>
-      <details class="conversation-call-history"><summary>Historial de llamadas <span class="call-history-count">{{ callHistory().length }}</span></summary><div class="call-history-body">@for (call of callHistory(); track call.id) { <article><span>{{ call.direction === 'INBOUND' ? 'Entrante' : 'Saliente' }} · {{ callStatus(call.status) }}</span><time>{{ call.startedAt | date:'d MMM, HH:mm':'':'es-MX' }}</time>@if (call.durationSeconds) { <small>{{ formatRecordingTime(call.durationSeconds) }}</small> }</article> } @empty { <p>Todavía no hay llamadas registradas.</p> }</div></details>
+      <details #callHistoryDetails class="conversation-call-history" (toggle)="loadCallHistory($event)"><summary>Historial de llamadas @if (callHistory().length) { <span class="call-history-count">{{ callHistory().length }}</span> }</summary><div class="call-history-body">@if (callHistoryLoading()) { <p role="status">Cargando historial…</p> } @else if (callHistoryError()) { <p role="alert">{{ callHistoryError() }}</p> } @else { @for (call of callHistory(); track call.id) { <article><span>{{ call.direction === 'INBOUND' ? 'Entrante' : 'Saliente' }} · {{ callStatus(call.status) }}</span><time>{{ call.startedAt | date:'d MMM, HH:mm':'':'es-MX' }}</time>@if (call.durationSeconds) { <small>{{ formatRecordingTime(call.durationSeconds) }}</small> }</article> } @empty { <p>Todavía no hay llamadas registradas.</p> } } }</div></details>
       @if (operationNotice()) { <p class="composer-note" role="status">{{ operationNotice() }}</p> }
 
       <div class="conversation-layout">
@@ -254,6 +254,8 @@ export class AgentConversationPage implements OnDestroy {
   protected readonly error = signal('');
   protected readonly operationNotice = signal('');
   protected readonly callHistory = signal<CallHistoryItem[]>([]);
+  protected readonly callHistoryLoading = signal(false);
+  protected readonly callHistoryError = signal('');
   protected readonly selectedQuickReply = signal<QuickReply | null>(null);
   protected readonly loading = signal(true);
   protected readonly draft = signal('');
@@ -279,6 +281,7 @@ export class AgentConversationPage implements OnDestroy {
   protected readonly listRows = Array.from({ length: 10 }, (_, index) => index);
   protected readonly reactionChoices = ['👍', '❤️', '😂', '😮', '😢', '🙏', ''];
   @ViewChild('thread') private thread?: ElementRef<HTMLDivElement>;
+  @ViewChild('callHistoryDetails') private callHistoryDetails?: ElementRef<HTMLDetailsElement>;
   private readonly id: string;
   protected readonly isAdmin = window.location.pathname.startsWith('/panel/admin/conversations/');
   private readonly socket = window.io?.({ withCredentials: true });
@@ -294,6 +297,7 @@ export class AgentConversationPage implements OnDestroy {
   private lastTypingAt = 0;
   private hasInitialScroll = false;
   private shouldStickToBottom = true;
+  private callHistoryRequest: Promise<void> | null = null;
   private readonly refreshTimer = window.setInterval(() => {
     if (!this.socket?.connected) void this.load(false);
   }, 20000);
@@ -702,12 +706,8 @@ export class AgentConversationPage implements OnDestroy {
       scrollToLatest = !this.hasInitialScroll || this.shouldStickToBottom;
       this.data.set(result);
       this.hasInitialScroll = true;
-      const advancedResponse = await fetch(`${this.routeBase()}/${encodeURIComponent(this.id)}/legacy${deletedQuery}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
-      if (advancedResponse.ok && (advancedResponse.headers.get('content-type') || '').includes('application/json')) this.advanced.set(await advancedResponse.json() as AdvancedConversationData);
-      void fetch(`/panel/calls/conversations/${encodeURIComponent(this.id)}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
-        .then((callsResponse) => callsResponse.ok ? callsResponse.json() as Promise<{ calls: CallHistoryItem[] }> : null)
-        .then((callsResult) => this.callHistory.set(callsResult?.calls || []))
-        .catch(() => this.callHistory.set([]));
+      void this.loadAdvanced(deletedQuery);
+      if (this.callHistoryDetails?.nativeElement.open) this.refreshCallHistory();
       this.error.set('');
     } catch (reason: unknown) {
       this.error.set(reason instanceof Error ? reason.message : 'Ocurrió un error inesperado.');
@@ -715,6 +715,35 @@ export class AgentConversationPage implements OnDestroy {
       this.loading.set(false);
       if (scrollToLatest) this.scheduleScrollToLatest();
     }
+  }
+
+  protected loadCallHistory(event: Event): void {
+    if (!(event.currentTarget as HTMLDetailsElement).open || this.callHistoryRequest) return;
+    this.refreshCallHistory();
+  }
+
+  private refreshCallHistory(): void {
+    if (this.callHistoryRequest) return;
+    this.callHistoryLoading.set(true);
+    this.callHistoryError.set('');
+    this.callHistoryRequest = fetch(`/panel/calls/conversations/${encodeURIComponent(this.id)}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('No se pudo cargar el historial de llamadas.');
+        const result = await response.json() as { calls?: CallHistoryItem[] };
+        this.callHistory.set(result.calls || []);
+      })
+      .catch((reason: unknown) => this.callHistoryError.set(reason instanceof Error ? reason.message : 'No se pudo cargar el historial de llamadas.'))
+      .finally(() => {
+        this.callHistoryLoading.set(false);
+        this.callHistoryRequest = null;
+      });
+  }
+
+  private async loadAdvanced(deletedQuery: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.routeBase()}/${encodeURIComponent(this.id)}/legacy${deletedQuery}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      if (response.ok && (response.headers.get('content-type') || '').includes('application/json')) this.advanced.set(await response.json() as AdvancedConversationData);
+    } catch { /* Los datos auxiliares no bloquean la conversación ni las llamadas. */ }
   }
 
   private scheduleScrollToLatest(): void {
