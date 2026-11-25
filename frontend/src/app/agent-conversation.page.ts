@@ -93,7 +93,26 @@ interface CallHistoryItem { id: string; direction: 'INBOUND' | 'OUTBOUND'; statu
     } @else if (data(); as model) {
       <header class="detail-intro"><a [href]="listUrl()" class="back-link">← Bandeja</a><div class="detail-heading"><span class="detail-avatar">{{ initials(contactName(model)) }}</span><div class="contact-heading"><h1>{{ contactName(model) }}</h1><p>{{ model.conversation.contact.phone }}</p></div><div class="detail-header-badges">@if (model.conversation.whatsappNumber) { <span class="detail-pill">{{ model.conversation.whatsappNumber.displayName || model.conversation.whatsappNumber.phoneNumber }}</span> }<span class="detail-pill" [class.open-pill]="model.conversation.status === 'OPEN'">{{ model.conversation.status === 'OPEN' ? 'Abierta' : 'Cerrada' }}</span>@if (model.conversation.aiHandoffAt) { <span class="detail-pill handoff-pill">IA pidió atención</span> }<ui-call-button [conversationId]="model.conversation.id"/></div></div>
       </header>
-      <details #callHistoryDetails class="conversation-call-history" (toggle)="loadCallHistory($event)"><summary>Historial de llamadas @if (callHistory().length) { <span class="call-history-count">{{ callHistory().length }}</span> }</summary><div class="call-history-body">@if (callHistoryLoading()) { <p role="status">Cargando historial…</p> } @else if (callHistoryError()) { <p role="alert">{{ callHistoryError() }}</p> } @else { @for (call of callHistory(); track call.id) { <article><span>{{ call.direction === 'INBOUND' ? 'Entrante' : 'Saliente' }} · {{ callStatus(call.status) }}</span><time>{{ call.startedAt | date:'d MMM, HH:mm':'':'es-MX' }}</time>@if (call.durationSeconds) { <small>{{ formatRecordingTime(call.durationSeconds) }}</small> }</article> } @empty { <p>Todavía no hay llamadas registradas.</p> } } }</div></details>
+      <details #callHistoryDetails class="conversation-call-history" (toggle)="loadCallHistory($event)">
+        <summary>Historial de llamadas @if (callHistory().length) { <span class="call-history-count">{{ callHistory().length }}</span> }</summary>
+        <div class="call-history-body">
+          @if (callHistoryLoading()) {
+            <p role="status">Cargando historial…</p>
+          } @else if (callHistoryError()) {
+            <p role="alert">{{ callHistoryError() }}</p>
+          } @else {
+            @for (call of callHistory(); track call.id) {
+              <article>
+                <span>{{ call.direction === 'INBOUND' ? 'Entrante' : 'Saliente' }} · {{ callStatus(call.status) }}</span>
+                <time>{{ call.startedAt | date:'d MMM, HH:mm':'':'es-MX' }}</time>
+                @if (call.durationSeconds) { <small>{{ formatRecordingTime(call.durationSeconds) }}</small> }
+              </article>
+            } @empty {
+              <p>Todavía no hay llamadas registradas.</p>
+            }
+          }
+        </div>
+      </details>
       @if (operationNotice()) { <p class="composer-note" role="status">{{ operationNotice() }}</p> }
 
       <div class="conversation-layout">
