@@ -3,7 +3,7 @@ import { IncomingMessage, Server } from "node:http";
 import { WebSocket, WebSocketServer } from "ws";
 import { CallClaims, verifyCallToken } from "./auth";
 import { MetaCallAction, MetaCallApiError, ParsedCall, parseCallWebhooks, sendMetaCallAction } from "./meta-calls";
-import { CallStateStore } from "./state";
+import { chooseIncomingRecipient, CallStateStore, finalCallStatus } from "./state";
 import { getTurnCredentials } from "./turn";
 
 type CallContext = {
@@ -16,6 +16,7 @@ type CallContext = {
   apiVersion: string;
   metaAccessToken: string;
   canCall: boolean;
+  assignedAgentCanCall?: boolean;
   direction?: string;
   callId?: string;
 };
@@ -87,7 +88,7 @@ function hitRateLimit(ip: string): boolean {
 }
 
 function sendCallEvent(call: ParsedCall): void {
-  void handleMetaCall(call).catch(() => console.warn("No se pudo gestionar un evento entrante de llamadas."));
+  void handleMetaCall(call).catch((error: unknown) => console.warn("No se pudo gestionar un evento entrante de llamadas.", { event: call.event, status: call.status || "unknown", errorName: error instanceof Error ? error.name : "UnknownError" }));
 }
 
 async function handleMetaCall(incoming: ParsedCall): Promise<void> {
@@ -96,24 +97,33 @@ async function handleMetaCall(incoming: ParsedCall): Promise<void> {
       purpose: "incoming", phoneNumberId: incoming.phoneNumberId, phone: incoming.from, callId: incoming.id
     });
     const context = result.context;
-    const socket = context?.agentId ? agentSockets.get(context.agentId) : undefined;
-    const claims = socket ? socketClaims.get(socket) : undefined;
-    const conversationMatches = Boolean(claims && context && claims.workspaceId === context.workspaceId && claims.conversationId === context.conversationId);
-    if (!context?.canCall || !socket || socket.readyState !== WebSocket.OPEN || !conversationMatches || !incoming.sdp || Boolean(context.agentId && state.activeForAgent(context.agentId))) {
+    const candidates = [...agentSockets.entries()].map(([userId, candidate]) => {
+      const claims = socketClaims.get(candidate);
+      return { userId, socket: candidate, claims, role: claims?.role || "", workspaceId: claims?.workspaceId || "", conversationId: claims?.conversationId || "", ready: candidate.readyState === WebSocket.OPEN, assignedAgentCanCall: userId === context?.agentId && Boolean(context?.assignedAgentCanCall), hasActiveCall: Boolean(state.activeForAgent(userId)) };
+    });
+    const selectedCandidate = context ? chooseIncomingRecipient(candidates, { workspaceId: context.workspaceId, conversationId: context.conversationId, assignedAgentId: context.agentId }) : undefined;
+    const selected = selectedCandidate && candidates.find((candidate) => candidate.userId === selectedCandidate.userId);
+    if (!context?.canCall || !selected || !selected.claims || !incoming.sdp) {
+      const reason = !context?.canCall ? "conversation_not_eligible" : !incoming.sdp ? "offer_missing" : !selected ? "no_authorized_panel_open_or_already_in_call" : "no_authorized_panel_open";
+      console.info("Llamada entrante rechazada por disponibilidad.", { event: incoming.event, reason });
       if (context?.phoneNumberId && context.metaAccessToken) {
         await sendMetaCallAction({ apiVersion: context.apiVersion, phoneNumberId: context.phoneNumberId, accessToken: context.metaAccessToken, action: "reject", callId: incoming.id });
       }
       if (context) await notifyMargarita({ ...context, metaCallId: incoming.id, direction: "INBOUND", status: "MISSED", error: "No había un agente disponible en el panel." });
       return;
     }
-    state.create({ callId: incoming.id, agentId: context.agentId, workspaceId: context.workspaceId, conversationId: context.conversationId, phase: "incoming", direction: "INBOUND", createdAt: Date.now(), peer: socket, context });
-    socketContexts.set(socket, context);
-    send(socket, "call:incoming", { callId: incoming.id, conversationId: context.conversationId, phone: context.phone, sdp: incoming.sdp });
-    await notifyMargarita({ ...context, metaCallId: incoming.id, direction: "INBOUND", status: "RINGING" });
+    const callContext = { ...context, agentId: selected.userId };
+    state.create({ callId: incoming.id, agentId: selected.userId, workspaceId: context.workspaceId, conversationId: context.conversationId, phase: "incoming", direction: "INBOUND", createdAt: Date.now(), peer: selected.socket, context: callContext });
+    socketContexts.set(selected.socket, callContext);
+    send(selected.socket, "call:incoming", { callId: incoming.id, conversationId: context.conversationId, phone: context.phone, sdp: incoming.sdp });
+    console.info("Llamada entrante entregada al panel.", { recipientRole: selected.claims.role, callIdSuffix: incoming.id.slice(-6) });
+    await notifyMargarita({ ...callContext, metaCallId: incoming.id, direction: "INBOUND", status: "RINGING" });
     return;
   }
 
-  const current = state.get(incoming.id) || (incoming.callbackData ? state.get(incoming.callbackData) : undefined);
+  const current = state.get(incoming.id)
+    || (incoming.callbackData ? state.get(incoming.callbackData) : undefined)
+    || state.findByMetaCallId(incoming.id);
   if (!current) return;
   const context = current.context as CallContext;
   const socket = current.peer as WebSocket;
@@ -125,10 +135,12 @@ async function handleMetaCall(incoming: ParsedCall): Promise<void> {
     return;
   }
   if (incoming.event === "terminate" || incoming.status === "COMPLETED") {
+    const finalStatus = incoming.error ? "FAILED" : finalCallStatus(current.phase);
     try { state.transition(current.callId, "ended"); } catch { /* estado terminal */ }
     if (incoming.error) send(socket, "call:error", { callId: current.callId, message: incoming.error });
     else send(socket, "call:ended", { callId: current.callId, durationSeconds: incoming.duration ?? null });
-    await notifyMargarita({ ...context, metaCallId: current.callId, direction: current.direction, status: current.phase === "active" ? "COMPLETED" : "MISSED", durationSeconds: incoming.duration, error: incoming.error });
+    await notifyMargarita({ ...context, metaCallId: current.metaCallId || current.callId, direction: current.direction, status: finalStatus, durationSeconds: incoming.duration, error: incoming.error });
+    console.info("Llamada finalizada por evento Meta.", { direction: current.direction, status: finalStatus, callIdSuffix: current.callId.slice(-6) });
     state.remove(current.callId);
     return;
   }
@@ -203,11 +215,14 @@ async function handleClientMessage(socket: WebSocket, message: ClientMessage): P
     await notifyMargarita({ ...context, metaCallId: call.callId, direction: call.direction, status: "REJECTED" });
     state.remove(call.callId);
   } else if (message.event === "call:hangup") {
-    await performAction(context, "terminate", call.metaCallId || call.callId);
-    state.transition(call.callId, "ended");
-    send(socket, "call:ended", { callId: call.callId });
-    await notifyMargarita({ ...context, metaCallId: call.callId, direction: call.direction, status: "COMPLETED" });
-    state.remove(call.callId);
+    const metaCallId = call.metaCallId || call.callId;
+    console.info("Solicitando terminar llamada en Meta.", { direction: call.direction, phase: call.phase, callIdSuffix: metaCallId.slice(-6) });
+    await performAction(context, "terminate", metaCallId);
+    const current = state.get(call.callId);
+    if (current && current.phase !== "terminating") {
+      state.transition(call.callId, "terminating");
+      console.info("Meta aceptó la solicitud de colgado; esperando confirmación de fin.", { direction: call.direction, callIdSuffix: metaCallId.slice(-6) });
+    }
   } else if (message.event === "call:mute") {
     send(socket, "call:mute", { callId: call.callId, enabled: Boolean(message.enabled) });
   } else if (message.event === "call:media-ready") {

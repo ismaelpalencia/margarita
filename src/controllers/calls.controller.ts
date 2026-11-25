@@ -188,7 +188,8 @@ export class CallsController {
             include: { contact: true, assignedUser: { select: { id: true, role: true, status: true, isActive: true, allowedNumberIds: true } } }
         }) : null;
         const agent = conversation?.assignedUser;
-        const canCall = Boolean(appConfig.calls.enabled && number.isActive && number.whatsappAccount.workspace.status === "ACTIVE" && contact?.isActive && !contact?.optOutAt && conversation && agent?.isActive && agent.status === UserStatus.AVAILABLE && agent.role === UserRole.AGENT && (!agent.allowedNumberIds.length || agent.allowedNumberIds.includes(number.id)));
+        const canCall = Boolean(appConfig.calls.enabled && number.isActive && number.whatsappAccount.workspace.status === "ACTIVE" && contact?.isActive && !contact?.optOutAt && conversation);
+        const assignedAgentCanCall = Boolean(agent?.isActive && agent.status === UserStatus.AVAILABLE && agent.role === UserRole.AGENT && (!agent.allowedNumberIds.length || agent.allowedNumberIds.includes(number.id)));
         return {
             workspaceId: number.whatsappAccount.workspaceId,
             conversationId: conversation?.id || "",
@@ -199,6 +200,7 @@ export class CallsController {
             apiVersion: number.whatsappAccount.apiVersion,
             metaAccessToken: decryptSecret(number.whatsappAccount.accessToken),
             canCall,
+            assignedAgentCanCall,
             callId
         };
     }

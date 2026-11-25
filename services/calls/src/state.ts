@@ -1,11 +1,23 @@
-export type CallPhase = "incoming" | "outgoing" | "connecting" | "active" | "ended" | "rejected" | "failed";
+export type CallPhase = "incoming" | "outgoing" | "connecting" | "active" | "terminating" | "ended" | "rejected" | "failed";
 export type CallRecord = { callId: string; metaCallId?: string; agentId: string; workspaceId: string; conversationId: string; phase: CallPhase; direction: "INBOUND" | "OUTBOUND"; createdAt: number; peer?: unknown; context?: unknown };
+export type IncomingRecipientCandidate = { userId: string; role: string; workspaceId: string; conversationId: string; ready: boolean; assignedAgentCanCall: boolean; hasActiveCall: boolean };
+
+export function finalCallStatus(phase: CallPhase): "COMPLETED" | "MISSED" {
+  return phase === "active" || phase === "terminating" ? "COMPLETED" : "MISSED";
+}
+
+export function chooseIncomingRecipient(candidates: IncomingRecipientCandidate[], target: { workspaceId: string; conversationId: string; assignedAgentId: string }): IncomingRecipientCandidate | undefined {
+  const matches = candidates.filter((candidate) => candidate.ready && !candidate.hasActiveCall && candidate.workspaceId === target.workspaceId && candidate.conversationId === target.conversationId);
+  return matches.find((candidate) => candidate.userId === target.assignedAgentId && candidate.role === "AGENT" && candidate.assignedAgentCanCall)
+    || matches.find((candidate) => candidate.role === "ADMIN");
+}
 
 const transitions: Record<CallPhase, CallPhase[]> = {
   incoming: ["connecting", "rejected", "ended", "failed"],
   outgoing: ["connecting", "rejected", "ended", "failed"],
-  connecting: ["active", "rejected", "ended", "failed"],
-  active: ["ended", "failed"], ended: [], rejected: [], failed: []
+  connecting: ["active", "terminating", "rejected", "ended", "failed"],
+  active: ["terminating", "ended", "failed"],
+  terminating: ["ended", "failed"], ended: [], rejected: [], failed: []
 };
 
 export class CallStateStore {
@@ -15,6 +27,7 @@ export class CallStateStore {
     this.calls.set(call.callId, call);
   }
   get(callId: string): CallRecord | undefined { return this.calls.get(callId); }
+  findByMetaCallId(metaCallId: string): CallRecord | undefined { return [...this.calls.values()].find((call) => call.metaCallId === metaCallId); }
   transition(callId: string, phase: CallPhase): CallRecord {
     const current = this.calls.get(callId);
     if (!current || !transitions[current.phase].includes(phase)) throw new Error("Transición de llamada inválida.");
