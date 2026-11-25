@@ -83,5 +83,9 @@ router.post(
     AiConversationController.resume("/admin/conversations")
 );
 router.post("/:id/purge", AdminConversationsController.purge);
+router.post("/:id/archive", AdminConversationsController.archive);
+router.post("/:id/unarchive", AdminConversationsController.unarchive);
+router.post("/:id/delete", AdminConversationsController.remove);
+router.post("/:id/media/clear", AdminConversationsController.clearMedia);
 
 export default router;

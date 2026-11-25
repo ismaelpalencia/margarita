@@ -294,6 +294,20 @@ export class AdminContactsController {
         }
     }
 
+    static async removePermanently(req: Request, res: Response) {
+        const id = getRequiredParam(req, "id");
+        const confirmation = typeof req.body?.confirm === "string" ? req.body.confirm.trim().toUpperCase() : "";
+        if (confirmation !== "BORRAR") {
+            return res.redirect(`/admin/contacts/${id}?error=confirm`);
+        }
+        try {
+            await ContactService.deleteContactPermanently(req.user!.workspaceId, id);
+            return res.redirect("/panel/admin/contacts?success=deleted");
+        } catch {
+            return res.redirect(`/admin/contacts/${id}?error=delete`);
+        }
+    }
+
     static async deactivate(req: Request, res: Response) {
         const id = getRequiredParam(req, "id");
 

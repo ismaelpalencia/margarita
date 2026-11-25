@@ -916,6 +916,7 @@ model Conversation {
   lastIncomingMessageAt DateTime?
   closedAt              DateTime?
   whatsappBlockedAt     DateTime?
+  archivedAt            DateTime?
 
   /**
    * Mensajes entrantes sin leer. Se incrementa con cada mensaje del cliente
@@ -952,6 +953,7 @@ model Conversation {
   @@index([status])
   @@index([operationalStatus])
   @@index([lastMessageAt])
+  @@index([archivedAt])
 }
 
 model Message {

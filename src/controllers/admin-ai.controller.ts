@@ -400,6 +400,28 @@ export class AdminAiController {
         }
     }
 
+    static async deleteAllKnowledge(req: Request, res: Response) {
+        const confirmation = typeof req.body?.confirm === "string" ? req.body.confirm.trim().toUpperCase() : "";
+        if (confirmation !== "BORRAR") {
+            return res.redirect("/panel/admin/ai?error=confirm");
+        }
+
+        try {
+            const deleted = await KnowledgeService.removeAll(req.user!.workspaceId);
+            await LogService.create({
+                workspaceId: req.user!.workspaceId,
+                level: LogLevel.WARN,
+                module: LogModule.AI,
+                action: "KNOWLEDGE_DELETED_ALL",
+                message: "Se eliminaron todas las entradas de conocimiento.",
+                payload: { deleted: deleted.count }
+            }).catch(() => undefined);
+            return res.redirect(`/panel/admin/ai?success=knowledge_deleted_all&count=${deleted.count}`);
+        } catch {
+            return res.redirect("/panel/admin/ai?error=knowledge");
+        }
+    }
+
     static async test(req: Request, res: Response) {
         const parsed = aiTestSchema.safeParse(req.body);
 

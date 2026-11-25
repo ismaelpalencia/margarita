@@ -285,3 +285,15 @@ html[data-theme="dark"] .page-content app-agent-conversation-page .media-library
 html[data-theme="dark"] .page-content app-agent-conversation-page .media-library-file { color: #c5ebcf; }
 html[data-theme="dark"] .page-content app-agent-conversation-page .media-library-file small { color: #aebdb3; }
 @media(max-width:600px) { .media-lightbox .media-nav { width: 38px; height: 46px; font-size: 28px; }.page-content app-agent-conversation-page .media-library-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.ai-delete-all { margin-top: 4px; padding: 10px 12px; border: 1px solid #efd1cc; border-radius: 9px; background: #fff7f5; }
+.ai-delete-all>summary { color: #9b4940; font-size: 12px; font-weight: 700; cursor: pointer; }
+.ai-delete-all>p { margin: 9px 0; color: #8a625c; font-size: 12px; }
+.ai-delete-all form { display: flex; flex-wrap: wrap; gap: 7px; }
+.ai-delete-all input { min-height: 34px; padding: 0 8px; border: 1px solid #e4c8c2; border-radius: 6px; font: inherit; font-size: 12px; }
+.ai-delete-all button { min-height: 34px; border: 0; border-radius: 6px; color: #fff; background: #a33e32; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.page-content app-admin-contact-detail-page .danger-card { border-color: #efd1cc; background: #fff8f6; }
+.page-content app-admin-contact-detail-page .danger-card h2 { color: #9b443b; }
+.page-content app-admin-contact-detail-page .danger-card p { color: #8c625b; font-size: 12px; line-height: 1.5; }
+.page-content app-admin-contact-detail-page .danger-card form { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.page-content app-admin-contact-detail-page .danger-card input { min-height: 36px; padding: 0 9px; border: 1px solid #e4c8c2; border-radius: 7px; font: inherit; font-size: 12px; }
+.page-content app-admin-contact-detail-page .danger-button { min-height: 36px; padding: 0 11px; border: 0; border-radius: 7px; color: #fff; background: #a33e32; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }

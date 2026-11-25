@@ -15,6 +15,7 @@ import { emitToWorkspaceAndUsers } from "../sockets";
 import { BadgeService } from "./badge.service";
 import { describeMetaError } from "../utils/meta-error";
 import { LogService } from "./log.service";
+import { deleteStoredMedia } from "./media-storage.service";
 
 type ListConversationsParams = {
     workspaceId: string;
@@ -34,6 +35,8 @@ export type InboxFilters = {
     assignedTo?: string | null;
     onlyUnread?: boolean;
     tagId?: string;
+    /** Si es true, solo muestra conversaciones archivadas. */
+    archivedOnly?: boolean;
 };
 
 export class ConversationService {
@@ -131,6 +134,9 @@ export class ConversationService {
 
         return {
             workspaceId: params.workspaceId,
+            ...(params.filters?.archivedOnly
+                ? { archivedAt: { not: null } }
+                : { archivedAt: null }),
             ...(params.whatsappNumberId
                 ? { whatsappNumberId: params.whatsappNumberId }
                 : {}),
@@ -703,6 +709,116 @@ export class ConversationService {
      * Borra definitivamente todos los mensajes de una conversación. No
      * toca el contacto ni la conversación, solo el contenido del hilo.
      */
+    static async setArchived(
+        workspaceId: string,
+        conversationId: string,
+        archived: boolean,
+        userId: string,
+        role: "ADMIN" | "AGENT"
+    ) {
+        const conversation = await prisma.conversation.findFirst({
+            where: {
+                id: conversationId,
+                workspaceId,
+                ...(role === "AGENT" ? { assignedUserId: userId } : {})
+            },
+            select: { id: true }
+        });
+
+        if (!conversation) {
+            throw new Error("Conversación no encontrada o no asignada a ti.");
+        }
+
+        const updated = await prisma.conversation.update({
+            where: { id: conversationId },
+            data: { archivedAt: archived ? new Date() : null }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.INFO,
+            module: LogModule.CONVERSATION,
+            action: archived ? "CONVERSATION_ARCHIVED" : "CONVERSATION_UNARCHIVED",
+            message: archived ? "Conversación archivada." : "Conversación desarchivada.",
+            payload: { conversationId, actorId: userId }
+        });
+
+        return updated;
+    }
+
+    /** Elimina definitivamente una conversación y sus archivos. */
+    static async deleteConversation(
+        workspaceId: string,
+        conversationId: string,
+        actorId: string
+    ) {
+        const conversation = await prisma.conversation.findFirst({
+            where: { id: conversationId, workspaceId },
+            select: {
+                id: true,
+                messages: { select: { mediaPath: true } }
+            }
+        });
+
+        if (!conversation) {
+            throw new Error("Conversación no encontrada.");
+        }
+
+        for (const message of conversation.messages) {
+            if (message.mediaPath) {
+                await deleteStoredMedia(message.mediaPath).catch(() => undefined);
+            }
+        }
+
+        await prisma.conversation.delete({ where: { id: conversation.id } });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.WARN,
+            module: LogModule.CONVERSATION,
+            action: "CONVERSATION_DELETED",
+            message: "Se eliminó definitivamente una conversación.",
+            payload: { conversationId, actorId }
+        });
+    }
+
+    /** Borra los archivos de una conversación sin borrar los mensajes. */
+    static async clearMedia(workspaceId: string, conversationId: string, actorId: string) {
+        const messages = await prisma.message.findMany({
+            where: { workspaceId, conversationId, mediaPath: { not: null } },
+            select: { id: true, mediaPath: true }
+        });
+
+        for (const message of messages) {
+            if (message.mediaPath) {
+                await deleteStoredMedia(message.mediaPath).catch(() => undefined);
+            }
+        }
+
+        await prisma.message.updateMany({
+            where: { workspaceId, conversationId, mediaPath: { not: null } },
+            data: {
+                mediaId: null,
+                mediaPath: null,
+                mediaSize: null,
+                mediaFilename: null,
+                mediaDownloadedAt: null,
+                mediaDownloadError: null
+            }
+        });
+
+        await LogService.create({
+            workspaceId,
+            level: LogLevel.WARN,
+            module: LogModule.CONVERSATION,
+            action: "CONVERSATION_MEDIA_CLEARED",
+            message: "Se borraron los archivos de una conversación.",
+            payload: { conversationId, actorId, deletedFiles: messages.length }
+        });
+
+        return messages.length;
+    }
+
     static async purgeMessages(
         workspaceId: string,
         conversationId: string,

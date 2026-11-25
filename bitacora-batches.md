@@ -1247,3 +1247,14 @@ c83078d feat(batch-2): horarios de atencion y respuesta fuera de horario
 - 393 pruebas unitarias y 14 pruebas Angular.
 
 ---
+
+## Archivado, borrado y limpieza de medios
+
+- Conversaciones: archivar/desarchivar y eliminar definitivamente; filtro de archivadas.
+- Contactos: eliminación definitiva con sus conversaciones y archivos.
+- Conversación: borrar solo los archivos conservando los mensajes.
+- IA: eliminación masiva de todas las preguntas de conocimiento con confirmación BORRAR.
+- Migración automática al arrancar (`prestart`) para aplicar la columna archivedAt.
+- 393 pruebas unitarias y 14 pruebas Angular.
+
+---

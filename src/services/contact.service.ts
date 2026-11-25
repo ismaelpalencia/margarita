@@ -1,4 +1,5 @@
 import { prisma } from "../config/prisma";
+import { deleteStoredMedia } from "./media-storage.service";
 import { ContactOutcomeType, LogLevel, LogModule } from "@prisma/client";
 import { contactSearchOr } from "../utils/contact-search";
 import { startOfTodayIn } from "../utils/date";
@@ -261,6 +262,31 @@ export class ContactService {
                 }
             }
         });
+    }
+
+    /** Borra el contacto, sus conversaciones, mensajes y archivos. */
+    static async deleteContactPermanently(workspaceId: string, contactId: string) {
+        const contact = await prisma.contact.findFirst({
+            where: { id: contactId, workspaceId },
+            select: {
+                id: true,
+                conversations: {
+                    select: { messages: { select: { mediaPath: true } } }
+                }
+            }
+        });
+
+        if (!contact) {
+            throw new Error("Contacto no encontrado.");
+        }
+
+        for (const conversation of contact.conversations) {
+            for (const message of conversation.messages) {
+                if (message.mediaPath) await deleteStoredMedia(message.mediaPath).catch(() => undefined);
+            }
+        }
+
+        await prisma.contact.delete({ where: { id: contact.id } });
     }
 
     static async deactivateContact(workspaceId: string, contactId: string) {

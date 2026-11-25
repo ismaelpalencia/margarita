@@ -85,6 +85,7 @@ export class AgentConversationsController {
             conversation: {
                 id: conversation.id,
                 status: conversation.status,
+                archivedAt: conversation.archivedAt,
                 whatsappBlockedAt: conversation.whatsappBlockedAt,
                 operationalStatus: conversation.operationalStatus,
                 source: conversation.source,
@@ -158,6 +159,7 @@ export class AgentConversationsController {
         const search = typeof req.query.search === "string" ? req.query.search : "";
         const status = typeof req.query.status === "string" ? req.query.status : "";
         const onlyUnread = req.query.unread === "1";
+        const archivedOnly = req.query.archived === "1";
         const assigned = typeof req.query.assigned === "string" ? req.query.assigned : "";
         const tagId = typeof req.query.tagId === "string" ? req.query.tagId : "";
         const [conversations, tags] = await Promise.all([
@@ -171,7 +173,8 @@ export class AgentConversationsController {
                           status: status || undefined,
                           assignedTo: assigned === "unassigned" ? null : undefined,
                           onlyUnread,
-                          tagId: tagId || undefined
+                          tagId: tagId || undefined,
+                          archivedOnly
                       }
                   )
                 : Promise.resolve([]),
@@ -186,6 +189,7 @@ export class AgentConversationsController {
                     status: conversation.status,
                     operationalStatus: conversation.operationalStatus,
                     unreadCount: conversation.unreadCount,
+                    archivedAt: conversation.archivedAt,
                     aiHandoffAt: conversation.aiHandoffAt,
                     assignedUser: conversation.assignedUser
                         ? { name: conversation.assignedUser.name }
@@ -212,7 +216,7 @@ export class AgentConversationsController {
                 };
             }),
             tags: tags.map(({ id, name, color }) => ({ id, name, color })),
-            filters: { search, status, onlyUnread, tagId }
+            filters: { search, status, onlyUnread, tagId, archivedOnly }
         });
     }
 
@@ -696,6 +700,26 @@ export class AgentConversationsController {
             return res.redirect(
                 `/agent/conversations/${conversationId}?error=message`
             );
+        }
+    }
+
+    static async archive(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+        try {
+            await ConversationService.setArchived(req.user!.workspaceId, conversationId, true, req.user!.id, "AGENT");
+            return res.json({ ok: true });
+        } catch (error) {
+            return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo archivar." });
+        }
+    }
+
+    static async unarchive(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+        try {
+            await ConversationService.setArchived(req.user!.workspaceId, conversationId, false, req.user!.id, "AGENT");
+            return res.json({ ok: true });
+        } catch (error) {
+            return res.status(400).json({ error: error instanceof Error ? error.message : "No se pudo desarchivar." });
         }
     }
 

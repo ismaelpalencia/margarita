@@ -5,6 +5,7 @@ interface InboxTag { id: string; name: string; color: string | null }
 interface InboxConversation {
   id: string;
   status: string;
+  archivedAt: string | null;
   operationalStatus: string;
   unreadCount: number;
   aiHandoffAt: string | null;
@@ -22,7 +23,7 @@ interface InboxConversation {
 interface InboxResponse {
   conversations: InboxConversation[];
   tags: InboxTag[];
-  filters: { search: string; status: string; onlyUnread: boolean; tagId: string };
+  filters: { search: string; status: string; onlyUnread: boolean; tagId: string; archivedOnly: boolean };
 }
 
 interface BulkTemplateOption { id: string; name: string; language: string; shape: { body: number; header: number; url: number } }
@@ -47,6 +48,7 @@ interface PreviewData { timezone: string; hasOpenWindow: boolean; conversation: 
         <select [value]="assigned()" (change)="setAssigned($event)" aria-label="Filtrar por asignación"><option value="">Todas</option><option value="unassigned">Sin asignar</option></select>
         <select [value]="tagId()" (change)="setTagId($event)" aria-label="Filtrar por etiqueta"><option value="">Todas las etiquetas</option>@for (tag of tags(); track tag.id) { <option [value]="tag.id">{{ tag.name }}</option> }</select>
         <label class="unread-filter"><input type="checkbox" [checked]="onlyUnread()" (change)="toggleUnread($event)">Solo sin leer</label>
+        <label class="unread-filter"><input type="checkbox" [checked]="archivedOnly()" (change)="archivedOnly.set(($any($event.target)).checked)">Archivadas</label>
         <button type="submit">Filtrar</button>
       </form>
 
@@ -95,7 +97,7 @@ interface PreviewData { timezone: string; hasOpenWindow: boolean; conversation: 
                 <span class="conversation-avatar">{{ initials(contactName(conversation)) }}</span>
                 <span class="conversation-copy"><span class="conversation-title"><strong [class.unread]="conversation.unreadCount > 0">{{ contactName(conversation) }}</strong><time>{{ conversation.lastMessage?.dateLabel || '' }} · {{ conversation.lastMessage?.timeLabel || '' }}</time></span><small class="preview">{{ conversation.lastMessage?.body || (conversation.lastMessage ? '[' + conversation.lastMessage.type + ']' : 'Sin mensajes todavía') }}</small><span class="badges">@for (tag of conversation.contact.tags; track tag.id) { <span class="badge contact-tag" [style.border-color]="tag.color || '#b9d7c4'" [style.color]="tag.color || '#28684d'">{{ tag.name }}</span> }<span class="badge" [class.open]="conversation.status === 'OPEN'">{{ statusLabel(conversation.operationalStatus) }}</span>@if (conversation.aiHandoffAt) { <span class="badge handoff">IA necesita atención</span> }@if (!conversation.assignedUser) { <span class="badge unassigned">Sin asignar</span> }@if (conversation.contact.optOutAt) { <span class="badge opted-out">BAJA</span> }</span></span>
               </a>
-              <span class="row-actions">@if (conversation.unreadCount > 0) { <span class="unread-count">{{ conversation.unreadCount }}</span> }@if (!conversation.assignedUser) { <form [action]="'/agent/conversations/' + conversation.id + '/claim'" method="post"><button type="submit" class="claim-button">Reclamar</button></form> }<button type="button" class="preview-button" (click)="openPreview(conversation)">Vista previa</button><details class="tag-quick" (toggle)="openTagEditor(conversation, $event)"><summary>Etiquetar</summary><div class="tag-quick-menu">@if (!tags().length) { <small>No hay etiquetas configuradas.</small> }@for (tag of tags(); track tag.id) { <label><input type="checkbox" [checked]="draftTagIds(conversation).has(tag.id)" (change)="toggleDraftTag(conversation, tag.id, $event)"> {{ tag.name }}</label> }<button type="button" [disabled]="tagSavingId() === conversation.id" (click)="saveTags(conversation)">{{ tagSavingId() === conversation.id ? 'Guardando…' : 'Guardar' }}</button></div></details><a class="open-button" [href]="'/panel/agent/conversations/' + conversation.id">Abrir</a></span>
+              <span class="row-actions">@if (conversation.unreadCount > 0) { <span class="unread-count">{{ conversation.unreadCount }}</span> }@if (!conversation.assignedUser) { <form [action]="'/agent/conversations/' + conversation.id + '/claim'" method="post"><button type="submit" class="claim-button">Reclamar</button></form> }<button type="button" class="preview-button" (click)="openPreview(conversation)">Vista previa</button><button type="button" class="preview-button" (click)="toggleArchive(conversation)">{{ conversation.archivedAt ? 'Desarchivar' : 'Archivar' }}</button><details class="tag-quick" (toggle)="openTagEditor(conversation, $event)"><summary>Etiquetar</summary><div class="tag-quick-menu">@if (!tags().length) { <small>No hay etiquetas configuradas.</small> }@for (tag of tags(); track tag.id) { <label><input type="checkbox" [checked]="draftTagIds(conversation).has(tag.id)" (change)="toggleDraftTag(conversation, tag.id, $event)"> {{ tag.name }}</label> }<button type="button" [disabled]="tagSavingId() === conversation.id" (click)="saveTags(conversation)">{{ tagSavingId() === conversation.id ? 'Guardando…' : 'Guardar' }}</button></div></details><a class="open-button" [href]="'/panel/agent/conversations/' + conversation.id">Abrir</a></span>
             </article>
           }
         }
@@ -126,6 +128,7 @@ export class AgentInboxPage implements OnDestroy {
   protected readonly status = signal('');
   protected readonly assigned = signal('');
   protected readonly onlyUnread = signal(false);
+  protected readonly archivedOnly = signal(false);
   protected readonly tagId = signal('');
   protected readonly tags = signal<InboxTag[]>([]);
   protected readonly bulkNote = signal('');
@@ -159,6 +162,7 @@ export class AgentInboxPage implements OnDestroy {
     this.status.set(params.get('status') || '');
     this.assigned.set(params.get('assigned') || '');
     this.onlyUnread.set(params.get('unread') === '1');
+    this.archivedOnly.set(params.get('archived') === '1');
     this.tagId.set(params.get('tagId') || '');
     this.socket?.on('connect', () => {
       if (this.connectedBefore) void this.loadConversations(false);
@@ -203,6 +207,16 @@ export class AgentInboxPage implements OnDestroy {
     return new Intl.DateTimeFormat('es-MX', { dateStyle: 'short', timeStyle: 'short', timeZone: timezone }).format(new Date(value));
   }
   protected previewMessages(): PreviewMessage[] { return (this.previewData()?.conversation.messages || []).slice(-10); }
+  protected async toggleArchive(conversation: InboxConversation): Promise<void> {
+    try {
+      const action = conversation.archivedAt ? 'unarchive' : 'archive';
+      const response = await fetch(`/agent/conversations/${encodeURIComponent(conversation.id)}/${action}`, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error('No se pudo archivar la conversación.');
+      await this.loadConversations(false);
+    } catch (error) {
+      this.bulkNotice.set(error instanceof Error ? error.message : 'No se pudo archivar la conversación.');
+    }
+  }
   protected async openPreview(conversation: InboxConversation): Promise<void> {
     this.previewConversation.set(conversation);
     this.previewData.set(null);
@@ -407,6 +421,7 @@ export class AgentInboxPage implements OnDestroy {
     if (this.status()) params.set('status', this.status());
     if (this.assigned()) params.set('assigned', this.assigned());
     if (this.onlyUnread()) params.set('unread', '1');
+    if (this.archivedOnly()) params.set('archived', '1');
     if (this.tagId()) params.set('tagId', this.tagId());
 
     try {
@@ -428,6 +443,7 @@ export class AgentInboxPage implements OnDestroy {
       if (this.status()) next.set('status', this.status());
       if (this.assigned()) next.set('assigned', this.assigned());
       if (this.onlyUnread()) next.set('unread', '1');
+      if (this.archivedOnly()) next.set('archived', '1');
       if (this.tagId()) next.set('tagId', this.tagId());
       window.history.replaceState({}, '', `${window.location.pathname}${next.size ? `?${next}` : ''}`);
     } catch (reason: unknown) {

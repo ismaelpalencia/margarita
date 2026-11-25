@@ -71,6 +71,7 @@ export class AdminConversationsController {
             conversation: {
                 id: conversation.id,
                 status: conversation.status,
+                archivedAt: conversation.archivedAt,
                 whatsappBlockedAt: conversation.whatsappBlockedAt,
                 operationalStatus: conversation.operationalStatus,
                 source: conversation.source,
@@ -117,6 +118,7 @@ export class AdminConversationsController {
         const search = typeof req.query.search === "string" ? req.query.search : "";
         const assigned = typeof req.query.assigned === "string" ? req.query.assigned : "";
         const onlyUnread = req.query.unread === "1";
+        const archivedOnly = req.query.archived === "1";
         const tagId = typeof req.query.tagId === "string" ? req.query.tagId : "";
         const [conversations, tags, agents] = await Promise.all([
             ConversationService.listForAdmin(
@@ -132,7 +134,8 @@ export class AdminConversationsController {
                               ? req.user!.id
                               : undefined,
                     onlyUnread,
-                    tagId: tagId || undefined
+                    tagId: tagId || undefined,
+                    archivedOnly
                 }
             ),
             TagService.listTags(req.user!.workspaceId),
@@ -147,6 +150,7 @@ export class AdminConversationsController {
                     status: conversation.status,
                     operationalStatus: conversation.operationalStatus,
                     unreadCount: conversation.unreadCount,
+                    archivedAt: conversation.archivedAt,
                     aiHandoffAt: conversation.aiHandoffAt,
                     assignedUser: conversation.assignedUser
                         ? { id: conversation.assignedUser.id, name: conversation.assignedUser.name }
@@ -174,7 +178,7 @@ export class AdminConversationsController {
             }),
             tags: tags.map(({ id, name, color }) => ({ id, name, color })),
             agents: agents.map(({ id, name, status }) => ({ id, name, status })),
-            filters: { search, status, assigned, onlyUnread, tagId }
+            filters: { search, status, assigned, onlyUnread, tagId, archivedOnly }
         });
     }
 
@@ -775,6 +779,51 @@ export class AdminConversationsController {
             return res.redirect(
                 `/admin/conversations/${conversationId}?error=purge`
             );
+        }
+    }
+
+    static async archive(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+        try {
+            await ConversationService.setArchived(req.user!.workspaceId, conversationId, true, req.user!.id, "ADMIN");
+            return res.redirect("/panel/admin/conversations?success=archived");
+        } catch {
+            return res.redirect(`/admin/conversations/${conversationId}?error=archive`);
+        }
+    }
+
+    static async unarchive(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+        try {
+            await ConversationService.setArchived(req.user!.workspaceId, conversationId, false, req.user!.id, "ADMIN");
+            return res.redirect("/panel/admin/conversations?success=unarchived");
+        } catch {
+            return res.redirect("/panel/admin/conversations?error=archive");
+        }
+    }
+
+    static async remove(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+        const confirmation = typeof req.body?.confirm === "string" ? req.body.confirm.trim() : "";
+        if (confirmation.toUpperCase() !== "BORRAR") {
+            return res.redirect(`/admin/conversations/${conversationId}?error=confirm`);
+        }
+        try {
+            await ConversationService.deleteConversation(req.user!.workspaceId, conversationId, req.user!.id);
+            return res.redirect("/panel/admin/conversations?success=deleted");
+        } catch {
+            return res.redirect(`/admin/conversations/${conversationId}?error=delete`);
+        }
+    }
+
+    static async clearMedia(req: Request, res: Response) {
+        const conversationId = getRequiredParam(req, "id");
+        try {
+            await ConversationService.getConversationForAdmin(req.user!.workspaceId, conversationId);
+            const deleted = await ConversationService.clearMedia(req.user!.workspaceId, conversationId, req.user!.id);
+            return res.redirect(`/admin/conversations/${conversationId}?success=media-cleared&count=${deleted}`);
+        } catch {
+            return res.redirect(`/admin/conversations/${conversationId}?error=media-clear`);
         }
     }
 

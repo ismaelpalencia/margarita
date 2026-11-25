@@ -18,6 +18,7 @@ router.post(
 router.get("/:id/edit", AdminContactsController.showEdit);
 router.post("/:id", AdminContactsController.update);
 router.post("/:id/deactivate", AdminContactsController.deactivate);
+router.post("/:id/delete", AdminContactsController.removePermanently);
 router.post("/:id/opt-out", AdminContactsController.optOut);
 router.post("/:id/opt-in", AdminContactsController.optIn);
 router.post("/:id/pause", AdminContactsController.pause);

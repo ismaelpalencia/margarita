@@ -40,6 +40,7 @@ interface AgentConversationDetail {
   conversation: {
     id: string;
     status: string;
+    archivedAt: string | null;
     whatsappBlockedAt: string | null;
     operationalStatus: string;
     source: string;
@@ -218,7 +219,7 @@ interface AdvancedConversationData {
             </section>
             @if (tools.guidedFlowRun) { <section class="detail-card"><h2>Flujo guiado · {{ tools.guidedFlowRun.flowName }}</h2><p>{{ tools.guidedFlowRun.status === 'ACTIVE' ? 'En curso' : 'Completado' }}</p>@if (tools.guidedFlowRun.pending; as pending) { <p>{{ pending.text }}</p>@for (option of pending.options; track option) { <small>{{ option }} · </small> }<form [action]="guidedFlowApproveUrl(model)" method="post"><button type="submit">Aprobar y enviar</button></form> }@if (tools.guidedFlowRun.status === 'ACTIVE') { <form [action]="guidedFlowEndUrl(model)" method="post"><button type="submit">Terminar flujo</button></form> }</section> }
             @if (tools.aiSettings.enabled) { <section class="detail-card"><h2>Asistencia de IA</h2>@if (model.conversation.aiPausedAt) { <form [action]="aiResumeUrl(model)" method="post"><button type="submit">Reanudar IA</button></form> } @else { <form [action]="aiPauseUrl(model)" method="post"><button type="submit">Pausar IA</button></form> }</section> }
-            @if (isAdmin) { <section class="detail-card purge-card"><h2>Zona de riesgo</h2><p>Borra definitivamente todos los mensajes de esta conversación. Escribe BORRAR para confirmar.</p><form [action]="purgeUrl(model)" method="post" class="advanced-form" (submit)="confirmPurge($event)"><input name="confirm" required autocomplete="off" placeholder="BORRAR"><button type="submit">Borrar todo el chat</button></form></section> }
+            @if (isAdmin) { <section class="detail-card purge-card"><h2>Zona de riesgo</h2><p>Archiva la conversación para ocultarla de la bandeja, borra solo sus archivos o elimina la conversación definitivamente. Para confirmar el borrado escribe BORRAR.</p>@if (model.conversation.archivedAt) { <form [action]="unarchiveUrl(model)" method="post"><button type="submit" class="secondary-button">Desarchivar conversación</button></form> } @else { <form [action]="archiveUrl(model)" method="post"><button type="submit" class="secondary-button">Archivar conversación</button></form> }<form [action]="clearMediaUrl(model)" method="post" class="advanced-form" (submit)="confirmClearMedia($event)"><button type="submit">Borrar archivos de esta conversación</button></form><form [action]="purgeUrl(model)" method="post" class="advanced-form" (submit)="confirmPurge($event)"><input name="confirm" required autocomplete="off" placeholder="BORRAR"><button type="submit">Borrar todo el chat</button></form><form [action]="deleteConversationUrl(model)" method="post" class="advanced-form" (submit)="confirmDeleteConversation($event)"><input name="confirm" required autocomplete="off" placeholder="BORRAR"><button type="submit">Eliminar conversación definitivamente</button></form></section> }
           }
             </div>
           </details>
@@ -643,6 +644,10 @@ export class AgentConversationPage implements OnDestroy {
   protected closeUrl(model: AgentConversationDetail): string { return `${this.routeBase()}/${model.conversation.id}/close`; }
   protected reopenUrl(model: AgentConversationDetail): string { return `/admin/conversations/${model.conversation.id}/reopen`; }
   protected purgeUrl(model: AgentConversationDetail): string { return `/admin/conversations/${model.conversation.id}/purge`; }
+  protected archiveUrl(model: AgentConversationDetail): string { return `/admin/conversations/${model.conversation.id}/archive`; }
+  protected unarchiveUrl(model: AgentConversationDetail): string { return `/admin/conversations/${model.conversation.id}/unarchive`; }
+  protected clearMediaUrl(model: AgentConversationDetail): string { return `/admin/conversations/${model.conversation.id}/media/clear`; }
+  protected deleteConversationUrl(model: AgentConversationDetail): string { return `/admin/conversations/${model.conversation.id}/delete`; }
   protected isPlaceholder(body: string): boolean { return body.startsWith('[') && body.endsWith(']'); }
   protected mediaLabel(type: string): string { return ({ IMAGE: 'Imagen', VIDEO: 'Video', AUDIO: 'Audio', DOCUMENT: 'Documento', CONTACT: 'Contacto' } as Record<string, string>)[type] || 'Archivo'; }
   protected tick(status: string): string { return ({ CREATED: '🕓', SENDING: '🕓', SENT: '✓', DELIVERED: '✓✓', READ: '✓✓', FAILED: '⚠' } as Record<string, string>)[status] || '🕓'; }
@@ -661,6 +666,12 @@ export class AgentConversationPage implements OnDestroy {
 
   protected confirmPurge(event: Event): void {
     if (!window.confirm('Se eliminarán definitivamente todos los mensajes de esta conversación. ¿Continuar?')) event.preventDefault();
+  }
+  protected confirmClearMedia(event: Event): void {
+    if (!window.confirm('Se borrarán los archivos de esta conversación; los mensajes se conservan. ¿Continuar?')) event.preventDefault();
+  }
+  protected confirmDeleteConversation(event: Event): void {
+    if (!window.confirm('Se eliminará la conversación y todos sus mensajes. Esta acción no se puede deshacer. ¿Continuar?')) event.preventDefault();
   }
 
   private async load(showLoading = true): Promise<void> {

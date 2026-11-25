@@ -58,6 +58,8 @@ router.post(
     GuidedFlowConversationController.finish("/agent/conversations")
 );
 router.post("/:id/messages/:messageId/delete", AgentConversationsController.deleteMessage);
+router.post("/:id/archive", AgentConversationsController.archive);
+router.post("/:id/unarchive", AgentConversationsController.unarchive);
 /** Borradores de IA: usar o descartar. Nunca envían por sí solos. */
 router.post(
     "/:id/ai/:suggestionId/use",

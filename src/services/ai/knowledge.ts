@@ -282,6 +282,10 @@ export class KnowledgeService {
         });
     }
 
+    static async removeAll(workspaceId: string) {
+        return prisma.knowledgeEntry.deleteMany({ where: { workspaceId } });
+    }
+
     static async remove(workspaceId: string, entryId: string) {
         const deleted = await prisma.knowledgeEntry.deleteMany({
             where: { id: entryId, workspaceId }
