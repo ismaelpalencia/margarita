@@ -9,7 +9,7 @@
     "scripts": {
         "dev": "tsx watch src/server.ts",
         "frontend:dev": "npm --prefix frontend start -- --host 0.0.0.0",
-        "frontend:build": "npm --prefix frontend run build",
+        "frontend:build": "npm --prefix frontend ci && npm --prefix frontend run build",
         "css": "npx @tailwindcss/cli -i ./src/assets/css/input.css -o ./src/public/css/style.css --watch",
         "css:build": "npx @tailwindcss/cli -i ./src/assets/css/input.css -o ./src/public/css/style.css --minify",
         "copy:assets": "node scripts/copy-assets.mjs",
