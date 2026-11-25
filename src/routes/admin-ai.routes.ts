@@ -21,10 +21,10 @@ router.post("/languages", AdminAiController.saveLanguages);
 
 router.post("/knowledge", AdminAiController.createEntry);
 router.get("/knowledge/:id", AdminAiController.showEditEntry);
+router.post("/knowledge/delete-all", AdminAiController.deleteAllKnowledge);
 router.post("/knowledge/:id", AdminAiController.updateEntry);
 router.post("/knowledge/:id/active", AdminAiController.setEntryActive);
 router.post("/knowledge/:id/delete", AdminAiController.deleteEntry);
-router.post("/knowledge/delete-all", AdminAiController.deleteAllKnowledge);
 
 /** Importar un documento de negocio y convertirlo en conocimiento/flujos. */
 router.get("/guided-flows", AdminGuidedFlowController.index);
