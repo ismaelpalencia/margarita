@@ -90,7 +90,7 @@ Los precios oficiales y el alcance por plan están en [`precios.md`](precios.md)
 | --- | --- | --- |
 | Autoservicio | **$499** | 1 número, 1–2 usuarios, funciones base, IA limitada y onboarding autoguiado |
 | Negocio | **$1,990** | 3–5 agentes, 1 número, etiquetas, plantillas, campañas, IA, reportes, llamadas con bolsa de minutos y onboarding de 2 h |
-| Pro | **$4,900** | 6–15 agentes, varios números, IA/RAG, llamadas, reportes avanzados, soporte prioritario y onboarding incluido |
+| Pro | **$4,900** | 6–15 agentes, varios números, IA, llamadas, reportes avanzados, soporte prioritario y onboarding incluido; RAG en desarrollo y no disponible todavía |
 
 Servicios adicionales: implementación asistida desde **$20,000** (configuración de Meta, webhook, número, plantillas, capacitación y puesta en marcha); white label desde **$50,000** de implementación y **$5,000/mes**.
 

@@ -14,7 +14,7 @@ la junta.
 
 La oferta vigente tiene tres planes: Autoservicio desde **$499 MXN/mes**, Negocio a **$1,990 MXN/mes** y Pro a **$4,900 MXN/mes**, todos más IVA. Los límites de usuarios, números, IA y onboarding dependen del plan. La implementación asistida inicia en **$20,000 MXN + IVA** y white label desde **$50,000 MXN + IVA** de implementación y **$5,000 MXN + IVA/mes**. El detalle oficial está en [`precios.md`](precios.md).
 
-Meta cobra aparte el consumo de mensajes y llamadas; Cloudflare TURN se factura según consumo, y la IA adicional se cotiza por consumo o bolsa. No se promete uso ilimitado, grabación ni transcripción. Los clientes legacy conservan sus precios y condiciones pactadas.
+Meta cobra aparte el consumo de mensajes y llamadas; Cloudflare TURN se factura según consumo, y la IA adicional se cotiza por consumo o bolsa. RAG está en desarrollo; no se vende como función disponible. No se promete uso ilimitado, grabación ni transcripción. Los clientes legacy conservan sus precios y condiciones pactadas.
 
 **Para vender:** [`dolores-y-posts.md`](dolores-y-posts.md) tiene el material de
 contenido —el dolor del bloqueo, los otros siete dolores, los mitos, los posts
@@ -148,7 +148,7 @@ Un punto que hay que decir en voz alta: **en cuanto das soporte, tienes acceso a
 | --- | --- | --- |
 | **Autoservicio** | Equipos de 1–2 personas | 1 número, funciones base, IA limitada y onboarding autoguiado |
 | **Negocio** | Equipos de 3–5 agentes | 1 número, etiquetas, plantillas, campañas, IA, reportes, llamadas con bolsa de minutos y onboarding de 2 horas |
-| **Pro** | Equipos de 6–15 agentes | Varios números, IA/RAG, llamadas, reportes avanzados, soporte prioritario y onboarding |
+| **Pro** | Equipos de 6–15 agentes | Varios números, IA, llamadas, reportes avanzados, soporte prioritario y onboarding; RAG sigue en desarrollo |
 
 La implementación asistida inicia en $20,000 MXN + IVA y white label desde $50,000 MXN + IVA de implementación y $5,000 MXN + IVA/mes. Consulta [`precios.md`](precios.md); no extrapoles el alcance de un plan a otro.
 

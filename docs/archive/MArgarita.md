@@ -6,7 +6,7 @@
 
 ## Estado
 
-**V1 construida.** Este documento es el origen del producto: describe el alcance con el que se diseñó y usa el tiempo futuro porque así se escribió. **Lo que la herramienta hace hoy, con sus límites reales, está en [`docs/alcance-produccion.md`](docs/alcance-produccion.md)**, que es el documento que se actualiza en cada sprint.
+**V1 construida.** Este documento es el origen histórico del producto. **Lo que la herramienta hace hoy, con sus límites reales, está en [`../alcance-produccion.md`](../alcance-produccion.md)**.
 
 > Cuando una sección diga «no se hará», «pendiente» o «en V1 no…», tómalo como
 > parte del diseño original. Varias de esas decisiones ya cambiaron (por

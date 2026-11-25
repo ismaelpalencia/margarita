@@ -1,0 +1,33 @@
+<%- include("_head") %>
+<%- include("_header") %>
+
+<main id="contenido">
+    <section class="section section--tight">
+        <div class="container">
+            <span class="eyebrow">Puesta en marcha</span>
+            <h1 class="section-title">Checklist de configuración por negocio</h1>
+            <p class="section-lede">
+                Una lista accionable para preparar Meta, equipo, IA, llamadas e infraestructura.
+                La versión del sitio se genera desde la guía operativa mantenida en la documentación del producto.
+            </p>
+        </div>
+    </section>
+
+    <section class="section section--tight">
+        <div class="container">
+            <nav class="guide-toc" aria-label="Secciones del checklist">
+                <p class="section-kicker">Secciones</p>
+                <ul class="guide-toc__list">
+                    <% setupGuideHeadings.forEach((heading) => { %>
+                    <li><a href="#<%= heading.id %>"><%= heading.text %></a></li>
+                    <% }) %>
+                </ul>
+            </nav>
+            <div class="prose setup-checklist">
+                <%- setupGuideHtml %>
+            </div>
+        </div>
+    </section>
+</main>
+
+<%- include("_footer") %>

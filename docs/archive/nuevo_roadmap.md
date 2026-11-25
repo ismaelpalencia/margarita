@@ -1,4 +1,4 @@
-![PALENCIA](../marca/logo-palencia-96.png)
+![Margarita](../../marca/logotipo/margarita-logotipo-512.png)
 
 # Roadmap · Botones e interacciones en Margarita
 
@@ -9,7 +9,7 @@ Versión 0.1 · 15 de octubre de 2026
 > precios y el paquete de tres meses que aparecen más abajo **no están
 > vigentes**: hoy gobiernan el Paquete A ($3,500), el Paquete B ($2,500) y la
 > mensualidad de $699 con piloto de 30 días, como dice
-> [`docs/alcance-produccion.md`](docs/alcance-produccion.md).
+> [`docs/alcance-produccion.md`](../alcance-produccion.md).
 
 Especificación de desarrollo para la evolución que convierte Margarita en una herramienta que **no solo
 manda mensajes, sino que recibe respuestas estructuradas**. Complementa las secciones 3 y 8 de

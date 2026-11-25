@@ -169,7 +169,7 @@ cambia.
 - Cerrar la verificación real de las fases 3 y 4, que hoy está probada solo con
   payloads sintéticos.
 - Retomar el **contador del tramo de mensajes gratis por número** (fase 5 de
-  [`plan-interactivos.md`](plan-interactivos.md)), que no depende de esto pero
+  [`plan-interactivos.md`](archive/plan-interactivos.md)), que no depende de esto pero
   vale más con datos reales de consumo.
 
 > Si además quieres cerrar el documento que se le entrega al cliente al

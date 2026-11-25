@@ -13,7 +13,7 @@ las condiciones particulares de cada cliente. La plantilla está en
 | --- | --- | --- |
 | Autoservicio | $499 MXN/mes + IVA | 1 número, 1–2 usuarios, funciones base, IA limitada, onboarding autoguiado |
 | Negocio | $1,990 MXN/mes + IVA | 3–5 agentes, 1 número, etiquetas, plantillas, campañas, IA, reportes, llamadas con bolsa de minutos, onboarding de 2 h |
-| Pro | $4,900 MXN/mes + IVA | 6–15 agentes, varios números, IA/RAG, llamadas, reportes avanzados, soporte prioritario y onboarding |
+| Pro | $4,900 MXN/mes + IVA | 6–15 agentes, varios números, IA, llamadas, reportes avanzados, soporte prioritario y onboarding; RAG está en desarrollo y no se oferta todavía |
 | Implementación asistida | Desde $20,000 MXN + IVA | Meta, webhook, número, plantillas, capacitación y puesta en marcha |
 | White label | Desde $50,000 MXN de implementación + $5,000 MXN/mes, más IVA | Alcance a cotizar |
 

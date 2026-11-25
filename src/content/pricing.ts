@@ -39,7 +39,7 @@ export const PRODUCT_PRICING = {
             description: "Para operaciones con varios equipos o números y necesidades avanzadas.",
             onboarding: "Incluido",
             features: [
-                "IA y RAG",
+                "IA; RAG en desarrollo y no disponible todavía",
                 "Llamadas",
                 "Reportes avanzados",
                 "Soporte prioritario",

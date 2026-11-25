@@ -102,7 +102,7 @@ respaldo.
 
 - [ ] CI en verde en `main` y en `release`.
 - [ ] Staging probado a mano (login, bandeja, envío, reportes, `/health`).
-- [ ] `npm run check-migrations` sin hallazgos, o migraciones destructivas
+- [ ] `node scripts/check-migrations.mjs` sin hallazgos, o migraciones destructivas
       marcadas y con respaldo.
 - [ ] Variables nuevas documentadas en [`deploy-railway.md`](deploy-railway.md).
 - [ ] Respaldo manual reciente.

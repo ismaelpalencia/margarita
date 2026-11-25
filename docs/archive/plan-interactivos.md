@@ -1,6 +1,6 @@
 # Plan de dos sprints — botones e interacciones
 
-Cómo meter la evolución de [`nuevo_roadmap.md`](../nuevo_roadmap.md) en **dos
+Cómo meter la evolución de [`nuevo_roadmap.md`](nuevo_roadmap.md) en **dos
 sprints de una semana**, qué se queda fuera y qué depende de Meta. El roadmap
 propone ocho sprints más una vía comercial; comprimirlo a dos no es acelerar el
 mismo trabajo: es **elegir el tramo que más vale y posponer el resto**.
@@ -29,7 +29,7 @@ una tarea, no un envío automático.
 **Sigue la fase 5** (el contador del tramo de mensajes de servicio gratis por
 número, con alerta al 80% y costo acumulado). Nada de esto depende de Meta para
 construirse: solo la **verificación real** necesita la plantilla aprobada y un
-teléfono, y para eso está [`pruebas-meta.md`](pruebas-meta.md), que dice qué
+teléfono, y para eso está [`pruebas-meta.md`](../pruebas-meta.md), que dice qué
 copiar y de dónde.
 
 **Corrección salida de la primera prueba real (2026-10-16).** El botón de una
@@ -117,7 +117,7 @@ nadie sobre un contrato que no se comprobó.
    la hora local del deudor para las tareas de llamada.
 4. **La tarifa por mensaje** que usará el contador de la fase 5 para estimar el
    costo acumulado (es un dato de configuración, no un precio de venta).
-5. **Los precios.** Actualizados en noviembre de 2026: gobierna [`precios.md`](precios.md), con tres planes y servicios opcionales. Esta nota sustituye la referencia previa a un solo plan; revisar también la fuente de precios antes de reutilizar materiales antiguos.
+5. **Los precios.** Actualizados en noviembre de 2026: gobierna [`precios.md`](../precios.md), con tres planes y servicios opcionales. Esta nota sustituye la referencia previa a un solo plan; revisar también la fuente de precios antes de reutilizar materiales antiguos.
 
 ---
 
@@ -165,6 +165,6 @@ solo en el cuerpo»— y el apartado nuevo de límites vigentes.
 1. La plantilla de prueba con botones en Meta, en cuanto te acepten los números,
    y el volcado del webhook al tocarla. El paso a paso, con los tres caminos
    para pasármelo (el más rápido: el botón **copiar id** de la burbuja), está en
-   [`pruebas-meta.md`](pruebas-meta.md).
+   [`pruebas-meta.md`](../pruebas-meta.md).
 2. Las decisiones de la sección 3, empezando por **los precios**.
 3. Un número de pruebas (o el que ya tienes) para la campaña de validación.

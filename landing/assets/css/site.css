@@ -247,7 +247,7 @@ button, input, select, textarea { font: inherit; }
 .prose p { margin: 0 0 var(--space-3); }
 .prose ul, .prose ol { margin: 0 0 var(--space-4); }
 .prose li { margin: 4px 0; }
-.prose table { width: 100%; border-collapse: collapse; margin: var(--space-4) 0; font: var(--text-sm); }
+.prose table { display: block; width: 100%; max-width: 100%; overflow-x: auto; border-collapse: collapse; margin: var(--space-4) 0; font: var(--text-sm); }
 .prose th, .prose td { border: 1px solid var(--surface-border); padding: 8px 10px; text-align: left; vertical-align: top; }
 .prose th { background: var(--surface-bg); }
 .prose code { background: var(--surface-bg); border: 1px solid var(--surface-border); border-radius: 4px; padding: 1px 4px; font-size: .92em; }

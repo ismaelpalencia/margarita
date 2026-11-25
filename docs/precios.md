@@ -8,7 +8,7 @@ Fuente de verdad comercial vigente desde el 25 de noviembre de 2026. Los importe
 | --- | ---: | --- | --- |
 | **Autoservicio** | **$499 MXN + IVA** | 1 número; 1–2 usuarios | Funciones base, IA limitada y onboarding autoguiado. |
 | **Negocio** | **$1,990 MXN + IVA** | 1 número; 3–5 agentes | Etiquetas, plantillas, campañas, IA, reportes, llamadas con bolsa de minutos y onboarding de 2 horas. |
-| **Pro** | **$4,900 MXN + IVA** | Varios números; 6–15 agentes | IA/RAG, llamadas, reportes avanzados, soporte prioritario y onboarding incluido. |
+| **Pro** | **$4,900 MXN + IVA** | Varios números; 6–15 agentes | IA, llamadas, reportes avanzados, soporte prioritario y onboarding incluido. **RAG está en desarrollo y no está disponible todavía.** |
 
 ## Servicios adicionales
 
@@ -22,6 +22,7 @@ Los importes “desde” son referencias iniciales; el precio final depende del 
 - Meta cobra por separado el consumo de mensajes y llamadas.
 - Cloudflare TURN se cobra por consumo.
 - La IA tiene límites por plan; consumo adicional o bolsas se cotizan por separado.
+- RAG/embeddings/documentos no se deben ofertar como disponibles hasta su implementación y validación.
 - Los planes publicados no incluyen grabación ni transcripción de llamadas.
 - Ningún plan incluye soporte 24/7 ni desarrollo a medida.
 

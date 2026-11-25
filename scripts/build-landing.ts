@@ -20,6 +20,7 @@ import ejs from "ejs";
 import { appConfig } from "../src/config/app.config";
 import { loadGuide } from "../src/content/guides";
 import { money, PRODUCT_PRICING } from "../src/content/pricing";
+import { renderMarkdown } from "../src/utils/markdown";
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, "landing");
@@ -76,6 +77,14 @@ const PAGES: Page[] = [
         active: "onboarding"
     },
     {
+        template: "configuracion-por-negocio.ejs",
+        file: "configuracion-por-negocio.html",
+        title: "Checklist de configuración por negocio — Margarita",
+        description:
+            "Checklist para configurar Meta, llamadas, IA, operación, infraestructura y privacidad de cada negocio en Margarita.",
+        active: "onboarding"
+    },
+    {
         template: "guia.ejs",
         file: "guia.html",
         title: "Guía de uso — Margarita",
@@ -109,11 +118,6 @@ const PAGES: Page[] = [
     }
 ];
 
-/**
- * Precios vigentes del producto. La fuente que gobierna es
- * docs/alcance-produccion.md; si cambian, se actualiza primero ahí y luego
- * esta constante.
- */
 const demoApiBase = (process.env.DEMO_API_BASE || "https://demo.margaritaapp.org")
     .trim()
     .replace(/\/+$/, "");
@@ -190,6 +194,16 @@ function build() {
         uso: loadGuide("uso"),
         plantillas: loadGuide("plantillas")
     };
+    const businessSetupSource = fs.readFileSync(
+        path.join(ROOT, "docs", "configuracion-por-negocio.md"),
+        "utf8"
+    );
+    const businessSetupStart = businessSetupSource.search(/^## /m);
+    const businessSetup = renderMarkdown(
+        businessSetupStart === -1
+            ? businessSetupSource
+            : businessSetupSource.slice(businessSetupStart)
+    );
 
     for (const page of PAGES) {
         const templatePath = path.join(OUT, page.template);
@@ -212,6 +226,11 @@ function build() {
             extra.guideHeadings = guides.plantillas.headings.filter(
                 (heading) => heading.level === 2
             );
+        }
+
+        if (page.file === "configuracion-por-negocio.html") {
+            extra.setupGuideHtml = businessSetup.html;
+            extra.setupGuideHeadings = businessSetup.headings;
         }
 
         const siteUrl = (
@@ -246,7 +265,10 @@ function build() {
             ...extra
         });
 
-        fs.writeFileSync(path.join(OUT, page.file), html);
+        fs.writeFileSync(
+            path.join(OUT, page.file),
+            html.replace(/[ \t]+$/gm, "").replace(/\n+$/, "\n")
+        );
         console.log("  ", page.file);
     }
 

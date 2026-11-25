@@ -1,262 +1,119 @@
-# Margarita | Alcance de producto y producción
+# Margarita: alcance de producto y producción
 
-> **Propósito del documento**
-> Explicar qué resuelve Margarita, qué incluye su implementación, cómo se usa y qué condiciones técnicas requiere. Sirve como base para presentar el producto, calificar oportunidades comerciales y preparar una puesta en marcha.
+**Revisión:** 25 de noviembre de 2026. Este documento describe el estado del código del repositorio; no verifica el estado de un despliegue concreto. La disponibilidad de WhatsApp, llamadas, IA y almacenamiento depende de las cuentas y servicios configurados en cada instalación.
 
-**Revisión del repositorio:** 23 de noviembre de 2026.
-El código describe capacidades; la disponibilidad concreta depende de las cuentas de Meta, configuración e infraestructura de cada instalación.
+Los precios y límites comerciales se mantienen en [`precios.md`](precios.md). Para dar de alta un negocio usa [`configuracion-por-negocio.md`](configuracion-por-negocio.md).
 
----
+## Estado real del producto
 
-## 1. Resumen del producto
+Margarita es una aplicación web para operar WhatsApp Business Cloud API con un equipo. Cada instalación se configura para un negocio (single-tenant por instalación). El panel operativo actual es Angular; Express/TypeScript controla rutas, sesión, permisos, lógica e integraciones.
 
-Los precios y límites comerciales vigentes por plan se mantienen en [`precios.md`](precios.md). Este documento describe capacidades del producto, pero no sustituye esa fuente de precios.
+La aplicación puede recibir mensajes y estados desde el webhook firmado de Meta, mostrar conversaciones y contactos, asignar hilos, responder con mensajes/medios/plantillas y registrar seguimiento. Campañas, IA, llamadas, notificaciones y almacenamiento externo requieren sus respectivas configuraciones y aceptación del cliente.
 
-Margarita es una consola web para que una empresa y su equipo administren la atención que ocurre en su WhatsApp Business. Recibe conversaciones por WhatsApp Business Cloud API, organiza contactos y conversaciones, permite responder desde una bandeja compartida y ofrece herramientas de seguimiento, campañas y automatización.
+## Funcionalidades disponibles en el código
 
-Su valor principal es operativo: **el equipo trabaja desde un historial común, sabe quién atiende cada conversación y puede aplicar respuestas y procesos consistentes**. La operación manual es el centro; IA, flujos y campañas complementan el trabajo cuando el negocio los necesita.
+- Bandeja de administración/agente, conversación, asignación, toma/cierre, notas internas y eventos en vivo.
+- Contactos, etiquetas, bajas, consentimiento declarado, bloqueo y acciones masivas.
+- Mensajes de texto y multimedia, plantillas aprobadas por Meta, botones/listas cuando corresponden, respuestas rápidas y campañas controladas.
+- Usuarios, roles de administrador/agente, sesiones, auditoría, reportes, configuración y respaldos.
+- IA configurable con conocimiento, modos de sugerencia/respuesta, límites, presupuesto y handoff. El negocio es responsable de validar el contenido y los resultados.
+- Llamadas entrantes y salientes de WhatsApp, sujetas a activación y configuración de Meta, Margarita, Call Service y TURN.
 
-### Presentación breve
+No se incluye grabación ni transcripción. Meta cobra aparte mensajes y llamadas; Cloudflare TURN e IA pueden generar cargos por consumo. No se ofrece soporte 24/7 ni desarrollo a medida en los planes de lista.
 
-> “Margarita reúne el WhatsApp de tu empresa en una bandeja para todo el equipo. Permite asignar conversaciones, responder con contexto, usar plantillas y automatizaciones configuradas y revisar la operación desde un panel.”
+## Arquitectura
 
-## 2. Cliente y casos de uso
+```text
+WhatsApp ↔ Meta Cloud API → webhook firmado → Express/TypeScript → Prisma/PostgreSQL
+                                                 ↕ Socket.IO
+                                        Panel Angular (`frontend/`)
 
-### Perfil de cliente adecuado
-
-- Negocio que atiende clientes por WhatsApp y necesita que más de una persona comparta la operación.
-- Equipo que quiere centralizar historial y asignación en vez de depender de un teléfono o una sola persona.
-- Organización que envía notificaciones o campañas autorizadas usando plantillas aprobadas.
-- Operación que desea automatizar preguntas y pasos repetitivos, manteniendo la posibilidad de pasar la conversación a un agente.
-
-### Ejemplos de uso
-
-| Necesidad | Uso posible en Margarita |
-| --- | --- |
-| Solicitudes y preguntas | Recibir mensajes, asignarlos a un agente y responder desde la conversación compartida. |
-| Reservas o citas | Atender solicitudes y enviar avisos con una plantilla aprobada cuando las reglas de Meta lo requieran. |
-| Pedidos y seguimiento | Consultar el hilo, registrar notas internas y dar continuidad entre personas del equipo. |
-| Atención de varias sucursales o servicios | Administrar más de un número empresarial; la autorización y la vista siguen las reglas actuales de la instalación, no permisos configurables por número. |
-| Consultas repetitivas | Configurar respuestas rápidas, flujos deterministas o IA opcional, con entrega a una persona según las reglas establecidas. |
-
-Los ejemplos describen patrones de uso, no integraciones con sistemas de reservas, pagos, inventario o CRM que no estén implementadas/configuradas en el proyecto.
-
-## 3. Recorrido diario de operación
-
-1. Una persona escribe al número de WhatsApp Business del negocio.
-2. Meta envía el evento al webhook configurado en Margarita.
-3. Margarita verifica el evento, evita duplicar el mismo mensaje y actualiza contacto e hilo.
-4. La conversación aparece en la bandeja; el equipo recibe actualización en vivo y puede reclamarla o asignarla.
-5. El agente revisa el historial y responde con texto, medios, plantilla o respuesta rápida. Acciones compatibles pueden marcar lectura o mostrar que el agente está escribiendo. Desde la bandeja puede enviar una plantilla aprobada a varias conversaciones seleccionadas, con un máximo de 25 y variables compartidas. Las etiquetas activas del contacto se muestran en cada fila, pueden asignarse desde el menú «Etiquetar» o en bloque sobre la selección, y pueden usarse para filtrar antes de enviar plantillas. La selección también permite asignar a un agente, marcar como leída, cerrar o agregar una nota interna; la cuenta incluye un tamaño de letra Normal, Grande o Muy grande guardado en el dispositivo.
-6. Meta devuelve estados de envío y entrega, que Margarita incorpora al historial.
-7. El equipo cierra o continúa el hilo y consulta actividad y reportes cuando necesita supervisar la atención.
-
-El indicador de “escribiendo” comunica que el **agente de Margarita** está preparando una respuesta. No informa que el cliente esté escribiendo. La función de leído/escribiendo se activa desde la operación en Margarita y depende de que el mensaje y la API permitan esa acción.
-
-## 4. Alcance funcional
-
-### Bandeja compartida
-
-- Panel Angular para administradores y agentes, con conversaciones y actualizaciones en vivo.
-- Asignación, reclamación, cierre y reapertura conforme a las reglas del servidor.
-- Historial, mensajes internos, estados de entrega, reacciones, opciones de leído/escribiendo y archivos multimedia compatibles.
-- Indicador de no leídos en la pestaña del navegador y preferencias individuales de sonido.
-- Respuestas rápidas de texto, botones (hasta 3) y listas (hasta 10 opciones); el envío está sujeto a límites/configuración de WhatsApp.
-- Uso de mensajes de texto libre sujeto a la ventana de atención de 24 horas. Fuera de ella, se requiere una plantilla aplicable y aprobada.
-
-### Contactos y campañas
-
-- Fichas de contacto, etiquetas, notas, consentimiento declarado y registro de bajas.
-- Bloqueo y desbloqueo en WhatsApp desde la conversación, con estado visible para el equipo. Es independiente de la baja interna.
-- Campañas mediante contactos o importaciones, variables, programación y controles de cola, pausa y reintento.
-- Envíos de plantilla sujetos a aprobación, reglas y límites de Meta; la aplicación no garantiza que Meta acepte o entregue cada mensaje.
-
-### Automatización
-
-- Flujos guiados basados en reglas configuradas por el equipo.
-- IA opcional como sugerencias o respuestas automáticas, condicionada por la configuración de proveedor, conocimiento, controles, límites y presupuesto.
-- Posibilidad de transferir la conversación a una persona según reglas de atención.
-
-La IA no equivale a un agente autónomo de propósito general. No se debe vender como sistema que toma decisiones comerciales fuera de los límites configurados.
-
-### Administración y supervisión
-
-- Usuarios y roles, configuración del espacio de trabajo, números y sincronización de plantillas.
-- Perfil empresarial, información de salud del número y usuarios bloqueados según la API de Meta.
-- Reportes, bitácora, gestión de sesiones, respaldos y controles operativos disponibles en el panel.
-- Métricas de costos configurables son estimaciones operativas; la facturación oficial de WhatsApp corresponde a Meta.
-
-## 5. Arquitectura técnica
-
-```mermaid
-flowchart LR
-    C[Cliente en WhatsApp] <--> W[WhatsApp Business Cloud API]
-    W -->|Webhooks| V[Express: validación y rutas]
-    V --> Q[Servicios y procesamiento de eventos]
-    Q <--> DB[(PostgreSQL / Prisma)]
-    Q --> RT[Socket.IO]
-    RT --> UI[Panel Angular]
-    UI -->|JSON autenticado| V
-    V -->|Mensajes, plantillas y operaciones| W
-    UI -->|Agente o administrador| U[Equipo del negocio]
+Navegador ↔ WebRTC/WSS ↔ `services/calls` ↔ Meta Calling API
+                                ↕
+                        Cloudflare Realtime TURN
 ```
 
-| Componente | Responsabilidad |
-| --- | --- |
-| Angular (`frontend/`) | Interfaz autenticada habitual del equipo bajo `/panel`; consume rutas JSON. |
-| Node.js, TypeScript y Express (`src/`) | Sesiones, permisos, validaciones, reglas de negocio, endpoints y conexión con Meta. |
-| PostgreSQL y Prisma (`prisma/`) | Persistencia, esquema y migraciones versionadas. |
-| Webhooks de Meta | Entrada de mensajes y eventos de estado; firma verificada y procesamiento con deduplicación. |
-| Socket.IO | Cambios en vivo en conversaciones y contadores del panel. |
-| Almacenamiento de medios y respaldos | Archivos locales en rutas configuradas o almacenamiento externo compatible; en producción necesita persistencia y política de retención. |
+- `src/`: servidor Express, rutas, middlewares, controladores, servicios, trabajos, validaciones y vistas.
+- `frontend/`: panel Angular autenticado. Es el panel operativo principal.
+- `prisma/`: schema y migraciones versionadas.
+- `services/calls/`: servicio Node independiente para señalización y ciclo de llamadas. Margarita conserva usuarios, permisos, workspace, conversación, historial y auditoría. Calls no debe escribir directamente en tablas cifradas ni persistir SDP/tokens.
+- `landing/`: sitio comercial estático generado por `npm run landing:build`.
+- **EJS sigue activo** para `/setup`, determinadas páginas públicas/acceso y compatibilidad. No se debe retirar una vista por no aparecer en Angular; revisa sus rutas y `res.render` antes de proponer limpieza.
 
-### Frontend en producción
+## Funciones de llamadas
 
-Angular es el panel principal. EJS **continúa activo** para el asistente de configuración, ciertas páginas públicas/de acceso y rutas explícitas de compatibilidad con pantallas anteriores. Las plantillas archivadas en `src/views/legacy-unused/` no se renderizan. El sitio de producto en `landing/` y la demo comercial son proyectos/servicios separados del panel y sus datos de clientes.
+La integración del servicio está implementada, pero solo opera cuando se despliega y configura. El webhook público sigue pasando por Margarita y debe tener la suscripción `calls`; Calls recibe eventos internos autenticados. Meta transporta el audio; Cloudflare TURN facilita conectividad cuando la ruta directa falla, no es un SFU.
 
-### Despliegue
+Para contestar entrantes, el navegador/PWA debe estar abierto, el agente disponible y la conversación asignada/accesible. Si no hay agente conectado, la política actual rechaza en Meta y registra la llamada como perdida cuando existe conversación asociada; no se debe presentar como contestada. La llamada saliente requiere permiso de llamadas concedido. Las pruebas con número real, red/TURN y credenciales del negocio son necesarias antes de habilitar producción.
 
-La aplicación se puede desplegar como servicio web Node.js con PostgreSQL; Railway es una opción usada por el proyecto. Para una instalación productiva deben configurarse por separado dominio HTTPS, variables, base de datos, volúmenes, credenciales de Meta, webhook y observabilidad. El nombre del proveedor no sustituye la verificación de la configuración real.
+No hay grabación, transcripción ni recepción negociada con PWA cerrada. Revisa [`../services/calls/README.md`](../services/calls/README.md) para variables, endpoints, límites y pruebas manuales.
 
-## 6. Límites y condiciones comerciales
+## IA y RAG
 
-| Tema | Alcance real |
-| --- | --- |
-| Modelo de instalación | Una empresa/espacio de trabajo por instalación. No es una plataforma multiempresa aislada dentro de una única instancia. |
-| WhatsApp | Requiere cuenta, número y credenciales de WhatsApp Business Cloud API administrados con Meta. |
-| Plantillas | Margarita sincroniza y utiliza plantillas; Meta las crea, revisa, aprueba y puede reclasificar. |
-| Consentimiento | El equipo puede registrar consentimiento y bajas. Margarita no comprueba por sí misma la validez de la autorización del destinatario. |
-| Costos | Cargos de WhatsApp/Meta, alojamiento y proveedores de IA son externos y dependen de las cuentas y uso del cliente. |
-| CRM e integraciones | No se debe ofrecer como CRM completo ni prometer sincronizaciones con ERP, pagos, reservas o inventarios que no estén implementadas. |
-| Permisos por número | Roles de administración y agente aplican a la instalación; no hay una matriz configurable de acceso para cada número. |
-| Entrega | El estado refleja lo informado por Meta; no garantiza que un proveedor acepte, entregue o muestre cada mensaje. |
+La IA existente permite configurar proveedor/modelo, conocimiento de negocio, instrucciones, límites, presupuesto, confianza, modo y reglas de handoff. Se recomienda iniciar en modo **Sugerencias** y probar casos anonimizados antes de habilitar respuestas automáticas. El coste del proveedor no se debe presentar como ilimitado ni como incluido fuera del límite acordado.
 
-## 7. Seguridad, datos y continuidad
+**RAG con embeddings/documentos no está implementado en el código actual.** Está en desarrollo y no debe venderse como capacidad disponible hasta que exista, se pruebe y se actualice esta descripción. Si la tabla de precios incluye RAG en Pro, aclara esa condición comercial antes de contratar; la fuente de precios es [`precios.md`](precios.md).
 
-- PostgreSQL accedido mediante Prisma; los cambios de esquema deben acompañarse de migraciones versionadas.
-- Campos sensibles como teléfonos y contenido de mensajes se cifran en reposo; ciertas consultas exactas utilizan índices ciegos.
-- La firma del webhook se verifica antes de procesar eventos.
-- Sesiones y permisos se controlan en el servidor; hay roles, controles de sesión y segundo factor configurable.
-- El acceso a archivos se valida mediante sesión y relación con mensajes de la instalación.
-- Medios y respaldos locales deben ubicarse en volumen persistente en producción. El cifrado del respaldo y su restauración periódica deben formar parte de la operación.
-- Mantener secretos en variables del entorno, conservar y respaldar `ENCRYPTION_KEY`, activar HTTPS y limitar acceso a volúmenes y cuentas de Meta.
+## Límites funcionales
 
-La búsqueda de campos cifrados puede ser exacta y limitada; no equivale a búsqueda parcial de todo el contenido. Los medios que Meta aloja pueden dejar de descargarse pasado su periodo de disponibilidad, por lo que se debe definir una política propia de conservación.
+- Meta controla aprobación/categoría de plantillas, cuotas, calidad, permisos y cargos del canal; Margarita refleja estados, no garantiza entrega final.
+- La app no crea/aprueba plantillas ni sustituye Meta Business Manager.
+- No es CRM/ERP, facturación, pasarela de pago, agenda externa ni almacenamiento documental RAG.
+- La autorización por roles se aplica al ámbito soportado por el código; no prometas permisos configurables por número si la instalación no los tiene.
+- Algunos campos cifrados permiten búsqueda exacta, no búsqueda parcial general.
+- Campañas requieren base legal/consentimiento, plantillas aprobadas, exclusiones y supervisión humana.
+- WhatsApp, proveedor de IA, Meta Calling, Cloudflare TURN, hosting y almacenamiento pueden cambiar sus límites y tarifas.
 
-## 8. Preparación de una instalación
+## Seguridad, datos y continuidad
 
-### Requisitos de negocio
+- El servidor autentica sesiones y aplica roles en las rutas protegidas.
+- Webhook de Meta valida firma cuando la app está configurada; producción requiere el secreto correspondiente.
+- Campos sensibles se cifran en reposo; la clave `ENCRYPTION_KEY` y secretos de integración deben custodiase fuera de Git y respaldarse de forma segura.
+- Acceso a archivos debe conservar autorización de sesión, workspace y relación con el recurso.
+- No guardar tokens, SDP, TURN credentials ni credenciales de Meta en logs, capturas o reportes.
+- Respaldos requieren volumen persistente, retención acordada, control de acceso y restauración de prueba en entorno desechable.
+- El negocio debe definir consentimiento, bajas, finalidad, retención, exportación, borrado, responsable de cuenta y solicitudes de privacidad.
 
-- Cuenta de Meta Business y configuración de WhatsApp Business Cloud API.
-- Número habilitado para el canal y acceso a sus identificadores/tokens.
-- Administrador responsable de la cuenta, plantillas, consentimiento, bajas y atención.
-- Agentes, horarios, criterios de asignación y proceso de escalamiento definidos.
-- Plantillas revisadas/aprobadas por Meta para notificaciones y campañas que las requieran.
+Esta lista describe controles visibles en el código; proxy, secretos de producción, cuentas externas, permisos de proveedor, backups reales y estado del deployment deben verificarse en cada instalación.
 
-### Requisitos técnicos
+## Precios y gastos externos
 
-- Node.js de la versión fijada en `.nvmrc` y PostgreSQL.
-- Dominio HTTPS, `APP_URL`, secretos de autenticación/cifrado y variables de Meta.
-- URL de webhook accesible y suscripción a los eventos requeridos.
-- Volumen persistente para medios y respaldos locales; definir retención, cuota y procedimiento de restauración.
-- Proveedor y límites de IA solo si se activan las funciones de IA.
+Consulta [`precios.md`](precios.md) para los importes oficiales y límites por plan. Los precios son MXN más IVA. Meta factura mensajes y llamadas por separado; Cloudflare TURN se cobra por consumo; la IA adicional/bolsa puede tener cargos separados. No se promete uso ilimitado, grabación, transcripción ni soporte 24/7.
 
-### Secuencia de puesta en marcha
+## Despliegue e infraestructura
 
-1. Desplegar aplicación y PostgreSQL en entorno de prueba.
-2. Configurar variables desde `.env.example` y completar `/setup`.
-3. Conectar Meta, verificar webhook y sincronizar los números y plantillas.
-4. Crear usuarios, definir horarios, respuestas rápidas, permisos operativos y reglas de atención.
-5. Validar recepción, asignación, respuesta dentro/fuera de ventana, medios, estados y notificaciones.
-6. Si se habilitan campañas o IA, validar consentimiento, exclusiones, límites, casos de entrega y costos.
-7. Configurar respaldos, ejecutar una restauración de prueba y luego habilitar producción.
+La configuración principal de Railway está declarada en `railway.json`; contempla build/start, migraciones predeploy y healthcheck. Cada ambiente necesita PostgreSQL, HTTPS, secretos correctos, almacenamiento persistente para medios/respaldos y supervisión. La landing se publica por separado como estático. Calls tiene Dockerfile y necesita HTTPS/WSS, secretos compartidos y variables TURN; no comparte la base de datos de Margarita.
 
-## 9. Operación y publicación de cambios
+El repositorio no demuestra qué dominios, variables, cuotas, volúmenes o versiones están activos en producción. No considerar un servicio listo solo porque existe su configuración local.
 
-Antes de cada publicación:
+## Operación por negocio
 
-1. Revisar el diff y las migraciones en una rama de trabajo.
-2. Ejecutar las verificaciones adecuadas para el cambio. Para cambios de lógica: pruebas unitarias, tipos y pruebas de integración con una base desechable. Para cambios de interfaz: compilar Angular y revisar las pantallas afectadas.
-3. Confirmar las variables y la persistencia del entorno de destino.
-4. Desplegar y comprobar acceso al panel, `/health`, webhook, recepción/envío de mensajes y logs.
-5. Confirmar el estado del despliegue y probar restauración de respaldos según la política del servicio.
+Antes de habilitar clientes, completa [`configuracion-por-negocio.md`](configuracion-por-negocio.md): Meta/WABA/número/webhook, plantillas, horario, roles, etiquetas, consentimiento, campañas, IA, llamadas si aplican, volumen, backups, salud y responsable de incidentes. Todo punto bloqueante debe tener responsable y evidencia sin secretos.
 
-La aplicación incluye endpoints y herramientas operativas, pero la disponibilidad del dominio, volúmenes, variables y despliegue debe confirmarse en Railway u otro proveedor en cada publicación.
+## Pendientes conocidos
 
-## 10. Verificación para desarrollo
+- Implementar y validar RAG antes de ofertarlo como función disponible.
+- Probar llamadas entrantes/salientes por cada configuración Meta/país elegible, incluyendo TURN, estados de colgado, servicio caído y política cuando PWA/agent no está disponible.
+- Definir/pactar límites de IA, llamadas/minutos y política de consumo de cada cuenta.
+- Verificar backup/restore y retención en un entorno no productivo de cada cliente.
+- Mantener identificadas las rutas EJS aún activas junto con las rutas Angular; no eliminar vistas por no aparecer en el router Angular.
 
-```sh
-npm test
-npx tsc --noEmit
+## Criterios para vender
+
+Vender solo si el caso encaja en atención por WhatsApp, el número/cuenta de Meta son elegibles, el cliente acepta los cargos externos y hay responsables para consentimiento, bajas, contenido, credenciales y operación. Confirmar el plan y onboarding en [`precios.md`](precios.md), y completar los puntos bloqueantes del checklist antes del arranque.
+
+## Criterios para no vender o pausar el alta
+
+No vender ni activar si el cliente requiere RAG operativo hoy, grabación/transcripción, soporte 24/7, uso ilimitado, permisos por número no soportados, CRM/ERP/agenda/pasarela no implementados o mensajes sin consentimiento. Pausar si Meta rechaza el número/app, no hay pago/permiso, no se puede validar webhook HTTPS, falta responsable, no existen backups verificables o los costes/proveedores no están aceptados.
+
+## Verificación del repositorio
+
+```bash
+npm run landing:build
 npm run build
-npm run test:integration
+npx tsc --noEmit
+npm test
+npm --prefix frontend test -- --watch=false
 ```
 
-La suite de integración requiere PostgreSQL de pruebas y secretos desechables; nunca debe conectarse a producción. `npm run build` compila los recursos del servidor y el frontend. CI puede incluir controles adicionales de Prisma, seguridad de migraciones y compilación.
-
-## 11. Referencias del repositorio
-
-- Variables y valores predeterminados: `.env.example`, `src/config/app.config.ts`.
-- Rutas, permisos y controladores: `src/routes/`, `src/controllers/`.
-- Integraciones y reglas: `src/services/`.
-- Datos y cambios: `prisma/schema.prisma`, `prisma/migrations/`.
-- Aplicación Angular: `frontend/src/app/`, documentación en `frontend/README.md`.
-- Vistas activas y archivadas: `src/views/`, `src/views/legacy-unused/`.
-
----
-
-## 12. Anexo: roles, límites y configuración que no deben perderse
-
-### Roles
-
-| Rol | Alcance |
-| --- | --- |
-| `ADMIN` | Configuración del espacio, números, contactos, equipo, campañas, reportes y conversaciones. |
-| `AGENT` | Conversaciones asignadas y sin asignar según las reglas de la bandeja; sin configuración administrativa. |
-
-El servidor valida permisos en cada ruta. Los agentes tienen números permitidos cuando se configuran; esto no sustituye una matriz completa de permisos por cada acción.
-
-### Conversaciones y WhatsApp
-
-- Recepción por webhook firmado, deduplicación por identificador de Meta y estados de entrega.
-- Asignación, reclamación, cierre, reapertura e historial en tiempo real.
-- Respuestas rápidas de texto, hasta 3 botones o listas de hasta 10 opciones, sujetas a los límites de WhatsApp y a la configuración del espacio.
-- La ventana de 24 horas se aplica en el servidor; fuera de ella se requiere una plantilla aprobada aplicable.
-- Reacciones y acciones de leído/escribiendo cuando existe un mensaje compatible.
-- El bloqueo de WhatsApp se hace desde Margarita o desde la lista administrativa del número. El estado local puede quedar desactualizado si el cambio se hizo directamente en Meta; el bloqueo es específico del número empresarial.
-- El opt-out interno es independiente del bloqueo y debe excluir al contacto de campañas.
-
-### Límites conocidos
-
-- El estado de lectura es por conversación, no por miembro del equipo.
-- La búsqueda de campos cifrados con índice ciego es exacta; no equivale a búsqueda parcial de todo el contenido.
-- La asignación y la visibilidad siguen las reglas del servidor; no hay una matriz configurable para cada número y cada acción.
-- Los adjuntos alojados por Meta pueden dejar de estar disponibles pasado su periodo de retención; la descarga local depende de que el archivo aún se pueda recuperar.
-- Las grabaciones enviadas como audio convencional no son necesariamente burbujas de nota de voz PTT.
-- El opt-in registra información declarada por el equipo; la aplicación no verifica por sí misma la base legal del consentimiento.
-- Un teléfono, token, calidad, nombre o estado comercial dependen de Meta y pueden cambiar sin cambios en el código.
-- EJS continúa como dependencia y motor activo para las rutas indicadas en la sección 5; no debe afirmarse que fue eliminado.
-
-### Configuración mínima de producción
-
-Revisar en `.env.example` y en el entorno, como mínimo:
-
-- `DATABASE_URL`, `APP_URL`, `NODE_ENV`, `PORT` y `TIMEZONE`.
-- `JWT_SECRET`, `ENCRYPTION_KEY`, nombre y duración de cookie.
-- Credenciales y configuración del webhook de Meta (`META_*`, `META_API_VERSION`).
-- `MEDIA_STORAGE_DIR`, `BACKUP_DIR`, retención de copias y volumen persistente.
-- Límites de sesión, intentos de login, rate limiting y token opcional de healthcheck.
-- Variables de proveedor y límites de IA solo si se habilita esa función.
-- Configuración R2 solo si están presentes las cuatro credenciales/campos requeridos.
-
-No copiar valores secretos a tickets, commits, capturas o documentación.
-
-### Publicación
-
-1. Crear una rama y revisar el diff; incluir migraciones para cambios de base de datos.
-2. Ejecutar build, verificación de tipos y las suites relevantes con una base de pruebas desechable.
-3. Desplegar en un entorno de prueba y comprobar login, webhook, envío/recepción, volumen y logs.
-4. Integrar a la rama de producción según el flujo del repositorio y confirmar el commit/despliegue en Railway.
-5. Revisar `/health`, el panel, el estado de Meta y las tareas de fondo tras el despliegue.
-
-La configuración concreta de Railway puede cambiar; confirmar dominio, volumen, variables y despliegue al momento de cada publicación.
+Las pruebas de integración requieren PostgreSQL desechable; nunca las apuntes a producción. La prueba manual de llamadas usa el número, permisos y credenciales reales del cliente y debe acordarse previamente.

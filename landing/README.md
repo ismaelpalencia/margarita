@@ -13,6 +13,7 @@ Las fuentes son las plantillas `.ejs` de esta misma carpeta:
 - `precios.ejs` → `precios.html`
 - `demo.ejs` → `demo.html`
 - `onboarding.ejs` → `onboarding.html`
+- `configuracion-por-negocio.ejs` → `configuracion-por-negocio.html` (renderiza `docs/configuracion-por-negocio.md`)
 - `guia.ejs` → `guia.html`
 - `plantillas.ejs` → `plantillas.html`
 - `privacidad.ejs` → `privacidad.html`
@@ -30,9 +31,9 @@ El comando renderiza las plantillas a HTML en esta misma carpeta, copia los
 assets de marca y los favicons, y **no borra** las plantillas, `assets/` ni el
 `README.md`. Los `.html` son generados: no se editan a mano.
 
-Los precios viven en `scripts/build-landing.ts` y la fuente que gobierna es
-`docs/alcance-produccion.md`. Si cambian, se actualiza primero ese documento y
-luego la constante del build.
+Los precios y alcances por plan viven en `src/content/pricing.ts`; la fuente
+comercial que gobierna es `docs/precios.md`. La guía de configuración publicada
+en esta carpeta se genera desde `docs/configuracion-por-negocio.md`.
 
 ## Demo
 

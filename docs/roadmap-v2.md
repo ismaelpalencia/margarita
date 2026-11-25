@@ -506,4 +506,4 @@ existentes) y el producto se vende como automatización de WhatsApp con IA.
 | 9 | Docs, landing y release final | no |
 
 El detalle por batch, con archivos, pruebas y comandos, está en
-`bitacora-batches.md`.
+`archive/bitacora-batches.md`.
