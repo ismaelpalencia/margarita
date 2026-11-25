@@ -236,7 +236,14 @@ html[data-theme="dark"] .contact-block-card .blocked-contact-status { border-col
 html[data-theme="dark"] .contact-block-card button { border-color: var(--surface-border); color: var(--text-primary); background: var(--surface-raised); }
 html[data-theme="dark"] .contact-block-card .block-contact-button { border-color: #70423c; color: #ffc1b8; background: #432c29; }
 
-.conversation-call-history { margin: 0 0 15px; padding: 12px 15px; border: 1px solid var(--ui-border, #e1e8e3); border-radius: 10px; color: var(--ui-text, #253b34); background: var(--ui-surface, #fffdf8); }
-.conversation-call-history h2 { margin: 0 0 7px; font-size: 13px; }
-.conversation-call-history article { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; padding: 5px 0; border-top: 1px solid var(--ui-border, #e1e8e3); font-size: 12px; }
-.conversation-call-history time,.conversation-call-history small,.conversation-call-history>p { color: var(--ui-muted, #718077); font-size: 11px; }
+.conversation-call-history { margin: 0 0 15px; padding: 0 14px; border: 1px solid var(--ui-border, #e1e8e3); border-radius: 10px; color: var(--ui-text, #253b34); background: var(--ui-surface, #fffdf8); }
+.conversation-call-history summary { display: flex; align-items: center; gap: 8px; min-height: 42px; font-size: 13px; font-weight: 650; cursor: pointer; list-style: none; }
+.conversation-call-history summary::-webkit-details-marker { display: none; }
+.conversation-call-history summary::after { content: '⌄'; margin-left: auto; color: var(--ui-muted, #718077); transition: transform 160ms ease-out; }
+.conversation-call-history[open] summary::after { transform: rotate(180deg); }
+.call-history-count { display: inline-grid; min-width: 21px; height: 21px; place-items: center; padding: 0 5px; border-radius: 999px; color: var(--ui-muted, #718077); background: var(--ui-raised, #f0f3ef); font-size: 11px; }
+.call-history-body { padding-bottom: 8px; }
+.conversation-call-history article { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; padding: 7px 0; border-top: 1px solid var(--ui-border, #e1e8e3); font-size: 12px; }
+.conversation-call-history time,.conversation-call-history small,.conversation-call-history p { color: var(--ui-muted, #718077); font-size: 11px; }
+.conversation-call-history p { margin: 2px 0 5px; }
+@media(prefers-reduced-motion:reduce) { .conversation-call-history summary::after { transition: none; } }
