@@ -1,13 +1,18 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
+import { CallToneService } from './call-tone.service';
 
 type CallUiStatus = 'idle' | 'loading' | 'incoming' | 'connecting' | 'active' | 'error';
+type CallConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 type CallTokenResponse = { token: string; canCall: boolean; serviceUrl: string; reason?: string | null };
 type IncomingCall = { callId: string; conversationId: string; phone: string; sdp: string };
 type IceResponse = { iceServers: RTCIceServer[]; expiresAt: number };
 
 @Injectable({ providedIn: 'root' })
 export class CallFeatureService {
+  private readonly callTone = inject(CallToneService);
   readonly status = signal<CallUiStatus>('idle');
+  readonly connectionStatus = signal<CallConnectionStatus>('disconnected');
+  readonly connectionConversation = signal('');
   readonly incoming = signal<IncomingCall | null>(null);
   readonly active = signal<{ callId: string; conversationId: string; direction: 'INBOUND' | 'OUTBOUND' } | null>(null);
   readonly remoteStream = signal<MediaStream | null>(null);
@@ -16,8 +21,10 @@ export class CallFeatureService {
   readonly elapsedSeconds = signal(0);
   readonly outgoingSetup = signal(false);
   readonly error = signal('');
-  readonly enabledForConversation = signal(false);
   readonly unavailableReason = signal('Las llamadas no están configuradas.');
+
+  isToneMuted(): boolean { return this.callTone.muted(); }
+  toggleToneMute(): void { this.callTone.toggleMuted(); }
 
   private socket: WebSocket | null = null;
   private tokenData: CallTokenResponse | null = null;
@@ -26,24 +33,53 @@ export class CallFeatureService {
   private timerId: number | null = null;
   private refreshId: number | null = null;
   private hangupTimeoutId: number | null = null;
-  private preparedConversation = '';
-  private preparePromise: Promise<boolean> | null = null;
+  isConnectedFor(conversationId: string): boolean {
+    return this.connectionStatus() === 'connected'
+      && this.connectionConversation() === conversationId
+      && this.socket?.readyState === WebSocket.OPEN;
+  }
 
-  async prepare(conversationId: string): Promise<boolean> {
-    const currentCall = this.active();
-    const pendingCall = this.incoming();
-    if (currentCall || pendingCall) {
-      const sameConversation = currentCall?.conversationId === conversationId || pendingCall?.conversationId === conversationId;
-      this.enabledForConversation.set(sameConversation);
-      this.unavailableReason.set(sameConversation ? '' : 'Termina la llamada activa antes de cambiar de conversación.');
-      return sameConversation;
+  async connectCalls(conversationId: string): Promise<boolean> {
+    if (this.active() || this.incoming()) {
+      this.unavailableReason.set('Termina la llamada actual antes de cambiar la conexión.');
+      return false;
     }
-    this.preparedConversation = conversationId;
-    this.preparePromise = this.preparePromise || this.connect(conversationId);
-    const available = await this.preparePromise;
-    this.preparePromise = null;
-    this.enabledForConversation.set(available);
-    return available;
+    if (this.isConnectedFor(conversationId)) return true;
+    if (this.connectionStatus() === 'connecting') return false;
+    this.callTone.unlock();
+    const previousSocket = this.socket;
+    this.socket = null;
+    this.tokenData = null;
+    this.connectionConversation.set('');
+    previousSocket?.close(1000, 'Conexión de llamadas cambiada');
+    this.connectionStatus.set('connecting');
+    this.status.set('loading');
+    const connected = await this.connect(conversationId);
+    if (connected) {
+      this.connectionConversation.set(conversationId);
+      this.connectionStatus.set('connected');
+      this.status.set('idle');
+      return true;
+    }
+    this.connectionConversation.set('');
+    this.connectionStatus.set('error');
+    this.status.set('idle');
+    return false;
+  }
+
+  disconnectCalls(): void {
+    if (this.active() || this.incoming()) {
+      this.unavailableReason.set('Termina la llamada antes de desconectar.');
+      return;
+    }
+    this.callTone.stop();
+    const socket = this.socket;
+    this.socket = null;
+    this.tokenData = null;
+    this.connectionConversation.set('');
+    this.connectionStatus.set('disconnected');
+    this.status.set('idle');
+    socket?.close(1000, 'Llamadas desconectadas por el agente');
   }
 
   async startCall(conversationId: string): Promise<void> {
@@ -52,10 +88,7 @@ export class CallFeatureService {
     this.outgoingSetup.set(true);
     this.status.set('loading');
     try {
-      if (this.preparedConversation !== conversationId || !this.socket || this.socket.readyState !== WebSocket.OPEN) {
-        const ready = await this.connect(conversationId);
-        if (!ready) throw new Error(this.unavailableReason());
-      }
+      if (!this.isConnectedFor(conversationId)) throw new Error('Conecta las llamadas para esta conversación antes de llamar.');
       if (!this.tokenData?.canCall || !this.socket || this.socket.readyState !== WebSocket.OPEN) throw new Error(this.unavailableReason());
       const pc = await this.createPeerConnection();
       const offer = await pc.createOffer({ offerToReceiveAudio: true });
@@ -66,6 +99,7 @@ export class CallFeatureService {
       this.outgoingSetup.set(false);
       this.send({ event: 'call:start', callId, conversationId, sdp: pc.localDescription?.sdp || offer.sdp });
       this.status.set('connecting');
+      this.callTone.start('outgoing');
     } catch (reason) {
       this.outgoingSetup.set(false);
       this.fail(this.errorMessage(reason, 'No se pudo iniciar la llamada.'));
@@ -78,6 +112,7 @@ export class CallFeatureService {
     if (!incoming) return;
     this.error.set('');
     this.status.set('connecting');
+    this.callTone.stop();
     try {
       const pc = await this.createPeerConnection();
       await pc.setRemoteDescription({ type: 'offer', sdp: incoming.sdp });
@@ -95,6 +130,7 @@ export class CallFeatureService {
 
   rejectIncoming(): void {
     const incoming = this.incoming();
+    this.callTone.stop();
     if (incoming) this.send({ event: 'call:reject', callId: incoming.callId });
     this.incoming.set(null);
     this.status.set('idle');
@@ -133,7 +169,6 @@ export class CallFeatureService {
       const data = await response.json() as CallTokenResponse & { error?: string };
       if (!response.ok || !data.token || !data.serviceUrl) throw new Error(data.error || data.reason || 'El servicio de llamadas no está disponible.');
       this.tokenData = data;
-      this.preparedConversation = conversationId;
       if (!data.canCall) {
         this.unavailableReason.set(data.reason || 'No se puede llamar desde esta conversación.');
         this.status.set('idle');
@@ -155,6 +190,9 @@ export class CallFeatureService {
         });
         socket.addEventListener('error', () => { window.clearTimeout(timeout); reject(new Error('No se pudo conectar con el servicio de llamadas.')); }, { once: true });
         socket.addEventListener('close', () => {
+          if (this.socket !== socket) return;
+          this.connectionStatus.set('disconnected');
+          this.connectionConversation.set('');
           if (this.status() === 'incoming' || this.status() === 'active' || this.status() === 'connecting') this.fail('La conexión de llamadas se interrumpió.');
         });
       });
@@ -162,6 +200,10 @@ export class CallFeatureService {
       this.unavailableReason.set('');
       return ready;
     } catch (reason) {
+      if (this.socket?.readyState !== WebSocket.OPEN) {
+        this.socket?.close();
+        this.socket = null;
+      }
       this.unavailableReason.set(this.errorMessage(reason, 'El servicio de llamadas no está disponible.'));
       this.status.set('idle');
       return false;
@@ -174,6 +216,7 @@ export class CallFeatureService {
         const incoming = event as unknown as IncomingCall;
         this.incoming.set(incoming);
         this.status.set('incoming');
+        this.callTone.start('incoming');
         break;
       }
       case 'call:connecting':
@@ -181,9 +224,11 @@ export class CallFeatureService {
         if (typeof event['callId'] === 'string' && this.active()) this.active.update((call) => call ? { ...call, callId: event['callId'] as string } : call);
         break;
       case 'call:answer':
+        this.callTone.stop();
         if (this.peer && typeof event['sdp'] === 'string') void this.peer.setRemoteDescription({ type: 'answer', sdp: event['sdp'] }).catch(() => this.fail('Meta envió una respuesta de llamada inválida.'));
         break;
       case 'call:accepted':
+        this.callTone.stop();
         this.status.set('connecting');
         break;
       case 'call:rejected':
@@ -228,6 +273,7 @@ export class CallFeatureService {
     pc.ontrack = (event) => this.remoteStream.set(event.streams[0] || new MediaStream([event.track]));
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'connected') {
+        this.callTone.stop();
         this.status.set('active');
         this.startTimer();
         const call = this.active();
@@ -274,6 +320,7 @@ export class CallFeatureService {
   }
 
   private fail(message: string): void {
+    this.callTone.stop();
     this.error.set(message);
     this.status.set('error');
     this.incoming.set(null);
@@ -303,6 +350,7 @@ export class CallFeatureService {
   }
 
   private cleanupCall(): void {
+    this.callTone.stop();
     this.cleanupMedia();
     this.outgoingSetup.set(false);
     this.hangupRequested.set(false);

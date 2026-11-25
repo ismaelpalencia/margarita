@@ -79,7 +79,11 @@ describe('AgentConversationPage', () => {
       imports: [AgentConversationPage],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'conversation-1' } } } },
-        { provide: CallFeatureService, useValue: { prepare: async () => false, unavailableReason: () => 'No disponible' } },
+        { provide: CallFeatureService, useValue: {
+          connectionStatus: () => 'disconnected', connectionConversation: () => '', active: () => null, incoming: () => null,
+          unavailableReason: () => 'No disponible', isConnectedFor: () => false, connectCalls: async () => false,
+          startCall: async () => undefined, disconnectCalls: () => undefined
+        } },
       ],
     }).compileComponents();
 
