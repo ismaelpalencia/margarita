@@ -10,6 +10,8 @@ El código describe capacidades; la disponibilidad concreta depende de las cuent
 
 ## 1. Resumen del producto
 
+Los precios y límites comerciales vigentes por plan se mantienen en [`precios.md`](precios.md). Este documento describe capacidades del producto, pero no sustituye esa fuente de precios.
+
 Margarita es una consola web para que una empresa y su equipo administren la atención que ocurre en su WhatsApp Business. Recibe conversaciones por WhatsApp Business Cloud API, organiza contactos y conversaciones, permite responder desde una bandeja compartida y ofrece herramientas de seguimiento, campañas y automatización.
 
 Su valor principal es operativo: **el equipo trabaja desde un historial común, sabe quién atiende cada conversación y puede aplicar respuestas y procesos consistentes**. La operación manual es el centro; IA, flujos y campañas complementan el trabajo cuando el negocio los necesita.

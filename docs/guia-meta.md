@@ -138,6 +138,6 @@ Meta.
 trámites legales, aviso de privacidad del cliente, migración de un CRM ajeno,
 ni teléfonos o equipos.
 
-**Precio:** la conexión con Meta va **incluida en el onboarding** del plan único ($1,299 MXN/mes, más IVA). No se cobra aparte. La guía sigue disponible para quien prefiera hacer el trámite por su cuenta.
+**Precio:** la configuración de Meta y webhook forma parte de la **implementación asistida**, desde $20,000 MXN + IVA. El onboarding regular depende del plan y no debe confundirse con este servicio. La guía sigue disponible para quien prefiera hacer el trámite por su cuenta. Consulta [`precios.md`](precios.md) para las condiciones vigentes.
 
 **Contacto:** `SUPPORT_WHATSAPP` y `SUPPORT_EMAIL`.

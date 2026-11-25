@@ -16,7 +16,7 @@ Plantillas para postular a proyectos donde el cliente pide “desarrollar mi pro
 >
 > La mayoría de estos proyectos se atora en la conexión con Meta, en cargar el conocimiento y en definir qué hace la IA cuando no sabe. Eso ya está resuelto en Margarita: API oficial de WhatsApp Business, IA acotada a tu información, entrega a una persona, panel, agentes y reportes.
 >
-> Mi propuesta: implementarlo en 5–7 días hábiles con tu número, tu base de conocimiento y tus flujos. $1,299 MXN/mes + IVA, con 2,000 respuestas de IA incluidas, sin instalación y con onboarding incluido.
+> Mi propuesta: implementarlo con tu número, tu base de conocimiento y tus flujos. El plan se define según el tamaño del equipo; revisa los precios y el onboarding vigente en [`../precios.md`](../precios.md).
 >
 > Si tu caso necesita integración a medida (CRM, calendario, ERP), también lo cotizo; primero te digo con honestidad qué conviene.
 >
@@ -33,7 +33,7 @@ Plantillas para postular a proyectos donde el cliente pide “desarrollar mi pro
 >
 > Con eso te digo si conviene:
 >
-> **A) Plataforma Margarita (recomendada si quieres salir rápido).** Tu número conectado, base de conocimiento, flujos de bienvenida y preguntas, IA con límites y entrega a persona, panel para tu equipo, plantillas, campañas y reportes. 5–7 días hábiles. $1,299 MXN/mes + IVA, 2,000 respuestas de IA incluidas, sin instalación y onboarding incluido. El consumo de WhatsApp lo cobra Meta aparte.
+> **A) Plataforma Margarita.** La combinación de bandeja, plantillas, campañas, automatización e IA depende del plan contratado. Los precios y límites vigentes están en [`../precios.md`](../precios.md); Meta cobra el consumo del canal por separado.
 >
 > **B) Desarrollo a medida.** Si necesitas una app propia, white-label, integración profunda o vivir fuera de nuestra plataforma, se cotiza por alcance y tiempos. Es otro presupuesto y otro riesgo; no lo vendas como si fuera la opción rápida.
 >
@@ -43,7 +43,7 @@ Plantillas para postular a proyectos donde el cliente pide “desarrollar mi pro
 
 ### “Quiero un chatbot con IA para responder dudas”
 
-> Tu caso es el más rápido: cargar tu información, definir tono y límites, conectar el número y probar. En 5–7 días tu WhatsApp responde horarios, precios, ubicación y preguntas frecuentes; si no sabe, pasa a una persona. $1,299/mes + IVA con 2,000 respuestas incluidas.
+> El alcance y calendario dependen del plan y de la configuración de Meta. La IA tiene límites según el plan y puede entregar la conversación a una persona; los precios están en [`../precios.md`](../precios.md).
 
 ### “Quiero agendar citas por WhatsApp”
 
@@ -66,9 +66,9 @@ Plantillas para postular a proyectos donde el cliente pide “desarrollar mi pro
 
 | Concepto | Precio |
 | --- | --- |
-| Plataforma Margarita IA | $1,299 MXN/mes + IVA |
-| Incluye | 2,000 respuestas de IA/mes, panel, onboarding (2 h + guía), sin instalación |
-| Meta | Consumo de WhatsApp facturado por Meta aparte |
+| Plataforma Margarita | Desde $499 MXN/mes + IVA; alcance según plan |
+| Implementación asistida | Desde $20,000 MXN + IVA |
+| Meta, Cloudflare TURN e IA adicional | Se cobran según uso/bolsa conforme a [`../precios.md`](../precios.md) |
 | Integración a medida | Cotización cerrada después de alcance (CRM, calendario, ERP, API) |
 | Desarrollo white-label | Cotización aparte; no es el plan estándar |
 
@@ -97,7 +97,7 @@ Si no hay WABA ni método de pago, el proyecto se atora; dilo antes de cotizar.
 > Sí, con la API oficial de WhatsApp Business. Necesitas cuenta de Meta y método de pago; te guiamos en la conexión.
 
 **“¿Qué pasa si no funciona?”**
-> Cancelas cuando quieras, sin penalización. El primer mes se paga si usas el servicio; no hay devolución de mensualidades ya prestadas.
+> Las condiciones de cancelación y salida se establecen en la propuesta y el contrato del plan elegido.
 
 **“¿La IA puede responder cualquier cosa?”**
 > No. Responde lo que está en tu base de conocimiento, con límites y confianza. Si duda o el tema es sensible, entrega a una persona. Eso es una ventaja, no una limitación.

@@ -1,21 +1,8 @@
 <%
-    const promoVigente =
-        !installPromoUntil ||
-        new Date() <= new Date(`${installPromoUntil}T23:59:59`);
-    const promoSpots =
-        typeof installPromoSpotsLeft === "number" ? installPromoSpotsLeft : 3;
-    const hasPromo =
-        installPricePromo !== installPrice && promoVigente && promoSpots > 0;
-    const priceB = hasPromo ? installPricePromo : installPrice;
-    const priceA = installPriceWithMeta;
-    const priceADisplay = priceA.replace(/^\$/, "").replace(/\s*MXN.*$/, "");
-    const priceBDisplay = priceB.replace(/^\$/, "").replace(/\s*MXN.*$/, "");
     const demoText = encodeURIComponent("Hola, quiero agendar una demo de Margarita");
     const ideaShareText = encodeURIComponent(
         "Hola, equipo Margarita. Esta plantilla de atención me ha funcionado y quiero compartirla para que la revisen y, si la aprueban, la agreguen a su biblioteca.\n\nSituación en la que la uso:\n\nTexto de la plantilla:\n\nBotones (si tiene):\n\nConfirmo que quité nombres, teléfonos y datos personales de clientes."
     );
-    const packageAText = encodeURIComponent("Hola, quiero el Paquete A de Margarita");
-    const packageBText = encodeURIComponent("Hola, quiero el Paquete B de Margarita");
     const whatsappBase = supportWhatsappUrl || "";
     const demoUrl = whatsappBase
         ? `${whatsappBase}?text=${demoText}`
@@ -27,16 +14,6 @@
         : supportEmail
           ? `mailto:${supportEmail}?subject=${encodeURIComponent("Quiero compartir una plantilla de atención")}`
           : "/plantillas";
-    const packageAUrl = whatsappBase
-        ? `${whatsappBase}?text=${packageAText}`
-        : supportEmail
-          ? `mailto:${supportEmail}?subject=${packageAText}`
-          : "/como-empezar";
-    const packageBUrl = whatsappBase
-        ? `${whatsappBase}?text=${packageBText}`
-        : supportEmail
-          ? `mailto:${supportEmail}?subject=${packageBText}`
-          : "/como-empezar";
 %>
 <!doctype html>
 <html lang="es-MX" data-theme-lock="light">
@@ -117,7 +94,7 @@
 
                         <div class="hero-actions">
                             <a class="button button-primary" href="<%= demoUrl %>">
-                                Conoce el piloto de <%= pilotDays %> días
+                                Conoce Margarita desde $499 MXN + IVA al mes
                                 <span aria-hidden="true">→</span>
                             </a>
                             <a class="button button-secondary" href="#como-funciona">
@@ -135,10 +112,7 @@
                             <li><span class="check" aria-hidden="true"></span> Datos cifrados y control humano</li>
                         </ul>
 
-                        <p class="hero-note">
-                            Instalación desde <strong><%= priceB %> + IVA</strong>. El primer
-                            mes está incluido y es tu piloto.
-                        </p>
+                        <p class="hero-note">Planes desde $499 MXN + IVA al mes. Implementación asistida desde $20,000 + IVA.</p>
                     </div>
 
                     <div class="hero-visual" aria-label="Vista ilustrativa del panel de Margarita">
@@ -230,8 +204,8 @@
                             <span><strong>AES-256</strong><small>datos protegidos</small></span>
                         </div>
                         <div class="floating-badge badge-pilot">
-                            <span class="pilot-mark" aria-hidden="true"><%= pilotDays %></span>
-                            <span><strong>días de piloto</strong><small>sin penalización</small></span>
+                            <span class="pilot-mark" aria-hidden="true">WA</span>
+                            <span><strong>WhatsApp Business</strong><small>atención en equipo</small></span>
                         </div>
                     </div>
                 </div>
@@ -430,7 +404,7 @@
                                 <div>
                                     <h3>Conecta tu cuenta de Meta</h3>
                                     <p>
-                                        Nosotros te ayudamos en el Paquete A. Tú
+                                        La implementación asistida puede incluir la configuración de Meta. Tú
                                         conservas el control de tu cuenta y tu número.
                                     </p>
                                 </div>
@@ -534,68 +508,22 @@
                     <div class="section-heading centered">
                         <p class="section-kicker">Precios y transparencia</p>
                         <h2>Precios claros, sin letras chiquitas</h2>
-                        <p>
-                            Elige tu paquete de inicio. Todos incluyen el primer mes de
-                            uso.
-                        </p>
+                        <p>Elige el plan según el tamaño de tu equipo. Precios en MXN más IVA.</p>
                     </div>
 
                     <div class="pricing-grid">
-                        <article class="price-card price-card--featured">
-                            <div class="price-top">
-                                <span class="package-label">Paquete A</span>
-                                <span class="package-note">Llave en mano</span>
-                            </div>
-                            <p class="price"><sup>$</sup><%= priceADisplay %> <small>MXN + IVA</small></p>
-                            <p class="price-description">
-                                Instalación, primer mes y conexión con Meta.
-                            </p>
-                            <ul>
-                                <li><span class="check"></span> Proyecto, base de datos y dominio</li>
-                                <li><span class="check"></span> Conexión completa con Meta</li>
-                                <li><span class="check"></span> Carga de plantillas</li>
-                                <li><span class="check"></span> Sesión de arranque de 2 horas</li>
-                            </ul>
-                            <a class="button button-primary button-block" href="<%= packageAUrl %>">
-                                Empezar con Paquete A
-                            </a>
+                        <%_ pricing.plans.forEach((plan) => { _%>
+                        <article class="price-card <%= plan.featured ? 'price-card--featured' : '' %>">
+                            <div class="price-top"><span class="package-label"><%= plan.name %></span><span class="package-note"><%= plan.audience %></span></div>
+                            <p class="price"><sup>$</sup><%= new Intl.NumberFormat("es-MX").format(plan.monthly) %> <small>MXN / mes + IVA</small></p>
+                            <p class="price-description"><%= plan.description %></p>
+                            <p><strong><%= plan.numbers %></strong> · Onboarding: <%= plan.onboarding %></p>
+                            <ul><%_ plan.features.forEach((feature) => { _%><li><span class="check"></span> <%= feature %></li><%_ }) _%></ul>
+                            <a class="button <%= plan.featured ? 'button-primary' : 'button-dark' %> button-block" href="<%= demoUrl %>">Consultar <%= plan.name %></a>
                         </article>
-
-                        <article class="price-card">
-                            <div class="price-top">
-                                <span class="package-label">Paquete B</span>
-                                <span class="package-note">Ya tengo Meta</span>
-                            </div>
-                            <p class="price"><sup>$</sup><%= priceBDisplay %> <small>MXN + IVA</small></p>
-                            <p class="price-description">
-                                Instalación y primer mes, si ya tienes Meta.
-                            </p>
-                            <ul>
-                                <li><span class="check"></span> Instalación y administrador</li>
-                                <li><span class="check"></span> Alta del número y webhook</li>
-                                <li><span class="check"></span> Carga de plantillas</li>
-                                <li><span class="check"></span> Sesión de arranque de 2 horas</li>
-                            </ul>
-                            <a class="button button-dark button-block" href="<%= packageBUrl %>">
-                                Empezar con Paquete B
-                            </a>
-                        </article>
+                        <%_ }) _%>
                     </div>
-
-                    <div class="pricing-note">
-                        <div class="pilot-badge">
-                            <span class="pilot-mark"><%= pilotDays %></span>
-                            <span>
-                                <strong>Piloto de <%= pilotDays %> días</strong>
-                                <small>Si no te funciona, te vas sin penalización y con tu respaldo.</small>
-                            </span>
-                        </div>
-                        <p>
-                            Mensualidad posterior: <strong><%= installMonthlyPrice %> + IVA</strong>.
-                            Compromisos opcionales de 3, 6 o 12 meses con descuento.
-                            Oferta válida hasta el <%= installPromoUntil %>.
-                        </p>
-                    </div>
+                    <div class="pricing-note"><p>Implementación asistida desde $<%= new Intl.NumberFormat("es-MX").format(pricing.assistedImplementation.price) %> + IVA. White label desde $<%= new Intl.NumberFormat("es-MX").format(pricing.whiteLabel.setupFrom) %> de implementación y $<%= new Intl.NumberFormat("es-MX").format(pricing.whiteLabel.monthlyFrom) %>/mes.</p></div>
                 </div>
             </section>
 
@@ -645,13 +573,12 @@
                                 <span>La conversación y el contexto quedan en la bandeja; la cita la confirma una persona.</span>
                             </div>
                         </li>
+                        <%_ pricing.notIncluded.forEach((item) => { _%>
                         <li>
                             <span class="x-mark" aria-hidden="true"></span>
-                            <div>
-                                <strong>No incluye los cargos de Meta.</strong>
-                                <span>Meta factura el uso de WhatsApp por separado. Margarita muestra una estimación, no la factura final.</span>
-                            </div>
+                            <div><strong><%= item %></strong></div>
                         </li>
+                        <%_ }) _%>
                         <li>
                             <span class="x-mark" aria-hidden="true"></span>
                             <div>
@@ -702,8 +629,7 @@
                             <summary>¿Tengo que cambiar mi número de WhatsApp?</summary>
                             <p>
                                 Se usa un número dedicado conectado a la API oficial de
-                                Meta. En el Paquete A te ayudamos con la conexión; en el
-                                B partimos de tu cuenta ya configurada.
+                                Meta. Puedes contratar implementación asistida o seguir la guía para configurar tu cuenta.
                             </p>
                         </details>
                         <details>

@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { appConfig, servesLanding } from "../config/app.config";
 import { SetupService } from "../services/setup.service";
 import { loadGuide } from "../content/guides";
+import { PRODUCT_PRICING } from "../content/pricing";
 
 /**
  * Datos de contacto comercial. Se configuran por variables de entorno para
@@ -68,6 +69,7 @@ export class HomeController {
 
         return res.render("pages/home/index", {
             title: "Margarita — Automatiza WhatsApp con IA",
+            pricing: PRODUCT_PRICING,
             ...supportContext()
         });
     }

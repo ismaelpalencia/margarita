@@ -6,6 +6,7 @@ la demanda repetida en una oferta que se pueda vender sin reinventar el producto
 en cada cliente.
 
 **Estado:** análisis para decisión. No cambia precios ni código.
+**Nota comercial:** los precios históricos que aparecen en el análisis no son vigentes ni deben copiarse en propuestas. Consulta [`precios.md`](precios.md) para la oferta actual.
 **Documentos relacionados:** [`ia-respuestas.md`](ia-respuestas.md) (cómo se
 implementa), [`propuesta-comercial.md`](propuesta-comercial.md) (oferta actual),
 [`catalogo-producto.md`](catalogo-producto.md) (qué se puede afirmar hoy),

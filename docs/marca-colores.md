@@ -70,8 +70,9 @@ Paleta EXACTA:
 - Texto #1A1D21 y secundario #5A6270. Éxito #1E8E5A, aviso #B7791F, error #C53030.
 
 Mensaje: “Automatiza WhatsApp con IA — atiende, califica y deriva”.
-Oferta: “$1,299 MXN/mes + IVA, 2,000 respuestas de IA incluidas, sin
-instalación, onboarding incluido”. CTA: “Agenda una demo”.
+Oferta: “Planes desde $499 MXN/mes + IVA”. Sigue el alcance por plan de
+[`precios.md`](precios.md); no anuncies uso ilimitado ni costos de proveedores
+como incluidos. CTA: “Agenda una demo”.
 
 Composición: titular arriba, captura del panel o mock de chat al centro,
 bloque de precio y CTA abajo. Máximo 3 colores dominantes. Sin degradados,

@@ -6,6 +6,8 @@ con qué palabras) y **los guiones de video** (qué grabar y en qué orden).
 
 Última revisión: 4 de noviembre de 2026.
 
+Este catálogo describe capacidades funcionales, no precios. Para conocer los límites por plan e importes vigentes consulta [`precios.md`](precios.md).
+
 ---
 
 ## 1. En una frase

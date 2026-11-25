@@ -136,41 +136,41 @@
     <section class="section" id="planes">
         <div class="container">
             <div class="section-head section-head--center">
-                <p class="section-kicker">Plan</p>
-                <h2 class="section-title"><%= pricing.plan.name %></h2>
+                <p class="section-kicker">Planes</p>
+                <h2 class="section-title">Una opción para cada etapa</h2>
                 <p class="section-lede">
-                    Un plan para operar conversaciones, equipo y automatizaciones opcionales.
-                    Revisa qué incluye y cómo se contabiliza la IA.
+                    Desde una operación autoguiada hasta equipos con varios números y llamadas.
+                    Todos los precios son en MXN más IVA.
                 </p>
             </div>
 
-            <div class="plans" style="grid-template-columns:minmax(0,640px);justify-content:center;">
-                <article class="plan plan--featured">
-                    <span class="plan__tag">Plan Margarita</span>
-                    <h3><%= pricing.plan.name %></h3>
-                    <p class="plan__desc"><%= pricing.plan.description %></p>
+            <div class="plans">
+                <%_ pricing.plans.forEach((plan) => { _%>
+                <article class="plan <%= plan.featured ? 'plan--featured' : '' %>">
+                    <span class="plan__tag"><%= plan.audience %></span>
+                    <h3><%= plan.name %></h3>
+                    <p class="plan__desc"><%= plan.description %></p>
                     <div class="plan__price">
-                        <strong>$<%= money(pricing.plan.monthly) %></strong>
+                        <strong>$<%= money(plan.monthly) %></strong>
                         <small>MXN / mes + IVA</small>
                     </div>
-                    <div class="plan__replies">
-                        <strong><%= money(pricing.plan.replies) %> respuestas de IA</strong>
-                        incluidas al mes
-                    </div>
+                    <p class="plan__replies"><strong><%= plan.numbers %></strong><br>Onboarding: <%= plan.onboarding %></p>
                     <ul>
-                        <% pricing.plan.features.forEach((feature) => { %>
+                        <%_ plan.features.forEach((feature) => { _%>
                             <li><%= feature %></li>
-                        <% }) %>
+                        <%_ }) _%>
                     </ul>
                     <div class="plan__cta">
-                        <a class="btn btn--primary btn--block" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Consultar el plan</a>
+                        <a class="btn <%= plan.featured ? 'btn--primary' : 'btn--secondary' %> btn--block" href="<%= supportWhatsappUrl %>" target="_blank" rel="noopener">Consultar <%= plan.name %></a>
                     </div>
                 </article>
+                <%_ }) _%>
             </div>
 
             <p class="small mt-3" style="text-align:center">
-                El consumo de WhatsApp se factura por Meta según la cuenta del negocio.
-                <a href="/precios">Ver condiciones y detalles</a>.
+                La implementación asistida inicia en $<%= money(pricing.assistedImplementation.price) %> + IVA.
+                White label desde $<%= money(pricing.whiteLabel.setupFrom) %> de implementación y $<%= money(pricing.whiteLabel.monthlyFrom) %>/mes.
+                <a href="/precios">Ver condiciones, costos externos y preguntas frecuentes</a>.
             </p>
         </div>
     </section>

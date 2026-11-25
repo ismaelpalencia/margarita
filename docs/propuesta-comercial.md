@@ -64,10 +64,12 @@ Margarita es un panel para **cobrar por WhatsApp con orden**: registra en qué q
 
 | Servicio | Qué incluye |
 | --- | --- |
-| **Conexión con Meta** (incluida en el Paquete A; por separado se cotiza) | Alta en Meta Business, app, cuenta de WhatsApp Business, número dedicado, token permanente, webhook firmado, primera plantilla y prueba de punta a punta. Ver [`guia-meta.md`](guia-meta.md). |
-| **Puesta en marcha de la instalación** (incluida en el precio de instalación) | Proyecto propio, base de datos propia, dominio, usuario administrador, cifrado de datos, respaldos configurados, **el primer mes de servicio** y una sesión de capacitación de 2 horas. |
+| **Implementación asistida** (desde $20,000 MXN + IVA) | Configuración de Meta y webhook, número, plantillas, capacitación y puesta en marcha. El alcance final se concreta en la propuesta. Ver [`guia-meta.md`](guia-meta.md). |
+| **Onboarding Negocio** | Dos horas conforme al alcance del plan. |
+| **Onboarding Pro** | Incluido conforme al alcance acordado. |
+| **Autoservicio** | Onboarding autoguiado. |
 | **Migración de cartera** ([PRECIO O INCLUIDA]) | Carga de contactos desde Excel con etiquetas y depuración de números inválidos. |
-| **Capacitación** (incluida) | Una sesión de arranque de 2 horas para el equipo (cobranza y administración) y manual de uso. |
+| **White label** (desde $50,000 MXN + IVA de implementación y $5,000 MXN + IVA/mes) | Configuración con marca propia y alcance final cotizado por separado. |
 
 ## 6. Lo que NO incluye
 
@@ -82,54 +84,19 @@ Decirlo aquí evita discusiones después:
 
 ## 7. Inversión
 
-La cobranza es del día a día, así que el cobro también: **instalación una vez y
-después mes con mes**, sin mínimo obligatorio. El cliente puede **cancelar cuando quiera**, sin penalización; el primer mes se paga si usa el servicio.
+Los precios oficiales y el alcance por plan están en [`precios.md`](precios.md). Todos los importes son MXN más IVA.
 
-| Concepto | Importe | Cuándo |
+| Plan | Precio mensual | Alcance resumido |
 | --- | --- | --- |
-| **Margarita IA** | **$1,299.00 MXN al mes** | Mensual adelantado, desde el primer mes |
-| Incluye | Plataforma completa + IA + onboarding (2 h + guía) + 2,000 respuestas de IA/mes | — |
-| Instalación / setup | **$0** | No hay |
-| Excedente de IA | $150.00 MXN por cada 1,000 respuestas adicionales | Solo por contrato del operador |
-| Consumo de WhatsApp | Lo cobra Meta | Directo a la empresa |
-| Cancelación | Sin compromiso; primer mes se paga si se usa | — |
+| Autoservicio | **$499** | 1 número, 1–2 usuarios, funciones base, IA limitada y onboarding autoguiado |
+| Negocio | **$1,990** | 3–5 agentes, 1 número, etiquetas, plantillas, campañas, IA, reportes, llamadas con bolsa de minutos y onboarding de 2 h |
+| Pro | **$4,900** | 6–15 agentes, varios números, IA/RAG, llamadas, reportes avanzados, soporte prioritario y onboarding incluido |
 
-**Todo incluido.** La IA va incluida: sugerencias, base de conocimiento, handoff, pausa por conversación y respuesta automática acotada, con 2,000 respuestas/mes. La captura de leads y los reportes de servicio también van incluidos.
+Servicios adicionales: implementación asistida desde **$20,000** (configuración de Meta, webhook, número, plantillas, capacitación y puesta en marcha); white label desde **$50,000** de implementación y **$5,000/mes**.
 
-**Cancelación sin compromiso.** El cliente puede cancelar cuando quiera, sin penalización. El primer mes se paga si usa el servicio; al cancelar se entrega su respaldo completo y se borra la cuenta a petición.
+Los cargos de Meta por mensajes y llamadas, Cloudflare TURN y el consumo adicional o bolsa de IA se cobran por separado. No se ofrece uso ilimitado, grabación/transcripción de llamadas ni soporte 24/7. El desarrollo a medida se cotiza aparte. La grabación, transcripción y soporte 24/7 no están incluidos en los planes.
 
-Todos los precios son **más IVA**.
-
-**Qué incluye la mensualidad** (esto es lo que se está pagando cada mes):
-
-1. La instalación funcionando en producción: proyecto, base de datos, dominio,
-   respaldos automáticos y datos cifrados.
-2. **Usuarios ilimitados**: no se cobra por agente ni por número de WhatsApp.
-3. Actualizaciones, correcciones y las funciones nuevas que salgan mientras la
-   mensualidad esté activa.
-4. Soporte por WhatsApp y correo en horario hábil ([HORARIO]).
-5. Sesión de capacitación inicial para el equipo y manual de uso.
-6. Aviso de privacidad y plantilla de contrato de tratamiento de datos.
-
-**Lo que no incluye, y conviene decir en voz alta:**
-
-- **El consumo de WhatsApp lo paga el cliente a Meta**, directo y con su propio
-  método de pago (conversaciones y plantillas). Nuestra factura es solo por la
-  herramienta y los servicios: **no cobramos por mensaje**.
-- El número telefónico dedicado y el equipo de cómputo.
-- El alojamiento, si se acuerda que va en la cuenta del cliente (Railway: unos
-  $5–10 USD al mes, pagados al proveedor). Si lo absorbe el proveedor, la
-  mensualidad debería ser $950.
-- Cambios a la medida que no estén en el producto (se cotizan aparte).
-
-Notas de cobro: mensual adelantado, comprobante fiscal, [días de gracia] y qué
-pasa si no se renueva. **No hay mínimo obligatorio**: el primer mes es el piloto
-y al día 30 el cliente decide. El compromiso de 3, 6 o 12 meses es opcional y
-solo sirve para bajar la mensualidad; se anota en el contrato únicamente si el
-cliente lo elige. El detalle operativo (fechas, recordatorios y frases para
-cobrar) está en [`facturacion.md`](facturacion.md).
-
-**Cómo se calculó:** un solo plan de $1,299 al mes por la plataforma completa, la IA y el onboarding, sin tope de usuarios y sin instalación. Del lado del costo, el mes incluye el canal de soporte (~1 hora), las mejoras del periodo, el monitoreo y el consumo de tokens (~$500 MXN/mes en el escenario base), lo que deja un margen aproximado de 61%.
+No hay descuento anual publicado. Cualquier promoción debe especificar el ahorro (dos meses gratis o equivalente), duración y condiciones. La facturación, cancelación, alojamiento y compromisos se formalizan en el contrato/propuesta particular; no se deben inferir de los precios de lista.
 
 ## 8. Requisitos del cliente
 
@@ -147,7 +114,7 @@ cobrar) está en [`facturacion.md`](facturacion.md).
 | Alta en Meta y conexión | [NOSOTROS] con apoyo del cliente | 1–3 |
 | Migración de cartera | [NOSOTROS] con Excel del cliente | 1 |
 | Capacitación | [NOSOTROS] | 1 |
-| Prueba piloto (1–3 contactos) | Ambos | 1 |
+| Pruebas de puesta en marcha según el plan contratado | Ambos | Acordado en la propuesta |
 | Operación en producción | Cliente | A partir de ahí |
 
 ## 10. Datos, confidencialidad y salida
@@ -171,8 +138,8 @@ cobrar) está en [`facturacion.md`](facturacion.md).
 ## 12. Siguientes pasos
 
 1. [CLIENTE] confirma el alcance y firma.
-2. Se paga el anticipo del [50%] de la instalación (Paquete A o B).
-3. Agendamos el alta en Meta ([FECHA PROPUESTA]) y la capacitación.
-4. Piloto con 1–3 contactos y arranque.
+2. Se paga el monto y calendario indicados en la propuesta para el plan y, si aplica, la implementación asistida.
+3. Agendamos onboarding y configuración según el alcance contratado.
+4. Se acuerdan las pruebas de puesta en marcha y fecha de inicio del servicio.
 
 **Aceptación:** firmado por [NOMBRE], [PUESTO], [FECHA].

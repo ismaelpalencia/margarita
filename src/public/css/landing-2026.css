@@ -1711,7 +1711,7 @@ a {
 .pricing-grid {
     display: grid;
     gap: 16px;
-    max-width: 880px;
+    max-width: 1180px;
     margin-inline: auto;
 }
 
@@ -2294,6 +2294,10 @@ a {
 }
 
 @media (min-width: 1180px) {
+    .pricing-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .hero-grid {
         gap: 58px;
     }

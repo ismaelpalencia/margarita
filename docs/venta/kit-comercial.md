@@ -38,7 +38,7 @@ primer mensaje.
 | 0–1 | «Gracias por el tiempo. ¿Te parece si te hago tres preguntas y luego te muestro solo lo que aplique?» |
 | 1–4 | **Diagnóstico**: ¿cuántos casos al mes? ¿cuántas personas cobran? ¿cómo registran promesas? ¿qué pasa cuando no contestan? |
 | 4–8 | **Demo guiada** de la sección 3, solo las pantallas que respondan a su dolor |
-| 8–10 | **Siguiente paso**: piloto de 30 días, qué necesita de Meta y qué le toca a él |
+| 8–10 | **Siguiente paso**: acordar plan, onboarding y requisitos de Meta |
 
 ---
 
@@ -60,7 +60,7 @@ ejemplo:
 10. **Sistema**: cifrado, respaldos y webhook firmado (30 s).
 
 Cierra con: «Todo esto corre en tu dominio, con tu cuenta de Meta, y el primer
-momento es un piloto: si no te sirve, te llevas tu respaldo».
+momento es el inicio del servicio conforme al plan y las condiciones acordadas».
 
 ---
 
@@ -84,7 +84,7 @@ Meta? ¿qué pasa si no funciona?
 ## 5. Objeciones
 
 **«Está caro.»**
-> «Es un solo plan: $1,299 al mes, todo incluido y sin instalación. Puedes cancelar cuando quieras, sin compromiso; el primer mes se paga si usas el servicio.»
+> «Hay planes desde $499 MXN al mes más IVA. El alcance cambia según el tamaño del equipo; te comparto la tabla vigente y revisamos cuál se ajusta.»
 
 **«Ya uso WhatsApp Web y me funciona.»**
 > «WhatsApp Web no te dice a quién llamar hoy ni guarda en qué quedó cada
@@ -97,8 +97,7 @@ Meta? ¿qué pasa si no funciona?
 > y de las que Meta clasifica como marketing. Las bajas se respetan solas.»
 
 **«¿Y si no funciona?»**
-> «Cancelas cuando quieras, sin penalización, con tu respaldo y con la cuenta
-> borrada a petición. El primer mes se paga si usas el servicio.»
+> «Las condiciones de cancelación y salida quedan en el contrato de tu plan; los cargos de Meta y proveedores se mantienen por separado.»
 
 **«Ya tengo un CRM.»**
 > «Perfecto: no competimos con el CRM. Margarita es el canal de WhatsApp y el

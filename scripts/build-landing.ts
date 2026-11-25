@@ -19,6 +19,7 @@ import ejs from "ejs";
 
 import { appConfig } from "../src/config/app.config";
 import { loadGuide } from "../src/content/guides";
+import { money, PRODUCT_PRICING } from "../src/content/pricing";
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, "landing");
@@ -55,7 +56,7 @@ const PAGES: Page[] = [
         file: "precios.html",
         title: "Planes para atender WhatsApp en equipo — Margarita",
         description:
-            "Consulta el plan Margarita para operar WhatsApp Business en equipo. Revisa sus funciones, el consumo de IA incluido y los cargos de Meta.",
+            "Planes desde $499 MXN al mes para operar WhatsApp Business en equipo. Conoce capacidades, onboarding y consumos externos.",
         active: "precios"
     },
     {
@@ -113,35 +114,6 @@ const PAGES: Page[] = [
  * docs/alcance-produccion.md; si cambian, se actualiza primero ahí y luego
  * esta constante.
  */
-const PRICING = {
-    plan: {
-        name: "Margarita IA",
-        monthly: 1299,
-        replies: 2000,
-        description: "Bandeja de equipo, herramientas de WhatsApp y automatizaciones opcionales.",
-        features: [
-            "Bandeja compartida, usuarios y asignación de conversaciones",
-            "Contactos, etiquetas, notas y registro de bajas",
-            "Respuestas rápidas de texto, botones y listas",
-            "Plantillas sincronizadas y campañas en cola",
-            "Automatización con flujos guiados e IA opcional",
-            "2,000 respuestas de IA incluidas al mes",
-            "Ventana de atención y reglas de envío de Meta",
-            "Bloqueo de contactos y salud del número",
-            "Actualizaciones en vivo y aviso de mensajes sin leer",
-            "Reportes, bitácora, sesiones y herramientas de respaldo",
-            "Seguridad de acceso y cifrado de datos sensibles"
-        ]
-    },
-    /** Solo referencia del operador; no se renderiza en el landing. */
-    overagePrice: 150,
-    overageUnit: 1000,
-    cancellation: "Cancela cuando quieras, sin compromiso"
-};
-
-const money = (value: number) =>
-    new Intl.NumberFormat("es-MX", { maximumFractionDigits: 0 }).format(value);
-
 const demoApiBase = (process.env.DEMO_API_BASE || "https://demo.margaritaapp.org")
     .trim()
     .replace(/\/+$/, "");
@@ -265,7 +237,7 @@ function build() {
                   encodeURIComponent(whatsappText)
                 : "https://margaritaapp.org",
             supportWhatsappDisplay: appConfig.supportWhatsappDisplay,
-            pricing: PRICING,
+            pricing: PRODUCT_PRICING,
             money,
             demoApiBase,
             demoUrl,

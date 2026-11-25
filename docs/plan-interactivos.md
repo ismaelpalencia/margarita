@@ -117,7 +117,7 @@ nadie sobre un contrato que no se comprobó.
    la hora local del deudor para las tareas de llamada.
 4. **La tarifa por mensaje** que usará el contador de la fase 5 para estimar el
    costo acumulado (es un dato de configuración, no un precio de venta).
-5. **Los precios.** **Resuelto**: gobiernan los de [`alcance-produccion.md`](alcance-produccion.md) — un solo plan **Margarita IA $1,299 MXN/mes**, más IVA, con 2,000 respuestas de IA incluidas, sin instalación y con onboarding. La página, la propuesta y la facturación ya dicen lo mismo.
+5. **Los precios.** Actualizados en noviembre de 2026: gobierna [`precios.md`](precios.md), con tres planes y servicios opcionales. Esta nota sustituye la referencia previa a un solo plan; revisar también la fuente de precios antes de reutilizar materiales antiguos.
 
 ---
 

@@ -1,56 +1,44 @@
 # Cobro y facturación — Margarita
 
-Guía corta para cuando toca cobrar y facturar, sin improvisar. Los precios
-salen de las variables `INSTALL_*` y `SETUP_*` (la página pública y este
-documento tienen que decir lo mismo). La plantilla para mandar la propuesta
-está en [`propuesta-comercial.md`](propuesta-comercial.md).
+Guía corta para cobrar y facturar, sin improvisar. Los precios y alcances de
+lista se mantienen en [`precios.md`](precios.md); el contrato firmado gobierna
+las condiciones particulares de cada cliente. La plantilla está en
+[`propuesta-comercial.md`](propuesta-comercial.md).
 
 ---
 
-## 1. Precios vigentes (revisión del 4 de noviembre de 2026)
+## 1. Precios vigentes (revisión del 25 de noviembre de 2026)
 
-| Concepto | Precio | Cuándo se cobra |
+| Plan o servicio | Precio de lista | Alcance resumido |
 | --- | --- | --- |
-| **Margarita IA** | **$1,299.00 MXN al mes** | Mensual adelantado, desde el primer mes |
-| Incluye | Plataforma completa + IA + onboarding (2 h + guía) + 2,000 respuestas de IA/mes | — |
-| Instalación / setup | **$0** | No hay |
-| Excedente de IA | $150.00 MXN por cada 1,000 respuestas adicionales | Solo por contrato del operador; no se publica en el landing |
-| Cancelación | Sin compromiso; el primer mes se paga si se usa | — |
+| Autoservicio | $499 MXN/mes + IVA | 1 número, 1–2 usuarios, funciones base, IA limitada, onboarding autoguiado |
+| Negocio | $1,990 MXN/mes + IVA | 3–5 agentes, 1 número, etiquetas, plantillas, campañas, IA, reportes, llamadas con bolsa de minutos, onboarding de 2 h |
+| Pro | $4,900 MXN/mes + IVA | 6–15 agentes, varios números, IA/RAG, llamadas, reportes avanzados, soporte prioritario y onboarding |
+| Implementación asistida | Desde $20,000 MXN + IVA | Meta, webhook, número, plantillas, capacitación y puesta en marcha |
+| White label | Desde $50,000 MXN de implementación + $5,000 MXN/mes, más IVA | Alcance a cotizar |
 
-Todos los precios son **más IVA**. El **consumo de WhatsApp** (conversaciones y
-plantillas) lo cobra Meta directo al cliente, con su método de pago; no está
-incluido en ninguno de estos importes. El **consumo del modelo de IA** se cobra
-aparte, con el presupuesto mensual que el cliente ve en Admin → IA; no se
-revende por mensaje.
+Meta cobra mensajes y llamadas por separado. Cloudflare TURN se cobra según
+consumo. La IA tiene límites por plan y cualquier consumo adicional o bolsa se
+cotiza aparte. No se ofrece uso ilimitado, grabación/transcripción, soporte
+24/7 ni desarrollo a medida en los planes de lista. Actualmente no hay
+descuento anual publicado.
 
-**Qué incluye cada nivel de IA (alcance vigente):**
-
-| Nivel | Incluye |
-| --- | --- |
-| **IA Esencial** | IA en sugerencias, base de conocimiento de hasta 30 entradas, handoff con motivo, pausa por conversación, panel de IA por hilo y métricas de aceptación. |
-| **IA Soporte** | Todo lo de Esencial, más respuesta automática acotada para FAQ, límites por día y por hilo, presupuesto mensual y entrega automática ante duda, queja o falta de conocimiento. |
-
-La captura de leads y las rutas a recursos **se cotizan aparte** mientras se
-cierra esa fase. No se publican como incluidas en el nivel Soporte.
+Las funciones y límites de IA dependen del plan contratado y su configuración. No se prometen respuestas, minutos ni mensajes ilimitados; consumo adicional o bolsas se especifican por escrito.
 
 ## 2. Las tres reglas que no se negocian
 
-1. **Sin instalación y sin mínimo obligatorio.** Se cobra solo la mensualidad de $1,299 MXN (más IVA). El cliente puede cancelar cuando quiera, sin penalización; el primer mes se paga si usa el servicio. No hay compromisos de plazo ni precios alternativos.
+1. **Aplicar el plan contratado.** Verifica los límites y servicios del plan en [`precios.md`](precios.md) y las condiciones de pago/cancelación pactadas. No prometas límites, descuentos o términos que no figuren en el contrato.
 2. **La mensualidad es adelantada.** Se cobra el día 1 (o al cumplirse el mes
    de la instalación), nunca a mes vencido.
-3. **El consumo de Meta y el alojamiento no son nuestros.** Los mensajes los
-   cobra Meta directo al cliente, con su método de pago. El alojamiento va en
-   la cuenta del cliente (unos $5–10 USD al mes) salvo que se acuerde lo
-   contrario por escrito; si lo absorbemos, la mensualidad sube a $950.
+3. **Los consumos externos son aparte.** Meta cobra mensajes y llamadas y
+   Cloudflare TURN se factura por consumo; aclara también el tratamiento de
+   cualquier consumo de IA conforme al plan y el contrato.
 
 ## 3. El ciclo de cobro, paso a paso
 
-1. **Firma y cobro de la instalación** (con el primer mes incluido). Aquí se
-   piden también los datos de facturación (sección 6).
-2. **Alta**: instalación, capacitación y prueba con contactos reales (1–3 días
-   hábiles).
-3. **Aviso al cliente**: «tu primer mes está cubierto hasta el [fecha]; el
-   [fecha] te mando el cobro del siguiente».
+1. **Acuerdo y cobro** de los conceptos y calendario que figuran en la propuesta o contrato. Aquí se piden también los datos de facturación (sección 6).
+2. **Alta**: configuración y capacitación conforme al plan o servicio profesional contratado.
+3. **Aviso al cliente**: confirma por escrito el periodo cubierto y la próxima fecha de cobro según el acuerdo.
 4. **Día 1 de cada mes**: recordatorio con el monto y el comprobante fiscal.
 5. **Si no paga**: a los [5] días se pausa el servicio (la instalación no se
    borra), y a los [15] días se cierra: se entrega el respaldo y se borra todo
@@ -58,21 +46,18 @@ cierra esa fase. No se publican como incluidas en el nivel Soporte.
 
 ## 4. Fechas y recordatorios
 
-- **Precio único vigente:** $1,299 MXN al mes, sin instalación ni setup.
-- **Cada trimestre**: revisar si toca subir la mensualidad (ver sección 7).
+- **Precios de lista:** se consultan en [`precios.md`](precios.md); revisa los contratos vigentes antes de cotizar.
+- **Cada trimestre**: revisar que propuestas, mensajes comerciales y facturas sigan el acuerdo del cliente.
 - **Por cada cliente** guardar: contrato firmado, comprobante del primer pago,
   fecha de inicio (es la base del cobro mensual) y el historial de pagos.
 
 ## 5. Qué decirle al cliente (frases cortas, ya probadas)
 
-- «Margarita IA cuesta $1,299 al mes, más IVA. Incluye plataforma, IA, onboarding y 2,000 respuestas de IA al mes. Sin instalación ni setup.»
-- «Puedes cancelar cuando quieras, sin compromiso. El primer mes se paga si usas el servicio.»
-- «Los mensajes de WhatsApp los cobra Meta directo a tu cuenta. Nosotros no cobramos por mensaje: nuestra factura es por la herramienta.»
-- «Si necesitas más de 2,000 respuestas de IA, lo revisamos contigo. El plan público no cobra excedentes automáticos.»
-- «La conexión con Meta va incluida en el onboarding.»
-- Si pide descuento: **no bajar la mensualidad fuera de la tabla**. Ofrecer un
-  compromiso opcional, incluir la migración de la cartera o una capacitación
-  extra.
+- «Tenemos planes desde $499 MXN al mes más IVA; el alcance depende del plan. Te comparto la tabla vigente para revisar cuál corresponde a tu equipo.»
+- «Meta factura por separado sus cargos de mensajes y llamadas; Cloudflare TURN y el consumo adicional de IA también pueden generar cargos según uso.»
+- «Autoservicio es autoguiado; Negocio incluye dos horas de onboarding y Pro incluye onboarding.»
+- «La implementación asistida inicia en $20,000 MXN más IVA e incluye la configuración y puesta en marcha indicadas en la propuesta.»
+- No ofrezcas descuentos anuales, uso ilimitado, grabación/transcripción ni soporte 24/7 si no aparecen aprobados por escrito.
 
 ## 6. Datos que hay que pedir para facturar
 

@@ -2,7 +2,7 @@
 
 Cómo se entrega la herramienta a un cliente, qué se le pide, qué se queda del lado del proveedor y qué falta para que sea autoservicio.
 
-## Posicionamiento (actualizado 2026-10-15)
+## Posicionamiento (actualizado 2026-11-25)
 
 **Margarita se vende como herramienta de cobranza por WhatsApp.**
 
@@ -12,25 +12,16 @@ La estrategia cambió: en lugar de competir como "panel general de WhatsApp"
 cumplimiento, intentos sin respuesta y reportes que el jefe de cobranza lleva a
 la junta.
 
-Lo que se vende son **dos paquetes de instalación y una mensualidad**:
+La oferta vigente tiene tres planes: Autoservicio desde **$499 MXN/mes**, Negocio a **$1,990 MXN/mes** y Pro a **$4,900 MXN/mes**, todos más IVA. Los límites de usuarios, números, IA y onboarding dependen del plan. La implementación asistida inicia en **$20,000 MXN + IVA** y white label desde **$50,000 MXN + IVA** de implementación y **$5,000 MXN + IVA/mes**. El detalle oficial está en [`precios.md`](precios.md).
 
-1. **Un solo plan: Margarita IA** — **$1,299 MXN/mes, más IVA**. Incluye plataforma completa, IA (sugerencias y automático acotado), onboarding (sesión de arranque de 2 h + guía) y **2,000 respuestas de IA/mes**.
-2. **Sin instalación ni setup.** El onboarding va incluido. El cliente puede **cancelar cuando quiera**, sin penalización; el primer mes se paga si usa el servicio.
-3. **Excedente de IA:** $150 MXN por cada 1,000 respuestas adicionales, solo por contrato del operador y visible en el panel; **no se publica en el landing**.
-4. **Clientes legacy:** conservan su precio y plan actuales.
-**Lo que paga el cliente a Meta, no a nosotros:** el consumo de WhatsApp
-(conversaciones y plantillas). Se dice en la página pública, en la propuesta y
-en el contrato: nuestra factura es solo por la herramienta y los servicios.
+Meta cobra aparte el consumo de mensajes y llamadas; Cloudflare TURN se factura según consumo, y la IA adicional se cotiza por consumo o bolsa. No se promete uso ilimitado, grabación ni transcripción. Los clientes legacy conservan sus precios y condiciones pactadas.
 
 **Para vender:** [`dolores-y-posts.md`](dolores-y-posts.md) tiene el material de
 contenido —el dolor del bloqueo, los otros siete dolores, los mitos, los posts
 listos y lo que no se debe prometer— y sirve también como guion de la primera
 conversación.
 
-**Para cobrar:** [`facturacion.md`](facturacion.md) junta los precios vigentes,
-las condiciones del piloto de 30 días, los compromisos opcionales, las fechas
-de la promoción, el ciclo de cobro mes a mes y las frases que ya funcionan con
-los clientes.
+**Para cobrar:** [`precios.md`](precios.md) es la fuente de verdad de importes y alcance; [`facturacion.md`](facturacion.md) conserva procedimientos de cobro que deben aplicarse según el contrato de cada cliente.
 
 **Para mandar propuestas** ya está: la página pública explica qué hace la
 herramienta, la guía de Meta explica el trámite (y ofrece hacerlo nosotros) y
@@ -148,18 +139,18 @@ Un punto que hay que decir en voz alta: **en cuanto das soporte, tienes acceso a
 3. **Propuesta**: se llena [`propuesta-comercial.md`](propuesta-comercial.md) y se
    manda. Se adjunta o se comparte [`guia-meta.md`](guia-meta.md) para que su
    área de sistemas vea en qué se está metiendo.
-4. **Cierre**: anticipo del servicio de conexión y alta (ver el runbook de abajo).
-5. **Piloto**: 1–3 contactos, una plantilla y una semana de uso antes de
-   comprometer volumen.
+4. **Cierre**: documentar por escrito el plan y los servicios adicionales que se contratarán; usar [`precios.md`](precios.md) como referencia de lista.
+5. **Puesta en marcha**: seguir el onboarding del plan o el alcance de implementación asistida aprobado. No ofrecer pilotos o condiciones no pactadas.
 
 ## Paquetes
 
 | Paquete | Para quién | Incluye |
 | --- | --- | --- |
-| **A · Llave en mano** | Quien todavía no tiene nada en Meta | Instalación, primer mes y **conexión completa con Meta** (app, cuenta, número, token y webhook) |
-| **B · Ya tengo Meta** | Quien ya tiene cuenta, número y método de pago | Instalación y primer mes; sus credenciales se cargan en el panel |
+| **Autoservicio** | Equipos de 1–2 personas | 1 número, funciones base, IA limitada y onboarding autoguiado |
+| **Negocio** | Equipos de 3–5 agentes | 1 número, etiquetas, plantillas, campañas, IA, reportes, llamadas con bolsa de minutos y onboarding de 2 horas |
+| **Pro** | Equipos de 6–15 agentes | Varios números, IA/RAG, llamadas, reportes avanzados, soporte prioritario y onboarding |
 
-No hay paquetes por tamaño de equipo: **los usuarios son ilimitados** en los dos.
+La implementación asistida inicia en $20,000 MXN + IVA y white label desde $50,000 MXN + IVA de implementación y $5,000 MXN + IVA/mes. Consulta [`precios.md`](precios.md); no extrapoles el alcance de un plan a otro.
 
 ## Qué falta para venderlo en serie
 
