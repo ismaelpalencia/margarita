@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { IncomingMessage, Server } from "node:http";
 import { WebSocket, WebSocketServer } from "ws";
 import { CallClaims, verifyCallToken } from "./auth";
-import { MetaCallAction, ParsedCall, parseCallWebhooks, sendMetaCallAction } from "./meta-calls";
+import { MetaCallAction, MetaCallApiError, ParsedCall, parseCallWebhooks, sendMetaCallAction } from "./meta-calls";
 import { CallStateStore } from "./state";
 import { getTurnCredentials } from "./turn";
 
@@ -30,6 +30,16 @@ const rate = new Map<string, { at: number; count: number }>();
 
 function send(socket: WebSocket, event: string, data: Record<string, unknown> = {}): void {
   if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ event, ...data }));
+}
+
+function reportClientActionError(socket: WebSocket, error: unknown): void {
+  if (error instanceof MetaCallApiError) {
+    console.warn("Meta rechazó una acción de llamada.", { httpStatus: error.httpStatus, code: error.metaCode, subcode: error.metaSubcode });
+    send(socket, "call:error", { message: error.message });
+    return;
+  }
+  console.warn("Falló una acción de señalización.", { errorName: error instanceof Error ? error.name : "UnknownError" });
+  send(socket, "call:error", { message: "No se pudo completar la acción de llamada." });
 }
 
 function safeOrigin(origin: string | undefined): boolean {
@@ -249,7 +259,7 @@ export function attachCallSignaling(server: Server): void {
         try {
           const input = JSON.parse(raw.toString()) as ClientMessage;
           const previous = socketTasks.get(socket) || Promise.resolve();
-          const task = previous.then(() => handleClientMessage(socket, input)).catch(() => send(socket, "call:error", { message: "No se pudo completar la acción de llamada." }));
+          const task = previous.then(() => handleClientMessage(socket, input)).catch((error: unknown) => reportClientActionError(socket, error));
           socketTasks.set(socket, task);
         } catch { send(socket, "call:error", { message: "Mensaje de llamada inválido." }); }
       });

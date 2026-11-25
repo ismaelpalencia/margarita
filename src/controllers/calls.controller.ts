@@ -150,14 +150,17 @@ export class CallsController {
             include: { contact: true, whatsappNumber: { include: { whatsappAccount: true } } }
         });
         const number = conversation?.whatsappNumber;
+        const isAdmin = user?.role === UserRole.ADMIN && input.role === UserRole.ADMIN;
         const assigned = conversation?.assignedUserId === user?.id;
+        const availableAgent = user?.role === UserRole.AGENT && input.role === UserRole.AGENT && user.status === UserStatus.AVAILABLE;
+        const canAccessNumber = Boolean(user && number && (!user.allowedNumberIds.length || user.allowedNumberIds.includes(number.id)));
         const canCall = Boolean(
-            appConfig.calls.enabled && user && user.workspace.status === "ACTIVE" && user.role === UserRole.AGENT && input.role === "AGENT" && user.status === UserStatus.AVAILABLE &&
-            conversation && conversation.status === "OPEN" && !conversation.archivedAt && conversation.assignedUserId && assigned &&
+            appConfig.calls.enabled && user && user.workspace.status === "ACTIVE" && (isAdmin || availableAgent) &&
+            conversation && conversation.status === "OPEN" && !conversation.archivedAt && (isAdmin || (conversation.assignedUserId && assigned)) &&
             conversation.contact.isActive && !conversation.contact.optOutAt && number?.isActive &&
-            (!user.allowedNumberIds.length || user.allowedNumberIds.includes(number.id))
+            canAccessNumber
         );
-        const reason = !appConfig.calls.enabled ? "Las llamadas están desactivadas." : !user || user.role !== UserRole.AGENT ? "Solo los agentes pueden llamar." : !conversation ? "No se encontró la conversación." : !assigned ? "La conversación no está asignada a tu usuario." : !conversation.contact.isActive || conversation.contact.optOutAt ? "El contacto no está disponible para llamadas." : user.status !== UserStatus.AVAILABLE ? "Cambia tu estado a Disponible para llamar." : !number?.isActive ? "El número de WhatsApp está inactivo." : !canCall ? "No se puede llamar desde esta conversación." : undefined;
+        const reason = !appConfig.calls.enabled ? "Las llamadas están desactivadas." : !user || (user.role !== UserRole.AGENT && user.role !== UserRole.ADMIN) || input.role !== user.role ? "Tu usuario no tiene permiso para llamar." : !conversation ? "No se encontró la conversación." : !isAdmin && !assigned ? "La conversación no está asignada a tu usuario." : !conversation.contact.isActive || conversation.contact.optOutAt ? "El contacto no está disponible para llamadas." : availableAgent === false && user.role === UserRole.AGENT ? "Cambia tu estado a Disponible para llamar." : !number?.isActive ? "El número de WhatsApp está inactivo." : !canAccessNumber ? "No tienes acceso al número de esta conversación." : !canCall ? "No se puede llamar desde esta conversación." : undefined;
         return {
             workspaceId: input.workspaceId, conversationId: input.conversationId,
             contactId: conversation?.contactId || "", phone: conversation?.contact.phone || "",

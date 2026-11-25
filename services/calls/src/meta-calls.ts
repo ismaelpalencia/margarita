@@ -1,5 +1,12 @@
 export type MetaCallAction = "pre_accept" | "accept" | "reject" | "terminate" | "connect";
 
+export class MetaCallApiError extends Error {
+  constructor(readonly httpStatus: number, readonly metaCode?: number, readonly metaSubcode?: number) {
+    super(`Meta rechazó la acción de llamada (HTTP ${httpStatus}${metaCode ? `, código ${metaCode}` : ""}${metaSubcode ? `/${metaSubcode}` : ""}).`);
+    this.name = "MetaCallApiError";
+  }
+}
+
 export async function sendMetaCallAction(input: {
   apiVersion: string;
   phoneNumberId: string;
@@ -29,10 +36,8 @@ export async function sendMetaCallAction(input: {
     signal: AbortSignal.timeout(15_000)
   });
   if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({})) as { error?: { code?: number; message?: string } };
-    const error = new Error(`Meta rechazó la acción de llamada (${response.status}${errorBody.error?.code ? `/${errorBody.error.code}` : ""}).`);
-    (error as Error & { metaCode?: number }).metaCode = errorBody.error?.code;
-    throw error;
+    const errorBody = await response.json().catch(() => ({})) as { error?: { code?: number; error_subcode?: number } };
+    throw new MetaCallApiError(response.status, errorBody.error?.code, errorBody.error?.error_subcode);
   }
 }
 
