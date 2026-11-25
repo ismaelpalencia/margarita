@@ -72,16 +72,23 @@ describe('App', () => {
     fixture.destroy();
   });
 
-  it('opens the compact mobile navigation on request', async () => {
+  it('opens every remaining panel from the Más sheet and closes it with Escape', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     fixture.detectChanges();
     const page = fixture.nativeElement as HTMLElement;
-    const toggle = page.querySelector('.mobile-menu-toggle') as HTMLButtonElement;
+    const toggle = page.querySelector('#mobile-more-toggle') as HTMLButtonElement;
     toggle.click();
     fixture.detectChanges();
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
-    expect(page.querySelector('.sidebar')?.classList.contains('menu-open')).toBe(true);
+    const sheet = page.querySelector('#mobile-more-navigation');
+    expect(sheet).toBeTruthy();
+    for (const label of ['Etiquetas', 'Respuestas rápidas', 'Plantillas', 'Equipo', 'WhatsApp', 'Respaldos', 'Servicio', 'Bitácora', 'Campañas', 'Automatización']) {
+      expect(sheet?.textContent).toContain(label);
+    }
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    expect(page.querySelector('#mobile-more-navigation')).toBeNull();
     fixture.destroy();
   });
 });

@@ -1,4 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { applyUiFontSize, readUiFontSize } from './ui-preferences';
@@ -36,7 +37,7 @@ interface InstallPromptEvent extends Event {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, ToastHostComponent, ConfirmDialogHostComponent, IconComponent],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, NgTemplateOutlet, ToastHostComponent, ConfirmDialogHostComponent, IconComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -142,6 +143,17 @@ export class App {
 
   protected toggleMobileMenu(): void {
     this.mobileMenuOpen.update((open) => !open);
+  }
+
+  protected closeMobileMenu(): void {
+    if (!this.mobileMenuOpen()) return;
+    this.mobileMenuOpen.set(false);
+    window.requestAnimationFrame(() => document.getElementById('mobile-more-toggle')?.focus());
+  }
+
+  @HostListener('document:keydown.escape')
+  protected closeMobileMenuOnEscape(): void {
+    this.closeMobileMenu();
   }
 
   protected async enablePush(): Promise<void> {

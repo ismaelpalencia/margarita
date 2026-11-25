@@ -4,7 +4,7 @@
 <div class="shell">
   <ui-toast-host />
   <ui-confirm-dialog-host />
-  <aside class="sidebar" [class.menu-open]="mobileMenuOpen()">
+  <aside class="sidebar">
     <div class="sidebar-head">
       <a class="brand" [routerLink]="isAgent ? '/panel/agent/dashboard' : '/panel/admin/dashboard'" aria-label="Margarita, inicio">
         <img class="brand-logo" src="/brand/img/margarita-icon-64.png" alt=""><span>Margarita<small>Operación WhatsApp</small></span>
@@ -25,8 +25,9 @@
         <p class="number-single">{{ data.numbers[0].displayName || data.numbers[0].phoneNumber }}</p>
       }
     }
+    <ng-template #panelNavigation>
     <p class="nav-label">{{ isAgent ? 'MI TRABAJO' : 'OPERACIÓN' }}</p>
-    <nav id="panel-navigation" aria-label="Navegación principal">
+
       @if (isAgent) {
         <a class="nav-link" routerLink="/panel/agent/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><ui-icon class="nav-icon" name="home"/>Resumen</a>
         <a class="nav-link" routerLink="/panel/agent/conversations" routerLinkActive="active"><ui-icon class="nav-icon" name="inbox"/>Conversaciones@if (unreadTotal() > 0) { <span class="nav-badge">{{ unreadTotal() }}</span> }</a>
@@ -56,7 +57,9 @@
       <a class="nav-link" routerLink="/panel/admin/system" routerLinkActive="active"><span class="nav-icon">⚙</span>Sistema</a>
       <a class="nav-link" routerLink="/panel/admin/ai" routerLinkActive="active"><span class="nav-icon">✧</span>Automatización</a>
       }
-    </nav>
+
+    </ng-template>
+    <nav id="panel-navigation" aria-label="Navegación principal"><ng-container [ngTemplateOutlet]="panelNavigation"/></nav>
     <div class="sidebar-pwa">
       @if (showInstall()) { <button class="pwa-action" type="button" (click)="installApp()">Instalar app</button> }
       @if (pushSupported) { <button class="pwa-action" type="button" (click)="enablePush()">{{ pushSubscribed() ? 'Avisos activos' : 'Activar avisos' }}</button> }
@@ -83,7 +86,15 @@
     <a [routerLink]="isAgent ? '/panel/agent/conversations' : '/panel/admin/conversations'"><ui-icon name="inbox"/><span>Bandeja</span>@if(unreadTotal()>0){<b>{{unreadTotal()}}</b>}</a>
     @if (isAgent) { <a routerLink="/panel/agent/sessions"><ui-icon name="clock"/><span>Sesiones</span></a> }
     @else { <a routerLink="/panel/admin/contacts"><ui-icon name="users"/><span>Contactos</span></a><a routerLink="/panel/admin/leads"><ui-icon name="chart"/><span>Leads</span></a> }
-    <button type="button" (click)="toggleMobileMenu()" [attr.aria-expanded]="mobileMenuOpen()"><ui-icon name="plus"/><span>Más</span></button>
+    <button id="mobile-more-toggle" type="button" (click)="toggleMobileMenu()" aria-controls="mobile-more-navigation" [attr.aria-expanded]="mobileMenuOpen()"><ui-icon name="plus"/><span>Más</span></button>
   </nav>
+  @if (mobileMenuOpen()) {
+    <div class="mobile-more-backdrop" (click)="closeMobileMenu()" (keydown.escape)="closeMobileMenu()">
+      <section class="mobile-more-sheet" role="dialog" aria-modal="true" aria-labelledby="mobile-more-title" (click)="$event.stopPropagation()">
+        <header><h2 id="mobile-more-title">Más opciones</h2><button type="button" aria-label="Cerrar menú" (click)="closeMobileMenu()"><ui-icon name="close"/></button></header>
+        <nav id="mobile-more-navigation" aria-label="Más paneles"><ng-container [ngTemplateOutlet]="panelNavigation"/></nav>
+      </section>
+    </div>
+  }
 </div>
 }

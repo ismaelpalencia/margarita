@@ -52,15 +52,10 @@
   .number-switch { margin: 0 4px 9px; }.number-single { margin: 0 8px 9px; }
   .nav-label, .sidebar-bottom { display: none; }
   .sidebar nav { display: none; }
-  .sidebar.menu-open .nav-label { display: block; margin-top: 8px; }
-  .sidebar.menu-open .nav-link { flex: 0 0 auto; margin: 0; padding: 9px 10px; font-size: 12px; }.sidebar.menu-open .nav-icon { display: inline-grid; }
   .main-area { margin-left: 0; }
   .topbar { position: static; min-height: 52px; padding: 0 12px; }
   .topbar-actions { gap: 5px; }.topbar-actions .account-link>span:last-child, .theme-toggle-label { display: none; }
   .sidebar-pwa { display: none; }
-  .sidebar.menu-open .sidebar-pwa { display: grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap: 6px; padding: 8px 4px 4px; border-top: 1px solid #e8edea; }
-  .sidebar.menu-open .sidebar-pwa .pwa-action { width: 100%; padding: 8px; font-size: 10px; }
-  .sidebar.menu-open .sidebar-pwa:empty { display: none; }
   .theme-toggle { width: 33px; justify-content: center; padding: 0; }.theme-toggle>span:first-child { font-size: 17px; }
   .topbar-logout { display: block; }.pwa-action { padding: 6px 7px; font-size: 9px; }
   .pwa-message { top: 58px; right: 10px; }.live-toast { right: 10px; bottom: 10px; }.page-content { min-height: calc(100vh - 52px); padding: 20px 13px 34px; }
