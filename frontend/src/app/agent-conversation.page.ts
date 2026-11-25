@@ -1,5 +1,7 @@
-import { Component, ElementRef, HostListener, OnDestroy, ViewChild, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, ViewChild, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { CallButtonComponent } from './ui/call-button.component';
+import { ConfirmDialogService } from './ui/confirm-dialog.service';
 
 interface ConversationMessage {
   id: string;
@@ -79,13 +81,14 @@ interface AdvancedConversationData {
 @Component({
   selector: 'app-agent-conversation-page',
   standalone: true,
+  imports: [CallButtonComponent],
   template: `
     @if (loading()) {
       <div class="detail-loading"><span class="spinner"></span>Cargando conversación…</div>
     } @else if (error()) {
       <section class="detail-error" role="alert"><b>!</b><div><h1>No pudimos abrir la conversación</h1><p>{{ error() }}</p><a [href]="listUrl()">Volver a la bandeja</a></div></section>
     } @else if (data(); as model) {
-      <header class="detail-intro"><a [href]="listUrl()" class="back-link">← Bandeja</a><div class="detail-heading"><span class="detail-avatar">{{ initials(contactName(model)) }}</span><div class="contact-heading"><h1>{{ contactName(model) }}</h1><p>{{ model.conversation.contact.phone }}</p></div><div class="detail-header-badges">@if (model.conversation.whatsappNumber) { <span class="detail-pill">{{ model.conversation.whatsappNumber.displayName || model.conversation.whatsappNumber.phoneNumber }}</span> }<span class="detail-pill" [class.open-pill]="model.conversation.status === 'OPEN'">{{ model.conversation.status === 'OPEN' ? 'Abierta' : 'Cerrada' }}</span>@if (model.conversation.aiHandoffAt) { <span class="detail-pill handoff-pill">IA pidió atención</span> }</div></div>
+      <header class="detail-intro"><a [href]="listUrl()" class="back-link">← Bandeja</a><div class="detail-heading"><span class="detail-avatar">{{ initials(contactName(model)) }}</span><div class="contact-heading"><h1>{{ contactName(model) }}</h1><p>{{ model.conversation.contact.phone }}</p></div><div class="detail-header-badges">@if (model.conversation.whatsappNumber) { <span class="detail-pill">{{ model.conversation.whatsappNumber.displayName || model.conversation.whatsappNumber.phoneNumber }}</span> }<span class="detail-pill" [class.open-pill]="model.conversation.status === 'OPEN'">{{ model.conversation.status === 'OPEN' ? 'Abierta' : 'Cerrada' }}</span>@if (model.conversation.aiHandoffAt) { <span class="detail-pill handoff-pill">IA pidió atención</span> }<ui-call-button [conversationId]="model.conversation.id"/></div></div>
       </header>
       @if (operationNotice()) { <p class="composer-note" role="status">{{ operationNotice() }}</p> }
 
@@ -242,6 +245,7 @@ interface AdvancedConversationData {
   styleUrl: './agent-conversation.page.css',
 })
 export class AgentConversationPage implements OnDestroy {
+  private readonly confirmDialog=inject(ConfirmDialogService);
   protected readonly data = signal<AgentConversationDetail | null>(null);
   protected readonly error = signal('');
   protected readonly operationNotice = signal('');
@@ -367,7 +371,7 @@ export class AgentConversationPage implements OnDestroy {
   }
   protected async setContactBlocked(model: AgentConversationDetail, blocked: boolean): Promise<void> {
     const action = blocked ? 'bloquear' : 'desbloquear';
-    if (blocked && !window.confirm(`¿Bloquear a ${this.contactName(model)} en WhatsApp? Ya no podrá enviar mensajes a este número.`)) return;
+    if (blocked && !await this.confirmDialog.confirm({title:'Bloquear contacto',message:`¿Bloquear a ${this.contactName(model)} en WhatsApp? Ya no podrá enviar mensajes a este número.`,danger:true})) return;
     try {
       const response = await fetch(`${this.routeBase()}/${encodeURIComponent(model.conversation.id)}/block`, {
         method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
@@ -382,7 +386,7 @@ export class AgentConversationPage implements OnDestroy {
     }
   }
   protected async removeRemoteMedia(message: ConversationMessage): Promise<void> {
-    if (!message.mediaId || !window.confirm('Se eliminará el archivo de Meta y su copia guardada en Margarita. Esta acción no se puede deshacer. ¿Continuar?')) return;
+    if (!message.mediaId || !await this.confirmDialog.confirm({title:'Eliminar archivo',message:'Se eliminará el archivo de Meta y su copia guardada en Margarita. Esta acción no se puede deshacer.',danger:true})) return;
     try {
       const response = await fetch(`/admin/whatsapp/media/${encodeURIComponent(message.mediaId)}`, { method: 'DELETE', credentials: 'same-origin', headers: { Accept: 'application/json' } });
       const result = await response.json() as { error?: string };
@@ -664,15 +668,17 @@ export class AgentConversationPage implements OnDestroy {
     void this.load(false);
   }
 
-  protected confirmPurge(event: Event): void {
-    if (!window.confirm('Se eliminarán definitivamente todos los mensajes de esta conversación. ¿Continuar?')) event.preventDefault();
+  protected async confirmPurge(event: Event): Promise<void> {
+    await this.submitAfterConfirmation(event,'Eliminar mensajes','Se eliminarán definitivamente todos los mensajes de esta conversación.');
   }
-  protected confirmClearMedia(event: Event): void {
-    if (!window.confirm('Se borrarán los archivos de esta conversación; los mensajes se conservan. ¿Continuar?')) event.preventDefault();
+  protected async confirmClearMedia(event: Event): Promise<void> {
+    await this.submitAfterConfirmation(event,'Borrar archivos','Se borrarán los archivos de esta conversación; los mensajes se conservan.');
   }
-  protected confirmDeleteConversation(event: Event): void {
-    if (!window.confirm('Se eliminará la conversación y todos sus mensajes. Esta acción no se puede deshacer. ¿Continuar?')) event.preventDefault();
+  protected async confirmDeleteConversation(event: Event): Promise<void> {
+    await this.submitAfterConfirmation(event,'Eliminar conversación','Se eliminará la conversación y todos sus mensajes. Esta acción no se puede deshacer.');
   }
+
+  private async submitAfterConfirmation(event:Event,title:string,message:string):Promise<void>{event.preventDefault();if(!await this.confirmDialog.confirm({title,message,danger:true}))return;const form=event.currentTarget as HTMLFormElement|null;if(form)HTMLFormElement.prototype.submit.call(form);}
 
   private async load(showLoading = true): Promise<void> {
     if (showLoading) this.loading.set(true);

@@ -2,6 +2,8 @@
   <router-outlet />
 } @else {
 <div class="shell">
+  <ui-toast-host />
+  <ui-confirm-dialog-host />
   <aside class="sidebar" [class.menu-open]="mobileMenuOpen()">
     <div class="sidebar-head">
       <a class="brand" [routerLink]="isAgent ? '/panel/agent/dashboard' : '/panel/admin/dashboard'" aria-label="Margarita, inicio">
@@ -26,17 +28,17 @@
     <p class="nav-label">{{ isAgent ? 'MI TRABAJO' : 'OPERACIÓN' }}</p>
     <nav id="panel-navigation" aria-label="Navegación principal">
       @if (isAgent) {
-        <a class="nav-link" routerLink="/panel/agent/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><span class="nav-icon">⌂</span>Resumen</a>
-        <a class="nav-link" routerLink="/panel/agent/conversations" routerLinkActive="active"><span class="nav-icon">◷</span>Conversaciones@if (unreadTotal() > 0) { <span class="nav-badge">{{ unreadTotal() }}</span> }</a>
+        <a class="nav-link" routerLink="/panel/agent/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><ui-icon class="nav-icon" name="home"/>Resumen</a>
+        <a class="nav-link" routerLink="/panel/agent/conversations" routerLinkActive="active"><ui-icon class="nav-icon" name="inbox"/>Conversaciones@if (unreadTotal() > 0) { <span class="nav-badge">{{ unreadTotal() }}</span> }</a>
         <a class="nav-link" href="/panel/agent/conversations?assigned=unassigned"><span class="nav-icon">!</span>Sin asignar@if (unassignedCount() > 0) { <span class="nav-badge unassigned">{{ unassignedCount() }}</span> }</a>
         <a class="nav-link" routerLink="/panel/agent/sessions" routerLinkActive="active"><span class="nav-icon">◉</span>Sesiones</a>
       } @else {
-      <a class="nav-link" routerLink="/panel/admin/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><span class="nav-icon">⌂</span>Resumen</a>
-      <a class="nav-link" routerLink="/panel/admin/conversations" routerLinkActive="active"><span class="nav-icon">◷</span>Conversaciones@if (unreadTotal() > 0) { <span class="nav-badge">{{ unreadTotal() }}</span> }</a>
+        <a class="nav-link" routerLink="/panel/admin/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><ui-icon class="nav-icon" name="home"/>Resumen</a>
+      <a class="nav-link" routerLink="/panel/admin/conversations" routerLinkActive="active"><ui-icon class="nav-icon" name="inbox"/>Conversaciones@if (unreadTotal() > 0) { <span class="nav-badge">{{ unreadTotal() }}</span> }</a>
       <a class="nav-link" href="/panel/admin/conversations?assigned=unassigned"><span class="nav-icon">!</span>Sin asignar@if (unassignedCount() > 0) { <span class="nav-badge unassigned">{{ unassignedCount() }}</span> }</a>
-      <a class="nav-link" routerLink="/panel/admin/contacts" routerLinkActive="active"><span class="nav-icon">♙</span>Contactos</a>
-      <a class="nav-link" routerLink="/panel/admin/tags" routerLinkActive="active"><span class="nav-icon">⌑</span>Etiquetas</a>
-      <a class="nav-link" routerLink="/panel/admin/quick-replies" routerLinkActive="active"><span class="nav-icon">☷</span>Respuestas rápidas</a>
+      <a class="nav-link" routerLink="/panel/admin/contacts" routerLinkActive="active"><ui-icon class="nav-icon" name="users"/>Contactos</a>
+      <a class="nav-link" routerLink="/panel/admin/tags" routerLinkActive="active"><ui-icon class="nav-icon" name="tag"/>Etiquetas</a>
+      <a class="nav-link" routerLink="/panel/admin/quick-replies" routerLinkActive="active"><ui-icon class="nav-icon" name="template"/>Respuestas rápidas</a>
       @if (shell()?.collectionsEnabled) { <a class="nav-link" routerLink="/panel/admin/replies" routerLinkActive="active"><span class="nav-icon">✓</span>Reglas de respuestas</a> }
       <a class="nav-link" routerLink="/panel/admin/templates" routerLinkActive="active"><span class="nav-icon">▤</span>Plantillas</a>
       <a class="nav-link" routerLink="/panel/admin/hours" routerLinkActive="active"><span class="nav-icon">◷</span>Horarios</a>
@@ -76,5 +78,12 @@
       <strong>{{ toast.title }}</strong><span>{{ toast.body }}</span>
     </a>
   }
+  <nav class="mobile-bottom-nav" aria-label="Accesos rápidos">
+    <a [routerLink]="isAgent ? '/panel/agent/dashboard' : '/panel/admin/dashboard'"><ui-icon name="home"/><span>Inicio</span></a>
+    <a [routerLink]="isAgent ? '/panel/agent/conversations' : '/panel/admin/conversations'"><ui-icon name="inbox"/><span>Bandeja</span>@if(unreadTotal()>0){<b>{{unreadTotal()}}</b>}</a>
+    @if (isAgent) { <a routerLink="/panel/agent/sessions"><ui-icon name="clock"/><span>Sesiones</span></a> }
+    @else { <a routerLink="/panel/admin/contacts"><ui-icon name="users"/><span>Contactos</span></a><a routerLink="/panel/admin/leads"><ui-icon name="chart"/><span>Leads</span></a> }
+    <button type="button" (click)="toggleMobileMenu()" [attr.aria-expanded]="mobileMenuOpen()"><ui-icon name="plus"/><span>Más</span></button>
+  </nav>
 </div>
 }

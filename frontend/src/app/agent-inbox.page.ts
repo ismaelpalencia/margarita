@@ -1,4 +1,7 @@
-import { Component, OnDestroy, signal } from '@angular/core';
+import { Component, OnDestroy, inject, signal } from '@angular/core';
+import { ConfirmDialogService } from './ui/confirm-dialog.service';
+import { EmptyStateComponent } from './ui/empty-state.component';
+import { ToastService } from './ui/toast.service';
 
 interface InboxTag { id: string; name: string; color: string | null }
 
@@ -34,6 +37,7 @@ interface PreviewData { timezone: string; hasOpenWindow: boolean; conversation: 
 @Component({
   selector: 'app-agent-inbox-page',
   standalone: true,
+  imports: [EmptyStateComponent],
   template: `
     @if (loading()) {
       <div class="inbox-loading"><span class="spinner"></span>Cargando conversaciones…</div>
@@ -88,7 +92,7 @@ interface PreviewData { timezone: string; hasOpenWindow: boolean; conversation: 
       <section class="inbox-card">
         <header class="inbox-card-heading"><h2>Bandeja <span>{{ conversations().length }}</span></h2><p>Ordenadas por actividad reciente</p></header>
         @if (conversations().length === 0) {
-          <div class="inbox-empty"><span>◷</span><strong>No hay conversaciones para mostrar</strong><p>Cuando te asignen una o llegue una sin dueño, aparecerá aquí.</p></div>
+          <ui-empty-state icon="inbox" title="No hay conversaciones para mostrar" description="Cuando te asignen una o llegue una sin dueño, aparecerá aquí." />
         } @else {
           @for (conversation of conversations(); track conversation.id) {
             <article class="inbox-row">
@@ -121,6 +125,8 @@ interface PreviewData { timezone: string; hasOpenWindow: boolean; conversation: 
   styleUrl: './agent-inbox.page.css',
 })
 export class AgentInboxPage implements OnDestroy {
+  private readonly confirmDialog=inject(ConfirmDialogService);
+  private readonly toast=inject(ToastService);
   protected readonly conversations = signal<InboxConversation[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal('');
@@ -213,8 +219,9 @@ export class AgentInboxPage implements OnDestroy {
       const response = await fetch(`/agent/conversations/${encodeURIComponent(conversation.id)}/${action}`, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' } });
       if (!response.ok) throw new Error('No se pudo archivar la conversación.');
       await this.loadConversations(false);
+      this.toast.show(conversation.archivedAt ? 'Conversación desarchivada.' : 'Conversación archivada.','success');
     } catch (error) {
-      this.bulkNotice.set(error instanceof Error ? error.message : 'No se pudo archivar la conversación.');
+      const message=error instanceof Error ? error.message : 'No se pudo archivar la conversación.';this.bulkNotice.set(message);this.toast.show(message,'error');
     }
   }
   protected async openPreview(conversation: InboxConversation): Promise<void> {
@@ -248,7 +255,7 @@ export class AgentInboxPage implements OnDestroy {
   protected async runBulkAction(action: 'read' | 'note' | 'close'): Promise<void> {
     const ids = [...this.selectedIds()];
     if (!ids.length) return;
-    if (action === 'close' && !window.confirm(`¿Cerrar ${ids.length} conversaciones? Después podrás reabrirlas.`)) return;
+    if (action === 'close' && !await this.confirmDialog.confirm({title:'Cerrar conversaciones',message:`¿Cerrar ${ids.length} conversaciones? Después podrás reabrirlas.`})) return;
     if (action === 'note' && !this.bulkNote().trim()) return;
     this.bulkActionSaving.set(true);
     this.bulkNotice.set('');
@@ -280,7 +287,7 @@ export class AgentInboxPage implements OnDestroy {
     if (!tagId || !ids.length) return;
     const tag = this.tags().find((item) => item.id === tagId);
     const action = this.bulkTagMode() === 'replace' ? 'Reemplazar todas las etiquetas' : this.bulkTagMode() === 'remove' ? 'Quitar la etiqueta' : 'Agregar la etiqueta';
-    if (!window.confirm(`¿${action} «${tag?.name || 'seleccionada'}» en ${ids.length} conversaciones?`)) return;
+    if (!await this.confirmDialog.confirm({title:'Actualizar etiquetas',message:`¿${action} «${tag?.name || 'seleccionada'}» en ${ids.length} conversaciones?`,danger:this.bulkTagMode()==='replace'||this.bulkTagMode()==='remove'})) return;
     this.bulkTagSaving.set(true);
     this.bulkNotice.set('');
     try {
@@ -338,8 +345,9 @@ export class AgentInboxPage implements OnDestroy {
       delete nextDrafts[conversation.id];
       this.tagDrafts.set(nextDrafts);
       this.bulkNotice.set('Etiquetas actualizadas.');
+      this.toast.show('Etiquetas actualizadas.','success');
     } catch (error) {
-      this.bulkNotice.set(error instanceof Error ? error.message : 'No se pudieron guardar las etiquetas.');
+      const message=error instanceof Error ? error.message : 'No se pudieron guardar las etiquetas.';this.bulkNotice.set(message);this.toast.show(message,'error');
     } finally {
       this.tagSavingId.set('');
     }

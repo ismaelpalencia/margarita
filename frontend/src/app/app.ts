@@ -3,6 +3,9 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { filter } from 'rxjs/operators';
 import { applyUiFontSize, readUiFontSize } from './ui-preferences';
 import { formatNotificationTitle, NotificationSoundType, playNotificationSound } from './notification-preferences';
+import { ToastHostComponent } from './ui/toast-host.component';
+import { IconComponent } from './ui/icon.component';
+import { ConfirmDialogHostComponent } from './ui/confirm-dialog-host.component';
 
 interface ShellNumber {
   id: string;
@@ -33,7 +36,7 @@ interface InstallPromptEvent extends Event {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, ToastHostComponent, ConfirmDialogHostComponent, IconComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

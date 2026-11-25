@@ -52,7 +52,6 @@
   .number-switch { margin: 0 4px 9px; }.number-single { margin: 0 8px 9px; }
   .nav-label, .sidebar-bottom { display: none; }
   .sidebar nav { display: none; }
-  .sidebar.menu-open nav { display: flex; max-height: calc(100vh - 200px); flex: 0 1 auto; flex-direction: column; align-items: stretch; gap: 2px; overflow-x: hidden; overflow-y: auto; padding: 8px 0; }
   .sidebar.menu-open .nav-label { display: block; margin-top: 8px; }
   .sidebar.menu-open .nav-link { flex: 0 0 auto; margin: 0; padding: 9px 10px; font-size: 12px; }.sidebar.menu-open .nav-icon { display: inline-grid; }
   .main-area { margin-left: 0; }
