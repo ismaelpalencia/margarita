@@ -11,6 +11,7 @@ import { ConversationBulkTemplateController } from "../controllers/conversation-
 import { ConversationTagController } from "../controllers/conversation-tag.controller";
 import { ConversationBulkTagController } from "../controllers/conversation-bulk-tag.controller";
 import { ConversationBulkActionController } from "../controllers/conversation-bulk-action.controller";
+import { ConversationBulkQuickReplyController } from "../controllers/conversation-bulk-quick-reply.controller";
 
 const router = Router();
 
@@ -20,6 +21,8 @@ router.get("/", (req, res) =>
 router.get("/data", AgentConversationsController.listData);
 router.get("/bulk/template-options", ConversationBulkTemplateController.options);
 router.post("/bulk/template-send", ConversationBulkTemplateController.send);
+router.get("/bulk/quick-reply-options", ConversationBulkQuickReplyController.options);
+router.post("/bulk/quick-reply-send", ConversationBulkQuickReplyController.send);
 router.post("/bulk/tags", ConversationBulkTagController.update);
 router.post("/bulk/actions", ConversationBulkActionController.run);
 router.post("/:id/tags", ConversationTagController.update);

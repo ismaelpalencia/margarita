@@ -20,6 +20,7 @@ La aplicación puede recibir mensajes y estados desde el webhook firmado de Meta
 - Llamadas entrantes y salientes de WhatsApp, sujetas a activación y configuración de Meta, Margarita, Call Service y TURN.
 - Administración de WhatsApp Flows de Meta desde la configuración de WhatsApp: consulta, creación de borradores y publicación; consulta de catálogos y productos.
 - El selector de número muestra los mensajes sin leer de cada número. Los avisos en vivo y push identifican el número asociado para distinguirlos cuando el usuario trabaja con varias líneas.
+- Las bandejas de admin y agente muestran de forma compacta si sigue abierta la ventana de 24 horas y permiten filtrar por ese estado. La selección múltiple permite enviar respuestas rápidas activas a los chats elegibles; las conversaciones fuera de ventana se omiten y necesitan una plantilla aprobada.
 
 No se incluye grabación ni transcripción. Meta cobra aparte mensajes y llamadas; Cloudflare TURN e IA pueden generar cargos por consumo. No se ofrece soporte 24/7 ni desarrollo a medida en los planes de lista.
 
@@ -59,6 +60,7 @@ La IA existente permite configurar proveedor/modelo, conocimiento de negocio, in
 ## Límites funcionales
 
 - Meta controla aprobación/categoría de plantillas, cuotas, calidad, permisos y cargos del canal; Margarita refleja estados, no garantiza entrega final.
+- El indicador de 24 horas se calcula con el último mensaje entrante registrado. Antes de enviar, el servidor vuelve a aplicar los permisos, estado del contacto y ventana de cada conversación; una conversación puede fallar si su estado cambió desde que se cargó la bandeja.
 - La app no crea/aprueba plantillas ni sustituye Meta Business Manager.
 - Los WhatsApp Flows de Meta todavía no se envían desde el compositor de conversaciones ni se procesan sus respuestas para guardarlas estructuradamente en contactos. El botón de ejemplo del panel solo completa el JSON del formulario; crear el borrador requiere una acción explícita y Meta sigue validando su contenido. Publicar hace que el Flow quede inmutable en Meta. Los flujos guiados del módulo de IA son una funcionalidad separada.
 - No es CRM/ERP, facturación, pasarela de pago, agenda externa ni almacenamiento documental RAG.

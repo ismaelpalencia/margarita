@@ -190,6 +190,7 @@ export class AgentConversationsController {
                     operationalStatus: conversation.operationalStatus,
                     unreadCount: conversation.unreadCount,
                     archivedAt: conversation.archivedAt,
+                    lastIncomingMessageAt: conversation.lastIncomingMessageAt?.toISOString() ?? null,
                     aiHandoffAt: conversation.aiHandoffAt,
                     assignedUser: conversation.assignedUser
                         ? { name: conversation.assignedUser.name }

@@ -212,9 +212,15 @@ html[data-font-size="xlarge"] body { zoom: 1.24; }
 .bulk-menu-section { padding: 12px 14px; border-bottom: 1px solid #edf2ee; }
 .bulk-menu-section:last-child { border-bottom: 0; }
 .bulk-menu-section h3 { margin: 0 0 8px; color: #60736a; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+.bulk-window-hint { display: block; margin-top: 7px; color: #69766f; font-size: 12px; line-height: 1.5; }
+.bulk-quick-preview { display: grid; gap: 4px; margin: 8px 0 0; padding: 9px 11px; border-left: 2px solid #d59b30; background: #fffaf0; color: #34483e; font-size: 12px; line-height: 1.5; }
+.bulk-quick-preview span { overflow-wrap: anywhere; }
+.bulk-quick-reply-row select { flex: 1 1 180px; min-width: 0; }
 html[data-theme="dark"] .bulk-menu-panel { border-color: #3b4d40; background: #19231e; }
 html[data-theme="dark"] .bulk-menu-section { border-color: #304238; }
 html[data-theme="dark"] .bulk-menu-section h3 { color: #aebdb3; }
+html[data-theme="dark"] .bulk-window-hint { color: #a8b6c9; }
+html[data-theme="dark"] .bulk-quick-preview { border-color: #d59b30; background: #1e1b14; color: #e2e8f0; }
 @media(max-width:600px) { .bulk-toolbar .bulk-menu-toggle { flex: 1 1 auto; }.bulk-menu-panel { margin-top: 0; } }
 .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .preview-button { min-height: 30px; padding: 0 8px; border: 1px solid #cfe0d6; border-radius: 7px; color: #17634a; background: #f2f8f4; font: inherit; font-size: 10px; font-weight: 650; cursor: pointer; white-space: nowrap; }
 .page-content :is(app-agent-inbox-page, app-admin-inbox-page) .preview-button:hover { background: #e6f3eb; }

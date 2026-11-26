@@ -14,6 +14,7 @@ Centraliza conversaciones que antes se atendían desde teléfonos o cuentas indi
 - Campañas con plantillas, cola, pausa y reintentos sujetos a las reglas de Meta.
 - Paneles de administración y agente, equipo, sesiones, reportes, bitácora y respaldos.
 - Selector de número con contadores de mensajes sin leer por número; los avisos en pantalla y push identifican el número que recibió el mensaje.
+- Bandejas de admin y agente con selección múltiple, filtro de ventana de 24 horas y envío de respuestas rápidas a las conversaciones elegibles; las que requieren plantilla se identifican y se omiten del envío libre.
 - Flujos guiados y módulos de IA configurables: conocimiento, sugerencias y respuestas automáticas con límites/handoff según configuración.
 - Administración de WhatsApp Flows de Meta: consulta, creación de borradores y publicación; catálogos y productos conectados.
 - Llamadas entrantes y salientes de WhatsApp cuando se configura el Call Service, Meta Calling y Cloudflare TURN. El audio viaja por WebRTC/SRTP entre navegador y Meta; TURN solo retransmite cuando hace falta.
@@ -24,6 +25,7 @@ Las llamadas requieren que la PWA esté abierta, el agente disponible y la conve
 
 - **RAG:** no hay recuperación con embeddings/documentos implementada en esta versión. La referencia comercial de Pro está en desarrollo y no debe venderse como capacidad disponible hasta que se habilite y valide.
 - Los WhatsApp Flows administrados en Meta aún no se pueden enviar desde el chat de Margarita ni sus respuestas se guardan como campos estructurados del contacto. El panel de IA también tiene flujos guiados propios; no son el mismo producto.
+- El envío masivo de respuestas rápidas aplica las mismas reglas existentes de permisos, contacto y ventana; fuera de las 24 horas se requiere una plantilla aprobada.
 - Las llamadas dependen de configuración externa, permisos Meta, micrófono, conectividad y servicio Calls. No se contestan con la PWA cerrada; no se graban ni transcriben.
 - Meta factura por separado mensajes y llamadas. Cloudflare TURN e IA pueden generar cargos por uso; no se promete consumo ilimitado.
 - Margarita no es un CRM/ERP, pasarela de pagos, servicio de reservas ni herramienta de envío sin consentimiento. No crea ni aprueba las plantillas de Meta.

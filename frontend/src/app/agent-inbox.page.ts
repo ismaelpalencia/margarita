@@ -11,6 +11,7 @@ interface InboxConversation {
   archivedAt: string | null;
   operationalStatus: string;
   unreadCount: number;
+  lastIncomingMessageAt: string | null;
   aiHandoffAt: string | null;
   assignedUser: { name: string } | null;
   contact: {
@@ -30,6 +31,7 @@ interface InboxResponse {
 }
 
 interface BulkTemplateOption { id: string; name: string; language: string; shape: { body: number; header: number; url: number } }
+interface BulkQuickReplyOption { id: string; title: string; type: 'TEXT' | 'BUTTONS' | 'LIST'; body: string }
 
 interface PreviewMessage { id: string; direction: string; type: string; body: string | null; createdAt: string; isInternalNote?: boolean; deletedAt?: string | null }
 interface PreviewData { timezone: string; hasOpenWindow: boolean; conversation: { id: string; status: string; assignedUser: { name: string } | null; contact: { customName: string | null; profileName: string | null; phone: string; optOutAt: string | null; tags: InboxTag[] }; messages: PreviewMessage[] } }
@@ -51,6 +53,7 @@ interface PreviewData { timezone: string; hasOpenWindow: boolean; conversation: 
         <select [value]="status()" (change)="setStatus($event)" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option value="OPEN">Abiertas</option><option value="CLOSED">Cerradas</option></select>
         <select [value]="assigned()" (change)="setAssigned($event)" aria-label="Filtrar por asignación"><option value="">Todas</option><option value="unassigned">Sin asignar</option></select>
         <select [value]="tagId()" (change)="setTagId($event)" aria-label="Filtrar por etiqueta"><option value="">Todas las etiquetas</option>@for (tag of tags(); track tag.id) { <option [value]="tag.id">{{ tag.name }}</option> }</select>
+        <select [value]="windowFilter()" (change)="setWindowFilter($event)" aria-label="Filtrar por ventana de mensajería"><option value="all">Ventana: todas</option><option value="open">Abierta · mensaje libre</option><option value="closed">Cerrada · usar plantilla</option></select>
         <label class="unread-filter"><input type="checkbox" [checked]="onlyUnread()" (change)="toggleUnread($event)">Solo sin leer</label>
         <label class="unread-filter"><input type="checkbox" [checked]="archivedOnly()" (change)="archivedOnly.set(($any($event.target)).checked)">Archivadas</label>
         <button type="submit">Filtrar</button>
@@ -66,6 +69,7 @@ interface PreviewData { timezone: string; hasOpenWindow: boolean; conversation: 
         <div class="bulk-menu-panel" role="menu">
           <section class="bulk-menu-section"><h3>Etiquetas</h3><div class="bulk-action-row"><select class="bulk-tag-mode" [value]="bulkTagMode()" (change)="setBulkTagMode($event)" aria-label="Acción de etiqueta"><option value="add">Agregar etiqueta</option><option value="replace">Reemplazar etiquetas</option><option value="remove">Quitar etiqueta</option></select><select class="bulk-tag-select" [value]="bulkTagId()" (change)="setBulkTagId($event)" aria-label="Etiqueta para la selección"><option value="">Elige una etiqueta</option>@for (tag of tags(); track tag.id) { <option [value]="tag.id">{{ tag.name }}</option> }</select><button type="button" [disabled]="!bulkTagId() || bulkTagSaving()" (click)="applyBulkTag()">{{ bulkTagSaving() ? 'Aplicando…' : 'Aplicar etiqueta' }}</button></div></section>
           <section class="bulk-menu-section"><h3>Plantilla</h3><div class="bulk-action-row"><button type="button" [disabled]="bulkSaving()" (click)="openBulkTemplate()">Enviar plantilla aprobada</button></div></section>
+          <section class="bulk-menu-section"><h3>Respuesta rápida</h3>@if (!bulkQuickReplyOpen()) { <div class="bulk-action-row"><button type="button" [disabled]="bulkQuickReplyLoading() || bulkQuickReplySaving()" (click)="openBulkQuickReplies()">{{ bulkQuickReplyLoading() ? 'Cargando…' : 'Elegir respuesta rápida' }}</button></div> } @else { <div class="bulk-action-row bulk-quick-reply-row"><select [value]="bulkQuickReplyId()" (change)="bulkQuickReplyId.set(($any($event.target)).value)" aria-label="Respuesta rápida"><option value="">Selecciona una respuesta</option>@for (reply of bulkQuickReplies(); track reply.id) { <option [value]="reply.id">{{ reply.title }} · {{ reply.type === 'TEXT' ? 'texto' : reply.type === 'BUTTONS' ? 'botones' : 'lista' }}</option> }</select><button type="button" [disabled]="!bulkQuickReplyId() || !eligibleSelectedCount() || bulkQuickReplySaving()" (click)="sendBulkQuickReply()">{{ bulkQuickReplySaving() ? 'Enviando…' : 'Enviar a ' + eligibleSelectedCount() }}</button></div><small class="bulk-window-hint">{{ eligibleSelectedCount() }} con ventana abierta · {{ selectedIds().size - eligibleSelectedCount() }} requieren plantilla y se omitirán.</small> @if (selectedBulkQuickReply(); as reply) { <p class="bulk-quick-preview"><b>{{ reply.title }}</b><span>{{ reply.body }}</span></p> } @if (!bulkQuickReplyLoading() && !bulkQuickReplies().length) { <small>No hay respuestas rápidas activas.</small> } }</section>
           <section class="bulk-menu-section"><h3>Estado</h3><div class="bulk-action-row"><button type="button" [disabled]="bulkActionSaving()" (click)="runBulkAction('read')">Marcar como leídas</button><button type="button" class="bulk-danger" [disabled]="bulkActionSaving()" (click)="runBulkAction('close')">Cerrar conversaciones</button></div></section>
           <section class="bulk-menu-section"><h3>Nota interna</h3><div class="bulk-action-row bulk-note-row"><input [value]="bulkNote()" (input)="bulkNote.set($any($event.target).value)" maxlength="4000" placeholder="Nota para todas las seleccionadas"><button type="button" [disabled]="bulkActionSaving() || !bulkNote().trim()" (click)="runBulkAction('note')">Agregar nota</button></div></section>
         </div>
@@ -90,16 +94,16 @@ interface PreviewData { timezone: string; hasOpenWindow: boolean; conversation: 
       }
 
       <section class="inbox-card">
-        <header class="inbox-card-heading"><h2>Bandeja <span>{{ conversations().length }}</span></h2><p>Ordenadas por actividad reciente</p></header>
-        @if (conversations().length === 0) {
-          <ui-empty-state icon="inbox" title="No hay conversaciones para mostrar" description="Cuando te asignen una o llegue una sin dueño, aparecerá aquí." />
+        <header class="inbox-card-heading"><h2>Bandeja <span>{{ visibleConversations().length }}</span></h2><p>Ordenadas por actividad reciente</p></header>
+        @if (visibleConversations().length === 0) {
+          <ui-empty-state icon="inbox" title="No hay conversaciones para mostrar" [description]="conversations().length ? 'Ningún chat coincide con el filtro de ventana.' : 'Cuando te asignen una conversación o llegue una sin dueño, aparecerá aquí.'" />
         } @else {
-          @for (conversation of conversations(); track conversation.id) {
+          @for (conversation of visibleConversations(); track conversation.id) {
             <article class="inbox-row">
               <label class="conversation-select"><input type="checkbox" [checked]="selectedIds().has(conversation.id)" [disabled]="!selectedIds().has(conversation.id) && selectedIds().size >= 25" (change)="toggleConversation(conversation.id, $event)" [attr.aria-label]="'Seleccionar ' + contactName(conversation)"></label>
               <a class="conversation-link" [href]="'/panel/agent/conversations/' + conversation.id">
                 <span class="conversation-avatar">{{ initials(contactName(conversation)) }}</span>
-                <span class="conversation-copy"><span class="conversation-title"><strong [class.unread]="conversation.unreadCount > 0">{{ contactName(conversation) }}</strong><time>{{ conversation.lastMessage?.dateLabel || '' }} · {{ conversation.lastMessage?.timeLabel || '' }}</time></span><small class="preview">{{ conversation.lastMessage?.body || (conversation.lastMessage ? '[' + conversation.lastMessage.type + ']' : 'Sin mensajes todavía') }}</small><span class="badges">@for (tag of conversation.contact.tags; track tag.id) { <span class="badge contact-tag" [style.border-color]="tag.color || '#b9d7c4'" [style.color]="tag.color || '#28684d'">{{ tag.name }}</span> }<span class="badge" [class.open]="conversation.status === 'OPEN'">{{ statusLabel(conversation.operationalStatus) }}</span>@if (conversation.aiHandoffAt) { <span class="badge handoff">IA necesita atención</span> }@if (!conversation.assignedUser) { <span class="badge unassigned">Sin asignar</span> }@if (conversation.contact.optOutAt) { <span class="badge opted-out">BAJA</span> }</span></span>
+                <span class="conversation-copy"><span class="conversation-title"><strong [class.unread]="conversation.unreadCount > 0">{{ contactName(conversation) }}</strong><time>{{ conversation.lastMessage?.dateLabel || '' }} · {{ conversation.lastMessage?.timeLabel || '' }}</time></span><small class="preview">{{ conversation.lastMessage?.body || (conversation.lastMessage ? '[' + conversation.lastMessage.type + ']' : 'Sin mensajes todavía') }}</small><span class="badges">@for (tag of conversation.contact.tags; track tag.id) { <span class="badge contact-tag" [style.border-color]="tag.color || '#b9d7c4'" [style.color]="tag.color || '#28684d'">{{ tag.name }}</span> }<span class="badge" [class.open]="conversation.status === 'OPEN'">{{ statusLabel(conversation.operationalStatus) }}</span><span class="badge window-status" [class.window-open]="isWindowOpen(conversation)" [attr.title]="isWindowOpen(conversation) ? 'Puede recibir mensajes libres' : 'Necesita una plantilla aprobada'" [attr.aria-label]="isWindowOpen(conversation) ? 'Ventana abierta; admite mensaje libre' : 'Ventana cerrada; requiere plantilla aprobada'">{{ isWindowOpen(conversation) ? '24 h libre' : 'Plantilla' }}</span>@if (conversation.aiHandoffAt) { <span class="badge handoff">IA necesita atención</span> }@if (!conversation.assignedUser) { <span class="badge unassigned">Sin asignar</span> }@if (conversation.contact.optOutAt) { <span class="badge opted-out">BAJA</span> }</span></span>
               </a>
               <span class="row-actions">@if (conversation.unreadCount > 0) { <span class="unread-count">{{ conversation.unreadCount }}</span> }@if (!conversation.assignedUser) { <form [action]="'/agent/conversations/' + conversation.id + '/claim'" method="post"><button type="submit" class="claim-button">Reclamar</button></form> }<button type="button" class="preview-button" (click)="openPreview(conversation)">Vista previa</button><button type="button" class="preview-button" (click)="toggleArchive(conversation)">{{ conversation.archivedAt ? 'Desarchivar' : 'Archivar' }}</button><details class="tag-quick" (toggle)="openTagEditor(conversation, $event)"><summary>Etiquetar</summary><div class="tag-quick-menu">@if (!tags().length) { <small>No hay etiquetas configuradas.</small> }@for (tag of tags(); track tag.id) { <label><input type="checkbox" [checked]="draftTagIds(conversation).has(tag.id)" (change)="toggleDraftTag(conversation, tag.id, $event)"> {{ tag.name }}</label> }<button type="button" [disabled]="tagSavingId() === conversation.id" (click)="saveTags(conversation)">{{ tagSavingId() === conversation.id ? 'Guardando…' : 'Guardar' }}</button></div></details><a class="open-button" [href]="'/panel/agent/conversations/' + conversation.id">Abrir</a></span>
             </article>
@@ -132,6 +136,8 @@ export class AgentInboxPage implements OnDestroy {
   protected readonly error = signal('');
   protected readonly search = signal('');
   protected readonly status = signal('');
+  protected readonly windowFilter = signal<'all' | 'open' | 'closed'>('all');
+  protected readonly windowNow = signal(Date.now());
   protected readonly assigned = signal('');
   protected readonly onlyUnread = signal(false);
   protected readonly archivedOnly = signal(false);
@@ -146,6 +152,11 @@ export class AgentInboxPage implements OnDestroy {
   protected readonly previewError = signal('');
   protected readonly selectedIds = signal<Set<string>>(new Set());
   protected readonly bulkTemplates = signal<BulkTemplateOption[]>([]);
+  protected readonly bulkQuickReplies = signal<BulkQuickReplyOption[]>([]);
+  protected readonly bulkQuickReplyId = signal('');
+  protected readonly bulkQuickReplyOpen = signal(false);
+  protected readonly bulkQuickReplyLoading = signal(false);
+  protected readonly bulkQuickReplySaving = signal(false);
   protected readonly bulkTemplateId = signal('');
   protected readonly bulkOpen = signal(false);
   protected readonly bulkLoading = signal(false);
@@ -159,6 +170,7 @@ export class AgentInboxPage implements OnDestroy {
   private readonly socket = window.io?.({ withCredentials: true });
   private connectedBefore = false;
   private readonly refreshTimer = window.setInterval(() => {
+    this.windowNow.set(Date.now());
     if (!this.socket?.connected) void this.loadConversations(false);
   }, 20000);
 
@@ -195,6 +207,19 @@ export class AgentInboxPage implements OnDestroy {
 
   protected setStatus(event: Event): void {
     this.status.set((event.target as HTMLSelectElement).value);
+  }
+  protected setWindowFilter(event: Event): void { this.windowFilter.set((event.target as HTMLSelectElement).value as 'all' | 'open' | 'closed'); }
+  protected isWindowOpen(conversation: InboxConversation): boolean {
+    const lastIncoming = conversation.lastIncomingMessageAt ? new Date(conversation.lastIncomingMessageAt).getTime() : 0;
+    return lastIncoming > 0 && this.windowNow() - lastIncoming <= 24 * 60 * 60 * 1000;
+  }
+  protected visibleConversations(): InboxConversation[] {
+    const filter = this.windowFilter();
+    return this.conversations().filter((conversation) => filter === 'all' || this.isWindowOpen(conversation) === (filter === 'open'));
+  }
+  protected eligibleSelectedCount(): number {
+    const selected = this.selectedIds();
+    return this.conversations().filter((conversation) => selected.has(conversation.id) && this.isWindowOpen(conversation)).length;
   }
 
   protected setAssigned(event: Event): void {
@@ -363,13 +388,13 @@ export class AgentInboxPage implements OnDestroy {
     if (next.size === 0) this.bulkMenuOpen.set(false);
   }
 
-  protected allVisibleSelected(): boolean { return this.conversations().length > 0 && this.conversations().slice(0, 25).every(({ id }) => this.selectedIds().has(id)); }
+  protected allVisibleSelected(): boolean { return this.visibleConversations().length > 0 && this.visibleConversations().slice(0, 25).every(({ id }) => this.selectedIds().has(id)); }
   protected toggleAllVisible(event: Event): void {
     const selected = (event.target as HTMLInputElement).checked;
-    this.selectedIds.set(selected ? new Set(this.conversations().slice(0, 25).map(({ id }) => id)) : new Set());
+    this.selectedIds.set(selected ? new Set(this.visibleConversations().slice(0, 25).map(({ id }) => id)) : new Set());
     this.bulkMenuOpen.set(selected);
   }
-  protected clearSelection(): void { this.selectedIds.set(new Set()); this.bulkOpen.set(false); this.bulkNotice.set(''); this.bulkMenuOpen.set(false); }
+  protected clearSelection(): void { this.selectedIds.set(new Set()); this.bulkOpen.set(false); this.bulkNotice.set(''); this.bulkMenuOpen.set(false); this.bulkQuickReplyId.set(''); this.bulkQuickReplyOpen.set(false); }
   protected toggleBulkMenu(): void { this.bulkMenuOpen.update((open) => !open); }
   protected selectedTemplate(): BulkTemplateOption | null { return this.bulkTemplates().find(({ id }) => id === this.bulkTemplateId()) || null; }
   protected bodyVariableIndexes(): number[] { return Array.from({ length: Math.min(this.selectedTemplate()?.shape.body || 0, 3) }, (_, index) => index); }
@@ -386,6 +411,50 @@ export class AgentInboxPage implements OnDestroy {
       this.bulkTemplates.set(data.templates || []);
     } catch (error) { this.bulkNotice.set(error instanceof Error ? error.message : 'No se pudieron cargar las plantillas.'); }
     finally { this.bulkLoading.set(false); }
+  }
+
+  protected selectedBulkQuickReply(): BulkQuickReplyOption | null { return this.bulkQuickReplies().find(({ id }) => id === this.bulkQuickReplyId()) || null; }
+  protected async openBulkQuickReplies(): Promise<void> {
+    this.bulkQuickReplyOpen.set(true);
+    this.bulkMenuOpen.set(true);
+    if (this.bulkQuickReplies().length) return;
+    this.bulkQuickReplyLoading.set(true);
+    try {
+      const response = await fetch('/agent/conversations/bulk/quick-reply-options', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      const result = await response.json() as { quickReplies?: BulkQuickReplyOption[]; error?: string };
+      if (!response.ok) throw new Error(result.error || 'No se pudieron cargar las respuestas rápidas.');
+      this.bulkQuickReplies.set(result.quickReplies || []);
+    } catch (error) { this.bulkNotice.set(error instanceof Error ? error.message : 'No se pudieron cargar las respuestas rápidas.'); }
+    finally { this.bulkQuickReplyLoading.set(false); }
+  }
+  protected async sendBulkQuickReply(): Promise<void> {
+    const reply = this.selectedBulkQuickReply();
+    const selected = this.selectedIds();
+    const ids = this.conversations().filter((conversation) => selected.has(conversation.id) && this.isWindowOpen(conversation)).map(({ id }) => id);
+    if (!reply || !ids.length || this.bulkQuickReplySaving()) return;
+    const skipped = selected.size - ids.length;
+    const message = skipped
+      ? `Se enviará «${reply.title}» a ${ids.length} chats con ventana abierta. ${skipped} chats fuera de las 24 horas se omitirán y requieren plantilla. ¿Continuar?`
+      : `¿Enviar «${reply.title}» a ${ids.length} chats?`;
+    if (!await this.confirmDialog.confirm({ title: 'Enviar respuesta rápida', message })) return;
+    this.bulkQuickReplySaving.set(true);
+    this.bulkNotice.set('');
+    try {
+      const response = await fetch('/agent/conversations/bulk/quick-reply-send', {
+        method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ conversationIds: ids, quickReplyId: reply.id })
+      });
+      const result = await response.json() as { sent?: number; failed?: number; results?: Array<{ conversationId: string; sent: boolean; error?: string }>; error?: string };
+      if (!response.ok) throw new Error(result.error || 'No se pudo enviar la respuesta rápida.');
+      const failures = (result.results || []).filter(({ sent }) => !sent).slice(0, 3).map(({ conversationId, error }) => {
+        const conversation = this.conversations().find(({ id }) => id === conversationId);
+        return `${conversation ? this.contactName(conversation) : 'Contacto'}: ${error || 'no enviado'}`;
+      });
+      this.bulkNotice.set(`Respuesta rápida: ${result.sent || 0} enviadas, ${result.failed || 0} con error${skipped ? `; ${skipped} fuera de ventana omitidas` : ''}.${failures.length ? ` ${failures.join(' · ')}` : ''}`);
+      this.selectedIds.set(new Set()); this.bulkQuickReplyId.set(''); this.bulkQuickReplyOpen.set(false); this.bulkMenuOpen.set(false);
+      await this.loadConversations(false);
+    } catch (error) { this.bulkNotice.set(error instanceof Error ? error.message : 'No se pudo enviar la respuesta rápida.'); }
+    finally { this.bulkQuickReplySaving.set(false); }
   }
 
   protected async sendBulkTemplate(event: Event): Promise<void> {

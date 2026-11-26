@@ -151,6 +151,7 @@ export class AdminConversationsController {
                     operationalStatus: conversation.operationalStatus,
                     unreadCount: conversation.unreadCount,
                     archivedAt: conversation.archivedAt,
+                    lastIncomingMessageAt: conversation.lastIncomingMessageAt?.toISOString() ?? null,
                     aiHandoffAt: conversation.aiHandoffAt,
                     assignedUser: conversation.assignedUser
                         ? { id: conversation.assignedUser.id, name: conversation.assignedUser.name }
