@@ -10,7 +10,8 @@ import {
     createUserSchema,
     resetPasswordSchema,
     twoFactorCodeSchema,
-    updateUserSchema
+    updateUserSchema,
+    updateOwnNameSchema
 } from "../validations/user.validation";
 import { formatSecretForHumans } from "../utils/totp";
 import { qrSvg } from "../utils/qr";
@@ -358,6 +359,31 @@ export class AdminUsersController {
  * `/agent` para que sea la misma pantalla para los dos roles.
  */
 export class AccountController {
+    static showProfile(req: Request, res: Response) {
+        if (wantsJson(req)) {
+            return res.json({ user: { name: req.user!.name, email: req.user!.email } });
+        }
+        const prefix = req.user!.role === "AGENT" ? "/panel/agent" : "/panel/admin";
+        return res.redirect(`${prefix}/account/profile`);
+    }
+
+    static async updateProfile(req: Request, res: Response) {
+        const parsed = updateOwnNameSchema.safeParse(req.body);
+        if (!parsed.success) {
+            const message = parsed.error.issues[0]?.message || "Escribe un nombre válido.";
+            if (wantsJson(req)) return res.status(400).json({ error: message });
+            return res.redirect(`/account/profile?error=${encodeURIComponent(message)}`);
+        }
+
+        const user = await prisma.user.update({
+            where: { id: req.user!.id },
+            data: { name: parsed.data.name },
+            select: { name: true }
+        });
+        if (wantsJson(req)) return res.json({ ok: true, name: user.name });
+        return res.redirect("/account/profile?success=saved");
+    }
+
     static show(req: Request, res: Response) {
         if (wantsJson(req)) {
             return res.json({

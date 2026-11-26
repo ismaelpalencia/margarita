@@ -71,7 +71,7 @@
   <main class="main-area">
     <header class="topbar"><div class="breadcrumbs">Panel <span>/</span> {{ pageName() }}</div><div class="topbar-actions">
       <button class="theme-toggle" type="button" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Activar modo claro' : 'Activar modo nocturno'" [title]="darkMode() ? 'Modo claro' : 'Modo nocturno'"><span aria-hidden="true">{{ darkMode() ? '☀' : '☾' }}</span><span class="theme-toggle-label">{{ darkMode() ? 'Claro' : 'Nocturno' }}</span></button>
-      <a class="account-link" [href]="isAgent ? '/panel/agent/account/security' : '/panel/admin/account/security'"><span class="avatar">{{ userInitial() }}</span><span>Mi cuenta</span></a>
+      <a class="account-link" [href]="isAgent ? '/panel/agent/account/profile' : '/panel/admin/account/profile'"><span class="avatar">{{ userInitial() }}</span><span>Mi cuenta</span></a>
       <form action="/auth/logout" method="post" class="topbar-logout"><button type="submit">Salir</button></form>
     </div></header>
     @if (pwaMessage()) { <p class="pwa-message" role="status">{{ pwaMessage() }}</p> }
@@ -82,7 +82,7 @@
       <strong>{{ toast.title }}</strong><span>{{ toast.body }}</span>
     </a>
   }
-  <nav class="mobile-bottom-nav" aria-label="Accesos rápidos">
+  <nav class="mobile-bottom-nav" [class.agent-mobile-nav]="isAgent" aria-label="Accesos rápidos">
     <a [routerLink]="isAgent ? '/panel/agent/dashboard' : '/panel/admin/dashboard'"><ui-icon name="home"/><span>Inicio</span></a>
     <a [routerLink]="isAgent ? '/panel/agent/conversations' : '/panel/admin/conversations'"><ui-icon name="inbox"/><span>Bandeja</span>@if(unreadTotal()>0){<b>{{unreadTotal()}}</b>}</a>
     @if (isAgent) { <a routerLink="/panel/agent/sessions"><ui-icon name="clock"/><span>Sesiones</span></a> }

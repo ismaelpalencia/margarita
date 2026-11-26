@@ -77,6 +77,8 @@ router.get("/acceso", HomeController.access);
  */
 router.get("/account/password", authMiddleware, AccountController.show);
 router.post("/account/password", authMiddleware, AccountController.change);
+router.get("/account/profile", authMiddleware, AccountController.showProfile);
+router.post("/account/profile", authMiddleware, AccountController.updateProfile);
 /**
  * Verificación en dos pasos: la misma pantalla para administradores y
  * agentes. La activación lleva dos pasos (generar la clave y confirmar un

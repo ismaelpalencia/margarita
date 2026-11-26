@@ -101,6 +101,10 @@ export class App {
       void this.loadNotificationPreferences();
       this.socket?.on('badges:update', (payload) => this.updateBadges(payload));
       this.socket?.on('conversation:message', (payload) => this.handleIncomingMessage(payload));
+      window.addEventListener('account:name-updated', (event) => {
+        const name = (event as CustomEvent<string>).detail;
+        if (typeof name === 'string') this.shell.update((current) => current ? { ...current, userName: name } : current);
+      });
     }
   }
 

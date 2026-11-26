@@ -9,6 +9,10 @@ const nameField = z
     .trim()
     .min(2, "El nombre debe tener al menos 2 caracteres.");
 
+export const updateOwnNameSchema = z.object({
+    name: nameField.max(80, "El nombre no puede superar 80 caracteres.")
+});
+
 const emailField = z
     .string()
     .trim()
