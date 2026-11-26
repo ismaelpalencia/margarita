@@ -16,10 +16,12 @@ La aplicación puede recibir mensajes y estados desde el webhook firmado de Meta
 - Contactos, etiquetas, bajas, consentimiento declarado, bloqueo y acciones masivas.
 - Mensajes de texto y multimedia, plantillas aprobadas por Meta, botones/listas cuando corresponden, respuestas rápidas y campañas controladas.
 - Usuarios, roles de administrador/agente, sesiones, auditoría, reportes, configuración y respaldos.
+- Preferencia de tamaño de letra para mejorar legibilidad sin escalar las imágenes; las vistas previas de conversación usan el alto visible de la pantalla.
 - IA configurable con conocimiento, modos de sugerencia/respuesta, límites, presupuesto y handoff. El negocio es responsable de validar el contenido y los resultados.
 - Llamadas entrantes y salientes de WhatsApp, sujetas a activación y configuración de Meta, Margarita, Call Service y TURN.
 - Administración de WhatsApp Flows de Meta desde la configuración de WhatsApp: consulta, creación de borradores y publicación; consulta de catálogos y productos.
 - El selector de número muestra los mensajes sin leer de cada número. Los avisos en vivo y push identifican el número asociado para distinguirlos cuando el usuario trabaja con varias líneas.
+- Las notificaciones push se envían a suscripciones vinculadas al usuario activo: administradores reciben rutas de administración y agentes reciben mensajes de conversaciones asignadas, respetando sus números permitidos. El historial de la campana del panel queda aislado por usuario y rol; no es un historial compartido en el navegador.
 - Las bandejas de admin y agente muestran de forma compacta si sigue abierta la ventana de 24 horas y permiten filtrar por ese estado. La selección múltiple permite enviar respuestas rápidas activas a los chats elegibles; las conversaciones fuera de ventana se omiten y necesitan una plantilla aprobada.
 
 No se incluye grabación ni transcripción. Meta cobra aparte mensajes y llamadas; Cloudflare TURN e IA pueden generar cargos por consumo. No se ofrece soporte 24/7 ni desarrollo a medida en los planes de lista.

@@ -7,7 +7,7 @@ import { PanelShellController } from "./panel-shell.controller";
 function run(locals: Record<string, unknown>, role = "ADMIN") {
     let body: Record<string, unknown> | null = null;
 
-    const req = { user: { role } } as unknown as Request;
+    const req = { user: { id: "u1", role } } as unknown as Request;
     const res = {
         locals,
         json(payload: Record<string, unknown>) {
@@ -36,6 +36,7 @@ test("devuelve el número activo y solo los números encendidos", () => {
     });
 
     assert.equal(body.activeNumberId, "n1");
+    assert.equal(body.userId, "u1");
     assert.equal(body.role, "ADMIN");
     assert.equal(body.unreadTotal, 4);
     assert.equal(body.unassignedCount, 2);

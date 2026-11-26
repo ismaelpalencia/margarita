@@ -13,7 +13,9 @@ Centraliza conversaciones que antes se atendían desde teléfonos o cuentas indi
 - Mensajes de texto y medios, plantillas aprobadas por Meta, respuestas rápidas, botones y listas.
 - Campañas con plantillas, cola, pausa y reintentos sujetos a las reglas de Meta.
 - Paneles de administración y agente, equipo, sesiones, reportes, bitácora y respaldos.
+- Preferencia de tamaño de letra que escala el texto sin ampliar imágenes y medios; vista previa de conversaciones permanece anclada al viewport aunque la bandeja esté desplazada.
 - Selector de número con contadores de mensajes sin leer por número; los avisos en pantalla y push identifican el número que recibió el mensaje.
+- Notificaciones en vivo y push separadas por usuario y rol: administradores reciben enlaces de administración; agentes, solo avisos de conversaciones asignadas y accesibles.
 - Bandejas de admin y agente con selección múltiple, filtro de ventana de 24 horas y envío de respuestas rápidas a las conversaciones elegibles; las que requieren plantilla se identifican y se omiten del envío libre.
 - Flujos guiados y módulos de IA configurables: conocimiento, sugerencias y respuestas automáticas con límites/handoff según configuración.
 - Administración de WhatsApp Flows de Meta: consulta, creación de borradores y publicación; catálogos y productos conectados.

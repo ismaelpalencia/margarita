@@ -1,4 +1,6 @@
 <%
+    const toastStorageKey = "margarita:toasts:ADMIN:" + user.id;
+    const toastSeenStorageKey = toastStorageKey + ":seenAt";
     const availableNumbers = (activeNumbers || []).filter((number) => number.isActive);
     const collectionsOn = typeof collectionsEnabled !== "undefined" ? collectionsEnabled : true;
     const moduleLinks = ["/admin/reports", "/admin/replies"];
@@ -150,7 +152,7 @@
 
         function readToasts() {
             try {
-                return JSON.parse(localStorage.getItem("margarita:toasts") || "[]");
+                return JSON.parse(localStorage.getItem(<%- JSON.stringify(toastStorageKey) %>) || "[]");
             } catch (error) {
                 return [];
             }
@@ -159,7 +161,7 @@
         function renderToasts() {
             var items = readToasts();
 
-            var seenAt = Number(localStorage.getItem("margarita:toastsSeenAt") || 0);
+            var seenAt = Number(localStorage.getItem(<%- JSON.stringify(toastSeenStorageKey) %>) || 0);
             var unseen = items.filter(function (item) {
                 return Number(item.at || 0) > seenAt;
             }).length;
@@ -211,7 +213,7 @@
                 bellPanel.hidden = !bellPanel.hidden;
 
                 if (!bellPanel.hidden) {
-                    localStorage.setItem("margarita:toastsSeenAt", String(Date.now()));
+                    localStorage.setItem(<%- JSON.stringify(toastSeenStorageKey) %>, String(Date.now()));
                 }
 
                 renderToasts();

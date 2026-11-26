@@ -168,7 +168,7 @@ export class PushService {
                 OR: [
                     { role: UserRole.ADMIN },
                     ...(params.assignedUserId
-                        ? [{ id: params.assignedUserId }]
+                        ? [{ id: params.assignedUserId, role: UserRole.AGENT }]
                         : [])
                 ]
             },

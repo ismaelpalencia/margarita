@@ -18,6 +18,7 @@ interface ShellNumber {
 }
 
 interface ShellData {
+  userId: string;
   role: string;
   userName: string;
   collectionsEnabled: boolean;
@@ -289,12 +290,14 @@ export class App {
     const event = payload as {
       conversationId?: string;
       whatsappNumberId?: string;
+      assignedUserId?: string | null;
       contact?: { name?: string };
       message?: { direction?: string; body?: string | null; type?: string };
     };
     if (event.message?.direction !== 'IN' || !event.conversationId) return;
 
     const shell = this.shell();
+    if (this.isAgent && (!shell?.userId || event.assignedUserId !== shell.userId)) return;
     if (shell && event.whatsappNumberId && !shell.numbers.some((number) => number.id === event.whatsappNumberId)) return;
 
     const currentConversation = window.location.pathname.match(/\/conversations\/([^/]+)/)?.[1];

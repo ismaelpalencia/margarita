@@ -20,6 +20,7 @@ export class PanelShellController {
         const unreadByNumber = (res.locals.unreadByNumber || {}) as Record<string, number>;
 
         return res.json({
+            userId: req.user!.id,
             role: req.user!.role,
             userName: req.user!.name,
             collectionsEnabled: Boolean(res.locals.collectionsEnabled),

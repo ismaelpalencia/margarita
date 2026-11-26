@@ -45,7 +45,10 @@
 
     var conversationId = body.dataset.conversationId || null;
     var basePath = body.dataset.liveBase || null;
-    var onlyForUserId = body.dataset.liveUserId || null;
+    var role = (body.dataset.liveRole || "unknown").toUpperCase();
+    var liveUserId = body.dataset.liveUserId || null;
+    var onlyForUserId = role === "AGENT" ? liveUserId : null;
+    var toastStorageKey = "margarita:toasts:" + role + ":" + (liveUserId || "unknown");
     /** Zona del workspace; sin esto el navegador usa la zona del equipo. */
     var timezone = body.dataset.liveTimezone || null;
     var hasConnectedBefore = false;
@@ -286,7 +289,7 @@
     function rememberToast(options) {
         try {
             var history = JSON.parse(
-                localStorage.getItem("margarita:toasts") || "[]"
+                localStorage.getItem(toastStorageKey) || "[]"
             );
 
             history.unshift({
@@ -297,7 +300,7 @@
             });
 
             localStorage.setItem(
-                "margarita:toasts",
+                toastStorageKey,
                 JSON.stringify(history.slice(0, 20))
             );
 
@@ -631,6 +634,12 @@
             return;
         }
 
+        // Los agentes solo procesan eventos de conversaciones asignadas a su usuario.
+        // Se valida antes de actualizar el hilo abierto, badges o notificaciones.
+        if (onlyForUserId && payload.assignedUserId !== onlyForUserId) {
+            return;
+        }
+
         var isThisConversation =
             page === "conversation" &&
             payload.conversationId === conversationId;
@@ -658,10 +667,6 @@
         /**
          * En la bandeja del agente solo avisamos de lo que puede atender.
          */
-        if (onlyForUserId && payload.assignedUserId !== onlyForUserId) {
-            return;
-        }
-
         var contactName = payload.contact ? payload.contact.name : "Contacto";
         var href =
             basePath && payload.conversationId
