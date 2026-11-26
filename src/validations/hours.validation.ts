@@ -18,6 +18,10 @@ export const hoursSchema = z.object({
             z.enum(["true", "false"]).default("false")
         )
         .transform((value) => value === "true"),
+    autoRejectCallsOutsideHours: z.preprocess(
+        (value) => typeof value === "boolean" ? String(value) : Array.isArray(value) ? (value.includes("true") ? "true" : "false") : value,
+        z.enum(["true", "false"]).default("false")
+    ).transform((value) => value === "true"),
     timezone: z
         .string()
         .trim()

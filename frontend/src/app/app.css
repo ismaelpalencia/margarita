@@ -30,6 +30,7 @@
 .breadcrumbs { color: #77847d; font-size: 11px; }.breadcrumbs span { padding: 0 8px; color: #c1c9c4; }
 .topbar-actions { display: flex; align-items: center; gap: 8px; }
 .call-presence { display:inline-flex; align-items:center; gap:7px; padding:7px 10px; border:1px solid color-mix(in srgb,var(--color-success) 28%,transparent); border-radius:999px; color:var(--color-success); background:color-mix(in srgb,var(--color-success) 9%,var(--ui-surface)); font-size:11px; font-weight:700; white-space:nowrap; }
+.call-presence { cursor:pointer; font:inherit; font-size:11px; }.call-presence:disabled { opacity:.65; cursor:wait; }.call-presence.paused { color:var(--color-warning); border-color:color-mix(in srgb,var(--color-warning) 30%,transparent); background:color-mix(in srgb,var(--color-warning) 9%,var(--ui-surface)); }
 .call-presence i { width:8px; height:8px; border-radius:50%; background:currentColor; box-shadow:0 0 0 3px color-mix(in srgb,currentColor 14%,transparent); }
 .theme-toggle { display: inline-flex; min-height: 33px; align-items: center; gap: 7px; padding: 0 10px; border: 1px solid #e1e8e3; border-radius: 7px; color: #54645a; background: #fff; font: inherit; font-size: 10px; font-weight: 600; cursor: pointer; }
 .theme-toggle:hover { border-color: #b9d4c2; color: #145b40; background: #f7faf7; }.theme-toggle>span:first-child { color: #17865a; font-size: 15px; }

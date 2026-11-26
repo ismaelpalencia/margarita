@@ -23,6 +23,37 @@ async function authorizedConversation(req: Request) {
 }
 
 export class WhatsAppCloudOperationsController {
+    static async flows(req: Request, res: Response) {
+        try {
+            if (req.method === "GET") return res.json(await WhatsAppCloudOperationsService.listFlows(req.user!.workspaceId));
+            const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
+            const categories = Array.isArray(req.body?.categories) ? req.body.categories.filter((value: unknown): value is string => typeof value === "string") : [];
+            const flowJson = req.body?.flowJson;
+            if (name.length < 1 || name.length > 60 || !categories.length || categories.some((category: string) => !["SIGN_UP", "SIGN_IN", "APPOINTMENT_BOOKING", "LEAD_GENERATION", "CONTACT_US", "CUSTOMER_SUPPORT", "SURVEY", "OTHER"].includes(category))) return res.status(400).json({ error: "Revisa el nombre y las categorías del Flow." });
+            if (flowJson !== undefined && (!flowJson || typeof flowJson !== "object" || Array.isArray(flowJson) || Buffer.byteLength(JSON.stringify(flowJson), "utf8") > 1_000_000)) return res.status(400).json({ error: "El JSON del Flow debe ser un objeto válido de hasta 1 MB." });
+            return res.status(201).json(await WhatsAppCloudOperationsService.createFlow(req.user!.workspaceId, { name, categories, ...(flowJson ? { flowJson } : {}), publish: req.body?.publish === true }));
+        } catch (error) { return res.status(502).json({ error: operationErrorMessage(error) }); }
+    }
+
+    static async publishFlow(req: Request, res: Response) {
+        const flowId = getRequiredParam(req, "flowId");
+        if (!/^[0-9]+$/.test(flowId)) return res.status(400).json({ error: "El identificador del Flow no es válido." });
+        try { return res.json(await WhatsAppCloudOperationsService.publishFlow(req.user!.workspaceId, flowId)); }
+        catch (error) { return res.status(502).json({ error: operationErrorMessage(error) }); }
+    }
+
+    static async catalogs(req: Request, res: Response) {
+        try { return res.json(await WhatsAppCloudOperationsService.listCatalogs(req.user!.workspaceId)); }
+        catch (error) { return res.status(502).json({ error: operationErrorMessage(error) }); }
+    }
+
+    static async catalogProducts(req: Request, res: Response) {
+        const catalogId = getRequiredParam(req, "catalogId");
+        if (!/^[0-9]+$/.test(catalogId)) return res.status(400).json({ error: "El identificador del catálogo no es válido." });
+        try { return res.json(await WhatsAppCloudOperationsService.listCatalogProducts(req.user!.workspaceId, catalogId)); }
+        catch (error) { return res.status(502).json({ error: operationErrorMessage(error) }); }
+    }
+
     static async blockUsers(req: Request, res: Response) {
         try {
             const method = req.method === "GET" ? "GET" : req.method === "DELETE" ? "DELETE" : "POST";

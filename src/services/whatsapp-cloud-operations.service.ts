@@ -54,6 +54,42 @@ async function graph<T>(numberId: string, workspaceId: string, method: "GET" | "
 }
 
 export class WhatsAppCloudOperationsService {
+    private static async accountGraphRequest<T>(workspaceId: string, method: "GET" | "POST" | "DELETE", path: string, data?: unknown, params?: Record<string, string>) {
+        const account = await prisma.whatsAppAccount.findUnique({ where: { workspaceId } });
+        if (!account) throw new Error("No hay cuenta de WhatsApp configurada.");
+        const response = await axios.request<T>({ method, url: `${appConfig.graphBaseUrl}/${account.apiVersion}/${path}`, headers: { Authorization: `Bearer ${decryptSecret(account.accessToken)}` }, ...(data ? { data } : {}), ...(params ? { params } : {}), timeout: 20000, maxBodyLength: 1_500_000 });
+        return response.data;
+    }
+
+    static async listFlows(workspaceId: string) {
+        return this.accountGraphRequest<{ data?: unknown[] }>(workspaceId, "GET", `${await this.requireAccountId(workspaceId)}/flows`, undefined, { fields: "id,name,categories,status,health_status,validation_errors,updated_time" });
+    }
+
+    private static async requireAccountId(workspaceId: string): Promise<string> {
+        const account = await prisma.whatsAppAccount.findUnique({ where: { workspaceId }, select: { businessAccountId: true } });
+        if (!account) throw new Error("No hay cuenta de WhatsApp configurada.");
+        return account.businessAccountId;
+    }
+
+    static async createFlow(workspaceId: string, input: { name: string; categories: string[]; flowJson?: Record<string, unknown>; publish?: boolean }) {
+        const body: Record<string, unknown> = { name: input.name, categories: input.categories };
+        if (input.flowJson) body.flow_json = input.flowJson;
+        if (input.publish) body.publish = true;
+        return this.accountGraphRequest(workspaceId, "POST", `${await this.requireAccountId(workspaceId)}/flows`, body);
+    }
+
+    static publishFlow(workspaceId: string, flowId: string) {
+        return this.accountGraphRequest(workspaceId, "POST", `${encodeURIComponent(flowId)}/publish`, {});
+    }
+
+    static async listCatalogs(workspaceId: string) {
+        return this.accountGraphRequest<{ data?: unknown[] }>(workspaceId, "GET", `${await this.requireAccountId(workspaceId)}/product_catalogs`, undefined, { fields: "id,name,vertical" });
+    }
+
+    static listCatalogProducts(workspaceId: string, catalogId: string) {
+        return this.accountGraphRequest<{ data?: unknown[]; paging?: unknown }>(workspaceId, "GET", `${encodeURIComponent(catalogId)}/products`, undefined, { fields: "id,retailer_id,name,description,availability,price,currency,image_url,url" });
+    }
+
     static async accountHealth(workspaceId: string) {
         const account = await prisma.whatsAppAccount.findUnique({ where: { workspaceId } });
         if (!account) throw new Error("No hay cuenta de WhatsApp configurada.");

@@ -17,6 +17,7 @@ type CallContext = {
   apiVersion: string;
   metaAccessToken: string;
   canCall: boolean;
+  rejectReason?: string;
   assignedAgentCanCall?: boolean;
   eligibleRecipientIds?: string[];
   direction?: string;
@@ -188,12 +189,12 @@ async function handleMetaCall(incoming: ParsedCall): Promise<void> {
     const selectedCandidate = context ? chooseIncomingRecipient(candidates, { workspaceId: context.workspaceId, conversationId: context.conversationId, assignedAgentId: context.agentId }) : undefined;
     const selected = selectedCandidate && candidates.find((candidate) => candidate.userId === selectedCandidate.userId);
     if (!context?.canCall || !recipientIds.length || !incoming.sdp) {
-      const reason = !context?.canCall || !recipientIds.length ? "conversation_not_eligible" : "offer_missing";
+      const reason = !context?.canCall || !recipientIds.length ? (context?.rejectReason || "conversation_not_eligible") : "offer_missing";
       console.info("Llamada entrante rechazada por disponibilidad.", { event: incoming.event, reason });
       if (context?.phoneNumberId && context.metaAccessToken) {
         await sendMetaCallAction({ apiVersion: context.apiVersion, phoneNumberId: context.phoneNumberId, accessToken: context.metaAccessToken, action: "reject", callId: incoming.id });
       }
-      if (context?.conversationId) await notifyMargarita({ workspaceId: context.workspaceId, conversationId: context.conversationId, agentId: context.agentId || undefined, metaCallId: incoming.id, localCallId: incoming.id, direction: "INBOUND", status: "MISSED", error: "No había un usuario autorizado para recibir la llamada." });
+      if (context?.conversationId) await notifyMargarita({ workspaceId: context.workspaceId, conversationId: context.conversationId, agentId: context.agentId || undefined, metaCallId: incoming.id, localCallId: incoming.id, direction: "INBOUND", status: "MISSED", error: context.rejectReason || "No había un usuario autorizado para recibir la llamada." });
       return;
     }
     const primaryRecipient = selected?.userId || recipientIds[0];

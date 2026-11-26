@@ -24,6 +24,7 @@ type HoursForm = {
     mode: OffHoursMode;
     message: string;
     intervalHours: number;
+    autoRejectCallsOutsideHours: boolean;
 };
 
 function formFromWorkspace(workspace: {
@@ -47,7 +48,8 @@ function formFromWorkspace(workspace: {
         end: typeof raw.end === "string" ? raw.end : "18:00",
         mode: workspace.offHoursMode,
         message: workspace.offHoursMessage ?? "",
-        intervalHours: workspace.offHoursReplyIntervalHours
+        intervalHours: workspace.offHoursReplyIntervalHours,
+        autoRejectCallsOutsideHours: raw.autoRejectCallsOutsideHours === true
     };
 }
 
@@ -94,15 +96,20 @@ export class AdminHoursController {
         const days = input.days.length > 0 ? input.days : [1, 2, 3, 4, 5];
 
         try {
+            const current = await prisma.workspace.findUnique({ where: { id: req.user!.workspaceId }, select: { businessHours: true } });
+            const existingHours = current?.businessHours && typeof current.businessHours === "object" && !Array.isArray(current.businessHours)
+                ? current.businessHours as Record<string, unknown> : {};
             await prisma.workspace.update({
                 where: { id: req.user!.workspaceId },
                 data: {
                     businessHoursEnabled: input.businessHoursEnabled,
                     businessHours: {
+                        ...existingHours,
                         timezone: input.timezone,
                         days,
                         start: input.start,
-                        end: input.end
+                        end: input.end,
+                        autoRejectCallsOutsideHours: input.autoRejectCallsOutsideHours
                     },
                     offHoursMode: input.mode,
                     offHoursMessage: input.message || null,
@@ -123,7 +130,8 @@ export class AdminHoursController {
                     start: input.start,
                     end: input.end,
                     mode: input.mode,
-                    intervalHours: input.intervalHours
+                    intervalHours: input.intervalHours,
+                    autoRejectCallsOutsideHours: input.autoRejectCallsOutsideHours
                 }
             }).catch(() => undefined);
         } catch {

@@ -3,7 +3,7 @@ import { CallToneService } from './call-tone.service';
 
 type CallUiStatus = 'idle' | 'loading' | 'incoming' | 'connecting' | 'active' | 'error';
 type CallConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
-type CallTokenResponse = { token: string; canCall: boolean; serviceUrl: string; reason?: string | null };
+type CallTokenResponse = { token: string; canCall: boolean; serviceUrl: string; reason?: string | null; receptionEnabled?: boolean; receptionAccepting?: boolean; receptionReason?: string | null };
 type IncomingCall = { callId: string; conversationId: string; phone: string; sdp: string };
 type IceResponse = { iceServers: RTCIceServer[]; expiresAt: number };
 
@@ -13,6 +13,11 @@ export class CallFeatureService {
   readonly status = signal<CallUiStatus>('idle');
   readonly connectionStatus = signal<CallConnectionStatus>('disconnected');
   readonly connectionConversation = signal('');
+  readonly receptionEnabled = signal(true);
+  readonly receptionAccepting = signal(true);
+  readonly receptionReason = signal('');
+  readonly receptionSaving = signal(false);
+  readonly receptionAvailable = signal(false);
   readonly incoming = signal<IncomingCall | null>(null);
   readonly active = signal<{ callId: string; conversationId: string; direction: 'INBOUND' | 'OUTBOUND' } | null>(null);
   readonly remoteStream = signal<MediaStream | null>(null);
@@ -45,6 +50,29 @@ export class CallFeatureService {
   }
 
   connectCalls(_conversationId?: string): Promise<boolean> { return this.connectPresence(); }
+
+  async toggleReception(): Promise<void> {
+    if (!this.receptionAvailable()) return;
+    if (this.receptionSaving()) return;
+    const enabled = !this.receptionEnabled();
+    this.receptionSaving.set(true);
+    try {
+      const response = await fetch('/panel/calls/reception', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ enabled }) });
+      const result = await response.json() as { enabled?: boolean; error?: string };
+      if (!response.ok || typeof result.enabled !== 'boolean') throw new Error(result.error || 'No se pudo actualizar la recepción de llamadas.');
+      this.receptionEnabled.set(result.enabled);
+      if (!result.enabled) { this.receptionAccepting.set(false); this.receptionReason.set('Recepción pausada manualmente'); }
+      else if (this.connectionStatus() !== 'connected') await this.connectPresence();
+      else {
+        const tokenResponse = await fetch('/panel/calls/token', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+        const tokenData = await tokenResponse.json() as CallTokenResponse;
+        if (tokenResponse.ok) this.applyReceptionState(tokenData);
+      }
+    } catch (error) {
+      this.unavailableReason.set(error instanceof Error ? error.message : 'No se pudo actualizar la recepción de llamadas.');
+      this.error.set(this.unavailableReason());
+    } finally { this.receptionSaving.set(false); }
+  }
 
   async connectPresence(): Promise<boolean> {
     if (this.active() || this.incoming()) {
@@ -184,6 +212,7 @@ export class CallFeatureService {
       const data = await response.json() as CallTokenResponse & { error?: string };
       if (!response.ok || !data.token || !data.serviceUrl) throw new Error(data.error || data.reason || 'El servicio de llamadas no está disponible.');
       this.tokenData = data;
+      this.applyReceptionState(data);
       if (!data.canCall) {
         this.unavailableReason.set(data.reason || 'No se pueden recibir llamadas con esta cuenta.');
         this.status.set('idle');
@@ -255,7 +284,7 @@ export class CallFeatureService {
       try {
         const response = await fetch('/panel/calls/token', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
         const data = await response.json() as CallTokenResponse & { error?: string };
-        if (response.ok && data.token && data.serviceUrl && data.canCall) this.tokenData = data;
+        if (response.ok && data.token && data.serviceUrl && data.canCall) { this.tokenData = data; this.applyReceptionState(data); }
         this.scheduleTokenRefresh();
       } catch {
         this.scheduleTokenRefresh(60_000);
@@ -414,5 +443,12 @@ export class CallFeatureService {
     this.incoming.set(null);
     this.active.set(null);
     this.status.set('idle');
+  }
+
+  private applyReceptionState(data: CallTokenResponse): void {
+    this.receptionAvailable.set(Boolean(data.serviceUrl && data.token));
+    if (typeof data.receptionEnabled === 'boolean') this.receptionEnabled.set(data.receptionEnabled);
+    if (typeof data.receptionAccepting === 'boolean') this.receptionAccepting.set(data.receptionAccepting);
+    this.receptionReason.set(data.receptionReason || '');
   }
 }

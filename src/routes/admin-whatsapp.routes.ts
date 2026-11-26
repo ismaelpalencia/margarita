@@ -18,6 +18,11 @@ router.post("/numbers/:numberId/guided-flows", AdminWhatsAppController.toggleNum
 router.post("/numbers/:numberId/test", AdminWhatsAppController.testConnection);
 router.get("/account-health", WhatsAppCloudOperationsController.accountHealth);
 router.get("/analytics", WhatsAppCloudOperationsController.accountAnalytics);
+router.get("/flows", WhatsAppCloudOperationsController.flows);
+router.post("/flows", WhatsAppCloudOperationsController.flows);
+router.post("/flows/:flowId/publish", WhatsAppCloudOperationsController.publishFlow);
+router.get("/catalogs", WhatsAppCloudOperationsController.catalogs);
+router.get("/catalogs/:catalogId/products", WhatsAppCloudOperationsController.catalogProducts);
 router.get("/numbers/:numberId/profile", WhatsAppCloudOperationsController.profile);
 router.post("/numbers/:numberId/profile", WhatsAppCloudOperationsController.profile);
 router.get("/numbers/:numberId/health", WhatsAppCloudOperationsController.health);

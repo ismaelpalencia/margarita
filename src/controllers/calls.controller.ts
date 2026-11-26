@@ -9,6 +9,8 @@ import { contactPhoneFields, normalizePhone } from "../utils/phone";
 import { MessageService } from "../services/message.service";
 import { PushService } from "../services/push.service";
 import { logger } from "../config/logger";
+import { decideCallReception } from "../utils/call-reception";
+import { Prisma } from "@prisma/client";
 
 const activeStatuses = ["RINGING", "CONNECTING", "ACTIVE"];
 const finalStatuses = new Set(["COMPLETED", "MISSED", "REJECTED", "FAILED"]);
@@ -75,7 +77,19 @@ export class CallsController {
         const presence = await CallsController.getPresenceContext(baseClaims);
         if (!presence.canReceiveCalls) return res.status(403).json({ canCall: false, error: presence.reason });
         const token = jwt.sign({ ...baseClaims, scope: "presence" }, appConfig.calls.jwtSecret, { algorithm: "HS256", expiresIn: 300, issuer: "margarita" });
-        return res.json({ token, canCall: true, serviceUrl: appConfig.calls.publicOrigin });
+        return res.json({ token, canCall: true, serviceUrl: appConfig.calls.publicOrigin, receptionEnabled: presence.receptionEnabled, receptionAccepting: presence.receptionAccepting, receptionReason: presence.receptionReason || null });
+    }
+
+    static async setReception(req: Request, res: Response) {
+        if (req.user!.role !== UserRole.AGENT && req.user!.role !== UserRole.ADMIN) return res.sendStatus(403);
+        const enabled = req.body?.enabled;
+        if (typeof enabled !== "boolean") return res.status(400).json({ error: "Indica si la recepción debe estar activa." });
+        const workspace = await prisma.workspace.findUnique({ where: { id: req.user!.workspaceId }, select: { businessHours: true } });
+        if (!workspace) return res.sendStatus(404);
+        const current = workspace.businessHours && typeof workspace.businessHours === "object" && !Array.isArray(workspace.businessHours)
+            ? workspace.businessHours as Record<string, unknown> : {};
+        await prisma.workspace.update({ where: { id: req.user!.workspaceId }, data: { businessHours: { ...current, callReceptionEnabled: enabled } as Prisma.InputJsonValue } });
+        return res.json({ enabled });
     }
 
     static async eligibility(req: Request, res: Response) {
@@ -173,7 +187,7 @@ export class CallsController {
                     .catch((pushError) => logger.warn({ error: pushError }, "No se pudo cerrar el aviso push de llamada asignada"));
             }
             if (finalStatuses.has(status) && (!previous || !finalStatuses.has(previous.status))) {
-                const note = callEventNote(direction, status, durationSeconds);
+                const note = callEventNote(direction, status, durationSeconds, error);
                 if (note) await MessageService.createCallEventNote({ workspaceId, conversationId, body: note });
             }
             return res.status(202).json({ accepted: true, id: call.id });
@@ -211,7 +225,7 @@ export class CallsController {
     }
 
     private static async getIncomingContext(phoneNumberId: string, rawPhone: string, callId?: string) {
-        const number = await prisma.whatsAppNumber.findUnique({ where: { phoneNumberId }, include: { whatsappAccount: { include: { workspace: { select: { status: true } } } } } });
+        const number = await prisma.whatsAppNumber.findUnique({ where: { phoneNumberId }, include: { whatsappAccount: { include: { workspace: { select: { id: true, status: true, businessHoursEnabled: true, businessHours: true } } } } } });
         if (!number) return null;
         const phone = normalizePhone(rawPhone);
         const hash = contactPhoneFields(phone).phoneHash;
@@ -230,7 +244,9 @@ export class CallsController {
             ...(assignedAgentCanCall && agent ? [agent.id] : []),
             ...admins.filter((admin) => admin.allowedNumberIds.length === 0 || admin.allowedNumberIds.includes(number.id)).map((admin) => admin.id)
         ];
-        const canCall = Boolean(appConfig.calls.enabled && number.isActive && number.whatsappAccount.workspace.status === "ACTIVE" && contact?.isActive && !contact?.optOutAt && conversation && eligibleRecipientIds.length);
+        const hoursSettings = number.whatsappAccount.workspace.businessHours && typeof number.whatsappAccount.workspace.businessHours === "object" && !Array.isArray(number.whatsappAccount.workspace.businessHours) ? number.whatsappAccount.workspace.businessHours as Record<string, unknown> : {};
+        const reception = decideCallReception({ enabled: hoursSettings.callReceptionEnabled !== false, autoRejectOutsideHours: hoursSettings.autoRejectCallsOutsideHours === true, businessHoursEnabled: number.whatsappAccount.workspace.businessHoursEnabled, businessHours: hoursSettings });
+        const canCall = Boolean(appConfig.calls.enabled && reception.allowed && number.isActive && number.whatsappAccount.workspace.status === "ACTIVE" && contact?.isActive && !contact?.optOutAt && conversation && eligibleRecipientIds.length);
         return {
             workspaceId: number.whatsappAccount.workspaceId,
             conversationId: conversation?.id || "",
@@ -241,6 +257,7 @@ export class CallsController {
             apiVersion: number.whatsappAccount.apiVersion,
             metaAccessToken: decryptSecret(number.whatsappAccount.accessToken),
             canCall,
+            rejectReason: !reception.allowed ? (reception.reason === "manual" ? "La recepción de llamadas está pausada por el equipo." : "El negocio está fuera del horario de atención.") : undefined,
             assignedAgentCanCall,
             eligibleRecipientIds,
             callId
@@ -250,18 +267,28 @@ export class CallsController {
     private static async getPresenceContext(input: { userId: string; workspaceId: string; role: string }) {
         const user = await prisma.user.findFirst({
             where: { id: input.userId, workspaceId: input.workspaceId, isActive: true, role: { in: [UserRole.AGENT, UserRole.ADMIN] } },
-            select: { id: true, role: true, workspace: { select: { status: true } } }
+            select: { id: true, role: true, workspace: { select: { status: true, businessHoursEnabled: true, businessHours: true } } }
         });
         const canReceiveCalls = Boolean(appConfig.calls.enabled && user && user.role === input.role && user.workspace.status === "ACTIVE");
+        const settings = user?.workspace.businessHours && typeof user.workspace.businessHours === "object" && !Array.isArray(user.workspace.businessHours) ? user.workspace.businessHours as Record<string, unknown> : {};
+        const reception = decideCallReception({ enabled: settings.callReceptionEnabled !== false, autoRejectOutsideHours: settings.autoRejectCallsOutsideHours === true, businessHoursEnabled: user?.workspace.businessHoursEnabled === true, businessHours: settings });
         return {
             canReceiveCalls,
+            receptionEnabled: settings.callReceptionEnabled !== false,
+            receptionAccepting: reception.allowed,
+            receptionReason: reception.reason === "manual" ? "Recepción pausada manualmente" : reception.reason === "outside_hours" ? "Fuera del horario de atención" : undefined,
             reason: !appConfig.calls.enabled ? "Las llamadas están desactivadas." : !user ? "Tu usuario ya no tiene acceso al panel." : user.workspace.status !== "ACTIVE" ? "El espacio de trabajo está suspendido." : undefined
         };
     }
 }
 
-function callEventNote(direction: CallDirection, status: string, durationSeconds: number | null): string | null {
-    if (status === "MISSED") return direction === CallDirection.INBOUND ? "Llamada entrante perdida. No se pudo contestar." : "Llamada saliente perdida.";
+function callEventNote(direction: CallDirection, status: string, durationSeconds: number | null, error: string | null): string | null {
+    if (status === "MISSED") {
+        if (direction !== CallDirection.INBOUND) return "Llamada saliente perdida.";
+        if (error === "El negocio está fuera del horario de atención.") return "Llamada entrante perdida. Se rechazó automáticamente porque el negocio está fuera de horario.";
+        if (error === "La recepción de llamadas está pausada por el equipo.") return "Llamada entrante perdida. La recepción de llamadas estaba pausada.";
+        return "Llamada entrante perdida. No se pudo contestar.";
+    }
     if (status === "REJECTED") return direction === CallDirection.INBOUND ? "Llamada entrante rechazada." : "Llamada saliente rechazada.";
     if (status === "FAILED") return direction === CallDirection.INBOUND ? "No se pudo completar la llamada entrante." : "No se pudo completar la llamada saliente.";
     if (status === "COMPLETED") {

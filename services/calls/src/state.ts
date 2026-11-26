@@ -30,7 +30,11 @@ export class CallStateStore {
   private readonly calls = new Map<string, CallRecord>();
   create(call: CallRecord): void {
     if (this.calls.has(call.callId)) throw new Error("La llamada ya existe.");
-    this.calls.set(call.callId, call);
+    this.calls.set(call.callId, {
+      ...call,
+      ...(call.recipientUserIds ? { recipientUserIds: [...call.recipientUserIds] } : {}),
+      ...(call.notifiedUserIds ? { notifiedUserIds: [...call.notifiedUserIds] } : {})
+    });
   }
   get(callId: string): CallRecord | undefined { return this.calls.get(callId); }
   findByMetaCallId(metaCallId: string): CallRecord | undefined { return [...this.calls.values()].find((call) => call.metaCallId === metaCallId); }

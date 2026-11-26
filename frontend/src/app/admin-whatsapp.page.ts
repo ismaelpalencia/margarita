@@ -7,6 +7,7 @@ type ProfileData = Record<string, string | string[] | undefined>;
 interface NumberHealth { number?: Record<string, unknown>; numbers?: Array<Record<string, unknown>> }
 interface MetaAccountHealth { account?: Record<string, unknown> | null; subscribedApps?: Array<{ id?: string; name?: string }>; accountError?: string | null; subscriptionsError?: string | null; checkedAt?: string }
 interface MetaAnalytics { currency: string; pricing: { points: number; volume: number; cost: number } | null; calls: { points: number; count: number; averageDurationSeconds: number; cost: number } | null; pricingError?: string | null; callsError?: string | null; checkedAt?: string }
+interface MetaRows { data?: Array<Record<string, unknown>>; error?: string }
 
 @Component({
   selector: 'app-admin-whatsapp-page', standalone: true,
@@ -22,6 +23,13 @@ interface MetaAnalytics { currency: string; pricing: { points: number; volume: n
           @if (accountHealth(); as health) { @if (health.accountError) { <p class="wa-insight-error" role="alert">No se pudo consultar el estado WABA: {{ health.accountError }}</p> } @else if (health.account) { <div class="wa-account-health"><span><small>Cuenta</small><b>{{ metaValue(health.account, 'name') }}</b></span><span><small>Estado</small><b>{{ metaValue(health.account, 'status') }}</b></span><span><small>Salud para enviar</small><b>{{ metaValue(health.account, 'health_status') }}</b></span><span><small>Verificación</small><b>{{ metaValue(health.account, 'business_verification_status') }}</b></span><span><small>Límite compartido</small><b>{{ metaValue(health.account, 'whatsapp_business_manager_messaging_limit') }}</b></span><span><small>Apps suscritas al webhook</small><b>{{ health.subscribedApps?.length || 0 }} @if (health.subscriptionsError) { · no disponible }</b></span></div>@if (health.subscribedApps?.length) { <details><summary>Ver aplicaciones suscritas</summary><ul>@for (app of health.subscribedApps; track app.id || app.name) { <li>{{ app.name || 'Aplicación' }} · {{ app.id || 'sin ID' }}</li> }</ul></details> }@if (health.subscriptionsError) { <p class="wa-insight-error" role="alert">No se pudo verificar la suscripción al webhook: {{ health.subscriptionsError }}</p> } } } @else { <button type="button" class="secondary" [disabled]="accountHealthLoading()" (click)="loadAccountHealth()">Consultar salud de la cuenta</button> }
           <div class="wa-analytics-heading"><div><strong>Analítica Meta</strong><small>Mensajes y llamadas por periodo</small></div><div class="wa-periods"><button type="button" [class.selected]="analyticsDays() === 7" (click)="loadAnalytics(7)" [disabled]="analyticsLoading()">7 días</button><button type="button" [class.selected]="analyticsDays() === 30" (click)="loadAnalytics(30)" [disabled]="analyticsLoading()">30 días</button><button type="button" [class.selected]="analyticsDays() === 90" (click)="loadAnalytics(90)" [disabled]="analyticsLoading()">90 días</button></div></div>
           @if (analyticsLoading()) { <p class="wa-muted">Consultando analítica de Meta…</p> } @if (analytics(); as metrics) { <div class="wa-analytics-grid"><article><small>Mensajes reportados</small><b>{{ metrics.pricing?.volume ?? '—' }}</b><span>Costo {{ metrics.currency || '' }} {{ metrics.pricing ? metrics.pricing.cost.toFixed(2) : '—' }}</span>@if (metrics.pricingError) { <small class="wa-insight-error">{{ metrics.pricingError }}</small> }</article><article><small>Llamadas reportadas</small><b>{{ metrics.calls?.count ?? '—' }}</b><span>Duración promedio {{ formatDuration(metrics.calls?.averageDurationSeconds || 0) }} · costo {{ metrics.currency || '' }} {{ metrics.calls ? metrics.calls.cost.toFixed(2) : '—' }}</span>@if (metrics.callsError) { <small class="wa-insight-error">{{ metrics.callsError }}</small> }</article></div> } @if (!analytics() && !analyticsLoading()) { <button type="button" class="secondary" (click)="loadAnalytics(30)">Consultar analítica</button> }
+        </section>
+        <section class="wa-card"><header class="wa-card-heading"><div><h2>Flows y catálogo</h2><p>Consulta y crea Flows en Meta; revisa los catálogos y sus productos conectados.</p></div><div class="wa-actions"><button type="button" class="secondary" [disabled]="metaAssetsLoading()" (click)="loadMetaAssets()">{{ metaAssetsLoading() ? 'Consultando…' : 'Actualizar' }}</button></div></header>
+          <details><summary>Flows de WhatsApp</summary>
+            <form class="wa-grid" (submit)="createFlow($event)"><label>Nombre del Flow<input name="name" required maxlength="60" placeholder="Solicitud de cita"></label><label>Categoría<select name="category"><option value="APPOINTMENT_BOOKING">Reservar cita</option><option value="LEAD_GENERATION">Captar prospectos</option><option value="CUSTOMER_SUPPORT">Atención al cliente</option><option value="SURVEY">Encuesta</option><option value="OTHER">Otro</option></select></label><label>JSON del Flow (opcional)<textarea name="flowJson" rows="3" placeholder="Pega el JSON validado por Meta"></textarea></label><button [disabled]="flowSaving()">{{ flowSaving() ? 'Creando…' : 'Crear borrador en Meta' }}</button></form>
+            @if (flows()?.data?.length) { <div class="wa-meta-list">@for (flow of flows()?.data || []; track flow['id']) { <article><b>{{ metaValue(flow, 'name') }}</b><span>{{ metaValue(flow, 'status') }} · {{ metaValue(flow, 'id') }}</span>@if (flow['validation_errors']) { <small>Meta reporta validaciones pendientes.</small> }@if (metaValue(flow, 'status') === 'DRAFT') { @if (flowToPublish() === metaValue(flow, 'id')) { <small>Al publicar, Meta deja el Flow inmutable. <button type="button" class="secondary" (click)="publishFlow(metaValue(flow, 'id'))">Confirmar publicación</button><button type="button" class="secondary" (click)="flowToPublish.set('')">Cancelar</button></small> } @else { <button type="button" class="secondary" (click)="flowToPublish.set(metaValue(flow, 'id'))">Publicar…</button> } }</article> }</div> } @else if (flows()) { <p class="wa-muted">No hay Flows o Meta no devolvió resultados.</p> }
+          </details>
+          <details><summary>Catálogos conectados</summary>@if (catalogs()?.data?.length) { <div class="wa-meta-list">@for (catalog of catalogs()?.data || []; track catalog['id']) { <article><b>{{ metaValue(catalog, 'name') }}</b><span>ID {{ metaValue(catalog, 'id') }} · {{ metaValue(catalog, 'vertical') }}</span><button type="button" class="secondary" (click)="loadCatalogProducts(metaValue(catalog, 'id'))">Ver productos</button>@if (products()[metaValue(catalog, 'id')]; as items) { <ul>@for (product of items; track product['id']) { <li>{{ metaValue(product, 'name') }} · SKU {{ metaValue(product, 'retailer_id') }} · {{ metaValue(product, 'price') }} {{ metaValue(product, 'currency') }}</li> }</ul> }</article> }</div> } @else if (catalogs()) { <p class="wa-muted">No hay catálogos conectados a esta WABA.</p> }</details>
         </section>
         <section class="wa-card"><header class="wa-card-heading"><div><h2>Números</h2><p>El número activo del encabezado envía mensajes y campañas, y aparece en la bandeja.</p></div><span>{{ data()?.numbers?.length }} registrado(s)</span></header>
           @if (!data()?.numbers?.length) { <p class="wa-empty">No hay números registrados. Agrega el primero para poder enviar.</p> }
@@ -54,6 +62,10 @@ export class AdminWhatsAppPage {
   protected readonly profiles = signal<Record<string, ProfileData>>({});
   protected readonly profileSaving = signal<Record<string, boolean>>({});
   protected readonly blockLists = signal<Record<string, unknown>>({});
+  protected readonly metaAssetsLoading = signal(false); protected readonly flowSaving = signal(false);
+  protected readonly flows = signal<MetaRows | null>(null); protected readonly catalogs = signal<MetaRows | null>(null);
+  protected readonly products = signal<Record<string, Array<Record<string, unknown>>>>({});
+  protected readonly flowToPublish = signal('');
   constructor() { void this.load(); }
   protected usageById(id: string): Usage | undefined { return this.data()?.usage?.find((row) => row.numberId === id); }
   protected profileValue(id: string, field: string): string {
@@ -111,6 +123,38 @@ export class AdminWhatsAppPage {
     return [profile['about'], profile['email'], profile['address'], profile['description']].filter(Boolean).join(' · ') || 'sin datos';
   }
   protected formatBlockList(value: unknown): string { return JSON.stringify(value, null, 2); }
+  protected async loadMetaAssets(): Promise<void> {
+    this.metaAssetsLoading.set(true);
+    try {
+      const [flowResponse, catalogResponse] = await Promise.all([fetch('/admin/whatsapp/flows', { credentials: 'same-origin', headers: { Accept: 'application/json' } }), fetch('/admin/whatsapp/catalogs', { credentials: 'same-origin', headers: { Accept: 'application/json' } })]);
+      const [flowData, catalogData] = await Promise.all([flowResponse.json() as Promise<MetaRows>, catalogResponse.json() as Promise<MetaRows>]);
+      if (!flowResponse.ok) throw new Error(flowData.error || 'No se pudieron consultar los Flows.');
+      if (!catalogResponse.ok) throw new Error(catalogData.error || 'No se pudieron consultar los catálogos.');
+      this.flows.set(flowData); this.catalogs.set(catalogData); this.error.set('');
+    } catch (reason) { this.error.set(reason instanceof Error ? reason.message : 'No se pudieron consultar los recursos de Meta.'); }
+    finally { this.metaAssetsLoading.set(false); }
+  }
+  protected async createFlow(event: Event): Promise<void> {
+    event.preventDefault(); const form = event.currentTarget as HTMLFormElement; const values = new FormData(form);
+    const flowJsonText = String(values.get('flowJson') || '').trim(); let flowJson: Record<string, unknown> | undefined;
+    if (flowJsonText) { try { const parsed: unknown = JSON.parse(flowJsonText); if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error(); flowJson = parsed as Record<string, unknown>; } catch { this.error.set('El JSON debe ser un objeto válido.'); return; } }
+    this.flowSaving.set(true);
+    try {
+      const response = await fetch('/admin/whatsapp/flows', { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ name: String(values.get('name') || ''), categories: [String(values.get('category') || 'OTHER')], ...(flowJson ? { flowJson } : {}) }) });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || 'No se pudo crear el Flow en Meta.');
+      form.reset(); this.message.set('Borrador de Flow creado en Meta.'); this.error.set(''); await this.loadMetaAssets();
+    } catch (reason) { this.error.set(reason instanceof Error ? reason.message : 'No se pudo crear el Flow.'); }
+    finally { this.flowSaving.set(false); }
+  }
+  protected async publishFlow(flowId: string): Promise<void> {
+    try { const response = await fetch(`/admin/whatsapp/flows/${encodeURIComponent(flowId)}/publish`, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' } }); const result = await response.json() as { error?: string }; if (!response.ok) throw new Error(result.error || 'No se pudo publicar el Flow.'); this.flowToPublish.set(''); this.message.set('Flow publicado en Meta.'); await this.loadMetaAssets(); }
+    catch (reason) { this.error.set(reason instanceof Error ? reason.message : 'No se pudo publicar el Flow.'); }
+  }
+  protected async loadCatalogProducts(catalogId: string): Promise<void> {
+    try { const response = await fetch(`/admin/whatsapp/catalogs/${encodeURIComponent(catalogId)}/products`, { credentials: 'same-origin', headers: { Accept: 'application/json' } }); const result = await response.json() as MetaRows; if (!response.ok) throw new Error(result.error || 'No se pudieron consultar los productos.'); this.products.update((current) => ({ ...current, [catalogId]: result.data || [] })); }
+    catch (reason) { this.error.set(reason instanceof Error ? reason.message : 'No se pudieron consultar los productos.'); }
+  }
   protected async loadHealth(id: string): Promise<void> {
     this.healthLoading.update((state) => ({ ...state, [id]: true }));
     try {
