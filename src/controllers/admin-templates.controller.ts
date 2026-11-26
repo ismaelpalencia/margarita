@@ -28,6 +28,15 @@ export class AdminTemplatesController {
         return res.redirect("/panel/admin/templates");
     }
 
+    static async quality(req: Request, res: Response) {
+        try {
+            const templates = await TemplateService.getTemplateQuality(req.user!.workspaceId);
+            return res.json({ templates, checkedAt: new Date().toISOString() });
+        } catch (error) {
+            return res.status(502).json({ error: error instanceof Error ? error.message : "No se pudo consultar la calidad de las plantillas en Meta." });
+        }
+    }
+
     static async create(req: Request, res: Response) {
         const name = String(req.body?.name || "").trim().toLowerCase();
         const language = String(req.body?.language || "").trim();

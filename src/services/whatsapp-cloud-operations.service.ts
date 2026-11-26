@@ -1,10 +1,36 @@
 import axios from "axios";
 import { appConfig } from "../config/app.config";
 import { prisma } from "../config/prisma";
+import { decryptSecret } from "../utils/crypto";
 import { WhatsAppNumberService } from "./whatsapp-number.service";
 
 const PROFILE_FIELDS = ["about", "address", "description", "email", "profile_picture_url", "websites", "vertical"] as const;
 export type WhatsAppProfile = Partial<Record<(typeof PROFILE_FIELDS)[number], string | string[]>>;
+
+function numberValue(value: unknown): number {
+    const parsed = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function analyticsPoints(response: unknown): Array<Record<string, unknown>> {
+    if (!response || typeof response !== "object") return [];
+    const root = response as Record<string, unknown>;
+    const data = Array.isArray(root.data) ? root.data : [];
+    return data.flatMap((item) => item && typeof item === "object" && Array.isArray((item as Record<string, unknown>).data_points)
+        ? (item as { data_points: Array<Record<string, unknown>> }).data_points
+        : []);
+}
+
+function summarizeAnalytics(response: unknown, kind: "pricing" | "calls") {
+    const points = analyticsPoints(response);
+    const volume = points.reduce((sum, point) => sum + numberValue(point.volume), 0);
+    const count = points.reduce((sum, point) => sum + numberValue(point.count), 0);
+    const cost = points.reduce((sum, point) => sum + numberValue(point.cost), 0);
+    const weightedDuration = points.reduce((sum, point) => sum + numberValue(point.average_duration) * numberValue(point.count), 0);
+    return kind === "pricing"
+        ? { points: points.length, volume, cost }
+        : { points: points.length, count, averageDurationSeconds: count ? Math.round(weightedDuration / count) : 0, cost };
+}
 
 export function buildBlockUsersPayload(users: string[]) {
     return {
@@ -28,6 +54,53 @@ async function graph<T>(numberId: string, workspaceId: string, method: "GET" | "
 }
 
 export class WhatsAppCloudOperationsService {
+    static async accountHealth(workspaceId: string) {
+        const account = await prisma.whatsAppAccount.findUnique({ where: { workspaceId } });
+        if (!account) throw new Error("No hay cuenta de WhatsApp configurada.");
+        const accessToken = decryptSecret(account.accessToken);
+        const base = `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.businessAccountId}`;
+        const [accountResult, appsResult] = await Promise.allSettled([
+            axios.get(base, { params: { fields: "id,name,status,business_verification_status,health_status,whatsapp_business_manager_messaging_limit,currency" }, headers: { Authorization: `Bearer ${accessToken}` }, timeout: 15000 }),
+            axios.get(`${base}/subscribed_apps`, { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 15000 })
+        ]);
+        return {
+            account: accountResult.status === "fulfilled" ? accountResult.value.data : null,
+            subscribedApps: appsResult.status === "fulfilled" ? appsResult.value.data?.data || [] : [],
+            accountError: accountResult.status === "rejected" ? this.metaError(accountResult.reason) : null,
+            subscriptionsError: appsResult.status === "rejected" ? this.metaError(appsResult.reason) : null,
+            checkedAt: new Date().toISOString()
+        };
+    }
+
+    static async accountAnalytics(workspaceId: string, start: number, end: number) {
+        const account = await prisma.whatsAppAccount.findUnique({ where: { workspaceId } });
+        if (!account) throw new Error("No hay cuenta de WhatsApp configurada.");
+        const accessToken = decryptSecret(account.accessToken);
+        const base = `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.businessAccountId}`;
+        const params = { start, end, granularity: "DAILY", metric_types: "VOLUME,COST", dimensions: "PHONE,PRICING_CATEGORY" };
+        const callParams = { start, end, granularity: "DAILY", metric_types: "COUNT,AVERAGE_DURATION,COST", dimensions: "PHONE,DIRECTION" };
+        const [accountResult, pricingResult, callsResult] = await Promise.allSettled([
+            axios.get(base, { params: { fields: "currency" }, headers: { Authorization: `Bearer ${accessToken}` }, timeout: 15000 }),
+            axios.get(`${base}/pricing_analytics`, { params, headers: { Authorization: `Bearer ${accessToken}` }, timeout: 20000 }),
+            axios.get(`${base}/call_analytics`, { params: callParams, headers: { Authorization: `Bearer ${accessToken}` }, timeout: 20000 })
+        ]);
+        return {
+            currency: accountResult.status === "fulfilled" ? String(accountResult.value.data?.currency || "") : "",
+            start,
+            end,
+            pricing: pricingResult.status === "fulfilled" ? summarizeAnalytics(pricingResult.value.data, "pricing") : null,
+            calls: callsResult.status === "fulfilled" ? summarizeAnalytics(callsResult.value.data, "calls") : null,
+            pricingError: pricingResult.status === "rejected" ? this.metaError(pricingResult.reason) : null,
+            callsError: callsResult.status === "rejected" ? this.metaError(callsResult.reason) : null,
+            checkedAt: new Date().toISOString()
+        };
+    }
+
+    private static metaError(error: unknown): string {
+        if (axios.isAxiosError(error)) return error.response?.data?.error?.message || error.message;
+        return error instanceof Error ? error.message : "No se pudo consultar Meta.";
+    }
+
     static async blockUsers(workspaceId: string, numberId: string, method: "GET" | "POST" | "DELETE", users: string[] = []) {
         const number = await WhatsAppNumberService.getById(workspaceId, numberId);
         if (!number) throw new Error("Número de WhatsApp no encontrado.");

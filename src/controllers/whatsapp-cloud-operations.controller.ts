@@ -96,6 +96,22 @@ export class WhatsAppCloudOperationsController {
         catch (error) { return res.status(502).json({ error: error instanceof Error ? error.message : "meta_error" }); }
     }
 
+    static async accountHealth(req: Request, res: Response) {
+        try { return res.json(await WhatsAppCloudOperationsService.accountHealth(req.user!.workspaceId)); }
+        catch (error) { return res.status(502).json({ error: operationErrorMessage(error) }); }
+    }
+
+    static async accountAnalytics(req: Request, res: Response) {
+        const now = Math.floor(Date.now() / 1000);
+        const start = req.query.start === undefined ? now - 30 * 86400 : Number(req.query.start);
+        const end = req.query.end === undefined ? now : Number(req.query.end);
+        if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || end <= start || end > now + 3600 || end - start > 366 * 86400) {
+            return res.status(400).json({ error: "El rango de analítica debe ser válido y no exceder 366 días." });
+        }
+        try { return res.json(await WhatsAppCloudOperationsService.accountAnalytics(req.user!.workspaceId, start, end)); }
+        catch (error) { return res.status(502).json({ error: operationErrorMessage(error) }); }
+    }
+
     static async profile(req: Request, res: Response) {
         const numberId = getRequiredParam(req, "numberId");
         try {

@@ -16,6 +16,7 @@ interface TemplatesResponse {
   syncResult: number | null;
   syncError: boolean;
 }
+interface TemplateQualityResponse { templates: Array<{ name: string; language: string; qualityScore: string; status: string }> }
 
 @Component({
   selector: 'app-admin-templates-page',
@@ -47,6 +48,9 @@ interface TemplatesResponse {
               <button type="submit" [disabled]="creating()">{{ creating() ? 'Creando…' : 'Crear en Meta' }}</button>
             </form>
           </details>
+          <button type="button" class="quality-refresh" (click)="loadQuality()" [disabled]="qualityLoading()">
+            {{ qualityLoading() ? 'Consultando calidad…' : 'Consultar calidad Meta' }}
+          </button>
           <button type="button" (click)="sync()" [disabled]="syncing()">
             {{ syncing() ? 'Sincronizando…' : 'Sincronizar desde Meta' }}
           </button>
@@ -54,6 +58,8 @@ interface TemplatesResponse {
       </header>
       @if (success()) { <p class="templates-success" role="status">{{ success() }}</p> }
       @if (error()) { <p class="templates-error-banner" role="alert">{{ error() }}</p> }
+      @if (qualityError()) { <p class="templates-error-banner" role="alert">{{ qualityError() }}</p> }
+      @if (qualityCheckedAt()) { <p class="templates-quality-note" role="status">Calidad consultada directamente en Meta. No se guarda localmente. Actualizada {{ dateLabel(qualityCheckedAt()!) }}.</p> }
       <section class="templates-card" aria-labelledby="meta-templates-title">
         <div class="templates-card-heading">
           <div><h2 id="meta-templates-title">Plantillas de tu cuenta</h2>
@@ -62,10 +68,10 @@ interface TemplatesResponse {
           <span>{{ data()?.templates?.length || 0 }} plantilla(s)</span>
         </div>
         <div class="templates-table-wrap">
-          <table><thead><tr><th>Nombre</th><th>Idioma</th><th>Categoría</th><th>Estado en Meta</th><th>Última sincronización</th><th></th></tr></thead>
+          <table><thead><tr><th>Nombre</th><th>Idioma</th><th>Categoría</th><th>Estado en Meta</th><th>Calidad</th><th>Última sincronización</th><th></th></tr></thead>
             <tbody>
               @if (!data()?.templates?.length) {
-                <tr><td colspan="6" class="templates-empty">No hay plantillas sincronizadas. Adminístralas en Meta y pulsa “Sincronizar desde Meta”.</td></tr>
+                <tr><td colspan="7" class="templates-empty">No hay plantillas sincronizadas. Adminístralas en Meta y pulsa “Sincronizar desde Meta”.</td></tr>
               }
               @for (template of data()?.templates || []; track template.id) {
                 <tr>
@@ -73,6 +79,7 @@ interface TemplatesResponse {
                   <td>{{ template.language }}</td>
                   <td>{{ template.category || '—' }}@if (template.hasVariablesOrUrl) { <small class="template-chip">Variables o botón URL</small> }</td>
                   <td><span [class]="'template-status ' + template.status.toLowerCase()">{{ statusLabel(template.status) }}</span></td>
+                  <td>@if (qualityFor(template); as quality) { <span [class]="'template-status quality-' + quality.toLowerCase()">{{ qualityLabel(quality) }}</span> } @else { <span class="template-quality-empty">{{ qualityCheckedAt() ? 'Sin dato' : 'Consulta Meta' }}</span> }</td>
                   <td>{{ template.lastSyncedAt ? dateLabel(template.lastSyncedAt) : '—' }}</td>
                   <td><button type="button" class="template-delete" (click)="removeTemplate(template)">Eliminar</button></td>
                 </tr>
@@ -92,6 +99,10 @@ export class AdminTemplatesPage {
   protected readonly creating = signal(false);
   protected readonly error = signal('');
   protected readonly success = signal('');
+  protected readonly qualityLoading = signal(false);
+  protected readonly qualityError = signal('');
+  protected readonly qualityCheckedAt = signal('');
+  protected readonly qualityScores = signal<Record<string, string>>({});
 
   constructor() {
     void this.load();
@@ -99,6 +110,22 @@ export class AdminTemplatesPage {
 
   protected statusLabel(status: string): string {
     return ({ APPROVED: 'Aprobada', REJECTED: 'Rechazada', PENDING: 'Pendiente', PAUSED: 'Pausada', DISABLED: 'Deshabilitada' } as Record<string, string>)[status] || status;
+  }
+
+  protected qualityFor(template: MetaTemplate): string { return this.qualityScores()[`${template.name}:${template.language}`] || ''; }
+  protected qualityLabel(quality: string): string { return ({ GREEN: 'Buena', YELLOW: 'Atención', RED: 'Baja', UNKNOWN: 'Sin dato' } as Record<string, string>)[quality.toUpperCase()] || quality; }
+
+  protected async loadQuality(): Promise<void> {
+    this.qualityLoading.set(true);
+    this.qualityError.set('');
+    try {
+      const response = await fetch('/admin/templates/quality', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      const result = await response.json() as TemplateQualityResponse & { error?: string; checkedAt?: string };
+      if (!response.ok || !Array.isArray(result.templates)) throw new Error(result.error || 'No se pudo consultar la calidad de Meta.');
+      this.qualityScores.set(Object.fromEntries(result.templates.map((template) => [`${template.name}:${template.language}`, template.qualityScore || 'UNKNOWN'])));
+      this.qualityCheckedAt.set(result.checkedAt || new Date().toISOString());
+    } catch (reason) { this.qualityError.set(reason instanceof Error ? reason.message : 'No se pudo consultar la calidad de Meta.'); }
+    finally { this.qualityLoading.set(false); }
   }
 
   protected dateLabel(value: string): string {

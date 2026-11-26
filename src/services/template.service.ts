@@ -17,6 +17,7 @@ type MetaTemplate = {
     category?: string;
     status?: string;
     components?: unknown;
+    quality_score?: string | { score?: string };
 };
 
 function toPrismaJson(value: unknown): Prisma.InputJsonValue {
@@ -24,6 +25,23 @@ function toPrismaJson(value: unknown): Prisma.InputJsonValue {
 }
 
 export class TemplateService {
+    static async getTemplateQuality(workspaceId: string) {
+        const account = await prisma.whatsAppAccount.findUnique({ where: { workspaceId } });
+        if (!account) throw new Error("No hay cuenta de WhatsApp configurada.");
+        const accessToken = decryptSecret(account.accessToken);
+        const response = await axios.get(
+            `${appConfig.graphBaseUrl}/${account.apiVersion}/${account.businessAccountId}/message_templates`,
+            { params: { fields: "id,name,language,status,quality_score", limit: 100 }, headers: { Authorization: `Bearer ${accessToken}` }, timeout: 15000 }
+        );
+        const templates = Array.isArray(response.data?.data) ? response.data.data as MetaTemplate[] : [];
+        return templates.filter((template) => template.name && template.language).map((template) => ({
+            name: template.name!,
+            language: template.language!,
+            status: template.status || "UNKNOWN",
+            qualityScore: typeof template.quality_score === "string" ? template.quality_score : template.quality_score?.score || "UNKNOWN"
+        }));
+    }
+
     static async listTemplates(workspaceId: string) {
         return prisma.template.findMany({
             where: {

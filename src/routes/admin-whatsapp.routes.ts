@@ -16,6 +16,8 @@ router.post("/numbers/:numberId/ai", AdminWhatsAppController.toggleNumberAi);
 router.post("/numbers/:numberId/flows", AdminWhatsAppController.toggleNumberFlows);
 router.post("/numbers/:numberId/guided-flows", AdminWhatsAppController.toggleNumberGuidedFlows);
 router.post("/numbers/:numberId/test", AdminWhatsAppController.testConnection);
+router.get("/account-health", WhatsAppCloudOperationsController.accountHealth);
+router.get("/analytics", WhatsAppCloudOperationsController.accountAnalytics);
 router.get("/numbers/:numberId/profile", WhatsAppCloudOperationsController.profile);
 router.post("/numbers/:numberId/profile", WhatsAppCloudOperationsController.profile);
 router.get("/numbers/:numberId/health", WhatsAppCloudOperationsController.health);
