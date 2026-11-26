@@ -18,6 +18,7 @@ La aplicación puede recibir mensajes y estados desde el webhook firmado de Meta
 - Usuarios, roles de administrador/agente, sesiones, auditoría, reportes, configuración y respaldos.
 - IA configurable con conocimiento, modos de sugerencia/respuesta, límites, presupuesto y handoff. El negocio es responsable de validar el contenido y los resultados.
 - Llamadas entrantes y salientes de WhatsApp, sujetas a activación y configuración de Meta, Margarita, Call Service y TURN.
+- Administración de WhatsApp Flows de Meta desde la configuración de WhatsApp: consulta, creación de borradores y publicación; consulta de catálogos y productos.
 - El selector de número muestra los mensajes sin leer de cada número. Los avisos en vivo y push identifican el número asociado para distinguirlos cuando el usuario trabaja con varias líneas.
 
 No se incluye grabación ni transcripción. Meta cobra aparte mensajes y llamadas; Cloudflare TURN e IA pueden generar cargos por consumo. No se ofrece soporte 24/7 ni desarrollo a medida en los planes de lista.
@@ -59,6 +60,7 @@ La IA existente permite configurar proveedor/modelo, conocimiento de negocio, in
 
 - Meta controla aprobación/categoría de plantillas, cuotas, calidad, permisos y cargos del canal; Margarita refleja estados, no garantiza entrega final.
 - La app no crea/aprueba plantillas ni sustituye Meta Business Manager.
+- Los WhatsApp Flows de Meta todavía no se envían desde el compositor de conversaciones ni se procesan sus respuestas para guardarlas estructuradamente en contactos. El botón de ejemplo del panel solo completa el JSON del formulario; crear el borrador requiere una acción explícita y Meta sigue validando su contenido. Publicar hace que el Flow quede inmutable en Meta. Los flujos guiados del módulo de IA son una funcionalidad separada.
 - No es CRM/ERP, facturación, pasarela de pago, agenda externa ni almacenamiento documental RAG.
 - La autorización por roles se aplica al ámbito soportado por el código; no prometas permisos configurables por número si la instalación no los tiene.
 - Las preferencias de sonido y avisos push/navegador son globales por usuario; aún no existe una preferencia para silenciar un número individual sin silenciar los demás.
