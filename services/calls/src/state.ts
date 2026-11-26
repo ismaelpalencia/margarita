@@ -1,8 +1,8 @@
 export type CallPhase = "incoming" | "outgoing" | "connecting" | "active" | "terminating" | "ended" | "rejected" | "failed";
-export type CallRecord = { callId: string; metaCallId?: string; agentId: string; workspaceId: string; conversationId: string; phase: CallPhase; direction: "INBOUND" | "OUTBOUND"; createdAt: number; peer?: unknown; context?: unknown; terminationWasActive?: boolean; cancelRequested?: boolean };
+export type CallRecord = { callId: string; metaCallId?: string; agentId: string; workspaceId: string; conversationId: string; phase: CallPhase; direction: "INBOUND" | "OUTBOUND"; createdAt: number; peer?: unknown; context?: unknown; incomingSdp?: string; recipientUserIds?: string[]; notifiedUserIds?: string[]; terminationWasActive?: boolean; cancelRequested?: boolean };
 export type IncomingRecipientCandidate = { userId: string; role: string; workspaceId: string; conversationId: string; ready: boolean; assignedAgentCanCall: boolean; adminCanCall: boolean; hasActiveCall: boolean };
 
-const callEventFields = ["workspaceId", "conversationId", "agentId", "metaCallId", "localCallId", "direction", "status", "accepted", "durationSeconds", "error"] as const;
+const callEventFields = ["workspaceId", "conversationId", "agentId", "metaCallId", "localCallId", "direction", "status", "accepted", "durationSeconds", "error", "recipientUserIds", "pushUserIds", "closePushUserIds"] as const;
 
 export function safeCallEventPayload(event: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(callEventFields.filter((key) => event[key] !== undefined).map((key) => [key, event[key]]));
@@ -19,7 +19,7 @@ export function chooseIncomingRecipient(candidates: IncomingRecipientCandidate[]
 }
 
 const transitions: Record<CallPhase, CallPhase[]> = {
-  incoming: ["connecting", "rejected", "ended", "failed"],
+  incoming: ["connecting", "terminating", "rejected", "ended", "failed"],
   outgoing: ["connecting", "terminating", "rejected", "ended", "failed"],
   connecting: ["active", "terminating", "rejected", "ended", "failed"],
   active: ["terminating", "ended", "failed"],
@@ -54,4 +54,12 @@ export class CallStateStore {
     return detached;
   }
   activeForAgent(agentId: string): CallRecord | undefined { return [...this.calls.values()].find((call) => call.agentId === agentId && !["ended", "rejected", "failed"].includes(call.phase)); }
+  pendingIncomingForUser(userId: string): CallRecord[] { return [...this.calls.values()].filter((call) => call.direction === "INBOUND" && call.phase === "incoming" && !call.peer && call.recipientUserIds?.includes(userId)); }
+  claimIncoming(callId: string, userId: string, peer: unknown): CallRecord | undefined {
+    const call = this.calls.get(callId);
+    if (!call || call.direction !== "INBOUND" || call.phase !== "incoming" || call.peer || !call.recipientUserIds?.includes(userId)) return undefined;
+    call.peer = peer;
+    call.agentId = userId;
+    return call;
+  }
 }

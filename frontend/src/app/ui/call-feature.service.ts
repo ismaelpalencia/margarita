@@ -25,6 +25,7 @@ export class CallFeatureService {
 
   isToneMuted(): boolean { return this.callTone.muted(); }
   toggleToneMute(): void { this.callTone.toggleMuted(); }
+  unlockTone(): void { this.callTone.unlock(); }
 
   private socket: WebSocket | null = null;
   private tokenData: CallTokenResponse | null = null;
@@ -33,35 +34,41 @@ export class CallFeatureService {
   private timerId: number | null = null;
   private refreshId: number | null = null;
   private hangupTimeoutId: number | null = null;
+  private retryId: number | null = null;
+  private tokenRefreshId: number | null = null;
+  private retryCount = 0;
+  private manuallyDisconnected = false;
+  private connecting: Promise<boolean> | null = null;
   isConnectedFor(conversationId: string): boolean {
     return this.connectionStatus() === 'connected'
-      && this.connectionConversation() === conversationId
       && this.socket?.readyState === WebSocket.OPEN;
   }
 
-  async connectCalls(conversationId: string): Promise<boolean> {
+  connectCalls(_conversationId?: string): Promise<boolean> { return this.connectPresence(); }
+
+  async connectPresence(): Promise<boolean> {
     if (this.active() || this.incoming()) {
       this.unavailableReason.set('Termina la llamada actual antes de cambiar la conexión.');
       return false;
     }
-    if (this.isConnectedFor(conversationId)) return true;
-    if (this.connectionStatus() === 'connecting') return false;
+    if (this.isConnectedFor('')) return true;
+    if (this.connecting) return this.connecting;
+    if (this.retryId !== null) window.clearTimeout(this.retryId);
+    this.retryId = null;
     this.callTone.unlock();
-    const previousSocket = this.socket;
-    this.socket = null;
-    this.tokenData = null;
-    this.connectionConversation.set('');
-    previousSocket?.close(1000, 'Conexión de llamadas cambiada');
+    this.manuallyDisconnected = false;
     this.connectionStatus.set('connecting');
     this.status.set('loading');
-    const connected = await this.connect(conversationId);
+    this.connecting = this.openPresence();
+    const connected = await this.connecting;
+    this.connecting = null;
     if (connected) {
-      this.connectionConversation.set(conversationId);
+      this.retryCount = 0;
+      this.scheduleTokenRefresh();
       this.connectionStatus.set('connected');
       this.status.set('idle');
       return true;
     }
-    this.connectionConversation.set('');
     this.connectionStatus.set('error');
     this.status.set('idle');
     return false;
@@ -73,6 +80,11 @@ export class CallFeatureService {
       return;
     }
     this.callTone.stop();
+    this.manuallyDisconnected = true;
+    if (this.retryId !== null) window.clearTimeout(this.retryId);
+    this.retryId = null;
+    if (this.tokenRefreshId !== null) window.clearTimeout(this.tokenRefreshId);
+    this.tokenRefreshId = null;
     const socket = this.socket;
     this.socket = null;
     this.tokenData = null;
@@ -88,8 +100,11 @@ export class CallFeatureService {
     this.outgoingSetup.set(true);
     this.status.set('loading');
     try {
-      if (!this.isConnectedFor(conversationId)) throw new Error('Conecta las llamadas para esta conversación antes de llamar.');
+      if (!this.isConnectedFor(conversationId) && !await this.connectPresence()) throw new Error(this.unavailableReason());
       if (!this.tokenData?.canCall || !this.socket || this.socket.readyState !== WebSocket.OPEN) throw new Error(this.unavailableReason());
+      const eligibilityResponse = await fetch(`/panel/calls/eligibility/${encodeURIComponent(conversationId)}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      const eligibility = await eligibilityResponse.json() as { canCall?: boolean; reason?: string };
+      if (!eligibilityResponse.ok || !eligibility.canCall) throw new Error(eligibility.reason || 'No puedes llamar desde esta conversación.');
       const pc = await this.createPeerConnection();
       const offer = await pc.createOffer({ offerToReceiveAudio: true });
       await pc.setLocalDescription(offer);
@@ -162,15 +177,15 @@ export class CallFeatureService {
     if (callId) this.send({ event: 'call:mute', callId, enabled: next });
   }
 
-  private async connect(conversationId: string): Promise<boolean> {
+  private async openPresence(): Promise<boolean> {
     this.status.set('loading');
     try {
-      const response = await fetch(`/panel/calls/token?conversationId=${encodeURIComponent(conversationId)}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      const response = await fetch('/panel/calls/token', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
       const data = await response.json() as CallTokenResponse & { error?: string };
       if (!response.ok || !data.token || !data.serviceUrl) throw new Error(data.error || data.reason || 'El servicio de llamadas no está disponible.');
       this.tokenData = data;
       if (!data.canCall) {
-        this.unavailableReason.set(data.reason || 'No se puede llamar desde esta conversación.');
+        this.unavailableReason.set(data.reason || 'No se pueden recibir llamadas con esta cuenta.');
         this.status.set('idle');
         return false;
       }
@@ -185,7 +200,11 @@ export class CallFeatureService {
         const timeout = window.setTimeout(() => reject(new Error('No responde el servicio de llamadas.')), 8000);
         socket.addEventListener('message', (event) => {
           const payload = JSON.parse(String(event.data)) as Record<string, unknown>;
-          if (payload['event'] === 'call:ready') { window.clearTimeout(timeout); resolve(true); }
+          if (payload['event'] === 'call:ready') {
+            window.clearTimeout(timeout);
+            socket.send(JSON.stringify({ event: 'call:visibility', visible: document.visibilityState === 'visible' }));
+            resolve(true);
+          }
           this.handleServerEvent(payload);
         });
         socket.addEventListener('error', () => { window.clearTimeout(timeout); reject(new Error('No se pudo conectar con el servicio de llamadas.')); }, { once: true });
@@ -193,7 +212,11 @@ export class CallFeatureService {
           if (this.socket !== socket) return;
           this.connectionStatus.set('disconnected');
           this.connectionConversation.set('');
-          if (this.status() === 'incoming' || this.status() === 'active' || this.status() === 'connecting') this.fail('La conexión de llamadas se interrumpió.');
+          if (this.status() === 'incoming' || this.status() === 'active' || this.status() === 'connecting') {
+            this.fail('La conexión de llamadas se interrumpió.');
+            this.scheduleReconnect();
+          }
+          else this.scheduleReconnect();
         });
       });
       this.status.set('idle');
@@ -206,12 +229,46 @@ export class CallFeatureService {
       }
       this.unavailableReason.set(this.errorMessage(reason, 'El servicio de llamadas no está disponible.'));
       this.status.set('idle');
+      if (!/no están configuradas|desactivadas|ya no tiene acceso|no puede recibir llamadas/i.test(this.unavailableReason())) this.scheduleReconnect();
       return false;
     }
   }
 
+  onVisibilityChange(): void {
+    if (this.socket?.readyState === WebSocket.OPEN) this.socket.send(JSON.stringify({ event: 'call:visibility', visible: document.visibilityState === 'visible' }));
+  }
+
+  private scheduleReconnect(): void {
+    if (this.manuallyDisconnected || this.active() || this.incoming() || this.retryId !== null) return;
+    const delay = Math.min(30_000, 1_000 * 2 ** Math.min(this.retryCount++, 5));
+    this.retryId = window.setTimeout(() => {
+      this.retryId = null;
+      void this.connectPresence();
+    }, delay);
+  }
+
+  private scheduleTokenRefresh(delay = 240_000): void {
+    if (this.tokenRefreshId !== null) window.clearTimeout(this.tokenRefreshId);
+    this.tokenRefreshId = window.setTimeout(async () => {
+      this.tokenRefreshId = null;
+      if (this.socket?.readyState !== WebSocket.OPEN || this.manuallyDisconnected) return;
+      try {
+        const response = await fetch('/panel/calls/token', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+        const data = await response.json() as CallTokenResponse & { error?: string };
+        if (response.ok && data.token && data.serviceUrl && data.canCall) this.tokenData = data;
+        this.scheduleTokenRefresh();
+      } catch {
+        this.scheduleTokenRefresh(60_000);
+      }
+    }, delay);
+  }
+
   private handleServerEvent(event: Record<string, unknown>): void {
     switch (event['event']) {
+      case 'call:ready':
+        this.error.set('');
+        if (this.status() === 'error') this.status.set('idle');
+        break;
       case 'call:incoming': {
         const incoming = event as unknown as IncomingCall;
         this.incoming.set(incoming);

@@ -8,6 +8,7 @@ import { ToastHostComponent } from './ui/toast-host.component';
 import { IconComponent } from './ui/icon.component';
 import { ConfirmDialogHostComponent } from './ui/confirm-dialog-host.component';
 import { CallHostComponent } from './ui/call-host.component';
+import { CallFeatureService } from './ui/call-feature.service';
 
 interface ShellNumber {
   id: string;
@@ -47,6 +48,7 @@ export class App {
   protected readonly isPublic = window.location.pathname === '/panel/login';
   protected readonly mobileMenuOpen = signal(false);
   private readonly router = inject(Router);
+  protected readonly callFeature = inject(CallFeatureService);
   protected readonly pageName = signal(this.resolvePageName(window.location.pathname));
   protected readonly shell = signal<ShellData | null>(null);
   protected readonly unreadTotal = computed(() => this.shell()?.unreadTotal ?? 0);
@@ -93,6 +95,10 @@ export class App {
         this.pwaMessage.set('Margarita quedó instalada en este dispositivo.');
       });
       if ('serviceWorker' in navigator) void this.registerServiceWorker();
+      document.addEventListener('visibilitychange', () => this.callFeature.onVisibilityChange());
+      const unlockCallAudio = () => this.callFeature.unlockTone();
+      document.addEventListener('pointerdown', unlockCallAudio, { once: true, capture: true });
+      document.addEventListener('keydown', unlockCallAudio, { once: true, capture: true });
     }
     if (!this.isPublic) {
       this.updateDocumentTitle(0);
@@ -101,6 +107,7 @@ export class App {
       void this.loadNotificationPreferences();
       this.socket?.on('badges:update', (payload) => this.updateBadges(payload));
       this.socket?.on('conversation:message', (payload) => this.handleIncomingMessage(payload));
+      void this.callFeature.connectPresence();
       window.addEventListener('account:name-updated', (event) => {
         const name = (event as CustomEvent<string>).detail;
         if (typeof name === 'string') this.shell.update((current) => current ? { ...current, userName: name } : current);

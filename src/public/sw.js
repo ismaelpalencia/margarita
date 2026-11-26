@@ -17,19 +17,33 @@ self.addEventListener("push", (event) => {
     }
 
     const title = data.title || "Margarita";
+    if (data.kind === "call-ended") {
+        event.waitUntil(self.registration.getNotifications({ tag: data.tag || `marga-call-${data.callId || ""}` }).then((notifications) => notifications.forEach((notification) => notification.close())));
+        return;
+    }
     const options = {
         body: data.body || "Tienes una notificación nueva.",
         icon: "/android-chrome-192x192.png?v=2",
         badge: "/favicon-32x32.png",
         tag: data.tag || "marga-notification",
         renotify: true,
+        requireInteraction: data.kind === "call",
+        vibrate: data.kind === "call" ? [250, 120, 250, 120, 500] : undefined,
         data: {
             url: data.url || "/panel",
-            conversationId: data.conversationId || ""
+            conversationId: data.conversationId || "",
+            kind: data.kind || "message",
+            callId: data.callId || ""
         }
     };
 
-    event.waitUntil(self.registration.showNotification(title, options));
+    event.waitUntil((async () => {
+        if (data.kind === "call") {
+            const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+            if (clients.some((client) => client.visibilityState === "visible")) return;
+        }
+        await self.registration.showNotification(title, options);
+    })());
 });
 
 self.addEventListener("notificationclick", (event) => {

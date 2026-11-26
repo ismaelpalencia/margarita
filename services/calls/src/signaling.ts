@@ -18,15 +18,16 @@ type CallContext = {
   metaAccessToken: string;
   canCall: boolean;
   assignedAgentCanCall?: boolean;
+  eligibleRecipientIds?: string[];
   direction?: string;
   callId?: string;
 };
-type ClientMessage = { event?: string; callId?: string; conversationId?: string; sdp?: string; enabled?: boolean };
+type ClientMessage = { event?: string; callId?: string; conversationId?: string; sdp?: string; enabled?: boolean; visible?: boolean };
 
 const state = new CallStateStore();
 const agentSockets = new Map<string, WebSocket>();
 const socketClaims = new WeakMap<WebSocket, CallClaims>();
-const socketContexts = new WeakMap<WebSocket, CallContext>();
+const socketVisible = new WeakMap<WebSocket, boolean>();
 const socketTasks = new WeakMap<WebSocket, Promise<void>>();
 const rate = new Map<string, { at: number; count: number }>();
 const webhookTasks = new Map<string, Promise<void>>();
@@ -72,22 +73,35 @@ function lifecycleEvent(call: CallRecord, status: string, extra: Record<string, 
   return {
     workspaceId: call.workspaceId,
     conversationId: call.conversationId,
-    agentId: call.agentId,
+    agentId: call.agentId || undefined,
     metaCallId: call.metaCallId || call.callId,
     localCallId: call.callId,
     direction: call.direction,
+    recipientUserIds: call.recipientUserIds,
     status,
     ...extra
   };
 }
 
 async function contextForClaims(claims: CallClaims): Promise<CallContext> {
+  if (!claims.conversationId) throw new Error("El token no está ligado a una conversación.");
+  return contextForConversation(claims, claims.conversationId);
+}
+
+async function contextForConversation(claims: CallClaims, conversationId: string): Promise<CallContext> {
   const result = await callInternal<{ context: CallContext }>("/internal/calls/context", {
     purpose: "conversation", userId: claims.userId, workspaceId: claims.workspaceId,
-    conversationId: claims.conversationId, role: claims.role
+    conversationId, role: claims.role
   });
   if (!result.context?.canCall || result.context.agentId !== claims.userId) throw new Error("La conversación ya no está disponible para llamadas.");
   return result.context;
+}
+
+async function validatePresence(claims: CallClaims): Promise<void> {
+  const result = await callInternal<{ context: { canReceiveCalls: boolean } }>("/internal/calls/context", {
+    purpose: "presence", userId: claims.userId, workspaceId: claims.workspaceId, role: claims.role
+  });
+  if (!result.context?.canReceiveCalls) throw new Error("La cuenta ya no puede recibir llamadas.");
 }
 
 function wsToken(req: IncomingMessage): string | null {
@@ -124,41 +138,79 @@ function sendCallEvent(call: ParsedCall): void {
   void task.finally(() => { if (webhookTasks.get(call.id) === task) webhookTasks.delete(call.id); });
 }
 
+function scheduleIncomingTimeout(callId: string): void {
+  const timeout = setTimeout(() => {
+    const call = state.get(callId);
+    if (!call || call.direction !== "INBOUND" || call.phase !== "incoming") return;
+    const context = call.context as CallContext;
+    state.transition(call.callId, "terminating");
+    void performAction(context, "reject", call.metaCallId || call.callId).catch(() => undefined).finally(async () => {
+      if (state.get(call.callId)?.phase !== "terminating") return;
+      try { state.transition(call.callId, "rejected"); } catch { /* Meta pudo finalizarla primero */ }
+      await notifyMargarita(lifecycleEvent(call, "MISSED", { error: "No hubo respuesta en el panel." })).catch(() => undefined);
+      state.remove(call.callId);
+    });
+  }, 25_000);
+  timeout.unref();
+}
+
+function deliverIncoming(call: CallRecord, socket: WebSocket, notifyClaim = false): boolean {
+  const claims = socketClaims.get(socket);
+  if (!claims) return false;
+  if (call.peer === socket && claims.userId !== call.agentId) return false;
+  const claimed = call.peer === socket ? call : state.claimIncoming(call.callId, claims.userId, socket);
+  if (!claimed) return false;
+  const context = claimed.context as CallContext;
+  send(socket, "call:incoming", { callId: claimed.callId, conversationId: claimed.conversationId, phone: context.phone, sdp: claimed.incomingSdp });
+  if (notifyClaim) void notifyMargarita(lifecycleEvent(claimed, "RINGING", { recipientUserIds: claimed.recipientUserIds || [], pushUserIds: [], closePushUserIds: claimed.notifiedUserIds || [] })).catch(() => undefined);
+  return true;
+}
+
+function dispatchPendingIncoming(userId: string, socket: WebSocket): void {
+  for (const call of state.pendingIncomingForUser(userId)) {
+    const active = state.activeForAgent(userId);
+    if (active && active.callId !== call.callId) return;
+    if (deliverIncoming(call, socket, true)) return;
+  }
+}
+
 async function handleMetaCall(incoming: ParsedCall): Promise<void> {
   if (incoming.event === "connect" && incoming.direction === "USER_INITIATED") {
-    const result = await callInternal<{ context?: CallContext }>("/internal/calls/context", {
+    const result = await callInternal<{ context?: CallContext & { eligibleRecipientIds?: string[] } }>("/internal/calls/context", {
       purpose: "incoming", phoneNumberId: incoming.phoneNumberId, phone: incoming.from, callId: incoming.id
     });
     const context = result.context;
+    const recipientIds = context?.eligibleRecipientIds || [];
     const candidates = [...agentSockets.entries()].map(([userId, candidate]) => {
       const claims = socketClaims.get(candidate);
-      return { userId, socket: candidate, claims, role: claims?.role || "", workspaceId: claims?.workspaceId || "", conversationId: claims?.conversationId || "", ready: candidate.readyState === WebSocket.OPEN, assignedAgentCanCall: userId === context?.agentId && Boolean(context?.assignedAgentCanCall), adminCanCall: false, hasActiveCall: Boolean(state.activeForAgent(userId)) };
+      return { userId, socket: candidate, claims, role: claims?.role || "", workspaceId: claims?.workspaceId || "", conversationId: context?.conversationId || "", ready: candidate.readyState === WebSocket.OPEN, assignedAgentCanCall: userId === context?.agentId && Boolean(context?.assignedAgentCanCall) && recipientIds.includes(userId), adminCanCall: claims?.role === "ADMIN" && recipientIds.includes(userId), hasActiveCall: Boolean(state.activeForAgent(userId)) };
     });
-    if (context) {
-      await Promise.all(candidates.filter((candidate) => candidate.role === "ADMIN" && candidate.ready && candidate.workspaceId === context.workspaceId && candidate.conversationId === context.conversationId && !candidate.hasActiveCall).map(async (candidate) => {
-        try {
-          const current = await callInternal<{ context?: CallContext }>("/internal/calls/context", { purpose: "conversation", userId: candidate.userId, workspaceId: candidate.workspaceId, role: "ADMIN", conversationId: candidate.conversationId });
-          candidate.adminCanCall = Boolean(current.context?.canCall && current.context.agentId === candidate.userId);
-        } catch { candidate.adminCanCall = false; }
-      }));
-    }
     const selectedCandidate = context ? chooseIncomingRecipient(candidates, { workspaceId: context.workspaceId, conversationId: context.conversationId, assignedAgentId: context.agentId }) : undefined;
     const selected = selectedCandidate && candidates.find((candidate) => candidate.userId === selectedCandidate.userId);
-    if (!context?.canCall || !selected || !selected.claims || !incoming.sdp) {
-      const reason = !context?.canCall ? "conversation_not_eligible" : !incoming.sdp ? "offer_missing" : !selected ? "no_authorized_panel_open_or_already_in_call" : "no_authorized_panel_open";
+    if (!context?.canCall || !recipientIds.length || !incoming.sdp) {
+      const reason = !context?.canCall || !recipientIds.length ? "conversation_not_eligible" : "offer_missing";
       console.info("Llamada entrante rechazada por disponibilidad.", { event: incoming.event, reason });
       if (context?.phoneNumberId && context.metaAccessToken) {
         await sendMetaCallAction({ apiVersion: context.apiVersion, phoneNumberId: context.phoneNumberId, accessToken: context.metaAccessToken, action: "reject", callId: incoming.id });
       }
-      if (context) await notifyMargarita({ workspaceId: context.workspaceId, conversationId: context.conversationId, agentId: context.agentId, metaCallId: incoming.id, localCallId: incoming.id, direction: "INBOUND", status: "MISSED", error: "No había un agente disponible en el panel." });
+      if (context?.conversationId) await notifyMargarita({ workspaceId: context.workspaceId, conversationId: context.conversationId, agentId: context.agentId || undefined, metaCallId: incoming.id, localCallId: incoming.id, direction: "INBOUND", status: "MISSED", error: "No había un usuario autorizado para recibir la llamada." });
       return;
     }
-    const callContext = { ...context, agentId: selected.userId };
-    state.create({ callId: incoming.id, agentId: selected.userId, workspaceId: context.workspaceId, conversationId: context.conversationId, phase: "incoming", direction: "INBOUND", createdAt: Date.now(), peer: selected.socket, context: callContext });
-    socketContexts.set(selected.socket, callContext);
-    send(selected.socket, "call:incoming", { callId: incoming.id, conversationId: context.conversationId, phone: context.phone, sdp: incoming.sdp });
-    console.info("Llamada entrante entregada al panel.", { recipientRole: selected.claims.role, callIdSuffix: incoming.id.slice(-6) });
-    await notifyMargarita(lifecycleEvent(state.get(incoming.id)!, "RINGING"));
+    const primaryRecipient = selected?.userId || recipientIds[0];
+    const pushUserIds = selected
+      ? (socketVisible.get(selected.socket) === false ? [selected.userId] : [])
+      : recipientIds;
+    const callContext = { ...context, agentId: primaryRecipient };
+    const call: CallRecord = { callId: incoming.id, agentId: primaryRecipient, workspaceId: context.workspaceId, conversationId: context.conversationId, phase: "incoming", direction: "INBOUND", createdAt: Date.now(), peer: selected?.socket, context: callContext, incomingSdp: incoming.sdp, recipientUserIds: recipientIds, notifiedUserIds: pushUserIds };
+    state.create(call);
+    if (selected) {
+      deliverIncoming(call, selected.socket);
+      console.info("Llamada entrante entregada al panel.", { recipientRole: selected.claims?.role, callIdSuffix: call.callId.slice(-6) });
+    } else {
+      console.info("Llamada entrante en espera de que un agente o administrador abra el panel.", { callIdSuffix: call.callId.slice(-6) });
+    }
+    await notifyMargarita(lifecycleEvent(call, "RINGING", { recipientUserIds: recipientIds, pushUserIds }));
+    scheduleIncomingTimeout(call.callId);
     return;
   }
 
@@ -170,9 +222,10 @@ async function handleMetaCall(incoming: ParsedCall): Promise<void> {
   const context = current.context as CallContext;
   const socket = current.peer as WebSocket;
   if (incoming.event === "rejected" || incoming.status === "REJECTED") {
+    const rejectionStatus = current.direction === "INBOUND" && current.phase === "terminating" ? "MISSED" : "REJECTED";
     try { state.transition(current.callId, "rejected"); } catch { /* estado terminal */ }
     if (socket) send(socket, "call:rejected", { callId: current.callId, message: incoming.error || "El contacto rechazó la llamada." });
-    await notifyMargarita(lifecycleEvent(current, "REJECTED", { error: incoming.error }));
+    await notifyMargarita(lifecycleEvent(current, rejectionStatus, { error: incoming.error }));
     state.remove(current.callId);
     return;
   }
@@ -220,17 +273,20 @@ async function performAction(context: CallContext, action: MetaCallAction, callI
 
 async function handleClientMessage(socket: WebSocket, message: ClientMessage): Promise<void> {
   const claims = socketClaims.get(socket);
-  const defaultContext = socketContexts.get(socket);
-  if (!claims || !defaultContext || typeof message.event !== "string") return;
+  if (!claims || typeof message.event !== "string") return;
+
+  if (message.event === "call:visibility") {
+    socketVisible.set(socket, message.visible === true);
+    return;
+  }
 
   if (message.event === "call:start") {
-    if (message.conversationId !== claims.conversationId || typeof message.sdp !== "string" || message.sdp.length === 0 || message.sdp.length > 15_000 || state.activeForAgent(claims.userId)) throw new Error("Ya existe una llamada activa o la conversación no coincide.");
-    const freshContext = await contextForClaims(claims);
-    socketContexts.set(socket, freshContext);
+    const conversationId = typeof message.conversationId === "string" ? message.conversationId : "";
+    if (!conversationId || (claims.conversationId && conversationId !== claims.conversationId) || typeof message.sdp !== "string" || message.sdp.length === 0 || message.sdp.length > 15_000 || state.activeForAgent(claims.userId)) throw new Error("Ya existe una llamada activa o la conversación no coincide.");
+    const freshContext = await contextForConversation(claims, conversationId);
     const callId = `mgt_${crypto.randomUUID()}`;
-    const record = { callId, agentId: claims.userId, workspaceId: claims.workspaceId, conversationId: claims.conversationId, phase: "outgoing" as const, direction: "OUTBOUND" as const, createdAt: Date.now(), peer: socket, context: freshContext };
+    const record = { callId, agentId: claims.userId, workspaceId: claims.workspaceId, conversationId, phase: "outgoing" as const, direction: "OUTBOUND" as const, createdAt: Date.now(), peer: socket, context: freshContext };
     state.create(record);
-    socketContexts.set(socket, defaultContext);
     send(socket, "call:connecting", { callId, direction: "OUTBOUND" });
     try {
       await sendMetaCallAction({ apiVersion: freshContext.apiVersion, phoneNumberId: freshContext.phoneNumberId, accessToken: freshContext.metaAccessToken, to: freshContext.phone, action: "connect", sdp: message.sdp, callbackData: callId });
@@ -252,12 +308,13 @@ async function handleClientMessage(socket: WebSocket, message: ClientMessage): P
   const call = message.callId ? state.get(message.callId) : undefined;
   if (!call && message.event === "call:reject") return;
   if (!call && message.event === "call:hangup") { send(socket, "call:ended", { callId: message.callId }); return; }
-  if (!call || call.agentId !== claims.userId || call.workspaceId !== claims.workspaceId || call.conversationId !== claims.conversationId || call.peer !== socket) throw new Error("La llamada ya no está disponible.");
+  if (!call || call.agentId !== claims.userId || call.workspaceId !== claims.workspaceId || (claims.conversationId && call.conversationId !== claims.conversationId) || call.peer !== socket) throw new Error("La llamada ya no está disponible.");
   let context = call.context as CallContext;
 
   if (message.event === "call:sdp-answer" && call.direction === "INBOUND" && typeof message.sdp === "string") {
+    if (call.phase !== "incoming") throw new Error("La llamada entrante ya expiró.");
     try {
-      context = await contextForClaims(claims);
+      context = await contextForConversation(claims, call.conversationId);
       call.context = context;
       await performAction(context, "pre_accept", call.callId, message.sdp);
       state.transition(call.callId, "connecting");
@@ -312,6 +369,23 @@ function closeSocket(socket: WebSocket): void {
   const claims = socketClaims.get(socket);
   if (claims && agentSockets.get(claims.userId) === socket) agentSockets.delete(claims.userId);
   for (const call of state.detachPeer(socket)) {
+    if (call.direction === "INBOUND" && call.phase === "incoming") {
+      call.agentId = call.recipientUserIds?.[0] || call.agentId;
+      const connectedRecipients = (call.recipientUserIds || []).filter((userId) => {
+        const recipient = agentSockets.get(userId);
+        return recipient?.readyState === WebSocket.OPEN;
+      });
+      for (const userId of connectedRecipients) {
+        const recipient = agentSockets.get(userId);
+        if (recipient) dispatchPendingIncoming(userId, recipient);
+      }
+      const pushUserIds = (call.recipientUserIds || []).filter((userId) => {
+        const recipient = agentSockets.get(userId);
+        return !recipient || recipient.readyState !== WebSocket.OPEN || socketVisible.get(recipient) === false;
+      });
+      if (!call.peer) void notifyMargarita(lifecycleEvent(call, "RINGING", { recipientUserIds: call.recipientUserIds || [], pushUserIds })).catch(() => undefined);
+      continue;
+    }
     if (call.direction === "OUTBOUND" && !call.metaCallId) {
       call.cancelRequested = true;
       console.info("Llamada saliente se cancelará al recibir el identificador de Meta.", { callIdSuffix: call.callId.slice(-6) });
@@ -362,13 +436,15 @@ export function attachCallSignaling(server: Server): void {
     wss.handleUpgrade(req, socket, head, (client) => wss.emit("connection", client, req, claims));
   });
   wss.on("connection", (socket: WebSocket, _req: IncomingMessage, claims: CallClaims) => {
-    void contextForClaims(claims).then((context) => {
+    const ready = claims.scope === "presence" ? validatePresence(claims) : contextForClaims(claims);
+    void ready.then(() => {
       socketClaims.set(socket, claims);
-      socketContexts.set(socket, context);
+      socketVisible.set(socket, false);
       const previous = agentSockets.get(claims.userId);
       if (previous && previous !== socket) previous.close(4001, "Sesión de llamada reemplazada");
       agentSockets.set(claims.userId, socket);
       send(socket, "call:ready", { iceServers: [] });
+      dispatchPendingIncoming(claims.userId, socket);
       socket.on("message", (raw) => {
         try {
           const input = JSON.parse(raw.toString()) as ClientMessage;
@@ -391,7 +467,8 @@ export async function handleInternalWebhook(payload: unknown): Promise<{ accepte
 
 export async function turnResponse(token: string): Promise<{ iceServers: unknown[]; expiresAt: number }> {
   const claims = verifyCallToken(token);
-  await contextForClaims(claims);
+  if (claims.scope === "presence") await validatePresence(claims);
+  else await contextForClaims(claims);
   const turn = await getTurnCredentials();
   return { iceServers: turn.iceServers, expiresAt: turn.expiresAt };
 }

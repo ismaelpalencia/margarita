@@ -12,20 +12,14 @@ import { IconComponent } from './icon.component';
       @if (connectionPending() || feature.connectionStatus() === 'connecting') {
         <button type="button" class="call-button primary" disabled aria-label="Conectando llamadas"><span class="spinner" aria-hidden="true"></span><span>Conectando…</span></button>
       } @else if (feature.isConnectedFor(conversationId())) {
-        <span class="connection-state" role="status"><i aria-hidden="true"></i>Conectado</span>
+        <span class="connection-state" role="status"><i aria-hidden="true"></i>Recepción activa</span>
         <button type="button" class="call-button primary" [disabled]="!!feature.active() || !!feature.incoming() || busy()" (click)="start()" aria-label="Llamar al contacto">
           <ui-icon name="phone"/><span>{{ feature.active() || feature.incoming() ? 'En llamada' : busy() ? 'Preparando…' : 'Llamar' }}</span>
         </button>
-        <button type="button" class="call-button secondary" [disabled]="!!feature.active() || !!feature.incoming()" (click)="disconnect()" aria-label="Desconectar llamadas" title="Desconectar llamadas">
-          <ui-icon name="close"/><span>Desconectar</span>
-        </button>
       } @else {
-        <button type="button" class="call-button primary" [disabled]="!!feature.active() || !!feature.incoming() || busy()" (click)="connect()" aria-label="Conectar llamadas para esta conversación">
-          <ui-icon name="phone"/><span>{{ feature.connectionStatus() === 'connected' ? 'Conectar aquí' : 'Conectar llamadas' }}</span>
+        <button type="button" class="call-button secondary" [disabled]="!!feature.active() || !!feature.incoming() || busy()" (click)="connect()" aria-label="Conectar recepción global de llamadas">
+          <ui-icon name="phone"/><span>{{ feature.connectionStatus() === 'error' ? 'Reintentar conexión' : 'Conectar llamadas' }}</span>
         </button>
-      }
-      @if (feature.connectionStatus() === 'connected' && !feature.isConnectedFor(conversationId())) {
-        <span class="connection-note" role="status">Conectado a otra conversación</span>
       }
     </div>
   `,
@@ -47,8 +41,8 @@ export class CallButtonComponent {
     this.busy.set(true);
     this.connectionPending.set(true);
     try {
-      const connected = await this.feature.connectCalls(this.conversationId());
-      if (connected) this.toast.show('Llamadas conectadas para esta conversación. Ya puedes recibir llamadas mientras el panel siga abierto.', 'success');
+      const connected = await this.feature.connectPresence();
+      if (connected) this.toast.show('Recepción de llamadas conectada para tu cuenta en este panel.', 'success');
       else this.toast.show(this.feature.unavailableReason(), 'error');
     } catch (error) {
       this.toast.show(error instanceof Error ? error.message : 'No se pudo conectar el servicio de llamadas.', 'error');
@@ -65,8 +59,4 @@ export class CallButtonComponent {
     finally { this.busy.set(false); }
   }
 
-  protected disconnect(): void {
-    this.feature.disconnectCalls();
-    this.toast.show('Se desconectó la recepción de llamadas.', 'info');
-  }
 }

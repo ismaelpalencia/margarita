@@ -29,6 +29,8 @@
 .topbar { position: sticky; z-index: 4; top: 0; display: flex; min-height: 62px; align-items: center; justify-content: space-between; gap: 14px; padding: 0 30px; border-bottom: 1px solid #e7ece9; background: #fff; }
 .breadcrumbs { color: #77847d; font-size: 11px; }.breadcrumbs span { padding: 0 8px; color: #c1c9c4; }
 .topbar-actions { display: flex; align-items: center; gap: 8px; }
+.call-presence { display:inline-flex; align-items:center; gap:7px; padding:7px 10px; border:1px solid color-mix(in srgb,var(--color-success) 28%,transparent); border-radius:999px; color:var(--color-success); background:color-mix(in srgb,var(--color-success) 9%,var(--ui-surface)); font-size:11px; font-weight:700; white-space:nowrap; }
+.call-presence i { width:8px; height:8px; border-radius:50%; background:currentColor; box-shadow:0 0 0 3px color-mix(in srgb,currentColor 14%,transparent); }
 .theme-toggle { display: inline-flex; min-height: 33px; align-items: center; gap: 7px; padding: 0 10px; border: 1px solid #e1e8e3; border-radius: 7px; color: #54645a; background: #fff; font: inherit; font-size: 10px; font-weight: 600; cursor: pointer; }
 .theme-toggle:hover { border-color: #b9d4c2; color: #145b40; background: #f7faf7; }.theme-toggle>span:first-child { color: #17865a; font-size: 15px; }
 .topbar-logout { display: none; margin: 0; }
@@ -54,7 +56,7 @@
   .sidebar nav { display: none; }
   .main-area { margin-left: 0; }
   .topbar { position: static; min-height: 52px; padding: 0 12px; }
-  .topbar-actions { gap: 5px; }.topbar-actions .account-link>span:last-child, .theme-toggle-label { display: none; }
+  .topbar-actions { gap: 5px; }.topbar-actions .account-link>span:last-child, .theme-toggle-label { display: none; }.call-presence { gap:0; width:30px; height:30px; justify-content:center; padding:0; }.call-presence span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
   .sidebar-pwa { display: none; }
   .theme-toggle { width: 33px; justify-content: center; padding: 0; }.theme-toggle>span:first-child { font-size: 17px; }
   .topbar-logout { display: block; }.pwa-action { padding: 6px 7px; font-size: 9px; }

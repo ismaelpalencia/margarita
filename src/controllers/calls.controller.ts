@@ -7,12 +7,14 @@ import { prisma } from "../config/prisma";
 import { decryptSecret } from "../utils/crypto";
 import { contactPhoneFields, normalizePhone } from "../utils/phone";
 import { MessageService } from "../services/message.service";
+import { PushService } from "../services/push.service";
+import { logger } from "../config/logger";
 
 const activeStatuses = ["RINGING", "CONNECTING", "ACTIVE"];
 const finalStatuses = new Set(["COMPLETED", "MISSED", "REJECTED", "FAILED"]);
 
 type InternalContextRequest = {
-    purpose?: "conversation" | "incoming";
+    purpose?: "conversation" | "incoming" | "presence";
     userId?: string;
     workspaceId?: string;
     role?: string;
@@ -64,10 +66,16 @@ export class CallsController {
             return res.status(503).json({ canCall: false, error: "Las llamadas no están configuradas." });
         }
         const conversationId = typeof req.query.conversationId === "string" ? req.query.conversationId : "";
-        if (!conversationId) return res.status(400).json({ canCall: false, error: "Falta la conversación." });
-        const context = await CallsController.getAgentContext({ userId: req.user!.id, workspaceId: req.user!.workspaceId, role: req.user!.role, conversationId });
-        const token = jwt.sign({ userId: req.user!.id, workspaceId: req.user!.workspaceId, role: req.user!.role, conversationId }, appConfig.calls.jwtSecret, { algorithm: "HS256", expiresIn: 300, issuer: "margarita" });
-        return res.json({ token, canCall: context.canCall, serviceUrl: appConfig.calls.publicOrigin, reason: context.reason || null });
+        const baseClaims = { userId: req.user!.id, workspaceId: req.user!.workspaceId, role: req.user!.role };
+        if (conversationId) {
+            const context = await CallsController.getAgentContext({ ...baseClaims, conversationId });
+            const token = jwt.sign({ ...baseClaims, conversationId, scope: "conversation" }, appConfig.calls.jwtSecret, { algorithm: "HS256", expiresIn: 300, issuer: "margarita" });
+            return res.json({ token, canCall: context.canCall, serviceUrl: appConfig.calls.publicOrigin, reason: context.reason || null });
+        }
+        const presence = await CallsController.getPresenceContext(baseClaims);
+        if (!presence.canReceiveCalls) return res.status(403).json({ canCall: false, error: presence.reason });
+        const token = jwt.sign({ ...baseClaims, scope: "presence" }, appConfig.calls.jwtSecret, { algorithm: "HS256", expiresIn: 300, issuer: "margarita" });
+        return res.json({ token, canCall: true, serviceUrl: appConfig.calls.publicOrigin });
     }
 
     static async eligibility(req: Request, res: Response) {
@@ -108,6 +116,9 @@ export class CallsController {
             if (body.purpose === "conversation" && body.userId && body.workspaceId && body.conversationId) {
                 return res.json({ context: await CallsController.getAgentContext({ userId: body.userId, workspaceId: body.workspaceId, role: body.role || "AGENT", conversationId: body.conversationId }) });
             }
+            if (body.purpose === "presence" && body.userId && body.workspaceId) {
+                return res.json({ context: await CallsController.getPresenceContext({ userId: body.userId, workspaceId: body.workspaceId, role: body.role || "AGENT" }) });
+            }
             if (body.purpose === "incoming" && body.phoneNumberId && body.phone) {
                 return res.json({ context: await CallsController.getIncomingContext(body.phoneNumberId, body.phone, body.callId) });
             }
@@ -128,6 +139,9 @@ export class CallsController {
         const conversationId = typeof body.conversationId === "string" ? body.conversationId : "";
         const localCallId = typeof body.localCallId === "string" ? body.localCallId.slice(0, 180) : "";
         const agentId = typeof body.agentId === "string" ? body.agentId : null;
+        const recipientUserIds = Array.isArray(body.recipientUserIds) ? body.recipientUserIds.filter((id): id is string => typeof id === "string").slice(0, 50) : [];
+        const pushUserIds = Array.isArray(body.pushUserIds) ? body.pushUserIds.filter((id): id is string => typeof id === "string" && recipientUserIds.includes(id)).slice(0, 50) : [];
+        const closePushUserIds = Array.isArray(body.closePushUserIds) ? body.closePushUserIds.filter((id): id is string => typeof id === "string" && recipientUserIds.includes(id)).slice(0, 50) : [];
         if (!metaCallId || !direction || !allowedStatuses.has(status) || !workspaceId || !conversationId) return res.status(400).json({ error: "Evento de llamada inválido." });
         const acceptedAt = body.accepted === true || status === "ACTIVE" ? new Date() : null;
         const endedAt = finalStatuses.has(status) ? new Date() : null;
@@ -147,6 +161,17 @@ export class CallsController {
             const call = previous
                 ? await prisma.call.update({ where: { id: previous.id }, data: updateData })
                 : await prisma.call.upsert({ where: { metaCallId }, create: createData, update: updateData });
+            if (status === "RINGING" && pushUserIds.length) {
+                void PushService.notifyIncomingCall({ workspaceId, conversationId, callId: localCallId || metaCallId, recipientUserIds: pushUserIds })
+                    .catch((pushError) => logger.warn({ error: pushError }, "No se pudo enviar el aviso push de llamada entrante"));
+            } else if (status !== "RINGING" && recipientUserIds.length) {
+                void PushService.closeIncomingCallNotification({ workspaceId, conversationId, callId: localCallId || metaCallId, recipientUserIds })
+                    .catch((pushError) => logger.warn({ error: pushError }, "No se pudo cerrar el aviso push de llamada"));
+            }
+            if (closePushUserIds.length) {
+                void PushService.closeIncomingCallNotification({ workspaceId, conversationId, callId: localCallId || metaCallId, recipientUserIds: closePushUserIds })
+                    .catch((pushError) => logger.warn({ error: pushError }, "No se pudo cerrar el aviso push de llamada asignada"));
+            }
             if (finalStatuses.has(status) && (!previous || !finalStatuses.has(previous.status))) {
                 const note = callEventNote(direction, status, durationSeconds);
                 if (note) await MessageService.createCallEventNote({ workspaceId, conversationId, body: note });
@@ -196,8 +221,16 @@ export class CallsController {
             include: { contact: true, assignedUser: { select: { id: true, role: true, status: true, isActive: true, allowedNumberIds: true } } }
         }) : null;
         const agent = conversation?.assignedUser;
-        const canCall = Boolean(appConfig.calls.enabled && number.isActive && number.whatsappAccount.workspace.status === "ACTIVE" && contact?.isActive && !contact?.optOutAt && conversation);
         const assignedAgentCanCall = Boolean(agent?.isActive && agent.status === UserStatus.AVAILABLE && agent.role === UserRole.AGENT && (!agent.allowedNumberIds.length || agent.allowedNumberIds.includes(number.id)));
+        const admins = conversation ? await prisma.user.findMany({
+            where: { workspaceId: number.whatsappAccount.workspaceId, role: UserRole.ADMIN, isActive: true, workspace: { status: "ACTIVE" } },
+            select: { id: true, allowedNumberIds: true }
+        }) : [];
+        const eligibleRecipientIds = [
+            ...(assignedAgentCanCall && agent ? [agent.id] : []),
+            ...admins.filter((admin) => admin.allowedNumberIds.length === 0 || admin.allowedNumberIds.includes(number.id)).map((admin) => admin.id)
+        ];
+        const canCall = Boolean(appConfig.calls.enabled && number.isActive && number.whatsappAccount.workspace.status === "ACTIVE" && contact?.isActive && !contact?.optOutAt && conversation && eligibleRecipientIds.length);
         return {
             workspaceId: number.whatsappAccount.workspaceId,
             conversationId: conversation?.id || "",
@@ -209,7 +242,20 @@ export class CallsController {
             metaAccessToken: decryptSecret(number.whatsappAccount.accessToken),
             canCall,
             assignedAgentCanCall,
+            eligibleRecipientIds,
             callId
+        };
+    }
+
+    private static async getPresenceContext(input: { userId: string; workspaceId: string; role: string }) {
+        const user = await prisma.user.findFirst({
+            where: { id: input.userId, workspaceId: input.workspaceId, isActive: true, role: { in: [UserRole.AGENT, UserRole.ADMIN] } },
+            select: { id: true, role: true, workspace: { select: { status: true } } }
+        });
+        const canReceiveCalls = Boolean(appConfig.calls.enabled && user && user.role === input.role && user.workspace.status === "ACTIVE");
+        return {
+            canReceiveCalls,
+            reason: !appConfig.calls.enabled ? "Las llamadas están desactivadas." : !user ? "Tu usuario ya no tiene acceso al panel." : user.workspace.status !== "ACTIVE" ? "El espacio de trabajo está suspendido." : undefined
         };
     }
 }

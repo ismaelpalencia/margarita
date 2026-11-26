@@ -44,7 +44,7 @@ Navegador ↔ WebRTC/WSS ↔ `services/calls` ↔ Meta Calling API
 
 La integración del servicio está implementada, pero solo opera cuando se despliega y configura. El webhook público sigue pasando por Margarita y debe tener la suscripción `calls`; Calls recibe eventos internos autenticados. Meta transporta el audio; Cloudflare TURN facilita conectividad cuando la ruta directa falla, no es un SFU.
 
-Para contestar entrantes, el navegador/PWA debe estar abierto, el agente disponible y la conversación asignada/accesible. Si no hay agente conectado, la política actual rechaza en Meta y registra la llamada como perdida cuando existe conversación asociada; no se debe presentar como contestada. La llamada saliente requiere permiso de llamadas concedido. Las pruebas con número real, red/TURN y credenciales del negocio son necesarias antes de habilitar producción.
+La recepción entrante usa una sesión global del panel y no requiere tener abierta la conversación. Se prioriza al agente asignado si está disponible; un administrador con acceso al número puede atender como alternativa. Si no hay una sesión web conectada, se intenta Web Push y se mantiene la llamada pendiente brevemente para que el usuario abra la PWA; si nadie la abre dentro de la ventana de Meta, se rechaza y se registra como perdida. Push no garantiza contestar con la PWA cerrada. La llamada saliente requiere permiso de llamadas concedido. Las pruebas con número real, red/TURN y credenciales del negocio son necesarias antes de habilitar producción.
 
 No hay grabación, transcripción ni recepción negociada con PWA cerrada. Revisa [`../services/calls/README.md`](../services/calls/README.md) para variables, endpoints, límites y pruebas manuales.
 

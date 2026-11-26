@@ -14,7 +14,7 @@ Calls -- HTTPS --> Cloudflare Realtime TURN
 Navegador -- WebRTC/SRTP --> Meta; TURN solo retransmite si hace falta
 ```
 
-No se usa Cloudflare Calls SFU. Para aceptar llamadas entrantes el panel/PWA debe permanecer abierto en la conversación asignada, y el agente debe estar **Disponible**. Si el navegador no tiene una sesión conectada en esa conversación, Calls rechaza la llamada en Meta y registra el evento como perdida cuando hay una conversación asociada. El navegador debe permitir micrófono; las notificaciones no son requisito para contestar.
+No se usa Cloudflare Calls SFU. El panel establece una sesión global de recepción para agentes y administradores autorizados, así que no hace falta abrir previamente una conversación. Se prioriza al agente asignado si está disponible; de lo contrario puede atender un administrador autorizado. Si no hay una sesión web conectada, se intenta avisar por Web Push y la llamada queda pendiente brevemente para que el usuario abra la PWA. Web Push depende del navegador y no garantiza contestar con la app cerrada; si nadie abre el panel dentro de la ventana de Meta, la llamada se rechaza y se registra como perdida. El navegador debe permitir micrófono.
 
 ## Variables
 
@@ -75,11 +75,12 @@ Los endpoints internos de Margarita son `POST /internal/calls/context` y `POST /
 
 ## Flujo y limitaciones actuales
 
-- Entrante: Meta entrega `calls/connect` a Margarita; Margarita valida firma y reenvía el payload sin esperar. Calls resuelve conversación/contacto/agente por el contrato interno, muestra el modal al agente conectado y ejecuta `pre_accept`/`accept` con el SDP answer del navegador.
-- Sin agente conectado o sin conversación/permiso local: se aplica rechazo en Meta; no se presenta como contestada. Si el contacto tiene baja o está inactivo, no se ofrece al agente.
+- Entrante: Meta entrega `calls/connect` a Margarita; Margarita valida firma y reenvía el payload sin esperar. Al abrir el panel, agentes y administradores registrados mantienen una conexión global de presencia, sin tener que conectar cada conversación. Calls resuelve el contacto y ofrece la llamada primero al agente asignado disponible y después a una persona administradora autorizada.
+- Si no hay conexión WebSocket activa, la llamada queda en espera hasta 25 segundos y se envía Web Push a las personas autorizadas con suscripción. Al abrir el enlace, la PWA recibe la llamada pendiente. Meta permite aproximadamente 30–60 segundos para aceptar; una notificación puede llegar tarde o el sistema operativo puede suspender el navegador, así que Web Push es un respaldo y no garantiza respuesta cuando el panel está cerrado.
+- Si no existe una conversación abierta, no hay una persona autorizada, el contacto tiene baja o está inactivo, Calls rechaza la llamada. Las llamadas pendientes que expiran se registran como perdidas y nunca como contestadas.
 - Saliente: el agente disponible inicia WebRTC desde la conversación y Calls manda `action=connect` a Meta. Requiere permiso de llamada previamente concedido por el usuario. El `biz_opaque_callback_data` asocia el webhook de respuesta con la llamada interna.
 - Se guarda estado, dirección, agente, tiempos, duración y error acotado. Las relaciones `Call` no escriben en tablas cifradas ni guardan SDP/tokens.
-- No se implementan grabación ni transcripción. No hay negociación si la PWA está cerrada o si el agente no tiene abierta la conversación asignada. El soporte para recibir llamadas desde cualquier pantalla requiere añadir presencia global/dispatch persistente.
+- No se implementan grabación ni transcripción. El panel puede recibir llamadas desde cualquier pantalla mientras su sesión WebSocket esté conectada. Web Push avisa en segundo plano, pero para negociar y contestar la PWA debe abrirse antes de que expire el tiempo de Meta. No se puede garantizar una experiencia telefónica con la aplicación cerrada.
 
 ## Ejecutar y probar
 

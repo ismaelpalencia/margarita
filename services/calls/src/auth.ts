@@ -5,7 +5,8 @@ export type CallClaims = JwtPayload & {
   userId: string;
   workspaceId: string;
   role: "AGENT" | "ADMIN";
-  conversationId: string;
+  conversationId?: string;
+  scope?: "presence" | "conversation";
 };
 
 export function hasInternalSecret(secret: string, authorization: string | undefined): boolean {
@@ -18,7 +19,7 @@ export function hasInternalSecret(secret: string, authorization: string | undefi
 export function verifyCallToken(token: string, secret = process.env.CALLS_JWT_SECRET || ""): CallClaims {
   if (secret.length < 32) throw new Error("CALLS_JWT_SECRET no está configurado.");
   const claims = jwt.verify(token, secret, { algorithms: ["HS256"] });
-  if (typeof claims === "string" || !claims.userId || !claims.workspaceId || !claims.conversationId || !["AGENT", "ADMIN"].includes(String(claims.role))) {
+  if (typeof claims === "string" || !claims.userId || !claims.workspaceId || !["AGENT", "ADMIN"].includes(String(claims.role)) || (claims.scope !== "presence" && !claims.conversationId)) {
     throw new Error("Token de llamada inválido.");
   }
   return claims as CallClaims;

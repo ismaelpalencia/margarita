@@ -70,6 +70,7 @@
   </aside>
   <main class="main-area">
     <header class="topbar"><div class="breadcrumbs">Panel <span>/</span> {{ pageName() }}</div><div class="topbar-actions">
+      @if (callFeature.connectionStatus() === 'connected') { <span class="call-presence" role="status"><i aria-hidden="true"></i><span>Recepción de llamadas activa</span></span> }
       <button class="theme-toggle" type="button" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Activar modo claro' : 'Activar modo nocturno'" [title]="darkMode() ? 'Modo claro' : 'Modo nocturno'"><span aria-hidden="true">{{ darkMode() ? '☀' : '☾' }}</span><span class="theme-toggle-label">{{ darkMode() ? 'Claro' : 'Nocturno' }}</span></button>
       <a class="account-link" [href]="isAgent ? '/panel/agent/account/profile' : '/panel/admin/account/profile'"><span class="avatar">{{ userInitial() }}</span><span>Mi cuenta</span></a>
       <form action="/auth/logout" method="post" class="topbar-logout"><button type="submit">Salir</button></form>

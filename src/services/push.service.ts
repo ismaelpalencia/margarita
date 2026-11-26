@@ -27,6 +27,9 @@ type NotificationPayload = {
     url: string;
     conversationId: string;
     tag?: string;
+    kind?: "call" | "call-ended";
+    callId?: string;
+    ttl?: number;
 };
 
 function absoluteUrl(path: string): string {
@@ -110,7 +113,7 @@ export class PushService {
                         },
                         JSON.stringify(payload),
                         {
-                            TTL: 60 * 60,
+                            TTL: payload.ttl ?? 60 * 60,
                             urgency: "high"
                         }
                     );
@@ -216,6 +219,86 @@ export class PushService {
             });
         }
 
+        return sent;
+    }
+
+    static async notifyIncomingCall(params: {
+        workspaceId: string;
+        conversationId: string;
+        callId: string;
+        recipientUserIds: string[];
+    }) {
+        if (!configured || !params.recipientUserIds.length) return 0;
+        const [conversation, recipients] = await Promise.all([
+            prisma.conversation.findFirst({
+                where: { id: params.conversationId, workspaceId: params.workspaceId },
+                select: { contact: { select: { customName: true, profileName: true, phone: true } } }
+            }),
+            prisma.user.findMany({
+                where: { id: { in: params.recipientUserIds }, workspaceId: params.workspaceId, isActive: true, role: { in: [UserRole.ADMIN, UserRole.AGENT] } },
+                select: { id: true, role: true }
+            })
+        ]);
+        if (!conversation || !recipients.length) return 0;
+        const subscriptions = await prisma.pushSubscription.findMany({
+            where: { workspaceId: params.workspaceId, userId: { in: recipients.map((user) => user.id) } },
+            select: { id: true, endpoint: true, p256dh: true, auth: true, userId: true }
+        });
+        const name = conversation.contact.customName || conversation.contact.profileName || conversation.contact.phone;
+        let sent = 0;
+        for (const user of recipients) {
+            const userSubscriptions = subscriptions.filter((subscription) => subscription.userId === user.id);
+            if (!userSubscriptions.length) continue;
+            const url = user.role === UserRole.ADMIN
+                ? `/panel/admin/conversations/${params.conversationId}`
+                : `/panel/agent/conversations/${params.conversationId}`;
+            sent += await this.send(userSubscriptions, {
+                title: "Llamada entrante",
+                body: `${name} te está llamando. Toca para abrir Margarita.`,
+                url: absoluteUrl(url),
+                conversationId: params.conversationId,
+                tag: `marga-call-${params.callId}`,
+                kind: "call",
+                callId: params.callId,
+                ttl: 30
+            });
+        }
+        return sent;
+    }
+
+    static async closeIncomingCallNotification(params: {
+        workspaceId: string;
+        conversationId: string;
+        callId: string;
+        recipientUserIds: string[];
+    }) {
+        if (!configured || !params.recipientUserIds.length) return 0;
+        const users = await prisma.user.findMany({
+            where: { id: { in: params.recipientUserIds }, workspaceId: params.workspaceId, isActive: true, role: { in: [UserRole.ADMIN, UserRole.AGENT] } },
+            select: { id: true, role: true }
+        });
+        const subscriptions = await prisma.pushSubscription.findMany({
+            where: { workspaceId: params.workspaceId, userId: { in: users.map((user) => user.id) } },
+            select: { id: true, endpoint: true, p256dh: true, auth: true, userId: true }
+        });
+        let sent = 0;
+        for (const user of users) {
+            const userSubscriptions = subscriptions.filter((subscription) => subscription.userId === user.id);
+            if (!userSubscriptions.length) continue;
+            const url = user.role === UserRole.ADMIN
+                ? `/panel/admin/conversations/${params.conversationId}`
+                : `/panel/agent/conversations/${params.conversationId}`;
+            sent += await this.send(userSubscriptions, {
+                title: "Llamada actualizada",
+                body: "La llamada entrante ya no está disponible.",
+                url: absoluteUrl(url),
+                conversationId: params.conversationId,
+                tag: `marga-call-${params.callId}`,
+                kind: "call-ended",
+                callId: params.callId,
+                ttl: 30
+            });
+        }
         return sent;
     }
 

@@ -124,4 +124,4 @@ El índice y estado de la documentación están en [`docs/README.md`](docs/READM
 
 ## Límites conocidos
 
-La disponibilidad depende de Meta y de la infraestructura/configuración de cada instalación. El estado reportado por Meta no garantiza entrega al usuario final. La búsqueda de algunos datos cifrados es exacta, no parcial. La recepción entrante de llamadas requiere PWA activa en la conversación asignada. No hay RAG, grabación ni transcripción en esta versión. La política de privacidad, conservación y facturación debe acordarse con cada negocio.
+La disponibilidad depende de Meta y de la infraestructura/configuración de cada instalación. El estado reportado por Meta no garantiza entrega al usuario final. La búsqueda de algunos datos cifrados es exacta, no parcial. La recepción entrante usa una sesión global del panel para agentes y administradores autorizados; Web Push es un aviso complementario y no garantiza atender con la PWA cerrada. No hay RAG, grabación ni transcripción en esta versión. La política de privacidad, conservación y facturación debe acordarse con cada negocio.
