@@ -59,6 +59,7 @@ export async function activeNumberMiddleware(
          * pintar una página (GET): en un POST la respuesta es un redirect.
          */
         res.locals.unreadTotal = 0;
+        res.locals.unreadByNumber = {};
 
         res.locals.notifySoundEnabled = Boolean(me?.notifySoundEnabled);
         res.locals.notifyBrowserEnabled = Boolean(me?.notifyBrowserEnabled);
@@ -79,9 +80,23 @@ export async function activeNumberMiddleware(
                             ? req.user!.id
                             : undefined
                 });
+                if (req.path === "/panel/shell") {
+                    const counts = await prisma.conversation.groupBy({
+                        by: ["whatsappNumberId"],
+                        where: {
+                            workspaceId: req.user!.workspaceId,
+                            whatsappNumberId: { in: numbers.filter((number) => number.isActive).map((number) => number.id) },
+                            unreadCount: { gt: 0 },
+                            ...(req.user!.role === UserRole.AGENT ? { assignedUserId: req.user!.id } : {})
+                        },
+                        _sum: { unreadCount: true }
+                    });
+                    res.locals.unreadByNumber = Object.fromEntries(counts.map((row) => [row.whatsappNumberId, row._sum.unreadCount ?? 0]));
+                }
             } catch {
                 /** Si la base todavía no tiene la columna, la página sigue. */
                 res.locals.unreadTotal = 0;
+                res.locals.unreadByNumber = {};
             }
         }
 
@@ -93,6 +108,7 @@ export async function activeNumberMiddleware(
         res.locals.activeNumbers = [];
         res.locals.currentPath = req.originalUrl;
         res.locals.unreadTotal = 0;
+        res.locals.unreadByNumber = {};
 
         return next();
     }

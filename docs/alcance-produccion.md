@@ -1,6 +1,6 @@
 # Margarita: alcance de producto y producción
 
-**Revisión:** 25 de noviembre de 2026. Este documento describe el estado del código del repositorio; no verifica el estado de un despliegue concreto. La disponibilidad de WhatsApp, llamadas, IA y almacenamiento depende de las cuentas y servicios configurados en cada instalación.
+**Revisión:** 26 de noviembre de 2026. Este documento describe el estado del código del repositorio; no verifica el estado de un despliegue concreto. La disponibilidad de WhatsApp, llamadas, IA y almacenamiento depende de las cuentas y servicios configurados en cada instalación.
 
 Los precios y límites comerciales se mantienen en [`precios.md`](precios.md). Para dar de alta un negocio usa [`configuracion-por-negocio.md`](configuracion-por-negocio.md).
 
@@ -18,6 +18,7 @@ La aplicación puede recibir mensajes y estados desde el webhook firmado de Meta
 - Usuarios, roles de administrador/agente, sesiones, auditoría, reportes, configuración y respaldos.
 - IA configurable con conocimiento, modos de sugerencia/respuesta, límites, presupuesto y handoff. El negocio es responsable de validar el contenido y los resultados.
 - Llamadas entrantes y salientes de WhatsApp, sujetas a activación y configuración de Meta, Margarita, Call Service y TURN.
+- El selector de número muestra los mensajes sin leer de cada número. Los avisos en vivo y push identifican el número asociado para distinguirlos cuando el usuario trabaja con varias líneas.
 
 No se incluye grabación ni transcripción. Meta cobra aparte mensajes y llamadas; Cloudflare TURN e IA pueden generar cargos por consumo. No se ofrece soporte 24/7 ni desarrollo a medida en los planes de lista.
 
@@ -60,6 +61,7 @@ La IA existente permite configurar proveedor/modelo, conocimiento de negocio, in
 - La app no crea/aprueba plantillas ni sustituye Meta Business Manager.
 - No es CRM/ERP, facturación, pasarela de pago, agenda externa ni almacenamiento documental RAG.
 - La autorización por roles se aplica al ámbito soportado por el código; no prometas permisos configurables por número si la instalación no los tiene.
+- Las preferencias de sonido y avisos push/navegador son globales por usuario; aún no existe una preferencia para silenciar un número individual sin silenciar los demás.
 - Algunos campos cifrados permiten búsqueda exacta, no búsqueda parcial general.
 - Campañas requieren base legal/consentimiento, plantillas aprobadas, exclusiones y supervisión humana.
 - WhatsApp, proveedor de IA, Meta Calling, Cloudflare TURN, hosting y almacenamiento pueden cambiar sus límites y tarifas.

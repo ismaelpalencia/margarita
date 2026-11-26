@@ -14,6 +14,7 @@ interface ShellNumber {
   id: string;
   displayName: string | null;
   phoneNumber: string;
+  unreadCount: number;
 }
 
 interface ShellData {
@@ -67,7 +68,7 @@ export class App {
   private readonly isMobile = this.isIos || (typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent));
   private readonly isStandalone = typeof window !== 'undefined' && (window.matchMedia?.('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true);
   private socket: ReturnType<NonNullable<Window['io']>> | null = null;
-  private latestBadges: { dashboardUnread: number; unassigned: number } | null = null;
+  private latestBadges: { dashboardUnread: number; unassigned: number; unreadByNumber: Record<string, number> } | null = null;
   private soundNotifications = false;
   private notificationSoundType: NotificationSoundType = 'classic';
   private browserNotifications = false;
@@ -239,7 +240,8 @@ export class App {
       this.shell.set(this.latestBadges ? {
         ...data,
         unreadTotal: this.latestBadges.dashboardUnread,
-        unassignedCount: this.latestBadges.unassigned
+        unassignedCount: this.latestBadges.unassigned,
+        numbers: data.numbers.map((number) => ({ ...number, unreadCount: this.latestBadges?.unreadByNumber[number.id] ?? number.unreadCount }))
       } : data);
       this.updateDocumentTitle(this.latestBadges?.dashboardUnread ?? data.unreadTotal ?? 0);
     } catch {
@@ -265,10 +267,11 @@ export class App {
 
   private updateBadges(payload: unknown): void {
     if (!payload || typeof payload !== 'object') return;
-    const badges = payload as { dashboardUnread?: number; unassigned?: number };
+    const badges = payload as { dashboardUnread?: number; unassigned?: number; unreadByNumber?: Record<string, number> };
     this.latestBadges = {
       dashboardUnread: Number(badges.dashboardUnread) || 0,
-      unassigned: Number(badges.unassigned) || 0
+      unassigned: Number(badges.unassigned) || 0,
+      unreadByNumber: badges.unreadByNumber || {}
     };
     this.updateDocumentTitle(this.latestBadges.dashboardUnread);
     const current = this.shell();
@@ -276,7 +279,8 @@ export class App {
     this.shell.set({
       ...current,
       unreadTotal: this.latestBadges.dashboardUnread,
-      unassignedCount: this.latestBadges.unassigned
+      unassignedCount: this.latestBadges.unassigned,
+      numbers: current.numbers.map((number) => ({ ...number, unreadCount: this.latestBadges?.unreadByNumber[number.id] ?? number.unreadCount }))
     });
   }
 
@@ -284,25 +288,31 @@ export class App {
     if (!payload || typeof payload !== 'object') return;
     const event = payload as {
       conversationId?: string;
+      whatsappNumberId?: string;
       contact?: { name?: string };
       message?: { direction?: string; body?: string | null; type?: string };
     };
     if (event.message?.direction !== 'IN' || !event.conversationId) return;
 
+    const shell = this.shell();
+    if (shell && event.whatsappNumberId && !shell.numbers.some((number) => number.id === event.whatsappNumberId)) return;
+
     const currentConversation = window.location.pathname.match(/\/conversations\/([^/]+)/)?.[1];
     if (currentConversation === event.conversationId) return;
 
     const name = event.contact?.name || 'Contacto';
+    const number = shell?.numbers.find((row) => row.id === event.whatsappNumberId);
+    const numberName = number ? number.displayName || number.phoneNumber : '';
     const body = event.message.body || `[${event.message.type || 'MENSAJE'}]`;
     const href = `${this.isAgent ? '/panel/agent' : '/panel/admin'}/conversations/${encodeURIComponent(event.conversationId)}`;
-    this.liveToast.set({ title: `Nuevo mensaje · ${name}`, body, href });
+    this.liveToast.set({ title: `Nuevo mensaje · ${name}`, body: numberName ? `${numberName} · ${body}` : body, href });
     if (this.toastTimer !== null) window.clearTimeout(this.toastTimer);
     this.toastTimer = window.setTimeout(() => this.liveToast.set(null), 7000);
 
     if (this.soundNotifications) playNotificationSound(this.notificationSoundType);
     if (this.browserNotifications && document.hidden && 'Notification' in window && Notification.permission === 'granted') {
       try {
-        const notification = new Notification(`Nuevo mensaje · ${name}`, { body, tag: `margarita-${event.conversationId}` });
+        const notification = new Notification(`Nuevo mensaje · ${name}${numberName ? ` · ${numberName}` : ''}`, { body, tag: `margarita-${event.conversationId}` });
         notification.onclick = () => {
           window.focus();
           window.location.href = href;

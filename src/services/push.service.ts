@@ -155,6 +155,12 @@ export class PushService {
     }) {
         if (!configured) return 0;
 
+        const number = await prisma.whatsAppNumber.findFirst({
+            where: { id: params.whatsappNumberId, whatsappAccount: { workspaceId: params.workspaceId } },
+            select: { displayName: true, phoneNumber: true }
+        });
+        const numberLabel = number?.displayName || number?.phoneNumber || "Número de WhatsApp";
+
         const recipients = await prisma.user.findMany({
             where: {
                 workspaceId: params.workspaceId,
@@ -194,7 +200,7 @@ export class PushService {
 
         if (subscriptions.length === 0) return 0;
 
-        const body = (params.body || "Nuevo mensaje").slice(0, 140);
+        const body = `${numberLabel} · ${params.body || "Nuevo mensaje"}`.slice(0, 140);
 
         let sent = 0;
 

@@ -16,18 +16,20 @@ export class PanelShellController {
     static data(req: Request, res: Response) {
         const numbers = (res.locals.activeNumbers || []) as ShellNumber[];
         const active = res.locals.activeNumber as ShellNumber | null;
+        const activeNumbers = numbers.filter((number) => number.isActive);
+        const unreadByNumber = (res.locals.unreadByNumber || {}) as Record<string, number>;
 
         return res.json({
             role: req.user!.role,
             userName: req.user!.name,
             collectionsEnabled: Boolean(res.locals.collectionsEnabled),
             activeNumberId: active?.id || null,
-            numbers: numbers
-                .filter((number) => number.isActive)
+            numbers: activeNumbers
                 .map(({ id, displayName, phoneNumber }) => ({
                     id,
                     displayName,
-                    phoneNumber
+                    phoneNumber,
+                    unreadCount: unreadByNumber[id] || 0
                 })),
             unreadTotal: Number(res.locals.unreadTotal) || 0,
             unassignedCount: Number(res.locals.unassignedCount) || 0

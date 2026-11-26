@@ -13,6 +13,7 @@ Centraliza conversaciones que antes se atendían desde teléfonos o cuentas indi
 - Mensajes de texto y medios, plantillas aprobadas por Meta, respuestas rápidas, botones y listas.
 - Campañas con plantillas, cola, pausa y reintentos sujetos a las reglas de Meta.
 - Paneles de administración y agente, equipo, sesiones, reportes, bitácora y respaldos.
+- Selector de número con contadores de mensajes sin leer por número; los avisos en pantalla y push identifican el número que recibió el mensaje.
 - Flujos guiados y módulos de IA configurables: conocimiento, sugerencias y respuestas automáticas con límites/handoff según configuración.
 - Llamadas entrantes y salientes de WhatsApp cuando se configura el Call Service, Meta Calling y Cloudflare TURN. El audio viaja por WebRTC/SRTP entre navegador y Meta; TURN solo retransmite cuando hace falta.
 
@@ -25,6 +26,7 @@ Las llamadas requieren que la PWA esté abierta, el agente disponible y la conve
 - Meta factura por separado mensajes y llamadas. Cloudflare TURN e IA pueden generar cargos por uso; no se promete consumo ilimitado.
 - Margarita no es un CRM/ERP, pasarela de pagos, servicio de reservas ni herramienta de envío sin consentimiento. No crea ni aprueba las plantillas de Meta.
 - Roles aplican al espacio/instalación; no prometas una matriz configurable de permisos por número si no está implementada.
+- Las preferencias de sonido y avisos del navegador son generales por usuario. Los avisos siguen llegando para todos los números que le corresponden; el selector los distingue por número y contador, pero todavía no permite silenciar cada número por separado.
 
 ## Arquitectura
 

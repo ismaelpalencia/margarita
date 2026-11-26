@@ -18,7 +18,7 @@
           <input type="hidden" name="redirectTo" value="">
           <select name="numberId" aria-label="Número activo">
             @for (number of data.numbers; track number.id) {
-              <option [value]="number.id" [selected]="number.id === data.activeNumberId">{{ number.displayName || number.phoneNumber }}</option>
+              <option [value]="number.id" [selected]="number.id === data.activeNumberId">{{ number.displayName || number.phoneNumber }}{{ number.unreadCount ? ' · ' + number.unreadCount + ' sin leer' : '' }}</option>
             }
           </select>
         </form>

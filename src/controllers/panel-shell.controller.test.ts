@@ -31,6 +31,7 @@ test("devuelve el número activo y solo los números encendidos", () => {
             { id: "n3", displayName: "Cobranza", phoneNumber: "5233333333333", isActive: true }
         ],
         unreadTotal: 4,
+        unreadByNumber: { n1: 3, n3: 6 },
         unassignedCount: 2
     });
 
@@ -39,8 +40,8 @@ test("devuelve el número activo y solo los números encendidos", () => {
     assert.equal(body.unreadTotal, 4);
     assert.equal(body.unassignedCount, 2);
     assert.deepEqual(body.numbers, [
-        { id: "n1", displayName: "Ventas", phoneNumber: "5211111111111" },
-        { id: "n3", displayName: "Cobranza", phoneNumber: "5233333333333" }
+        { id: "n1", displayName: "Ventas", phoneNumber: "5211111111111", unreadCount: 3 },
+        { id: "n3", displayName: "Cobranza", phoneNumber: "5233333333333", unreadCount: 6 }
     ]);
 });
 
