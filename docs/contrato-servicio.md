@@ -1,5 +1,8 @@
 # Contrato de prestación de servicios — Margarita
 
+> **Precio histórico no vigente.** Este borrador conserva la oferta de $1,299 MXN/mes de una etapa anterior. Antes de contratar, usa los planes y condiciones vigentes de `docs/precios.md` y revisa el contrato con un abogado.
+
+
 > **Versión pública resumida.** El contrato operativo con anexos de piloto,
 > compromiso, datos y accesos se mantiene **fuera de Git**, en una carpeta
 > privada, porque se llena con datos de cada cliente. Esta versión sirve para

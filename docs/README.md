@@ -13,7 +13,7 @@ Usa `alcance-produccion.md` para el estado funcional, `precios.md` para oferta c
 | [`configuracion-por-negocio.md`](configuracion-por-negocio.md) | Checklist accionable de alta y puesta en marcha | vigente | 2026-11-25, creado |
 | [`contrato-servicio.md`](contrato-servicio.md) | Borrador contractual sujeto a revisión legal | legal | No actualizado en este bloque; requiere revisión antes de usar |
 | [`decision-runtime.md`](decision-runtime.md) | Decisión histórica sobre runtimes y servicios | histórico | Clasificación 2026-11-25 |
-| [`demanda-workana.md`](demanda-workana.md) | Investigación comercial sobre solicitudes de Workana | comercial | 2026-11-25, nota de precios históricos añadida |
+| [`archive/demanda-workana.md`](archive/demanda-workana.md) | Investigación comercial histórica sobre solicitudes de Workana | histórico | Archivado 2026-11-26 por precios/alcance supersedidos |
 | [`demo-comercio.md`](demo-comercio.md) | Preparación de workspace/datos de demostración | operativo | Clasificación 2026-11-25; confirmar configuración antes de usar |
 | [`demo-por-cliente.md`](demo-por-cliente.md) | Límites y recomendaciones para demos por prospecto | operativo | Clasificación 2026-11-25; revisar aislamiento vigente |
 | [`demo-video.md`](demo-video.md) | Guion de video de demostración | comercial | Clasificación 2026-11-25; verificar capturas antes de publicar |

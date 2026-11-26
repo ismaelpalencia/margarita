@@ -12,5 +12,6 @@ No uses sus precios, planes, rutas, comandos ni planes de trabajo como instrucci
 | `nuevo_roadmap.md` | Roadmap de interacción con supuestos comerciales reemplazados | [`../alcance-produccion.md`](../alcance-produccion.md) |
 | `plan-interactivos.md` | Plan de sprints cerrado y supersedido | [`../alcance-produccion.md`](../alcance-produccion.md) |
 | `bitacora-batches.md` | Bitácora histórica de batches ya integrados | [`../alcance-produccion.md`](../alcance-produccion.md) |
+| `demanda-workana.md` | Investigación comercial con precios y alcance supersedidos | [`../precios.md`](../precios.md) |
 
 La clasificación no borra ni cambia el contenido histórico. Los documentos legales, de seguridad, privacidad, contrato, facturación y runbook se mantienen fuera de este archivo.
