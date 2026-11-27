@@ -16,7 +16,7 @@ La aplicación puede recibir mensajes y estados desde el webhook firmado de Meta
 - Contactos, etiquetas, bajas, consentimiento declarado, bloqueo y acciones masivas.
 - Mensajes de texto y multimedia, plantillas aprobadas por Meta, botones/listas cuando corresponden, respuestas rápidas y campañas controladas.
 - Usuarios, roles de administrador/agente, sesiones, auditoría, reportes, configuración y respaldos.
-- Preferencia de tamaño de letra para mejorar legibilidad sin escalar las imágenes; las vistas previas de conversación usan el alto visible de la pantalla.
+- Preferencia Normal/Grande/Muy grande con escala más perceptible en mensajes y controles de escritura, sin escalar imágenes. El panel de conversación usa más altura disponible y los controles para grabar/revisar audio se mantienen compactos; las vistas previas usan el alto visible de la pantalla.
 - Respuesta automática opcional cuando no hay agentes habilitados para el número en estado disponible/en atención ni administradores con sesión activa, con activación manual para ausencias planificadas. Tiene mensaje y límite de repetición separados del horario comercial; si la regla de fuera de horario ya respondió, se evita duplicar mensajes.
 - IA configurable con conocimiento, modos de sugerencia/respuesta, límites, presupuesto y handoff. El negocio es responsable de validar el contenido y los resultados.
 - Llamadas entrantes y salientes de WhatsApp, sujetas a activación y configuración de Meta, Margarita, Call Service y TURN.

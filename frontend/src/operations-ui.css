@@ -102,24 +102,27 @@ html[data-theme="dark"] .page-content app-dashboard-page .error-mark { color: #f
 .page-content app-agent-conversation-page .detail-pill { padding: 6px 10px; border: 1px solid #e2e9e4; border-radius: 999px; font-size: 10px; }
 .page-content app-agent-conversation-page .open-pill { border-color: #cfe5d5; color: #28684d; background: #edf7ef; }
 .page-content app-agent-conversation-page .handoff-pill { border-color: #f0dfb9; color: #805d20; background: #fff7e6; }
-.page-content app-agent-conversation-page .conversation-layout { grid-template-columns: minmax(0, 1fr) 285px; gap: 17px; }
+.page-content app-agent-conversation-page .conversation-layout { grid-template-columns: minmax(0, 1fr) 250px; gap: 14px; }
 .page-content app-agent-conversation-page :is(.chat-card, .detail-card) { border-color: #e2eae4; border-radius: 16px; box-shadow: 0 3px 12px #193d2a0b; }
-.page-content app-agent-conversation-page .chat-card { height: min(82vh, 900px); min-height: 560px; }
+.page-content app-agent-conversation-page .chat-card { height: min(86vh, 980px); min-height: 600px; }
 .page-content app-agent-conversation-page .chat-heading { padding: 17px 20px; }
 .page-content app-agent-conversation-page .chat-heading strong { color: #304b3e; font-size: 14px; }
 .page-content app-agent-conversation-page .chat-heading small { color: #77877e; font-size: 10px; }
 .page-content app-agent-conversation-page .message-thread { gap: 11px; padding: 21px; background: #f4f8f5; }
 .page-content app-agent-conversation-page .message-bubble { max-width: min(78%, 650px); padding: 12px 14px; border-radius: 15px 15px 15px 5px; }
 .page-content app-agent-conversation-page .message-bubble.outgoing-bubble { border-radius: 15px 15px 5px 15px; background: #34745f; }
-.page-content app-agent-conversation-page .message-bubble p { font-size: calc(13px * var(--ui-font-scale, 1)); line-height: 1.6; }
-.page-content app-agent-conversation-page .message-label { margin-bottom: 6px; font-size: 9px; }
-.page-content app-agent-conversation-page :is(.message-bubble footer, .reply-label) { font-size: 10px; }
+.page-content app-agent-conversation-page .message-bubble p { font-size: calc(14px * var(--ui-font-scale, 1)); line-height: 1.58; }
+.page-content app-agent-conversation-page .message-label { margin-bottom: 6px; font-size: max(10px, calc(10px * var(--ui-font-scale, 1))); }
+.page-content app-agent-conversation-page :is(.message-bubble footer, .reply-label) { font-size: max(11px, calc(11px * var(--ui-font-scale, 1))); }
 .page-content app-agent-conversation-page .composer { padding: 14px 16px; }
+.page-content app-agent-conversation-page .composer-action-list { max-height: 24vh; }
+.page-content app-agent-conversation-page .voice-recorder { gap: 6px; padding: 5px 0 1px; }
+.page-content app-agent-conversation-page .voice-recorder audio { width: min(210px, 100%); height: 30px; }
 .page-content app-agent-conversation-page .quick-replies > span,
 .page-content app-agent-conversation-page .quick-replies button { font-size: 10px; }
 .page-content app-agent-conversation-page .quick-replies button { padding: 7px 10px; border-radius: 8px; }
-.page-content app-agent-conversation-page .send-form textarea { min-height: 60px; padding: 11px 12px; font-size: 12px; }
-.page-content app-agent-conversation-page :is(.send-form button, .upload-form button) { min-height: 38px; padding: 0 15px; font-size: 11px; }
+.page-content app-agent-conversation-page .send-form textarea { min-height: 60px; padding: 11px 12px; font-size: calc(14px * var(--ui-font-scale, 1)); }
+.page-content app-agent-conversation-page :is(.send-form button, .upload-form button) { min-height: 40px; padding: 0 15px; font-size: calc(12px * var(--ui-font-scale, 1)); }
 .page-content app-agent-conversation-page .detail-aside { gap: 12px; }
 .page-content app-agent-conversation-page .detail-card { padding: 17px; }
 .page-content app-agent-conversation-page .detail-card h2 { margin-bottom: 14px; color: #304b3e; font-size: 13px; }
@@ -134,7 +137,7 @@ html[data-theme="dark"] .page-content app-agent-conversation-page .handoff-pill 
 @media (max-width: 850px) {
   .page-content app-agent-conversation-page .conversation-layout { grid-template-columns: 1fr; gap: 14px; }
   .page-content app-agent-conversation-page .detail-aside { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .page-content app-agent-conversation-page .chat-card { height: 80vh; min-height: 500px; }
+  .page-content app-agent-conversation-page .chat-card { height: 84vh; min-height: 560px; }
 }
 
 @media (max-width: 540px) {
@@ -144,12 +147,13 @@ html[data-theme="dark"] .page-content app-agent-conversation-page .handoff-pill 
   .page-content app-agent-conversation-page .detail-pill { padding: 5px 8px; font-size: 9px; }
   .page-content app-agent-conversation-page .conversation-layout { gap: 10px; }
   .page-content app-agent-conversation-page .detail-aside { grid-template-columns: 1fr; }
-  .page-content app-agent-conversation-page .chat-card { height: 76vh; min-height: 440px; }
+  .page-content app-agent-conversation-page .chat-card { height: 82vh; min-height: 500px; }
   .page-content app-agent-conversation-page .chat-heading { padding: 13px 14px; }
   .page-content app-agent-conversation-page .message-thread { gap: 9px; padding: 12px; }
   .page-content app-agent-conversation-page .message-bubble { max-width: 90%; padding: 10px 12px; }
-  .page-content app-agent-conversation-page .message-bubble p { font-size: calc(12px * var(--ui-font-scale, 1)); }
+  .page-content app-agent-conversation-page .message-bubble p { font-size: calc(14px * var(--ui-font-scale, 1)); line-height: 1.55; }
   .page-content app-agent-conversation-page .composer { padding: 9px 10px; }
+  .page-content app-agent-conversation-page .composer-action-list { max-height: 22vh; }
 }
 html[data-theme="dark"] .bulk-toolbar { border-color: #3b4d40; color: #d3dfd6; background: #19231e; }
 html[data-theme="dark"] .bulk-toolbar .bulk-secondary { border-color: #405347; color: #d3dfd6; background: #26332c; }
@@ -204,8 +208,8 @@ html[data-theme="dark"] .bulk-more { border-color: #3b4d40; background: #19231e;
 html[data-theme="dark"] .bulk-more>summary, html[data-theme="dark"] .bulk-action-row label { color: #d3dfd6; }
 html[data-theme="dark"] .bulk-action-row :is(select,input) { border-color: #405347; color: #e8f0ea; background: #22322a; }
 @media(max-width:600px) { .bulk-action-row { align-items: stretch; }.bulk-action-row label { flex: 1 1 100%; }.bulk-note-row input { flex-basis: 100%; } }
-html[data-font-size="large"] { --ui-font-scale: 1.14; }
-html[data-font-size="xlarge"] { --ui-font-scale: 1.28; }
+html[data-font-size="large"] { --ui-font-scale: 1.2; }
+html[data-font-size="xlarge"] { --ui-font-scale: 1.4; }
 html:not([data-font-size]), html[data-font-size="normal"] { --ui-font-scale: 1; }
 body { font-size: calc(14px * var(--ui-font-scale, 1)); }
 .bulk-toolbar .bulk-menu-toggle { min-height: 34px; padding: 0 12px; border: 1px solid #24594c; border-radius: 8px; color: #fff; background: #24594c; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }

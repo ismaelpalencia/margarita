@@ -13,7 +13,7 @@ Centraliza conversaciones que antes se atendían desde teléfonos o cuentas indi
 - Mensajes de texto y medios, plantillas aprobadas por Meta, respuestas rápidas, botones y listas.
 - Campañas con plantillas, cola, pausa y reintentos sujetos a las reglas de Meta.
 - Paneles de administración y agente, equipo, sesiones, reportes, bitácora y respaldos.
-- Preferencia de tamaño de letra que escala el texto sin ampliar imágenes y medios; vista previa de conversaciones permanece anclada al viewport aunque la bandeja esté desplazada.
+- Preferencia de tamaño de letra Normal, Grande y Muy grande con escalado perceptible del texto operativo (incluidos mensajes y compositor) sin ampliar imágenes ni medios. El hilo de conversación aprovecha más altura disponible y los controles para grabar/enviar audio ocupan menos espacio; la vista previa permanece anclada al viewport aunque la bandeja esté desplazada.
 - Respuesta automática configurable cuando no hay personal disponible para el número, con activación manual para ausencias planificadas; es independiente del horario y tiene mensaje e intervalo propios.
 - Selector de número con contadores de mensajes sin leer por número; los avisos en pantalla y push identifican el número que recibió el mensaje.
 - Notificaciones en vivo y push separadas por usuario y rol: administradores reciben enlaces de administración; agentes, solo avisos de conversaciones asignadas y accesibles.

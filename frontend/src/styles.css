@@ -95,14 +95,14 @@ body { color: #263b33; background: #f7f9f7; font-family: 'Times New Roman', Time
 button, input, select, textarea { font: inherit; }
 a { color: inherit; }
 .contact-share-label { display: block; margin-bottom: 5px; color: #56745f; font-size: 8px; font-weight: 750; letter-spacing: .06em; }
-.voice-recorder { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding-top: 7px; }
-.voice-recorder button { min-height: 30px; padding: 0 10px; border: 1px solid #dfe7e1; border-radius: 7px; color: #416052; background: #f6f9f7; font: inherit; font-size: 10px; font-weight: 650; cursor: pointer; }
+.voice-recorder { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-top: 6px; }
+.voice-recorder button { min-height: 34px; padding: 0 9px; border: 1px solid #dfe7e1; border-radius: 7px; color: #416052; background: #f6f9f7; font: inherit; font-size: 11px; font-weight: 650; cursor: pointer; }
 .voice-recorder .voice-start,.voice-recorder .voice-send { border-color: #2f725b; color: #fff; background: #2f725b; }
 .voice-recorder .voice-discard { color: #8b4c45; }
 .voice-recorder button:disabled { opacity: .6; cursor: wait; }
-.voice-recorder audio { width: min(260px, 100%); height: 32px; }
+.voice-recorder audio { width: min(210px, 100%); height: 30px; }
 .voice-recorder small { flex-basis: 100%; color: #a33e32; font-size: 10px; }
-.recording-indicator { display: inline-flex; align-items: center; gap: 7px; color: #a33e32; font-size: 10px; font-weight: 700; }
+.recording-indicator { display: inline-flex; align-items: center; gap: 7px; color: #a33e32; font-size: 11px; font-weight: 700; }
 .recording-indicator i { width: 8px; height: 8px; border-radius: 50%; background: #d84b42; animation: recording-pulse 1.1s infinite; }
 @keyframes recording-pulse { 50% { opacity: .35; } }
 html[data-theme="dark"] { color-scheme: dark; --surface-page: #111916; --surface-card: #1a2420; --surface-raised: #202c26; --surface-border: #34423a; --text-primary: #e7eee9; --text-secondary: #bdc9c1; --text-muted: #91a097; --brand-green: #69bd8b; }
