@@ -2,6 +2,7 @@ import { Component, OnDestroy, inject, signal } from '@angular/core';
 import { ConfirmDialogService } from './ui/confirm-dialog.service';
 import { EmptyStateComponent } from './ui/empty-state.component';
 import { ToastService } from './ui/toast.service';
+import { lockPreviewScroll, unlockPreviewScroll } from './preview-scroll-lock';
 
 interface InboxTag { id: string; name: string; color: string | null }
 
@@ -117,7 +118,7 @@ interface PreviewData { timezone: string; hasOpenWindow: boolean; conversation: 
             @else if (previewError()) { <p class="preview-error" role="alert">{{ previewError() }}</p> }
             @else if (previewData(); as detail) {
               <div class="preview-tags">@for (tag of detail.conversation.contact.tags; track tag.id) { <span [style.border-color]="tag.color || '#b9d7c4'" [style.color]="tag.color || '#28684d'">{{ tag.name }}</span> }<details class="tag-quick" (toggle)="openPreviewTagEditor(preview, $event)"><summary>Etiquetar</summary><div class="tag-quick-menu">@if (!tags().length) { <small>No hay etiquetas configuradas.</small> }@for (tag of tags(); track tag.id) { <label><input type="checkbox" [checked]="draftTagIds(preview).has(tag.id)" (change)="toggleDraftTag(preview, tag.id, $event)"> {{ tag.name }}</label> }<button type="button" [disabled]="tagSavingId() === preview.id" (click)="saveTags(preview)">{{ tagSavingId() === preview.id ? 'Guardando…' : 'Guardar' }}</button></div></details></div>
-              <div class="preview-thread">@for (message of previewMessages(); track message.id) { <article class="preview-message" [class.incoming]="message.direction === 'IN'" [class.outgoing]="message.direction === 'OUT' && !message.isInternalNote" [class.internal]="message.isInternalNote"><small>{{ message.isInternalNote ? 'NOTA INTERNA' : (message.direction === 'IN' ? 'Cliente' : 'Equipo') }} · {{ dateLabel(message.createdAt, detail.timezone) }}</small><p>{{ message.body || '[' + message.type + ']' }}</p></article> }</div>
+              <div class="preview-thread" [scrollTop]="9999999">@for (message of previewMessages(); track message.id) { <article class="preview-message" [class.incoming]="message.direction === 'IN'" [class.outgoing]="message.direction === 'OUT' && !message.isInternalNote" [class.internal]="message.isInternalNote"><small>{{ message.isInternalNote ? 'NOTA INTERNA' : (message.direction === 'IN' ? 'Cliente' : 'Equipo') }} · {{ dateLabel(message.createdAt, detail.timezone) }}</small><p>{{ message.body || '[' + message.type + ']' }}</p></article> }</div>
               <footer class="preview-footer"><button type="button" (click)="togglePreviewSelection(preview)">{{ selectedIds().has(preview.id) ? 'Quitar selección' : 'Seleccionar conversación' }}</button><a [href]="'/panel/admin/conversations/' + preview.id">Abrir conversación completa</a></footer>
             }
           </aside>
@@ -194,6 +195,7 @@ export class AdminInboxPage implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    unlockPreviewScroll();
     window.clearInterval(this.refreshTimer);
     this.socket?.disconnect();
   }
@@ -234,6 +236,7 @@ export class AdminInboxPage implements OnDestroy {
     }
   }
   protected async openPreview(conversation: AdminInboxConversation): Promise<void> {
+    lockPreviewScroll();
     this.previewConversation.set(conversation);
     this.previewData.set(null);
     this.previewError.set('');
@@ -248,7 +251,7 @@ export class AdminInboxPage implements OnDestroy {
       this.previewLoading.set(false);
     }
   }
-  protected closePreview(): void { this.previewConversation.set(null); this.previewData.set(null); this.previewError.set(''); }
+  protected closePreview(): void { this.previewConversation.set(null); this.previewData.set(null); this.previewError.set(''); unlockPreviewScroll(); }
   protected openPreviewTagEditor(conversation: AdminInboxConversation, event: Event): void { this.openTagEditor(conversation, event); }
   protected togglePreviewSelection(conversation: AdminInboxConversation): void {
     const wasEmpty = this.selectedIds().size === 0;

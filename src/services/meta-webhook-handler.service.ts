@@ -37,6 +37,7 @@ import { AccountHealthService } from "./account-health.service";
 import { InteractiveReplyService } from "./interactive-reply.service";
 import { enqueueSuggestion } from "./ai/queue.service";
 import { OffHoursService } from "./off-hours.service";
+import { AgentAbsenceReplyService } from "./agent-absence-reply.service";
 import { FlowService } from "./flow.service";
 import { GuidedFlowService } from "./guided-flow.service";
 import { BadgeService } from "./badge.service";
@@ -358,6 +359,10 @@ export class MetaWebhookHandlerService {
                 offHoursMode: true,
                 offHoursMessage: true,
                 offHoursReplyIntervalHours: true,
+                agentAbsenceReplyEnabled: true,
+                agentAbsenceReplyManualEnabled: true,
+                agentAbsenceReplyMessage: true,
+                agentAbsenceReplyIntervalHours: true,
                 flowsEnabled: true,
                 leadsEnabled: true,
                 aiMultilangLanguages: true
@@ -411,14 +416,16 @@ export class MetaWebhookHandlerService {
         });
 
         if (!optedOut) {
+            let absenceReplySent = false;
             if (offHours) {
                 /**
                  * Fuera de horario no se encola la IA normal: se responde
                  * según el modo configurado. Un fallo aquí no pierde el
                  * mensaje; el hilo queda en la bandeja para la mañana.
                  */
+                let offHoursReplySent = false;
                 try {
-                    await OffHoursService.handle({
+                    offHoursReplySent = await OffHoursService.handle({
                         workspace: {
                             id: workspaceId,
                             name: workspace?.name ?? "",
@@ -444,6 +451,32 @@ export class MetaWebhookHandlerService {
                         },
                         "No se pudo responder fuera de horario."
                     );
+                }
+                if (
+                    !offHoursReplySent &&
+                    (workspace?.agentAbsenceReplyManualEnabled || workspace?.agentAbsenceReplyEnabled)
+                ) {
+                    try {
+                        const shouldReply = workspace?.agentAbsenceReplyManualEnabled ||
+                            !(await AgentAbsenceReplyService.hasAvailableStaff(workspaceId, whatsappNumberId));
+                        if (shouldReply) {
+                            absenceReplySent = await AgentAbsenceReplyService.handle({
+                                workspaceId,
+                                conversationId: conversation.id,
+                                inboundMessageId: savedMessage.id,
+                                replyMessage: workspace.agentAbsenceReplyMessage,
+                                intervalHours: workspace.agentAbsenceReplyIntervalHours
+                            });
+                        }
+                    } catch (error) {
+                        logger.warn(
+                            {
+                                error: error instanceof Error ? error.message : String(error),
+                                conversationId: conversation.id
+                            },
+                            "No se pudo enviar la respuesta por ausencia de agentes."
+                        );
+                    }
                 }
             } else {
                 /**
@@ -511,6 +544,34 @@ export class MetaWebhookHandlerService {
                     }
                 }
 
+                if (
+                    !flowTriggered &&
+                    !guidedTriggered &&
+                    (workspace?.agentAbsenceReplyManualEnabled || workspace?.agentAbsenceReplyEnabled)
+                ) {
+                    try {
+                        const shouldReply = workspace?.agentAbsenceReplyManualEnabled ||
+                            !(await AgentAbsenceReplyService.hasAvailableStaff(workspaceId, whatsappNumberId));
+                        if (shouldReply) {
+                            absenceReplySent = await AgentAbsenceReplyService.handle({
+                                workspaceId,
+                                conversationId: conversation.id,
+                                inboundMessageId: savedMessage.id,
+                                replyMessage: workspace.agentAbsenceReplyMessage,
+                                intervalHours: workspace.agentAbsenceReplyIntervalHours
+                            });
+                        }
+                    } catch (error) {
+                        logger.warn(
+                            {
+                                error: error instanceof Error ? error.message : String(error),
+                                conversationId: conversation.id
+                            },
+                            "No se pudo enviar la respuesta por ausencia de agentes."
+                        );
+                    }
+                }
+
                 /**
                  * La IA se encola **después** de la baja: si el cliente
                  * escribió STOP, no se genera ni un borrador. El trabajo corre
@@ -518,7 +579,7 @@ export class MetaWebhookHandlerService {
                  * validar la política antes de llamar al modelo. Si un flujo
                  * ya respondió, no se encola para no mandar dos mensajes.
                  */
-                if (!flowTriggered && !guidedTriggered && numberAiEnabled) {
+                if (!flowTriggered && !guidedTriggered && !absenceReplySent && numberAiEnabled) {
                 try {
                     await enqueueSuggestion({
                         workspaceId,

@@ -759,17 +759,23 @@ export class MessageService {
         }
     }
 
-    /**
-     * Respuesta automática fuera de horario (TEXT_ONLY o AI_IF_COVERED).
-     *
-     * La manda el sistema, no una persona: source AUTOMATIC y sin userId. La
-     * idempotencia no va por aiSuggestionId (no hay sugerencia), sino por el
-     * sello Conversation.lastOffHoursReplyAt que escribe quien la invoca.
-     */
-    static async sendOffHoursReply(params: {
+    static sendOffHoursReply(params: {
         workspaceId: string;
         conversationId: string;
         body: string;
+    }) {
+        return this.sendAutomaticTextReply({ ...params, kind: "OFF_HOURS" });
+    }
+
+    /**
+     * Envía texto automático de horario o ausencia dentro de la ventana de
+     * 24 horas. La persona que opera el panel no figura como remitente.
+     */
+    static async sendAutomaticTextReply(params: {
+        workspaceId: string;
+        conversationId: string;
+        body: string;
+        kind: "OFF_HOURS" | "AGENT_ABSENCE";
     }) {
         const conversation = await prisma.conversation.findFirst({
             where: {
@@ -801,7 +807,7 @@ export class MessageService {
         const body = params.body.trim();
 
         if (body.length === 0) {
-            throw new Error("La respuesta fuera de horario está vacía.");
+            throw new Error("La respuesta automática está vacía.");
         }
 
         const localMessage = await prisma.message.create({
@@ -817,7 +823,9 @@ export class MessageService {
                 metaPayload: {
                     type: "text",
                     body,
-                    offHours: true
+                    ...(params.kind === "AGENT_ABSENCE"
+                        ? { agentAbsence: true }
+                        : { offHours: true })
                 }
             }
         });
@@ -905,7 +913,7 @@ export class MessageService {
                 failedMessage
             );
 
-            throw new Error("No se pudo enviar el mensaje fuera de horario a Meta.");
+            throw new Error("No se pudo enviar la respuesta automática a Meta.");
         }
     }
 

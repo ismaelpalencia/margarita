@@ -152,21 +152,21 @@ export class OffHoursService {
 
             /** No cubierto: mensaje fuera de horario + entrega con motivo. */
             await this.markHandoff(conversationId, now);
-            await this.sendOffHoursMessage(workspace, conversationId, now);
+            const replied = await this.sendOffHoursMessage(workspace, conversationId, now);
             await this.queue(workspace.id, conversationId, {
                 mode,
                 inboundMessageId,
                 handoff: "OFF_HOURS"
             });
 
-            return true;
+            return replied;
         }
 
         /** TEXT_ONLY (y cualquier valor inesperado cae aquí). */
-        await this.sendOffHoursMessage(workspace, conversationId, now);
+        const replied = await this.sendOffHoursMessage(workspace, conversationId, now);
         await this.queue(workspace.id, conversationId, { mode, inboundMessageId });
 
-        return true;
+        return replied;
     }
 
     private static async sendOffHoursMessage(

@@ -102,6 +102,7 @@ Checklist reutilizable para incorporar una instalación/cliente de Margarita. Co
 | Etiquetas y significado acordados |  | ☐ Pendiente | Catálogo inicial aprobado |  | Sí / No |
 | Respuestas rápidas revisadas y probadas |  | ☐ Pendiente | Lista aprobada y prueba |  | Sí / No |
 | Horarios, zona horaria y comportamiento fuera de horario configurados |  | ☐ Pendiente | Captura/registro y prueba |  | Sí |
+| Respuesta por ausencia, mensaje e intervalo definidos; activación manual probada si se usa |  | ☐ Pendiente | Captura/registro y prueba entrante sin personal disponible |  | No |
 | Campañas: audiencias, plantillas aprobadas, consentimiento, exclusiones y responsable |  | ☐ Pendiente | Checklist de autorización y prueba controlada |  | Sí si campañas aplican |
 | Leads: campos, etapas, responsable y acceso acordados |  | ☐ Pendiente | Flujo aprobado |  | Sí / No |
 | Google Sheets configurado solo si aplica y con permisos mínimos |  | ☐ Pendiente | Hoja/cuenta de prueba y propietario |  | Sí / No |

@@ -4,6 +4,16 @@ import { z } from "zod";
 const timeRegex = /^\d{2}:\d{2}$/;
 
 export const hoursSchema = z.object({
+    agentAbsenceReplyEnabled: z.preprocess(
+        (value) => typeof value === "boolean" ? String(value) : Array.isArray(value) ? (value.includes("true") ? "true" : "false") : value,
+        z.enum(["true", "false"]).default("false")
+    ).transform((value) => value === "true"),
+    agentAbsenceReplyManualEnabled: z.preprocess(
+        (value) => typeof value === "boolean" ? String(value) : Array.isArray(value) ? (value.includes("true") ? "true" : "false") : value,
+        z.enum(["true", "false"]).default("false")
+    ).transform((value) => value === "true"),
+    agentAbsenceReplyMessage: z.string().trim().max(1000, "El mensaje de ausencia es demasiado largo.").default(""),
+    agentAbsenceReplyIntervalHours: z.coerce.number().int().min(1).max(72).default(12),
     businessHoursEnabled: z
         .preprocess(
             (value) =>

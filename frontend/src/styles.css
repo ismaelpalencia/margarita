@@ -91,7 +91,7 @@ html, body { min-height: 100%; margin: 0; }
 html { color-scheme: light; --surface-page: #f6f8f7; --surface-card: #fff; --surface-raised: #f8faf8; --surface-border: #e3e9e5; --text-primary: #263b33; --text-secondary: #65746c; --text-muted: #89958e; --brand-green: #17865a; }
 html.margarita-dark-mode { filter: invert(1) hue-rotate(180deg) !important; }
 html.margarita-dark-mode :is(img, video, iframe, canvas, [style*="background-image"]) { filter: invert(1) hue-rotate(180deg) !important; }
-body { color: #263b33; background: #f7f9f7; font-family: 'Times New Roman', Times, serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
+body { color: #263b33; background: #f7f9f7; font-family: 'Times New Roman', Times, serif; font-size: calc(14px * var(--ui-font-scale, 1)); -webkit-font-smoothing: antialiased; }
 button, input, select, textarea { font: inherit; }
 a { color: inherit; }
 .contact-share-label { display: block; margin-bottom: 5px; color: #56745f; font-size: 8px; font-weight: 750; letter-spacing: .06em; }
@@ -248,3 +248,20 @@ html[data-theme="dark"] .contact-block-card .block-contact-button { border-color
 .conversation-call-history time,.conversation-call-history small,.conversation-call-history p { color: var(--ui-muted, #718077); font-size: 11px; }
 .conversation-call-history p { margin: 2px 0 5px; }
 @media(prefers-reduced-motion:reduce) { .conversation-call-history summary::after { transition: none; } }
+
+.page-content app-admin-hours-page .hours-card h2 { font-size:calc(16px * var(--ui-font-scale,1)); }
+.page-content app-admin-hours-page .hours-card>label,.page-content app-admin-hours-page .time-grid label,.page-content app-admin-hours-page .hours-card legend { font-size:calc(12px * var(--ui-font-scale,1)); }
+.page-content app-admin-hours-page .hours-card input:not([type=checkbox]),.page-content app-admin-hours-page .hours-card select,.page-content app-admin-hours-page .hours-card textarea { font-size:calc(13px * var(--ui-font-scale,1)); }
+.page-content app-admin-hours-page .absence-card>p { margin:0; color:#718078; font-size:calc(13px * var(--ui-font-scale,1)); line-height:1.55; }
+.page-content app-admin-hours-page .absence-toggle { display:flex; align-items:flex-start; gap:11px; cursor:pointer; }
+.page-content app-admin-hours-page .absence-toggle input { width:18px; height:18px; flex:0 0 auto; margin-top:2px; accent-color:#176c4a; }
+.page-content app-admin-hours-page .absence-toggle span strong,.page-content app-admin-hours-page .absence-toggle span small { display:block; }
+.page-content app-admin-hours-page .absence-toggle span strong { color:#34443b; font-size:calc(13px * var(--ui-font-scale,1)); }
+.page-content app-admin-hours-page .absence-toggle span small { margin-top:5px; color:#839087; font-size:calc(11px * var(--ui-font-scale,1)); font-weight:400; }
+.page-content app-admin-hours-page .absence-preview { border-color:#d5e5db; background:#f1f8f3; color:#40604c; }
+.page-content app-admin-hours-page .absence-preview p { overflow-wrap:anywhere; }
+html[data-theme="dark"] .page-content app-admin-hours-page .absence-card>p { color:#bdc9c1; }
+html[data-theme="dark"] .page-content app-admin-hours-page .absence-toggle span strong { color:#e7eee9; }
+html[data-theme="dark"] .page-content app-admin-hours-page .absence-toggle span small { color:#aab7ae; }
+html[data-theme="dark"] .page-content app-admin-hours-page .absence-preview { border-color:#405b48; background:#1d3024; color:#d7eadb; }
+html[data-theme="dark"] .page-content app-admin-hours-page .absence-preview p { background:#17211c; color:#dce8df; }

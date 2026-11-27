@@ -25,6 +25,10 @@ type HoursForm = {
     message: string;
     intervalHours: number;
     autoRejectCallsOutsideHours: boolean;
+    agentAbsenceReplyEnabled: boolean;
+    agentAbsenceReplyManualEnabled: boolean;
+    agentAbsenceReplyMessage: string;
+    agentAbsenceReplyIntervalHours: number;
 };
 
 function formFromWorkspace(workspace: {
@@ -33,6 +37,10 @@ function formFromWorkspace(workspace: {
     offHoursMode: OffHoursMode;
     offHoursMessage: string | null;
     offHoursReplyIntervalHours: number;
+    agentAbsenceReplyEnabled: boolean;
+    agentAbsenceReplyManualEnabled: boolean;
+    agentAbsenceReplyMessage: string | null;
+    agentAbsenceReplyIntervalHours: number;
     settings: { timezone: string } | null;
 }): HoursForm {
     const raw = (workspace.businessHours ?? {}) as Record<string, unknown>;
@@ -49,7 +57,11 @@ function formFromWorkspace(workspace: {
         mode: workspace.offHoursMode,
         message: workspace.offHoursMessage ?? "",
         intervalHours: workspace.offHoursReplyIntervalHours,
-        autoRejectCallsOutsideHours: raw.autoRejectCallsOutsideHours === true
+        autoRejectCallsOutsideHours: raw.autoRejectCallsOutsideHours === true,
+        agentAbsenceReplyEnabled: workspace.agentAbsenceReplyEnabled,
+        agentAbsenceReplyManualEnabled: workspace.agentAbsenceReplyManualEnabled,
+        agentAbsenceReplyMessage: workspace.agentAbsenceReplyMessage ?? "",
+        agentAbsenceReplyIntervalHours: workspace.agentAbsenceReplyIntervalHours
     };
 }
 
@@ -63,6 +75,10 @@ export class AdminHoursController {
                 offHoursMode: true,
                 offHoursMessage: true,
                 offHoursReplyIntervalHours: true,
+                agentAbsenceReplyEnabled: true,
+                agentAbsenceReplyManualEnabled: true,
+                agentAbsenceReplyMessage: true,
+                agentAbsenceReplyIntervalHours: true,
                 settings: { select: { timezone: true } }
             }
         });
@@ -94,6 +110,14 @@ export class AdminHoursController {
 
         const input = parsed.data;
         const days = input.days.length > 0 ? input.days : [1, 2, 3, 4, 5];
+        const hasAbsenceSettings = Object.prototype.hasOwnProperty.call(
+            req.body || {},
+            "agentAbsenceReplyEnabled"
+        );
+        const hasManualAbsenceSetting = Object.prototype.hasOwnProperty.call(
+            req.body || {},
+            "agentAbsenceReplyManualEnabled"
+        );
 
         try {
             const current = await prisma.workspace.findUnique({ where: { id: req.user!.workspaceId }, select: { businessHours: true } });
@@ -113,7 +137,17 @@ export class AdminHoursController {
                     },
                     offHoursMode: input.mode,
                     offHoursMessage: input.message || null,
-                    offHoursReplyIntervalHours: input.intervalHours
+                    offHoursReplyIntervalHours: input.intervalHours,
+                    ...(hasAbsenceSettings
+                        ? {
+                              agentAbsenceReplyEnabled: input.agentAbsenceReplyEnabled,
+                              agentAbsenceReplyMessage: input.agentAbsenceReplyMessage || null,
+                              agentAbsenceReplyIntervalHours: input.agentAbsenceReplyIntervalHours
+                          }
+                        : {}),
+                    ...(hasManualAbsenceSetting
+                        ? { agentAbsenceReplyManualEnabled: input.agentAbsenceReplyManualEnabled }
+                        : {})
                 }
             });
 
@@ -122,7 +156,7 @@ export class AdminHoursController {
                 level: LogLevel.INFO,
                 module: LogModule.SYSTEM,
                 action: "WORKSPACE_BUSINESS_HOURS_CHANGED",
-                message: "Se actualizó el horario de atención y el modo fuera de horario.",
+                message: "Se actualizó la configuración de horarios y respuestas automáticas.",
                 payload: {
                     enabled: input.businessHoursEnabled,
                     timezone: input.timezone,
@@ -131,7 +165,16 @@ export class AdminHoursController {
                     end: input.end,
                     mode: input.mode,
                     intervalHours: input.intervalHours,
-                    autoRejectCallsOutsideHours: input.autoRejectCallsOutsideHours
+                    autoRejectCallsOutsideHours: input.autoRejectCallsOutsideHours,
+                    ...(hasAbsenceSettings
+                        ? {
+                              agentAbsenceReplyEnabled: input.agentAbsenceReplyEnabled,
+                              agentAbsenceReplyIntervalHours: input.agentAbsenceReplyIntervalHours
+                          }
+                        : {}),
+                    ...(hasManualAbsenceSetting
+                        ? { agentAbsenceReplyManualEnabled: input.agentAbsenceReplyManualEnabled }
+                        : {})
                 }
             }).catch(() => undefined);
         } catch {

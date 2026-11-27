@@ -14,6 +14,7 @@ Centraliza conversaciones que antes se atendían desde teléfonos o cuentas indi
 - Campañas con plantillas, cola, pausa y reintentos sujetos a las reglas de Meta.
 - Paneles de administración y agente, equipo, sesiones, reportes, bitácora y respaldos.
 - Preferencia de tamaño de letra que escala el texto sin ampliar imágenes y medios; vista previa de conversaciones permanece anclada al viewport aunque la bandeja esté desplazada.
+- Respuesta automática configurable cuando no hay personal disponible para el número, con activación manual para ausencias planificadas; es independiente del horario y tiene mensaje e intervalo propios.
 - Selector de número con contadores de mensajes sin leer por número; los avisos en pantalla y push identifican el número que recibió el mensaje.
 - Notificaciones en vivo y push separadas por usuario y rol: administradores reciben enlaces de administración; agentes, solo avisos de conversaciones asignadas y accesibles.
 - Bandejas de admin y agente con selección múltiple, filtro de ventana de 24 horas y envío de respuestas rápidas a las conversaciones elegibles; las que requieren plantilla se identifican y se omiten del envío libre.

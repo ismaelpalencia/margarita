@@ -342,6 +342,12 @@ model Workspace {
   offHoursMessage            String?
   offHoursReplyIntervalHours Int          @default(12)
 
+  /** Respuesta independiente cuando no hay agentes disponibles. */
+  agentAbsenceReplyEnabled       Boolean @default(false)
+  agentAbsenceReplyManualEnabled Boolean @default(false)
+  agentAbsenceReplyMessage       String?
+  agentAbsenceReplyIntervalHours Int     @default(12)
+
   /**
    * Listas interactivas (más de 3 opciones). Apagado por defecto.
    */
@@ -930,6 +936,9 @@ model Conversation {
    * este hilo. Sirve para no repetirla más de una vez por intervalo.
    */
   lastOffHoursReplyAt DateTime?
+
+  /** Sello separado para limitar respuestas automáticas por ausencia. */
+  lastAgentAbsenceReplyAt DateTime?
 
   /**
    * Última vez que se escaló este hilo sin asignar a todos los administradores.
